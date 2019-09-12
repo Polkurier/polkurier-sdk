@@ -76,7 +76,6 @@ class HTTPClient
         $result = curl_exec($client);
         $http_code = curl_getinfo($client,CURLINFO_HTTP_CODE);
         curl_close($client);
-        var_dump($result);
         if($http_code == 200) {
             if (!$result){
                 throw new FatalException('Nie można połączyć się z interfejsem API');
