@@ -1,0 +1,21 @@
+{
+  "name": "polkurier/polkurier-web-service-api",
+  "description": "Klient API serwisu polkurier.pl",
+  "version": "1.0",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "polkurier.pl",
+      "email": "api@polkurier.pl"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0"
+  },
+  "autoload": {
+    "psr-0": {
+      "PolkurierWebServiceApi": "src/"
+    }
+  }
+}
