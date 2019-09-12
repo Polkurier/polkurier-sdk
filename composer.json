@@ -1,8 +1,7 @@
 {
   "name": "polkurier/polkurier-sdk",
   "description": "SDK API serwisu polkurier.pl",
-  "version": "1.0",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
   "license": "proprietary",
   "authors": [
     {
