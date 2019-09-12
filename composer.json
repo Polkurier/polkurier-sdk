@@ -2,7 +2,7 @@
   "name": "polkurier/polkurier-sdk",
   "description": "SDK API serwisu polkurier.pl",
   "minimum-stability": "dev",
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
       "name": "polkurier.pl",
