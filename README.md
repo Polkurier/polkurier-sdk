@@ -7,3 +7,8 @@ W katalogu `./examples` znajdują się przykłady użycia SDK.
 
 W celu uzyskanie klucza API skontaktuj się z Biurem Obsługi Klienta.
 
+
+Instalacja
+----------
+
+`composer require polkurier/polkurier-sdk`
