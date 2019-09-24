@@ -2,6 +2,7 @@
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Entities\Pack;
+use PolkurierWebServiceApi\Entities\Recipient;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
@@ -36,6 +37,12 @@ class OrderValuation extends AbstractMethod
      * @var float
      */
     private $insurance = 0;
+
+    /**
+     * @var Recipient|null
+     */
+    private $recipient;
+
 
     /**
      * @return string
@@ -130,12 +137,31 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
+     * @return Recipient|null
+     */
+    public function getRecipient()
+    {
+        return $this->recipient;
+    }
+
+    /**
+     * @param Recipient|null $recipient
+     */
+    public function setRecipient($recipient)
+    {
+        $this->recipient = $recipient;
+    }
+
+    /**
      * @return array
      */
     public function getRequestData()
     {
         return [
             'returnvaluations' => $this->getReturnValuations(),
+            'recipient' => $this->recipient ? [
+                'country' => $this->recipient->getCountry()
+            ] : null,
             'shipmenttype' => $this->getShipmentType(),
             'packs' => array_map(function (Pack $pack) {
                 return $pack->toArray();
