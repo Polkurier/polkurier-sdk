@@ -8,8 +8,11 @@ use PolkurierWebServiceApi\Auth;
 use PolkurierWebServiceApi\PolkurierWebService;
 use PolkurierWebServiceApi\Type\PackType;
 use PolkurierWebServiceApi\Type\ShipmentType;
+use PolkurierWebServiceApi\Type\ReturnCodType;
+use PolkurierWebServiceApi\Type\ReturnTimeCodType;
 use PolkurierWebServiceApi\Exception\ErrorException;
-
+use PolkurierWebServiceApi\Entities\Sender;
+use PolkurierWebServiceApi\Entities\Recipient;
 
 try{
     $config = new Config();
@@ -25,10 +28,22 @@ try{
         ->setAmount(1)
         ->setType(PackType::ST));
 
+    $sender = new Sender();
+    $sender->setCountry('PL')
+        ->setPostcode('63-400');
+
+    $recipient = new Recipient();
+    $recipient->setCountry('PL')
+        ->setPostcode('63-400');
+
     $method
         ->setShipmentType(ShipmentType::BOX)
         ->setCOD(100)
-        ->setInsurance(100);
+        ->setCodtype(ReturnTimeCodType::TYPE_ST)
+        ->setReturnCod(ReturnCodType::BA)
+        ->setInsurance(100)
+        ->setSender($sender)
+        ->setRecipient($recipient);
 
     $webApi->requestMethod($method);
     $data = $method->getData();

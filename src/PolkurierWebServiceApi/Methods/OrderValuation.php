@@ -3,6 +3,7 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\Recipient;
+use PolkurierWebServiceApi\Entities\Sender;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
@@ -34,6 +35,16 @@ class OrderValuation extends AbstractMethod
     private $COD = 0;
 
     /**
+     * @var string
+     */
+    private $codtype = '';
+
+    /**
+     * @var string
+     */
+    private $return_cod = '';
+
+    /**
      * @var float
      */
     private $insurance = 0;
@@ -42,6 +53,11 @@ class OrderValuation extends AbstractMethod
      * @var Recipient|null
      */
     private $recipient;
+
+    /**
+     * @var Sender|null
+     */
+    private $sender;
 
 
     /**
@@ -117,6 +133,41 @@ class OrderValuation extends AbstractMethod
         return $this->COD;
     }
 
+    /**
+     * @return string
+     */
+    public function getCodtype()
+    {
+        return $this->codtype;
+    }
+
+    /**
+     * @param $codtype
+     * @return $this
+     */
+    public function setCodtype($codtype)
+    {
+        $this->codtype = $codtype;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReturnCod()
+    {
+        return $this->return_cod;
+    }
+
+    /**
+     * @param $return_cod
+     * @return $this
+     */
+    public function setReturnCod($return_cod)
+    {
+        $this->return_cod = $return_cod;
+        return $this;
+    }
 
     /**
      * @param int $insurance
@@ -146,10 +197,30 @@ class OrderValuation extends AbstractMethod
 
     /**
      * @param Recipient|null $recipient
+     * @return $this
      */
     public function setRecipient($recipient)
     {
         $this->recipient = $recipient;
+        return $this;
+    }
+
+    /**
+     * @return Sender|null
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
+
+    /**
+     * @param Sender|null $sender
+     * @return $this
+     */
+    public function setSender($sender)
+    {
+        $this->sender = $sender;
+        return $this;
     }
 
     /**
@@ -159,14 +230,16 @@ class OrderValuation extends AbstractMethod
     {
         return [
             'returnvaluations' => $this->getReturnValuations(),
-            'recipient' => $this->recipient ? [
-                'country' => $this->recipient->getCountry()
-            ] : null,
+            'postcode_sender' => $this->sender ? $this->sender->getPostcode() : '',
+            'postcode_recipient' => $this->recipient ? $this->recipient->getPostcode() : '',
+            'recipient_country' => $this->recipient ? $this->recipient->getCountry() : '',
             'shipmenttype' => $this->getShipmentType(),
             'packs' => array_map(function (Pack $pack) {
                 return $pack->toArray();
             }, $this->packs),
             'COD' => $this->getCOD(),
+            'codtype' => $this->getCodtype(),
+            'return_cod' => $this->getReturnCod(),
             'insurance' => $this->getInsurance()
         ];
     }
