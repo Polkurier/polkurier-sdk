@@ -5,7 +5,7 @@ Dokumentacja API do pobrania pod adresem https://www.polkurier.pl/integracje
 
 W katalogu `./examples` znajdują się przykłady użycia SDK.
 
-W celu uzyskanie klucza API skontaktuj się z Biurem Obsługi Klienta.
+Token dostępowy od API można wygenerować z zakłdce Panel klienta > Ustawienia > Token API po zalogowaniu na https://www.polkurier.pl
 
 
 Instalacja
