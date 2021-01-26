@@ -233,6 +233,7 @@ class OrderValuation extends AbstractMethod
             'postcode_sender' => $this->sender ? $this->sender->getPostcode() : '',
             'postcode_recipient' => $this->recipient ? $this->recipient->getPostcode() : '',
             'recipient_country' => $this->recipient ? $this->recipient->getCountry() : '',
+            'recipient_email' => $this->recipient ? $this->recipient->getEmail() : '',
             'shipmenttype' => $this->getShipmentType(),
             'packs' => array_map(function (Pack $pack) {
                 return $pack->toArray();
