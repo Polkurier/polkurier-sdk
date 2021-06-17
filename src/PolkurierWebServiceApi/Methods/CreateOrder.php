@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Entities\COD;
@@ -31,24 +32,23 @@ class CreateOrder extends AbstractMethod
      */
     private $description;
     /**
-     * @var \PolkurierWebServiceApi\Entities\Sender
+     * @var Sender
      */
     private $sender;
     /**
-     * @var \PolkurierWebServiceApi\Entities\Recipient
+     * @var Recipient
      */
     private $recipient;
-
     /**
      * @var array
      */
     private $packs = [];
     /**
-     * @var \PolkurierWebServiceApi\Entities\Pickup
+     * @var Pickup
      */
     private $pickup;
     /**
-     * @var \PolkurierWebServiceApi\Entities\COD
+     * @var COD
      */
     private $COD;
     /**
@@ -83,13 +83,13 @@ class CreateOrder extends AbstractMethod
         return [
             'shipmenttype' => $this->getShipmentType(),
             'courier' => $this->getCourier(),
-            'courierservice' => array_map(function (CourierServiceInterface $service) {
+            'courierservice' => array_map(static function (CourierServiceInterface $service) {
                 return $service->toArray();
             }, $this->getCourierService()),
             'description' => $this->getDescription(),
             'sender' => $this->getSender()->toArray(),
             'recipient' => $this->getRecipient()->toArray(),
-            'packs' => array_map(function (Pack $pack) {
+            'packs' => array_map(static function (Pack $pack) {
                 return $pack->toArray();
             }, $this->getPack()),
             'pickup' => $this->getPickup()->toArray(),
@@ -111,7 +111,7 @@ class CreateOrder extends AbstractMethod
      */
     public function setCourier($courier)
     {
-        $this->courier = (string) $courier;
+        $this->courier = (string)$courier;
     }
 
     /**
@@ -120,7 +120,7 @@ class CreateOrder extends AbstractMethod
      */
     public function setShipmentType($shipmenttype)
     {
-        $this->shipmenttype = (string) $shipmenttype;
+        $this->shipmenttype = (string)$shipmenttype;
         return $this;
     }
 
@@ -138,7 +138,7 @@ class CreateOrder extends AbstractMethod
      */
     public function setDescription($description)
     {
-        $this->description = (string) $description;
+        $this->description = (string)$description;
         return $this;
     }
 
@@ -148,7 +148,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\Sender $sender
+     * @param Sender $sender
      * @return $this
      */
     public function setSender(Sender $sender)
@@ -158,7 +158,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return \PolkurierWebServiceApi\Entities\Sender
+     * @return Sender
      */
     private function getSender()
     {
@@ -166,7 +166,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\Recipient $recipient
+     * @param Recipient $recipient
      * @return $this
      */
     public function setRecipient(Recipient $recipient)
@@ -176,7 +176,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return \PolkurierWebServiceApi\Entities\Recipient
+     * @return Recipient
      */
     private function getRecipient()
     {
@@ -202,7 +202,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\Pack $pack
+     * @param Pack $pack
      * @return $this
      */
     public function addPack(Pack $pack)
@@ -220,7 +220,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\CourierServiceInterface $courierservice
+     * @param CourierServiceInterface $courierservice
      * @return $this
      */
     public function addCourierService(CourierServiceInterface $courierservice)
@@ -239,7 +239,7 @@ class CreateOrder extends AbstractMethod
 
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\Pickup $pickup
+     * @param Pickup $pickup
      * @return $this
      */
     public function setPickup(Pickup $pickup)
@@ -249,7 +249,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return \PolkurierWebServiceApi\Entities\Pickup
+     * @return Pickup
      */
     private function getPickup()
     {
@@ -257,7 +257,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\COD $cod
+     * @param COD $cod
      * @return $this
      */
     public function setCOD(COD $cod)
@@ -267,7 +267,7 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return \PolkurierWebServiceApi\Entities\COD
+     * @return COD
      */
     private function getCOD()
     {

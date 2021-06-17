@@ -13,12 +13,12 @@ $webApi = new PolkurierWebService($auth, $config);
 $method = new GetProtocol();
 $method->addOrderNumber('1234-1');
 
-try{
+try {
     $webApi->requestMethod($method);
 
     header('Content-Type: application/pdf');
     echo $method->getData()->getContent();
-}catch (ErrorException $ex){
+} catch (ErrorException $ex) {
     echo $ex->getMessage();
 }
 

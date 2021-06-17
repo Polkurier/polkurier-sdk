@@ -1,5 +1,7 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
+
 use PolkurierWebServiceApi\Exception\ErrorException;
 
 /**
@@ -49,7 +51,7 @@ class Pickup
 
     /**
      * @param $hour
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     private function validateHourFormat($hour)
     {
@@ -61,7 +63,7 @@ class Pickup
     /**
      * @param $hour
      * @return $this
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     public function setTimeFrom($hour)
     {
@@ -83,7 +85,7 @@ class Pickup
     /**
      * @param $hour
      * @return $this
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     public function setTimeTo($hour)
     {
@@ -99,7 +101,7 @@ class Pickup
     {
         return $this->timeTo;
     }
-    
+
 
     /**
      * @param boolean $noCourierOrder
@@ -107,7 +109,7 @@ class Pickup
      */
     public function setNoCourierOrder($noCourierOrder)
     {
-        $this->noCourierOrder = (bool) $noCourierOrder;
+        $this->noCourierOrder = (bool)$noCourierOrder;
         return $this;
     }
 

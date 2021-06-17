@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
@@ -16,17 +17,14 @@ class PickupCourier extends AbstractMethod
      * @var string
      */
     private $pickupdate;
-
     /**
      * @var string
      */
     private $courier;
-
     /**
      * @var string
      */
     private $shipfrom;
-
     /**
      * @var string
      */
@@ -127,14 +125,15 @@ class PickupCourier extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Response $response
-     * @return $this|\PolkurierWebServiceApi\Methods\AbstractMethod
+     * @param Response $response
+     * @return $this|AbstractMethod
      */
-    public function setResponseData(Response $response) {
+    public function setResponseData(Response $response)
+    {
         $this->responseData = [];
-        $response = $response->get('response') ;
-        $this->responseData['pickupdate'] = Arr::get($response, 'pickupdate',false);
-        $this->responseData['time'] = Arr::get($response, 'time',[]);
+        $response = $response->get('response');
+        $this->responseData['pickupdate'] = Arr::get($response, 'pickupdate', false);
+        $this->responseData['time'] = Arr::get($response, 'time', []);
         return $this;
     }
 }

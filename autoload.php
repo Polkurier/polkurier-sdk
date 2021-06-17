@@ -1,5 +1,5 @@
 <?php
-$basePath = dirname(__FILE__) . '/src/PolkurierWebServiceApi/';
+$basePath = __DIR__ . '/src/PolkurierWebServiceApi/';
 require_once($basePath . 'Exception/FatalException.php');
 require_once($basePath . 'Exception/ErrorException.php');
 require_once($basePath . 'Config.php');

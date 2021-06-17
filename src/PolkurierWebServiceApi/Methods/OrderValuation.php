@@ -1,12 +1,15 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\CourierServiceInterface;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\Recipient;
 use PolkurierWebServiceApi\Entities\Sender;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
+
 /**
  * Class OrderValuation
  * @package PolkurierWebServiceApi\Methods
@@ -18,46 +21,42 @@ class OrderValuation extends AbstractMethod
      * @var string
      */
     private $returnValuations = '';
-
     /**
      * @var string
      */
     private $shipmentType = '';
-    
     /**
      * @var array
      */
     private $packs = [];
-
     /**
      * @var float
      */
     private $COD = 0;
-
     /**
      * @var string
      */
     private $codtype = '';
-
     /**
      * @var string
      */
     private $return_cod = '';
-
     /**
      * @var float
      */
     private $insurance = 0;
-
     /**
      * @var Recipient|null
      */
     private $recipient;
-
     /**
      * @var Sender|null
      */
     private $sender;
+    /**
+     * @var array
+     */
+    private $courierservice = [];
 
 
     /**
@@ -69,7 +68,7 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Entities\Pack $pack
+     * @param Pack $pack
      * @return $this
      */
     public function addPack(Pack $pack)
@@ -84,7 +83,7 @@ class OrderValuation extends AbstractMethod
      */
     public function setReturnValuations($returnValuations)
     {
-        $this->returnValuations = (string) $returnValuations;
+        $this->returnValuations = (string)$returnValuations;
         return $this;
     }
 
@@ -103,7 +102,7 @@ class OrderValuation extends AbstractMethod
      */
     public function setShipmentType($shipmentType)
     {
-        $this->shipmentType = (string) $shipmentType;
+        $this->shipmentType = (string)$shipmentType;
         return $this;
     }
 
@@ -224,6 +223,24 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
+     * @param CourierServiceInterface $courierservice
+     * @return $this
+     */
+    public function addCourierService(CourierServiceInterface $courierservice)
+    {
+        $this->courierservice[] = $courierservice;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    private function getCourierService()
+    {
+        return $this->courierservice;
+    }
+
+    /**
      * @return array
      */
     public function getRequestData()
@@ -235,21 +252,25 @@ class OrderValuation extends AbstractMethod
             'recipient_country' => $this->recipient ? $this->recipient->getCountry() : '',
             'recipient_email' => $this->recipient ? $this->recipient->getEmail() : '',
             'shipmenttype' => $this->getShipmentType(),
-            'packs' => array_map(function (Pack $pack) {
+            'packs' => array_map(static function (Pack $pack) {
                 return $pack->toArray();
             }, $this->packs),
             'COD' => $this->getCOD(),
             'codtype' => $this->getCodtype(),
             'return_cod' => $this->getReturnCod(),
-            'insurance' => $this->getInsurance()
+            'insurance' => $this->getInsurance(),
+            'courierservice' => array_map(static function (CourierServiceInterface $service) {
+                return $service->toArray();
+            }, $this->getCourierService()),
         ];
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Response $response
-     * @return $this|\PolkurierWebServiceApi\Methods\AbstractMethod
+     * @param Response $response
+     * @return $this|AbstractMethod
      */
-    public function setResponseData(Response $response) {
+    public function setResponseData(Response $response)
+    {
 
         $this->responseData = [];
 

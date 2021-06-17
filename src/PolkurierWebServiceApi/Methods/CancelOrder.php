@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
@@ -45,13 +46,13 @@ class CancelOrder extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Response $response
-     * @return $this|\PolkurierWebServiceApi\Methods\AbstractMethod
+     * @param Response $response
+     * @return $this|AbstractMethod
      */
-    public function setResponseData(Response $response) {
-
-        $response = $response->get('response') ;
-        $this->responseData = Arr::get($response, 'cancellation',false);
+    public function setResponseData(Response $response)
+    {
+        $response = $response->get('response');
+        $this->responseData = Arr::get($response, 'cancellation', false);
         return $this;
     }
 }

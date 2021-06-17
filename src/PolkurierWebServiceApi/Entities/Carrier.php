@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
 
 /**
@@ -13,7 +14,6 @@ class Carrier implements \JsonSerializable
      * @var string
      */
     private $servicecode;
-
     /**
      * @var string
      */

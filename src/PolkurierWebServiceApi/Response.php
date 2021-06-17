@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi;
 
 use PolkurierWebServiceApi\Exception\ErrorException;
@@ -24,7 +25,7 @@ class Response
     /**
      * Response constructor.
      * @param $responseString
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     public function __construct($responseString)
     {

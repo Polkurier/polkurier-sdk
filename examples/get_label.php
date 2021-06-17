@@ -11,7 +11,7 @@ $config = new Config();
 $auth = new Auth($config);
 $webApi = new PolkurierWebService($auth, $config);
 
-try{
+try {
     $method = new GetLabel();
     $method->addOrderNumber('1234-1');
     $webApi->requestMethod($method);
@@ -19,7 +19,7 @@ try{
     header('Content-Type: application/pdf');
     echo $method->getData()->getContent();
 
-}catch (ErrorException $ex){
+} catch (ErrorException $ex) {
     echo $ex->getMessage();
 }
 

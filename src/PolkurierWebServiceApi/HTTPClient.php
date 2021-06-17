@@ -1,6 +1,8 @@
 <?php
+
 namespace PolkurierWebServiceApi;
 
+use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Exception\FatalException;
 
 /**
@@ -25,7 +27,7 @@ class HTTPClient
 
     /**
      * HTTPClient constructor.
-     * @param \PolkurierWebServiceApi\Config $config
+     * @param Config $config
      */
     public function __construct(Config $config)
     {
@@ -33,20 +35,20 @@ class HTTPClient
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Request $request
+     * @param Request $request
      * @return array
      */
     protected function prepareHeaders(Request $request)
     {
         $headers = [];
         foreach ($request->getHeaders() as $key => $val) {
-            $headers[] = $key .':'. $val;
+            $headers[] = $key . ':' . $val;
         }
         return $headers;
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Request $request
+     * @param Request $request
      * @return string
      */
     protected function preparePayload(Request $request)
@@ -55,10 +57,10 @@ class HTTPClient
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Request $request
-     * @return \PolkurierWebServiceApi\Response
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
-     * @throws \PolkurierWebServiceApi\Exception\FatalException
+     * @param Request $request
+     * @return Response
+     * @throws ErrorException
+     * @throws FatalException
      */
     public function request(Request $request)
     {
@@ -74,17 +76,16 @@ class HTTPClient
         curl_setopt($client, CURLOPT_POSTFIELDS, $payload);
         curl_setopt($client, CURLOPT_HTTPHEADER, $headers);
         $result = curl_exec($client);
-        $http_code = curl_getinfo($client,CURLINFO_HTTP_CODE);
+        $http_code = curl_getinfo($client, CURLINFO_HTTP_CODE);
         curl_close($client);
-        if($http_code == 200) {
-            if (!$result){
+        if ((int)$http_code === 200) {
+            if (!$result) {
                 throw new FatalException('Nie można połączyć się z interfejsem API');
             }
             return new Response($result);
-        }else {
-            throw new FatalException('Nie można połączyć się z interfejsem API. HTTP_CODE. '.$http_code);
-
         }
+
+        throw new FatalException('Nie można połączyć się z interfejsem API. HTTP_CODE. ' . $http_code);
     }
 
 }

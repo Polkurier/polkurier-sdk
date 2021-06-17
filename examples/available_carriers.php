@@ -7,10 +7,10 @@ use PolkurierWebServiceApi\Config;
 use PolkurierWebServiceApi\Auth;
 use PolkurierWebServiceApi\Exception\ErrorException;
 
-try{
+try {
     $config = new Config();
     $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth,$config);
+    $webApi = new PolkurierWebService($auth, $config);
     $method = new AvailableCarriers();
     $method->setReturncarrier('UPS');
     $method->setAdditionalData(true);
@@ -18,7 +18,7 @@ try{
     $data = $method->getData();
     var_dump($data);
 
-}catch (ErrorException $ex){
+} catch (ErrorException $ex) {
     echo $ex->getMessage();
 }
 

@@ -65,7 +65,7 @@ class COD
     /**
      * @param $bankAccount
      * @return $this
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     public function setBankAccount($bankAccount)
     {

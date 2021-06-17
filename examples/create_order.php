@@ -71,15 +71,15 @@ $method->setInsurance(0);
 
 $config = new Config;
 $auth = new Auth($config);
-$webApi = new PolkurierWebService($auth,$config);
+$webApi = new PolkurierWebService($auth, $config);
 
-try{
+try {
 
     $webApi->requestMethod($method);
     $data = $method->getData();
     var_dump($data);
 
-}catch (ErrorException $ex){
+} catch (ErrorException $ex) {
     echo $ex->getMessage();
 }
 

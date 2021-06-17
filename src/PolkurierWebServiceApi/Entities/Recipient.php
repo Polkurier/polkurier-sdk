@@ -62,7 +62,7 @@ class Recipient
 
     /**
      * @param string $company
-     * @return Recipient
+     * @return $this
      */
     public function setCompany($company)
     {
@@ -80,7 +80,7 @@ class Recipient
 
     /**
      * @param string $person
-     * @return Recipient
+     * @return $this
      */
     public function setPerson($person)
     {
@@ -98,7 +98,7 @@ class Recipient
 
     /**
      * @param string $street
-     * @return Recipient
+     * @return $this
      */
     public function setStreet($street)
     {
@@ -116,7 +116,7 @@ class Recipient
 
     /**
      * @param string $houseNumber
-     * @return Recipient
+     * @return $this
      */
     public function setHouseNumber($houseNumber)
     {
@@ -134,7 +134,7 @@ class Recipient
 
     /**
      * @param string $flatNumber
-     * @return Recipient
+     * @return $this
      */
     public function setFlatNumber($flatNumber)
     {
@@ -152,7 +152,7 @@ class Recipient
 
     /**
      * @param string $postcode
-     * @return Recipient
+     * @return $this
      */
     public function setPostcode($postcode)
     {
@@ -188,7 +188,7 @@ class Recipient
 
     /**
      * @param string $email
-     * @return Recipient
+     * @return $this
      */
     public function setEmail($email)
     {
@@ -206,7 +206,7 @@ class Recipient
 
     /**
      * @param int $phone
-     * @return Recipient
+     * @return $this
      */
     public function setPhone($phone)
     {
@@ -223,8 +223,8 @@ class Recipient
     }
 
     /**
-     * @param mixed $country
-     * @return Recipient
+     * @param $country
+     * @return $this
      */
     public function setCountry($country)
     {
@@ -242,7 +242,7 @@ class Recipient
 
     /**
      * @param string $machineName
-     * @return Recipient
+     * @return $this
      */
     public function setMachineName($machineName)
     {

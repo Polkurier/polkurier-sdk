@@ -1,9 +1,12 @@
 <?php
+
 namespace PolkurierWebServiceApi;
 
 use PolkurierWebServiceApi\Exception\ErrorException;
+use PolkurierWebServiceApi\Exception\FatalException;
 use PolkurierWebServiceApi\Methods\MethodInterface;
 use PolkurierWebServiceApi\Type\ResponseStatus;
+
 /**
  * Class PolkurierWebService
  * @package PolkurierWebServiceApi
@@ -27,8 +30,8 @@ class PolkurierWebService
 
     /**
      * PolkurierWebService constructor.
-     * @param \PolkurierWebServiceApi\Auth $auth
-     * @param \PolkurierWebServiceApi\Config $config
+     * @param Auth $auth
+     * @param Config $config
      */
     public function __construct(Auth $auth, Config $config)
     {
@@ -38,14 +41,14 @@ class PolkurierWebService
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Methods\MethodInterface $method
-     * @return \PolkurierWebServiceApi\Response
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
-     * @throws \PolkurierWebServiceApi\Exception\FatalException
+     * @param MethodInterface $method
+     * @return Response
+     * @throws ErrorException
+     * @throws FatalException
      */
     public function requestMethod(MethodInterface $method)
     {
-        $request = new Request($method,$this->auth);
+        $request = new Request($method, $this->auth);
         $response = $this->HTTPClient->request($request);
         if ($response->get('status') !== ResponseStatus::SUCCESS) {
             throw new ErrorException($response->get('response'));

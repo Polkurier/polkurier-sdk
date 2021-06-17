@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
 
 /**
@@ -27,7 +28,7 @@ class OrderValuation implements \JsonSerializable
      */
     public function setServiceCode($servicecode)
     {
-        $this->servicecode = (string) $servicecode;
+        $this->servicecode = (string)$servicecode;
         return $this;
     }
 

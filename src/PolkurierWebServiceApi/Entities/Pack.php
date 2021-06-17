@@ -1,5 +1,7 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
+
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Type\PackType;
 
@@ -14,32 +16,26 @@ class Pack
      * @var float
      */
     private $length = 0;
-
     /**
      * @var float
      */
     private $width = 0;
-
     /**
      * @var float
      */
     private $height = 0;
-
     /**
      * @var float
      */
     private $weight = 0;
-
     /**
      * @var float
      */
     private $amount = 1;
-
     /**
      * @var string
      */
     private $type = PackType::ST;
-
     /**
      * @return mixed
      */
@@ -51,7 +47,7 @@ class Pack
     /**
      * @param $length
      * @return $this
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws ErrorException
      */
     public function setLength($length)
     {
@@ -124,7 +120,7 @@ class Pack
         if ($weight <= 0) {
             throw new ErrorException('Waga przesyłki musi być większa niż 0');
         }
-        $this->weight = (float) $weight;
+        $this->weight = (float)$weight;
         return $this;
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
@@ -57,7 +58,8 @@ abstract class AbstractMethod implements MethodInterface
      * @param Response $response
      * @return $this
      */
-    public function setResponseData(Response $response) {
+    public function setResponseData(Response $response)
+    {
         $this->responseData = $response->get('response');
         return $this;
     }

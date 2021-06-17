@@ -2,6 +2,9 @@
 require('../autoload.php');
 
 use PolkurierWebServiceApi\Config;
+use PolkurierWebServiceApi\Entities\CourierWithLabelCourierService;
+use PolkurierWebServiceApi\Entities\RodCourierService;
+use PolkurierWebServiceApi\Entities\WeekCollectionCourierService;
 use PolkurierWebServiceApi\Methods\OrderValuation;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Auth;
@@ -14,10 +17,10 @@ use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Entities\Sender;
 use PolkurierWebServiceApi\Entities\Recipient;
 
-try{
+try {
     $config = new Config();
     $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth,$config);
+    $webApi = new PolkurierWebService($auth, $config);
 
     $method = new OrderValuation();
     $method->addPack((new Pack)
@@ -45,10 +48,15 @@ try{
         ->setSender($sender)
         ->setRecipient($recipient);
 
+    $method->addCourierService(new WeekCollectionCourierService(false));
+    $method->addCourierService(new CourierWithLabelCourierService(false));
+    $method->addCourierService(new RodCourierService(false));
+
     $webApi->requestMethod($method);
     $data = $method->getData();
     var_dump($data);
-}catch (ErrorException $ex){
+
+} catch (ErrorException $ex) {
     echo $ex->getMessage();
 }
 

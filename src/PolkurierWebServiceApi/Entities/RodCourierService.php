@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
 
 /**
@@ -11,16 +12,26 @@ class RodCourierService implements CourierServiceInterface
     /**
      * @var bool
      */
-    private $rod = false;
+    private $rod;
     /**
      * @var string
+     * @deprecated
      */
     private $type;
-
     /**
      * @var string
+     * @deprecated
      */
     private $description;
+
+    /**
+     * RodCourierService constructor.
+     * @param false $rod
+     */
+    public function __construct($rod = false)
+    {
+        $this->rod = $rod;
+    }
 
     /**
      * @return array
@@ -28,9 +39,7 @@ class RodCourierService implements CourierServiceInterface
     public function toArray()
     {
         return [
-            'ROD' => (bool)$this->getRod(),
-            'rodtype' => $this->getType(),
-            'roddescription' => $this->getDescription()
+            'ROD' => $this->rod
         ];
     }
 
@@ -50,9 +59,9 @@ class RodCourierService implements CourierServiceInterface
         $this->rod = $rod;
     }
 
-
     /**
      * @return string
+     * @deprecated
      */
     public function getType()
     {
@@ -62,6 +71,7 @@ class RodCourierService implements CourierServiceInterface
     /**
      * @param string $type
      * @return RodCourierService
+     * @deprecated
      */
     public function setType($type)
     {
@@ -71,6 +81,7 @@ class RodCourierService implements CourierServiceInterface
 
     /**
      * @return string
+     * @deprecated
      */
     public function getDescription()
     {
@@ -80,6 +91,7 @@ class RodCourierService implements CourierServiceInterface
     /**
      * @param string $description
      * @return RodCourierService
+     * @deprecated
      */
     public function setDescription($description)
     {

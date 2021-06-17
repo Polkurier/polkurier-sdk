@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi;
 
 use PolkurierWebServiceApi\Methods\MethodInterface;
@@ -14,7 +15,6 @@ class Request
      * @var Auth
      */
     private $auth;
-
     /**
      * @var MethodInterface
      */

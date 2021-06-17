@@ -57,8 +57,8 @@ class GetLabel extends AbstractMethod
     }
 
     /**
-     * @param \PolkurierWebServiceApi\Response $response
-     * @return $this|\PolkurierWebServiceApi\Methods\AbstractMethod
+     * @param Response $response
+     * @return $this|AbstractMethod
      */
     public function setResponseData(Response $response)
     {
