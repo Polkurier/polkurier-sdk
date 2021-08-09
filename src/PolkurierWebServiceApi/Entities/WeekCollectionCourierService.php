@@ -14,6 +14,15 @@ class WeekCollectionCourierService implements CourierServiceInterface
     private $week_collection;
 
     /**
+     * WeekCollectionCourierService constructor.
+     * @param false $week_collection
+     */
+    public function __construct($week_collection = false)
+    {
+        $this->week_collection = $week_collection;
+    }
+
+    /**
      * @return array
      */
     public function toArray()
@@ -21,15 +30,6 @@ class WeekCollectionCourierService implements CourierServiceInterface
         return [
             'WEEK_COLLECTION' => $this->week_collection
         ];
-    }
-
-    /**
-     * WeekCollectionCourierService constructor.
-     * @param false $week_collection
-     */
-    public function __construct($week_collection = false)
-    {
-        $this->week_collection = $week_collection;
     }
 
     /**

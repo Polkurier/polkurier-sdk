@@ -32,7 +32,7 @@ class OrderValuation extends AbstractMethod
     /**
      * @var float
      */
-    private $COD = 0;
+    private $COD = 0.0;
     /**
      * @var string
      */
@@ -44,7 +44,7 @@ class OrderValuation extends AbstractMethod
     /**
      * @var float
      */
-    private $insurance = 0;
+    private $insurance = 0.0;
     /**
      * @var Recipient|null
      */
@@ -77,24 +77,6 @@ class OrderValuation extends AbstractMethod
         return $this;
     }
 
-    /**
-     * @param string $returnValuations
-     * @return OrderValuation
-     */
-    public function setReturnValuations($returnValuations)
-    {
-        $this->returnValuations = (string)$returnValuations;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    private function getReturnValuations()
-    {
-        return $this->returnValuations;
-    }
-
 
     /**
      * @param string $shipmentType
@@ -106,13 +88,6 @@ class OrderValuation extends AbstractMethod
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    private function getShipmentType()
-    {
-        return $this->shipmentType;
-    }
 
     /**
      * @param int $COD
@@ -125,22 +100,6 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @return float
-     */
-    private function getCOD()
-    {
-        return $this->COD;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCodtype()
-    {
-        return $this->codtype;
-    }
-
-    /**
      * @param $codtype
      * @return $this
      */
@@ -150,13 +109,6 @@ class OrderValuation extends AbstractMethod
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getReturnCod()
-    {
-        return $this->return_cod;
-    }
 
     /**
      * @param $return_cod
@@ -179,22 +131,6 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @return float
-     */
-    private function getInsurance()
-    {
-        return $this->insurance;
-    }
-
-    /**
-     * @return Recipient|null
-     */
-    public function getRecipient()
-    {
-        return $this->recipient;
-    }
-
-    /**
      * @param Recipient|null $recipient
      * @return $this
      */
@@ -202,14 +138,6 @@ class OrderValuation extends AbstractMethod
     {
         $this->recipient = $recipient;
         return $this;
-    }
-
-    /**
-     * @return Sender|null
-     */
-    public function getSender()
-    {
-        return $this->sender;
     }
 
     /**
@@ -235,9 +163,14 @@ class OrderValuation extends AbstractMethod
     /**
      * @return array
      */
-    private function getCourierService()
+    private function getCourierServiceMap()
     {
-        return $this->courierservice;
+        $servicemap = [];
+        foreach ($this->courierservice as $item) {
+            $itemarray = $item->toArray();
+            $servicemap[key($itemarray)] = current($itemarray);
+        }
+        return $servicemap;
     }
 
     /**
@@ -246,22 +179,20 @@ class OrderValuation extends AbstractMethod
     public function getRequestData()
     {
         return [
-            'returnvaluations' => $this->getReturnValuations(),
+            'returnvaluations' => $this->returnValuations,
             'postcode_sender' => $this->sender ? $this->sender->getPostcode() : '',
             'postcode_recipient' => $this->recipient ? $this->recipient->getPostcode() : '',
             'recipient_country' => $this->recipient ? $this->recipient->getCountry() : '',
             'recipient_email' => $this->recipient ? $this->recipient->getEmail() : '',
-            'shipmenttype' => $this->getShipmentType(),
+            'shipmenttype' => $this->shipmentType,
             'packs' => array_map(static function (Pack $pack) {
                 return $pack->toArray();
             }, $this->packs),
-            'COD' => $this->getCOD(),
-            'codtype' => $this->getCodtype(),
-            'return_cod' => $this->getReturnCod(),
-            'insurance' => $this->getInsurance(),
-            'courierservice' => array_map(static function (CourierServiceInterface $service) {
-                return $service->toArray();
-            }, $this->getCourierService()),
+            'COD' => $this->COD,
+            'codtype' => $this->codtype,
+            'return_cod' => $this->return_cod,
+            'insurance' => $this->insurance,
+            'courierservice' => $this->getCourierServiceMap(),
         ];
     }
 
@@ -271,7 +202,6 @@ class OrderValuation extends AbstractMethod
      */
     public function setResponseData(Response $response)
     {
-
         $this->responseData = [];
 
         $rawData = $response->get('response');

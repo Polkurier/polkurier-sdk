@@ -1,5 +1,7 @@
 <?php
+
 namespace PolkurierWebServiceApi\Methods;
+
 use PolkurierWebServiceApi\File;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;

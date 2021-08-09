@@ -13,6 +13,10 @@ class CourierWithLabelCourierService implements CourierServiceInterface
      */
     private $courier_with_label;
 
+    /**
+     * CourierWithLabelCourierService constructor.
+     * @param false $courier_with_label
+     */
     public function __construct($courier_with_label = false)
     {
         $this->courier_with_label = $courier_with_label;

@@ -81,30 +81,21 @@ class CreateOrder extends AbstractMethod
     public function getRequestData()
     {
         return [
-            'shipmenttype' => $this->getShipmentType(),
-            'courier' => $this->getCourier(),
-            'courierservice' => array_map(static function (CourierServiceInterface $service) {
-                return $service->toArray();
-            }, $this->getCourierService()),
-            'description' => $this->getDescription(),
-            'sender' => $this->getSender()->toArray(),
-            'recipient' => $this->getRecipient()->toArray(),
+            'shipmenttype' => $this->shipmenttype,
+            'courier' => $this->courier,
+            'courierservice' => $this->getCourierServiceMap(),
+            'description' => $this->description,
+            'sender' => $this->sender->toArray(),
+            'recipient' => $this->recipient->toArray(),
             'packs' => array_map(static function (Pack $pack) {
                 return $pack->toArray();
-            }, $this->getPack()),
-            'pickup' => $this->getPickup()->toArray(),
-            'COD' => $this->getCOD()->toArray(),
-            'insurance' => $this->getInsurance()
+            }, $this->packs),
+            'pickup' => $this->pickup->toArray(),
+            'COD' => $this->COD->toArray(),
+            'insurance' => $this->insurance
         ];
     }
 
-    /**
-     * @return string
-     */
-    private function getCourier()
-    {
-        return $this->courier;
-    }
 
     /**
      * @param string $courier
@@ -125,14 +116,6 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return string
-     */
-    private function getShipmentType()
-    {
-        return $this->shipmenttype;
-    }
-
-    /**
      * @param string $description
      * @return $this
      */
@@ -142,10 +125,6 @@ class CreateOrder extends AbstractMethod
         return $this;
     }
 
-    private function getDescription()
-    {
-        return $this->description;
-    }
 
     /**
      * @param Sender $sender
@@ -155,14 +134,6 @@ class CreateOrder extends AbstractMethod
     {
         $this->sender = $sender;
         return $this;
-    }
-
-    /**
-     * @return Sender
-     */
-    private function getSender()
-    {
-        return $this->sender;
     }
 
     /**
@@ -176,14 +147,6 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return Recipient
-     */
-    private function getRecipient()
-    {
-        return $this->recipient;
-    }
-
-    /**
      * @param mixed $insurance
      * @return CreateOrder
      */
@@ -191,14 +154,6 @@ class CreateOrder extends AbstractMethod
     {
         $this->insurance = (float)$insurance;
         return $this;
-    }
-
-    /**
-     * @return float
-     */
-    private function getInsurance()
-    {
-        return $this->insurance;
     }
 
     /**
@@ -211,13 +166,6 @@ class CreateOrder extends AbstractMethod
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    private function getPack()
-    {
-        return $this->packs;
-    }
 
     /**
      * @param CourierServiceInterface $courierservice
@@ -232,9 +180,14 @@ class CreateOrder extends AbstractMethod
     /**
      * @return array
      */
-    private function getCourierService()
+    private function getCourierServiceMap()
     {
-        return $this->courierservice;
+        $servicemap = [];
+        foreach ($this->courierservice as $item) {
+            $itemarray = $item->toArray();
+            $servicemap[key($itemarray)] = current($itemarray);
+        }
+        return $servicemap;
     }
 
 
@@ -249,14 +202,6 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @return Pickup
-     */
-    private function getPickup()
-    {
-        return $this->pickup;
-    }
-
-    /**
      * @param COD $cod
      * @return $this
      */
@@ -265,13 +210,4 @@ class CreateOrder extends AbstractMethod
         $this->COD = $cod;
         return $this;
     }
-
-    /**
-     * @return COD
-     */
-    private function getCOD()
-    {
-        return $this->COD;
-    }
-
 }

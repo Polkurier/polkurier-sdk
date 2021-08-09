@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Entities;
 /**
  * Class Recipient
@@ -256,17 +257,17 @@ class Recipient
     public function toArray()
     {
         return [
-            'company'       => $this->getCompany(),
-            'person'        => $this->getPerson(),
-            'street'        => $this->getStreet(),
-            'housenumber'   => $this->getHouseNumber(),
-            'flatnumber'    => $this->getFlatNumber(),
-            'postcode'      => $this->getPostcode(),
-            'city'          => $this->getCity(),
-            'email'         => $this->getEmail(),
-            'phone'         => $this->getPhone(),
-            'country'       => $this->getCountry(),
-            'machinename'   => $this->getMachineName(),
+            'company' => $this->getCompany(),
+            'person' => $this->getPerson(),
+            'street' => $this->getStreet(),
+            'housenumber' => $this->getHouseNumber(),
+            'flatnumber' => $this->getFlatNumber(),
+            'postcode' => $this->getPostcode(),
+            'city' => $this->getCity(),
+            'email' => $this->getEmail(),
+            'phone' => $this->getPhone(),
+            'country' => $this->getCountry(),
+            'machinename' => $this->getMachineName(),
         ];
     }
 }
