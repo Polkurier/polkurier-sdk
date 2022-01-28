@@ -11,4 +11,5 @@ class ReturnCodType
 {
     const BA = 'BA';
     const PO = 'PO';
+    const MB = 'MB';
 }
