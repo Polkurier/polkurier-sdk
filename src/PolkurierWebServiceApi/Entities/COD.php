@@ -114,7 +114,7 @@ class COD
             'codtype' => $this->type,
             'codamount' => $this->amount,
             'codbankaccount' => $this->bankAccount,
-            'returncod' => $this->returnCod,
+            'return_cod' => $this->returnCod,
         ];
     }
 
