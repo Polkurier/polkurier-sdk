@@ -40,3 +40,4 @@ require_once($basePath . 'Methods/CancelOrder.php');
 require_once($basePath . 'Methods/PickupCourier.php');
 require_once($basePath . 'Methods/InpostParcelMachines.php');
 require_once($basePath . 'Methods/GetCountries.php');
+require_once($basePath . 'Methods/PocztexPostOffices.php');
