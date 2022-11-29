@@ -3,6 +3,7 @@
 namespace PolkurierWebServiceApi\Entities;
 
 use PolkurierWebServiceApi\Exception\ErrorException;
+use PolkurierWebServiceApi\Util\Validators;
 
 /**
  * Class Pickup
@@ -51,23 +52,12 @@ class Pickup
 
     /**
      * @param $hour
-     * @throws ErrorException
-     */
-    private function validateHourFormat($hour)
-    {
-        if (!preg_match('/\d{2}:\d{2}/', $hour)) {
-            throw new ErrorException('Błędny format godzin: oczekiwany hh:mm, otrzymany' . $hour);
-        }
-    }
-
-    /**
-     * @param $hour
      * @return $this
      * @throws ErrorException
      */
     public function setTimeFrom($hour)
     {
-        $this->validateHourFormat($hour);
+        Validators::validateHourFormatAndThrowOnInvalid($hour);
         $this->timeFrom = $hour;
         return $this;
     }
@@ -89,7 +79,7 @@ class Pickup
      */
     public function setTimeTo($hour)
     {
-        $this->validateHourFormat($hour);
+        Validators::validateHourFormatAndThrowOnInvalid($hour);
         $this->timeTo = $hour;
         return $this;
     }

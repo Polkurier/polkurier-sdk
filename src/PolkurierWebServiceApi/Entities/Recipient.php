@@ -51,7 +51,7 @@ class Recipient
     /**
      * @var string
      */
-    private $machineName;
+    private $point_id;
 
     /**
      * @return string
@@ -234,21 +234,39 @@ class Recipient
     }
 
     /**
+     * @deprecated
      * @return string
      */
     public function getMachineName()
     {
-        return $this->machineName;
+        return $this->point_id;
     }
 
     /**
+     * @deprecated
      * @param string $machineName
      * @return $this
      */
     public function setMachineName($machineName)
     {
-        $this->machineName = $machineName;
+        $this->point_id = $machineName;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPointId()
+    {
+        return $this->point_id;
+    }
+
+    /**
+     * @param string $point_id
+     */
+    public function setPointId($point_id)
+    {
+        $this->point_id = $point_id;
     }
 
     /**
@@ -267,7 +285,7 @@ class Recipient
             'email' => $this->getEmail(),
             'phone' => $this->getPhone(),
             'country' => $this->getCountry(),
-            'machinename' => $this->getMachineName(),
+            'point_id' => $this->getPointId(),
         ];
     }
 }

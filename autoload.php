@@ -16,6 +16,7 @@ require_once($basePath . 'Type/RodType.php');
 require_once($basePath . 'Type/ShipmentType.php');
 require_once($basePath . 'File.php');
 require_once($basePath . 'Util/Arr.php');
+require_once($basePath . 'Util/Validators.php');
 require_once($basePath . 'Entities/CourierServiceInterface.php');
 require_once($basePath . 'Entities/RodCourierService.php');
 require_once($basePath . 'Entities/Carrier.php');
