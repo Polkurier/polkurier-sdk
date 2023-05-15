@@ -17,7 +17,7 @@ class InpostPointsMachines extends AbstractMethod
      */
     public function getName()
     {
-        return 'inpost_points_machines",';
+        return 'inpost_points_machines';
     }
 
 
