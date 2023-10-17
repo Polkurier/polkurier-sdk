@@ -66,4 +66,18 @@ class CourierMessage
         return $this->hide_timeout;
     }
 
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return [
+            'courier' => $this->courier,
+            'message' => $this->message,
+            'type' => $this->type,
+            'severity' => $this->severity,
+            'hide_timeout' => $this->hide_timeout,
+        ];
+    }
+
 }
