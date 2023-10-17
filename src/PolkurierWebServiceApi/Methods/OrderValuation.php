@@ -215,6 +215,8 @@ class OrderValuation extends AbstractMethod
             $item = new Valuation();
             $item->setGrossPrice(Arr::get($row, 'grossprice'));
             $item->setNetPrice(Arr::get($row, 'netprice'));
+            $item->setConditionalPriceGross(Arr::get($row, 'conditional_price_gross'));
+            $item->setConditionalPriceNett(Arr::get($row, 'conditional_price_nett'));
             $item->setServiceCode(Arr::get($row, 'servicecode'));
             $item->setServiceName(Arr::get($row, 'serviceName'));
             $this->responseData[] = $item;
