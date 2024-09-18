@@ -13,7 +13,6 @@ use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
 /**
  * Class OrderValuation
  * @package PolkurierWebServiceApi\Methods
- *
  */
 class OrderValuation extends AbstractMethod
 {
@@ -21,43 +20,51 @@ class OrderValuation extends AbstractMethod
      * @var string
      */
     private $returnValuations = '';
+
     /**
      * @var string
      */
     private $shipmentType = '';
+
     /**
      * @var array
      */
     private $packs = [];
+
     /**
      * @var float
      */
     private $COD = 0.0;
+
     /**
      * @var string
      */
     private $codtype = '';
+
     /**
      * @var string
      */
     private $return_cod = '';
+
     /**
      * @var float
      */
     private $insurance = 0.0;
+
     /**
      * @var Recipient|null
      */
     private $recipient;
+
     /**
      * @var Sender|null
      */
     private $sender;
+
     /**
      * @var array
      */
     private $courierservice = [];
-
 
     /**
      * @return string
@@ -77,7 +84,6 @@ class OrderValuation extends AbstractMethod
         return $this;
     }
 
-
     /**
      * @param string $shipmentType
      * @return OrderValuation
@@ -87,7 +93,6 @@ class OrderValuation extends AbstractMethod
         $this->shipmentType = (string)$shipmentType;
         return $this;
     }
-
 
     /**
      * @param int $COD
@@ -100,7 +105,7 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @param $codtype
+     * @param string $codtype
      * @return $this
      */
     public function setCodtype($codtype)
@@ -109,9 +114,8 @@ class OrderValuation extends AbstractMethod
         return $this;
     }
 
-
     /**
-     * @param $return_cod
+     * @param string $return_cod
      * @return $this
      */
     public function setReturnCod($return_cod)
@@ -211,7 +215,6 @@ class OrderValuation extends AbstractMethod
         }
 
         foreach ($rawData as $row) {
-
             $item = new Valuation();
             $item->setGrossPrice(Arr::get($row, 'grossprice'));
             $item->setNetPrice(Arr::get($row, 'netprice'));
@@ -219,6 +222,12 @@ class OrderValuation extends AbstractMethod
             $item->setConditionalPriceNett(Arr::get($row, 'conditional_price_nett'));
             $item->setServiceCode(Arr::get($row, 'servicecode'));
             $item->setServiceName(Arr::get($row, 'serviceName'));
+            $item->setPromotionNett(Arr::get($row, 'promotion_nett'));
+            $item->setPromotionGross(Arr::get($row, 'promotion_gross'));
+            $item->setRebateNett(Arr::get($row, 'rebate_nett'));
+            $item->setRebateGross(Arr::get($row, 'rebate_gross'));
+            $item->setAvailable(Arr::get($row, 'available', true));
+            $item->setUnavailableMessage(Arr::get($row, 'unavailable_message', ''));
             $this->responseData[] = $item;
         }
         return $this;
