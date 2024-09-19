@@ -4,109 +4,68 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
+use PolkurierWebServiceApi\Entities\Pickup;
 
-/**
- * Class GetCourierPickupTime
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetCourierPickupTime extends AbstractMethod
 {
-    /**
-     * Kod przewoźnika
-     * @var string
-     */
     private $courier;
+    private $shipFrom;
+    private $shipTo;
+    private $parcel;
 
-    /**
-     * Kod pocztowy nadawcy
-     * @var string|null
-     */
-    private $shipfrom;
-
-    /**
-     * Rodzaj przesyłki
-     * @var string
-     */
-    private $shipmenttype;
-
-    /**
-     * @return string
-     */
     public function getName()
     {
         return 'get_courier_pickup_time';
     }
 
-    /**
-     * @return array
-     */
     public function getRequestData()
     {
-        $data = [
+        return [
             'courier' => $this->courier,
-            'shipmenttype' => $this->shipmenttype,
+            'shipfrom' => $this->shipFrom,
+            'shipto' => $this->shipTo,
+            'parcel' => $this->parcel
         ];
-
-        if ($this->shipfrom) {
-            $data['shipfrom'] = $this->shipfrom;
-        }
-
-        return $data;
     }
 
-    /**
-     * @param string $courier
-     * @return $this
-     */
     public function setCourier($courier)
     {
         $this->courier = $courier;
         return $this;
     }
 
-    /**
-     * @param string|null $shipfrom
-     * @return $this
-     */
-    public function setShipfrom($shipfrom)
+    public function setShipFrom($shipFrom)
     {
-        $this->shipfrom = $shipfrom;
+        $this->shipFrom = $shipFrom;
         return $this;
     }
 
-    /**
-     * @param string $shipmenttype
-     * @return $this
-     */
-    public function setShipmenttype($shipmenttype)
+    public function setShipTo($shipTo)
     {
-        $this->shipmenttype = $shipmenttype;
+        $this->shipTo = $shipTo;
         return $this;
     }
 
-    /**
-     * @param Response $response
-     * @return $this
-     */
+    public function setParcel($parcel)
+    {
+        $this->parcel = $parcel;
+        return $this;
+    }
+
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
-        foreach ($response->get('response') as $row) {
-            $pickup = [
-                'pickupdate' => Arr::get($row, 'pickupdate'),
-                'time' => []
-            ];
 
-            foreach (Arr::get($row, 'time', []) as $timeRange) {
-                $pickup['time'][] = [
-                    'timefrom' => Arr::get($timeRange, 'timefrom'),
-                    'timeto' => Arr::get($timeRange, 'timeto')
-                ];
-            }
-
+        $rawData = $response->get('response');
+        foreach ($rawData as $row) {
+            $pickup = new Pickup();
+            $pickup->setDate(Arr::get($row, 'pickupdate'));
+            $pickup->setTimeFrom(Arr::get($row['time'][0], 'timefrom'));
+            $pickup->setTimeTo(Arr::get($row['time'][0], 'timeto'));
+            $pickup->setNoCourierOrder(Arr::get($row, 'nocourierorder', false));
             $this->responseData[] = $pickup;
         }
+
         return $this;
     }
 }

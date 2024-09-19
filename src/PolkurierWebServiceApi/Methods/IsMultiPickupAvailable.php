@@ -3,13 +3,14 @@
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
+use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Util\Arr;
 
 class IsMultiPickupAvailable extends AbstractMethod
 {
     private $senderPostCode;
-    private $courier;
     private $shipmentType;
+    private $courier;
     private $packs = [];
 
     public function getName()
@@ -21,9 +22,11 @@ class IsMultiPickupAvailable extends AbstractMethod
     {
         return [
             'senderPostCode' => $this->senderPostCode,
-            'courier' => $this->courier,
             'shipmentType' => $this->shipmentType,
-            'packs' => $this->packs,
+            'courier' => $this->courier,
+            'packs' => array_map(static function (Pack $pack) {
+                return $pack->toArray();
+            }, $this->packs)
         ];
     }
 
@@ -33,29 +36,26 @@ class IsMultiPickupAvailable extends AbstractMethod
         return $this;
     }
 
-    public function setCourier($courier)
-    {
-        $this->courier = $courier;
-        return $this;
-    }
-
     public function setShipmentType($shipmentType)
     {
         $this->shipmentType = $shipmentType;
         return $this;
     }
 
-    public function setPacks(array $packs)
+    public function setCourier($courier)
     {
-        $this->packs = $packs;
+        $this->courier = $courier;
+        return $this;
+    }
+
+    public function addPack(Pack $pack)
+    {
+        $this->packs[] = $pack;
         return $this;
     }
 
     public function setResponseData(Response $response)
     {
-        $this->responseData = [
-            'isMultiPickupAvailable' => Arr::get($response->get('response'), 'isMultiPickupAvailable', false)
-        ];
-        return $this;
+        return Arr::get($response->get('response'), 'isMultiPickupAvailable');
     }
 }

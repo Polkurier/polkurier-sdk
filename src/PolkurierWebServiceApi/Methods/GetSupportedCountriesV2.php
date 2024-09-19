@@ -2,6 +2,8 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\Country;
+use PolkurierWebServiceApi\Entities\Province;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -35,25 +37,26 @@ class GetSupportedCountriesV2 extends AbstractMethod
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
-        foreach ($response->get('response') as $row) {
-            $country = [
-                'id' => Arr::get($row, 'id'),
-                'name' => Arr::get($row, 'name'),
-                'is_ue' => Arr::get($row, 'is_ue', false),
-                'is_default' => Arr::get($row, 'is_default', false),
-                'provinces' => []
-            ];
 
+        foreach ($response->get('response') as $row) {
+            $country = new Country();
+            $country->setId(Arr::get($row, 'id'))
+                ->setName(Arr::get($row, 'name'))
+                ->setIsUe(Arr::get($row, 'is_ue'))
+                ->setIsDefault(Arr::get($row, 'is_default'));
+
+            $provinces = [];
             foreach (Arr::get($row, 'provinces', []) as $provinceData) {
-                $province = [
-                    'id' => Arr::get($provinceData, 'id'),
-                    'name' => Arr::get($provinceData, 'name')
-                ];
-                $country['provinces'][] = $province;
+                $province = new Province();
+                $province->setId(Arr::get($provinceData, 'id'))
+                    ->setName(Arr::get($provinceData, 'name'));
+                $provinces[] = $province;
             }
 
+            $country->setProvinces($provinces);
             $this->responseData[] = $country;
         }
+
         return $this;
     }
 }

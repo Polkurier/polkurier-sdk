@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\PackTemplate;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -20,23 +21,24 @@ class GetPackTemplates extends AbstractMethod
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
-        foreach ($response->get('response') as $row) {
-            $template = [
-                'id' => Arr::get($row, 'id'),
-                'name' => Arr::get($row, 'name'),
-                'shipmenttype' => Arr::get($row, 'shipmenttype'),
-                'length' => Arr::get($row, 'length'),
-                'width' => Arr::get($row, 'width'),
-                'height' => Arr::get($row, 'height'),
-                'weight' => Arr::get($row, 'weight'),
-                'COD' => Arr::get($row, 'COD'),
-                'insurance' => Arr::get($row, 'insurance'),
-                'description' => Arr::get($row, 'description'),
-                'type' => Arr::get($row, 'type'),
-            ];
 
-            $this->responseData[] = $template;
+        foreach ($response->get('response') as $row) {
+            $packTemplate = new PackTemplate();
+            $packTemplate->setId(Arr::get($row, 'id'))
+                ->setName(Arr::get($row, 'name'))
+                ->setShipmentType(Arr::get($row, 'shipmenttype'))
+                ->setLength(Arr::get($row, 'length'))
+                ->setWidth(Arr::get($row, 'width'))
+                ->setHeight(Arr::get($row, 'height'))
+                ->setWeight(Arr::get($row, 'weight'))
+                ->setCod(Arr::get($row, 'COD'))
+                ->setInsurance(Arr::get($row, 'insurance'))
+                ->setDescription(Arr::get($row, 'description'))
+                ->setType(Arr::get($row, 'type'));
+
+            $this->responseData[] = $packTemplate;
         }
+
         return $this;
     }
 }

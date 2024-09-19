@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\CourierPoint;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -91,30 +92,30 @@ class GetCourierPoint extends AbstractMethod
     {
         $this->responseData = [];
         foreach ($response->get('response') as $row) {
-            $point = [
-                'id' => Arr::get($row, 'id'),
-                'type' => Arr::get($row, 'type'),
-                'provider' => Arr::get($row, 'provider'),
-                'city' => Arr::get($row, 'city'),
-                'zip' => Arr::get($row, 'zip'),
-                'street' => Arr::get($row, 'street'),
-                'description' => Arr::get($row, 'description'),
-                'latitude' => Arr::get($row, 'latitude'),
-                'longitude' => Arr::get($row, 'longitude'),
-                'cod' => Arr::get($row, 'cod'),
-                'available' => Arr::get($row, 'available'),
-                'status' => Arr::get($row, 'status'),
-                'send' => Arr::get($row, 'send'),
-                'collect' => Arr::get($row, 'collect'),
-                'openingHours' => Arr::get($row, 'openingHours'),
-                'visible' => Arr::get($row, 'visible'),
-                'requireApp' => Arr::get($row, 'requireApp'),
-                'requireAppMessage' => Arr::get($row, 'requireAppMessage'),
-                'functions' => Arr::get($row, 'functions', [])
-            ];
+            $point = new CourierPoint();
+            $point->setId(Arr::get($row, 'id'))
+                ->setType(Arr::get($row, 'type'))
+                ->setProvider(Arr::get($row, 'provider'))
+                ->setCity(Arr::get($row, 'city'))
+                ->setZip(Arr::get($row, 'zip'))
+                ->setStreet(Arr::get($row, 'street'))
+                ->setDescription(Arr::get($row, 'description'))
+                ->setLatitude(Arr::get($row, 'latitude'))
+                ->setLongitude(Arr::get($row, 'longitude'))
+                ->setCod(Arr::get($row, 'cod'))
+                ->setAvailable(Arr::get($row, 'available'))
+                ->setStatus(Arr::get($row, 'status'))
+                ->setSend(Arr::get($row, 'send'))
+                ->setCollect(Arr::get($row, 'collect'))
+                ->setOpeningHours(Arr::get($row, 'openingHours'))
+                ->setVisible(Arr::get($row, 'visible'))
+                ->setRequireApp(Arr::get($row, 'requireApp'))
+                ->setRequireAppMessage(Arr::get($row, 'requireAppMessage'))
+                ->setFunctions(Arr::get($row, 'functions', []));
 
             $this->responseData[] = $point;
         }
+
         return $this;
     }
 }

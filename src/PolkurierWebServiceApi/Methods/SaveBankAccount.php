@@ -3,6 +3,7 @@
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
+use PolkurierWebServiceApi\Entities\BankAccount;
 use PolkurierWebServiceApi\Util\Arr;
 
 class SaveBankAccount extends AbstractMethod
@@ -19,15 +20,21 @@ class SaveBankAccount extends AbstractMethod
         return $this->accountData;
     }
 
-    public function setAccountData(array $accountData)
+    public function setAccountData(BankAccount $account)
     {
-        $this->accountData = $accountData;
+        $this->accountData = $account->toArray();
         return $this;
     }
 
     public function setResponseData(Response $response)
     {
-        $this->responseData = $response->get('response');
-        return $this;
+        $data = $response->get('response');
+        $account = new BankAccount();
+        $account->setId(Arr::get($data, 'id'))
+            ->setNumber(Arr::get($data, 'number'))
+            ->setName(Arr::get($data, 'name'))
+            ->setIsDefault(Arr::get($data, 'default'));
+
+        return $account;
     }
 }

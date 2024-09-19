@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\MapToken;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -19,9 +20,9 @@ class GetMapToken extends AbstractMethod
 
     public function setResponseData(Response $response)
     {
-        $this->responseData = [
-            'token' => Arr::get($response->get('response'), 'token')
-        ];
+        $token = new MapToken();
+        $token->setToken($response->get('response')['token']);
+        $this->responseData = $token;
         return $this;
     }
 }

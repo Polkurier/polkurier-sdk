@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\Order;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -84,7 +85,50 @@ class GetOrders extends AbstractMethod
 
     public function setResponseData(Response $response)
     {
-        $this->responseData = Arr::get($response->get('response'), 'result', []);
+        $this->responseData = [];
+
+        if ($this->orderno) {
+            $orderData = $response->get('response');
+            $order = $this->createOrderObject($orderData);
+            $this->responseData = $order;
+        } else {
+            $rawData = $response->get('response')['result'];
+            foreach ($rawData as $row) {
+                $order = $this->createOrderObject($row);
+                $this->responseData[] = $order;
+            }
+        }
+
         return $this;
+    }
+
+    private function createOrderObject($data)
+    {
+        $order = new Order();
+        $order->setNumber(Arr::get($data, 'number'))
+            ->setDate(Arr::get($data, 'date'))
+            ->setDescription(Arr::get($data, 'description'))
+            ->setCourier(Arr::get($data, 'courier'))
+            ->setStatus(Arr::get($data, 'status'))
+            ->setStatusCode(Arr::get($data, 'status_code'))
+            ->setPriceGross(Arr::get($data, 'price_gross'))
+            ->setPriceNet(Arr::get($data, 'price_net'))
+            ->setIsPaid(Arr::get($data, 'is_paid'))
+            ->setHasInvoice(Arr::get($data, 'has_invoice'))
+            ->setUnpaidAmount(Arr::get($data, 'unpaid_amount'))
+            ->setUrl(Arr::get($data, 'url'))
+            ->setStatusDate(Arr::get($data, 'status_date'))
+            ->setDeliveredDate(Arr::get($data, 'delivered_date'))
+            ->setInsurance(Arr::get($data, 'insurance'))
+            ->setSender(Arr::get($data, 'sender'))
+            ->setRecipient(Arr::get($data, 'recipient'))
+            ->setCod(Arr::get($data, 'COD'))
+            ->setPickup(Arr::get($data, 'pickup'))
+            ->setPacks(Arr::get($data, 'packs'))
+            ->setCourierService(Arr::get($data, 'courierservice'))
+            ->setItems(Arr::get($data, 'items'))
+            ->setWaybills(Arr::get($data, 'waybills'));
+
+        return $order;
     }
 }
