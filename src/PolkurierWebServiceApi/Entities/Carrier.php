@@ -25,6 +25,11 @@ class Carrier implements \JsonSerializable
     private $additionalData;
 
     /**
+     * @var bool
+     */
+    private $foreignShipments;
+
+    /**
      * @return mixed
      */
     public function getAdditionalData()
@@ -70,6 +75,25 @@ class Carrier implements \JsonSerializable
     public function setName($name)
     {
         $this->name = $name;
+    }
+
+    /**
+     * @return bool
+     * @return void
+     */
+    public function isForeignShipments()
+    {
+        return $this->foreignShipments;
+    }
+
+    /**
+     * @param bool $foreignShipments
+     * @return self
+     */
+    public function setForeignShipments($foreignShipments)
+    {
+        $this->foreignShipments = $foreignShipments;
+        return $this;
     }
 
     /**

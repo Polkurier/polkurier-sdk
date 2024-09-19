@@ -31,6 +31,7 @@ class AvailableCarriers extends AbstractMethod
             $item->setServicecode(Arr::get($row, 'servicecode'));
             $item->setName(Arr::get($row, 'name'));
             $item->setAdditionalData(Arr::get($row, 'additional_data', []));
+            $item->setForeignShipments(Arr::get($row, 'foreign_shipments', []));
             $this->responseData[] = $item;
         }
         return $this;
