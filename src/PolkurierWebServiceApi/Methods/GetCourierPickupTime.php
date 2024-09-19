@@ -5,6 +5,7 @@ namespace PolkurierWebServiceApi\Methods;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 use PolkurierWebServiceApi\Entities\Pickup;
+use PolkurierWebServiceApi\Entities\PickupTimeRange;
 
 class GetCourierPickupTime extends AbstractMethod
 {
@@ -60,10 +61,19 @@ class GetCourierPickupTime extends AbstractMethod
         foreach ($rawData as $row) {
             $pickup = new Pickup();
             $pickup->setDate(Arr::get($row, 'pickupdate'));
-            $pickup->setTimeFrom(Arr::get($row['time'][0], 'timefrom'));
-            $pickup->setTimeTo(Arr::get($row['time'][0], 'timeto'));
+
+            $timeRanges = [];
+            foreach (Arr::get($row, 'time', []) as $time) {
+                $timeRange = new PickupTimeRange(
+                    Arr::get($time, 'timefrom'),
+                    Arr::get($time, 'timeto')
+                );
+                $timeRanges[] = $timeRange;
+            }
+
+            $pickup->setTimeRanges($timeRanges);
             $pickup->setNoCourierOrder(Arr::get($row, 'nocourierorder', false));
-            $this->responseData[] = $pickup;
+            $this->responseData[] = $pickup->toArray();
         }
 
         return $this;
