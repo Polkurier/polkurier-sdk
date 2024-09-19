@@ -204,22 +204,22 @@ class Address
     public function toArray()
     {
         return [
-            'id' => $this->getId(),
-            'name' => $this->getName(),
-            'company' => $this->getCompany(),
-            'person' => $this->getPerson(),
-            'city' => $this->getCity(),
-            'postcode' => $this->getPostcode(),
-            'street' => $this->getStreet(),
-            'housenumber' => $this->getHouseNumber(),
-            'flatnumber' => $this->getFlatNumber(),
-            'email' => $this->getEmail(),
-            'phone' => $this->getPhone(),
-            'country' => $this->getCountry(),
-            'province' => $this->getProvince(),
-            'type' => $this->getType(),
-            'default' => $this->getDefault(),
-            'is_cover_address' => $this->getIsCoverAddress(),
+            'id' => $this->id,
+            'name' => $this->name,
+            'company' => $this->company,
+            'person' => $this->person,
+            'city' => $this->city,
+            'postcode' => $this->postcode,
+            'street' => $this->street,
+            'housenumber' => $this->houseNumber,
+            'flatnumber' => $this->flatNumber,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'country' => $this->country,
+            'province' => $this->province,
+            'type' => $this->type,
+            'default' => $this->default,
+            'is_cover_address' => $this->isCoverAddress,
         ];
     }
 }

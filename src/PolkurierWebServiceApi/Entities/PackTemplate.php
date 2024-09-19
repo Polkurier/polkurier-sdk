@@ -144,17 +144,17 @@ class PackTemplate
     public function toArray()
     {
         return [
-            'id' => $this->getId(),
-            'name' => $this->getName(),
-            'shipmenttype' => $this->getShipmentType(),
-            'length' => $this->getLength(),
-            'width' => $this->getWidth(),
-            'height' => $this->getHeight(),
-            'weight' => $this->getWeight(),
-            'cod' => $this->getCod(),
-            'insurance' => $this->getInsurance(),
-            'description' => $this->getDescription(),
-            'type' => $this->getType(),
+            'id' => $this->id,
+            'name' => $this->name,
+            'shipmenttype' => $this->shipmentType,
+            'length' => $this->length,
+            'width' => $this->width,
+            'height' => $this->height,
+            'weight' => $this->weight,
+            'cod' => $this->cod,
+            'insurance' => $this->insurance,
+            'description' => $this->description,
+            'type' => $this->type,
         ];
     }
 }

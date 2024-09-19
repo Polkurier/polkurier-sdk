@@ -36,8 +36,8 @@ class Province
     public function toArray()
     {
         return [
-            'id' => $this->getId(),
-            'name' => $this->getName(),
+            'id' => $this->id,
+            'name' => $this->name,
         ];
     }
 }

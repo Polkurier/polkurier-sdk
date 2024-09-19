@@ -72,11 +72,11 @@ class Country
     public function toArray()
     {
         return [
-            'id' => $this->getId(),
-            'name' => $this->getName(),
-            'is_ue' => $this->getIsUe(),
-            'is_default' => $this->getIsDefault(),
-            'provinces' => $this->getProvinces(),
+            'id' => $this->id,
+            'name' => $this->name,
+            'is_ue' => $this->isUe,
+            'is_default' => $this->isDefault,
+            'provinces' => $this->provinces,
         ];
     }
 }

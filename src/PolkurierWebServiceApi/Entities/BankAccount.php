@@ -60,10 +60,10 @@ class BankAccount
     public function toArray()
     {
         return [
-            'id' => $this->getId(),
-            'number' => $this->getNumber(),
-            'name' => $this->getName(),
-            'default' => $this->getIsDefault(),
+            'id' => $this->id,
+            'number' => $this->number,
+            'name' => $this->name,
+            'default' => $this->isDefault,
         ];
     }
 }

@@ -13,22 +13,9 @@ class MapToken
      */
     private $token;
 
-    /**
-     * @param string $token
-     * @return $this
-     */
-    public function setToken($token)
+    public function __construct($token)
     {
         $this->token = $token;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token;
     }
 
     /**
@@ -37,7 +24,7 @@ class MapToken
     public function toArray()
     {
         return [
-            'token' => $this->getToken(),
+            'token' => $this->token,
         ];
     }
 }
