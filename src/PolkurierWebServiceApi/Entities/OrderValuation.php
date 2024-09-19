@@ -127,66 +127,108 @@ class OrderValuation implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * @return float
+     */
     public function getPromotionNett()
     {
         return $this->promotion_nett;
     }
 
+    /**
+     * @param $promotion_nett
+     * @return $this
+     */
     public function setPromotionNett($promotion_nett)
     {
         $this->promotion_nett = (float)$promotion_nett;
         return $this;
     }
 
+    /**
+     * @return float
+     */
     public function getPromotionGross()
     {
         return $this->promotion_gross;
     }
 
+    /**
+     * @param $promotion_gross
+     * @return $this
+     */
     public function setPromotionGross($promotion_gross)
     {
         $this->promotion_gross = (float)$promotion_gross;
         return $this;
     }
 
+    /**
+     * @return float
+     */
     public function getRebateNett()
     {
         return $this->rebate_nett;
     }
 
+    /**
+     * @param $rebate_nett
+     * @return $this
+     */
     public function setRebateNett($rebate_nett)
     {
         $this->rebate_nett = (float)$rebate_nett;
         return $this;
     }
 
+    /**
+     * @return float
+     */
     public function getRebateGross()
     {
         return $this->rebate_gross;
     }
 
+    /**
+     * @param $rebate_gross
+     * @return $this
+     */
     public function setRebateGross($rebate_gross)
     {
         $this->rebate_gross = (float)$rebate_gross;
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function isAvailable()
     {
         return $this->available;
     }
 
+    /**
+     * @param $available
+     * @return $this
+     */
     public function setAvailable($available)
     {
         $this->available = (bool)$available;
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getUnavailableMessage()
     {
         return $this->unavailable_message;
     }
 
+    /**
+     * @param $unavailable_message
+     * @return $this
+     */
     public function setUnavailableMessage($unavailable_message)
     {
         $this->unavailable_message = (string)$unavailable_message;
