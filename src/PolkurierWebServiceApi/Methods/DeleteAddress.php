@@ -33,11 +33,4 @@ class DeleteAddress extends AbstractMethod
         $this->type = $type;
         return $this;
     }
-
-    public function setResponseData(Response $response)
-    {
-        // This method does not return any specific data
-        $this->responseData = $response->get('response');
-        return $this;
-    }
 }

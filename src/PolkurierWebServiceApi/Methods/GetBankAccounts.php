@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\BankAccount;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -22,12 +23,12 @@ class GetBankAccounts extends AbstractMethod
         $this->responseData = [];
 
         foreach ($response->get('response') as $row) {
-            $account = [
-                'id' => Arr::get($row, 'id'),
-                'number' => Arr::get($row, 'number'),
-                'name' => Arr::get($row, 'name'),
-                'default' => Arr::get($row, 'default', false)
-            ];
+            $account = new BankAccount();
+            $account->setId($account['id']);
+            $account->setNumber($account['number']);
+            $account->setName($account['name']);
+            $account->setIsDefault($account['default']);
+
             $this->responseData[] = $account;
         }
         return $this;

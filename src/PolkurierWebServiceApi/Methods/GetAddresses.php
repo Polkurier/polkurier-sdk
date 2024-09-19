@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
+use PolkurierWebServiceApi\Entities\Address;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -33,27 +34,27 @@ class GetAddresses extends AbstractMethod
     {
         $this->responseData = [];
         foreach ($response->get('response') as $row) {
-            $address = [
-                'id' => Arr::get($row, 'id'),
-                'name' => Arr::get($row, 'name'),
-                'company' => Arr::get($row, 'company'),
-                'person' => Arr::get($row, 'person'),
-                'city' => Arr::get($row, 'city'),
-                'postcode' => Arr::get($row, 'postcode'),
-                'street' => Arr::get($row, 'street'),
-                'housenumber' => Arr::get($row, 'housenumber'),
-                'flatnumber' => Arr::get($row, 'flatnumber'),
-                'email' => Arr::get($row, 'email'),
-                'phone' => Arr::get($row, 'phone'),
-                'country' => Arr::get($row, 'country'),
-                'province' => Arr::get($row, 'province'),
-                'type' => Arr::get($row, 'type'),
-                'default' => Arr::get($row, 'default'),
-                'is_cover_address' => Arr::get($row, 'is_cover_address'),
-            ];
+            $address = new Address();
+            $address->setId(Arr::get($row, 'id'))
+                ->setName(Arr::get($row, 'name'))
+                ->setCompany(Arr::get($row, 'company'))
+                ->setPerson(Arr::get($row, 'person'))
+                ->setCity(Arr::get($row, 'city'))
+                ->setPostcode(Arr::get($row, 'postcode'))
+                ->setStreet(Arr::get($row, 'street'))
+                ->setHouseNumber(Arr::get($row, 'housenumber'))
+                ->setFlatNumber(Arr::get($row, 'flatnumber'))
+                ->setEmail(Arr::get($row, 'email'))
+                ->setPhone(Arr::get($row, 'phone'))
+                ->setCountry(Arr::get($row, 'country'))
+                ->setProvince(Arr::get($row, 'province'))
+                ->setType(Arr::get($row, 'type'))
+                ->setDefault(Arr::get($row, 'default'))
+                ->setIsCoverAddress(Arr::get($row, 'is_cover_address'));
 
             $this->responseData[] = $address;
         }
+
         return $this;
     }
 }
