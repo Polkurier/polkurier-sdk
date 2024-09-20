@@ -2,6 +2,9 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
+use PolkurierWebServiceApi\Exception\ErrorException;
+use PolkurierWebServiceApi\Util\Validators;
+
 /**
  * Class Pickup
  * @package PolkurierWebServiceApi\Entities
@@ -15,9 +18,14 @@ class Pickup
     private $date;
 
     /**
-     * @var PickupTimeRange[]
+     * @var string
      */
-    private $timeRanges = [];
+    private $timeFrom;
+
+    /**
+     * @var string
+     */
+    private $timeTo;
 
     /**
      * @var bool
@@ -25,7 +33,7 @@ class Pickup
     private $noCourierOrder;
 
     /**
-     * @param string $date
+     * @param $date
      * @return $this
      */
     public function setDate($date)
@@ -37,28 +45,53 @@ class Pickup
     /**
      * @return string
      */
-    public function getDate()
+    private function getDate()
     {
         return $this->date;
     }
 
     /**
-     * @param array $timeRanges
+     * @param $hour
      * @return $this
+     * @throws ErrorException
      */
-    public function setTimeRanges(array $timeRanges)
+    public function setTimeFrom($hour)
     {
-        $this->timeRanges = $timeRanges;
+        Validators::validateHourFormatAndThrowOnInvalid($hour);
+        $this->timeFrom = $hour;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    private function getTimeFrom()
+    {
+        return $this->timeFrom;
+    }
+
+
+    /**
+     * @param $hour
+     * @return $this
+     * @throws ErrorException
+     */
+    public function setTimeTo($hour)
+    {
+        Validators::validateHourFormatAndThrowOnInvalid($hour);
+        $this->timeTo = $hour;
         return $this;
     }
 
     /**
-     * @return array
+     * @return string
      */
-    public function getTimeRanges()
+    private function getTimeTo()
     {
-        return $this->timeRanges;
+        return $this->timeTo;
     }
+
 
     /**
      * @param boolean $noCourierOrder
@@ -70,13 +103,15 @@ class Pickup
         return $this;
     }
 
+
     /**
      * @return bool
      */
-    public function getNoCourierOrder()
+    private function getNoCourierOrder()
     {
         return $this->noCourierOrder;
     }
+
 
     /**
      * @return array
@@ -85,10 +120,9 @@ class Pickup
     {
         return [
             'pickupdate' => $this->getDate(),
-            'time_ranges' => array_map(function (PickupTimeRange $timeRange) {
-                return $timeRange->toArray();
-            }, $this->getTimeRanges()),
-            'nocourierorder' => $this->getNoCourierOrder()
+            'pickuptimefrom' => $this->getTimeFrom(),
+            'pickuptimeto' => $this->getTimeTo(),
+            'nocourierorder' => $this->getNoCourierOrder(),
         ];
     }
 }
