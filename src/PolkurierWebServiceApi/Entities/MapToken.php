@@ -6,7 +6,7 @@ namespace PolkurierWebServiceApi\Entities;
  * Class MapToken
  * @package PolkurierWebServiceApi\Entities
  */
-class MapToken
+class MapToken implements \JsonSerializable
 {
     /**
      * @var string
@@ -21,7 +21,7 @@ class MapToken
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'token' => $this->token,

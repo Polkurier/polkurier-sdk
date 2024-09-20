@@ -54,7 +54,7 @@ class GetSupportedCountriesV2 extends AbstractMethod
             }
 
             $country->setProvinces($provinces);
-            $this->responseData[] = $country->toArray();
+            $this->responseData[] = $country;
         }
 
         return $this;
