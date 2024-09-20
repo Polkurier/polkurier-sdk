@@ -7,7 +7,7 @@ use PolkurierWebServiceApi\Response;
 class DeletePackTemplate extends AbstractMethod
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
 
@@ -30,7 +30,7 @@ class DeletePackTemplate extends AbstractMethod
     }
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)

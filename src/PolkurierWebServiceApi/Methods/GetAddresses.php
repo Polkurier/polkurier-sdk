@@ -9,7 +9,7 @@ use PolkurierWebServiceApi\Util\Arr;
 class GetAddresses extends AbstractMethod
 {
     /**
-     * @var
+     * @var string|null
      */
     private $type;
 
@@ -34,7 +34,7 @@ class GetAddresses extends AbstractMethod
     }
 
     /**
-     * @param $type
+     * @param string|null $type
      * @return $this
      */
     public function setType($type)

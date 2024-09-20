@@ -7,7 +7,7 @@ use PolkurierWebServiceApi\Response;
 /**
  * Class InpostParcelMachines
  * @package PolkurierWebServiceApi\Methods
- * @deprecated Uzywaj metode GetCourierPoint
+ * @deprecated Use method GetCourierPoint
  */
 class InpostParcelMachines extends AbstractMethod
 {

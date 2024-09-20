@@ -2,11 +2,7 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class OrderItem
- * @package PolkurierWebServiceApi\Entities
- */
-class OrderItem
+class OrderItem implements \JsonSerializable
 {
     private $description;
     private $amount;
@@ -126,7 +122,7 @@ class OrderItem
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'description' => $this->description,

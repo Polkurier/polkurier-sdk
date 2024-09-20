@@ -7,7 +7,7 @@ namespace PolkurierWebServiceApi\Methods;
 use PolkurierWebServiceApi\Response;
 
 /**
- * @deprecated Uzywaj metode GetCourierPoint
+ * @deprecated Use method GetCourierPoint
  */
 class PocztexPostOffices extends AbstractMethod
 {

@@ -662,16 +662,9 @@ class Order implements \JsonSerializable
             'recipient' => $this->recipient,
             'COD' => $this->cod ? $this->cod->toArray() : null,
             'pickup' => $this->pickup ? $this->pickup->toArray() : null,
-//            'packs' => array_map(static function (Pack $pack) {
-//                return $pack->toArray();
-//            }, $this->packs),
             'packs' => $this->packs,
-            'items' => array_map(static function (OrderItem $item) {
-                return $item->toArray();
-            }, $this->items),
-            'waybills' => array_map(static function (OrderWaybill $waybill) {
-                return $waybill->toArray();
-            }, $this->waybills),
+            'items' => $this->items,
+            'waybills' => $this->waybills,
             'courier_name' => $this->courierName,
             'shipmenttype' => $this->shipmentType,
             'individual_pricing' => $this->individualPricing

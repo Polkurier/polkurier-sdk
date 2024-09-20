@@ -2,11 +2,9 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class PickupTimeRange
- * @package PolkurierWebServiceApi\Entities
- */
-class PickupTimeRange
+use JsonSerializable;
+
+class PickupTimeRange implements JsonSerializable
 {
     /**
      * @var string
@@ -32,7 +30,7 @@ class PickupTimeRange
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'timefrom' => $this->timeFrom,

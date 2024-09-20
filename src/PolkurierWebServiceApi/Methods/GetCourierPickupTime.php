@@ -10,19 +10,19 @@ use PolkurierWebServiceApi\Entities\PickupTimeRange;
 class GetCourierPickupTime extends AbstractMethod
 {
     /**
-     * @var
+     * @var string
      */
     private $courier;
     /**
-     * @var
+     * @var string
      */
     private $shipFrom;
     /**
-     * @var
+     * @var string
      */
     private $shipTo;
     /**
-     * @var
+     * @var string
      */
     private $parcel;
 
@@ -48,7 +48,7 @@ class GetCourierPickupTime extends AbstractMethod
     }
 
     /**
-     * @param $courier
+     * @param string $courier
      * @return $this
      */
     public function setCourier($courier)
@@ -58,7 +58,7 @@ class GetCourierPickupTime extends AbstractMethod
     }
 
     /**
-     * @param $shipFrom
+     * @param string $shipFrom
      * @return $this
      */
     public function setShipFrom($shipFrom)
@@ -68,7 +68,7 @@ class GetCourierPickupTime extends AbstractMethod
     }
 
     /**
-     * @param $shipTo
+     * @param string $shipTo
      * @return $this
      */
     public function setShipTo($shipTo)
@@ -78,7 +78,7 @@ class GetCourierPickupTime extends AbstractMethod
     }
 
     /**
-     * @param $parcel
+     * @param string $parcel
      * @return $this
      */
     public function setParcel($parcel)

@@ -34,7 +34,7 @@ class SaveBankAccount extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return BankAccount
+     * @return $this
      */
     public function setResponseData(Response $response)
     {
@@ -47,6 +47,6 @@ class SaveBankAccount extends AbstractMethod
 
         $this->responseData = $account;
 
-        return $account;
+        return $this;
     }
 }

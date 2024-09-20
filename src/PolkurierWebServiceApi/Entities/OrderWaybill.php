@@ -2,11 +2,7 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class OrderWaybill
- * @package PolkurierWebServiceApi\Entities
- */
-class OrderWaybill
+class OrderWaybill implements \JsonSerializable
 {
     /**
      * @var string
@@ -57,7 +53,7 @@ class OrderWaybill
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'number' => $this->number,

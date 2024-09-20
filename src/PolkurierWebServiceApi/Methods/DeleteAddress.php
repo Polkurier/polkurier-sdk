@@ -7,11 +7,11 @@ use PolkurierWebServiceApi\Response;
 class DeleteAddress extends AbstractMethod
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
     /**
-     * @var
+     * @var string|null
      */
     private $type;
 
@@ -35,7 +35,7 @@ class DeleteAddress extends AbstractMethod
     }
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -45,7 +45,7 @@ class DeleteAddress extends AbstractMethod
     }
 
     /**
-     * @param $type
+     * @param string|null $type
      * @return $this
      */
     public function setType($type)
