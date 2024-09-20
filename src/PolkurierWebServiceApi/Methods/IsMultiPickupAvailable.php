@@ -9,19 +9,19 @@ use PolkurierWebServiceApi\Util\Arr;
 class IsMultiPickupAvailable extends AbstractMethod
 {
     /**
-     * @var
+     * @var string
      */
     private $senderPostCode;
     /**
-     * @var
+     * @var string
      */
     private $shipmentType;
     /**
-     * @var
+     * @var string
      */
     private $courier;
     /**
-     * @var array
+     * @var Pack[]
      */
     private $packs = [];
 
@@ -42,9 +42,7 @@ class IsMultiPickupAvailable extends AbstractMethod
             'senderPostCode' => $this->senderPostCode,
             'shipmentType' => $this->shipmentType,
             'courier' => $this->courier,
-            'packs' => array_map(static function (Pack $pack) {
-                return $pack->toArray();
-            }, $this->packs)
+            'packs' => $this->packs
         ];
     }
 
@@ -90,10 +88,12 @@ class IsMultiPickupAvailable extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return mixed|IsMultiPickupAvailable|null
+     * @return IsMultiPickupAvailable
      */
     public function setResponseData(Response $response)
     {
-        return Arr::get($response->get('response'), 'isMultiPickupAvailable');
+        $this->responseData = Arr::get($response->get('response'), 'isMultiPickupAvailable');
+
+        return $this;
     }
 }

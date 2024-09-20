@@ -26,7 +26,7 @@ class GetBankAccounts extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|GetBankAccounts
+     * @return $this
      */
     public function setResponseData(Response $response)
     {
@@ -34,10 +34,10 @@ class GetBankAccounts extends AbstractMethod
 
         foreach ($response->get('response') as $row) {
             $account = new BankAccount();
-            $account->setId($account['id']);
-            $account->setNumber($account['number']);
-            $account->setName($account['name']);
-            $account->setIsDefault($account['default']);
+            $account->setId(Arr::get($row, 'id'));
+            $account->setNumber(Arr::get($row, 'number'));
+            $account->setName(Arr::get($row, 'name'));
+            $account->setIsDefault(Arr::get($row, 'default'));
 
             $this->responseData[] = $account;
         }

@@ -9,6 +9,7 @@ use PolkurierWebServiceApi\Entities\Pickup;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\OrderItem;
 use PolkurierWebServiceApi\Entities\OrderWaybill;
+use PolkurierWebServiceApi\Entities\PickupTimeRange;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
@@ -156,12 +157,13 @@ class GetOrders extends AbstractMethod
 
         if ($this->orderno) {
             $orderData = $response->get('response');
-            $order = $this->createOrderObject($orderData);
+            $order = $this->createOrder($orderData);
+
             $this->responseData = $order;
         } else {
             $rawData = $response->get('response')['result'];
             foreach ($rawData as $row) {
-                $order = $this->createOrderObject($row);
+                $order = $this->createOrder($row);
                 $this->responseData[] = $order;
             }
         }
@@ -170,12 +172,12 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return Order
      * @throws \DateMalformedStringException
      * @throws \PolkurierWebServiceApi\Exception\ErrorException
      */
-    private function createOrderObject($data)
+    private function createOrder($data)
     {
         $order = new Order();
 
@@ -202,49 +204,49 @@ class GetOrders extends AbstractMethod
         // Set Sender Address
         $senderData = Arr::get($data, 'sender', []);
         if (!empty($senderData)) {
-            $sender = $this->createAddressObject($senderData);
+            $sender = $this->createAddress($senderData);
             $order->setSender($sender);
         }
 
         // Set Recipient Address
         $recipientData = Arr::get($data, 'recipient', []);
         if (!empty($recipientData)) {
-            $recipient = $this->createAddressObject($recipientData);
+            $recipient = $this->createAddress($recipientData);
             $order->setRecipient($recipient);
         }
 
         // Set COD
         $codData = Arr::get($data, 'COD', []);
         if (!empty($codData)) {
-            $cod = $this->createCodObject($codData);
+            $cod = $this->createCod($codData);
             $order->setCod($cod);
         }
 
         // Set Pickup
         $pickupData = Arr::get($data, 'pickup', []);
         if (!empty($pickupData)) {
-            $pickup = $this->createPickupObject($pickupData);
+            $pickup = $this->createPickup($pickupData);
             $order->setPickup($pickup);
         }
 
         // Set Packs
         $packsData = Arr::get($data, 'packs', []);
         foreach ($packsData as $packData) {
-            $pack = $this->createPackObject($packData);
+            $pack = $this->createPack($packData);
             $order->addPack($pack);
         }
 
         // Set Items
         $itemsData = Arr::get($data, 'items', []);
         foreach ($itemsData as $itemData) {
-            $item = $this->createOrderItemObject($itemData);
+            $item = $this->createOrderItem($itemData);
             $order->addItem($item);
         }
 
         // Set Waybills
         $waybillsData = Arr::get($data, 'waybills', []);
         foreach ($waybillsData as $waybillData) {
-            $waybill = $this->createOrderWaybillObject($waybillData);
+            $waybill = $this->createOrderWaybill($waybillData);
             $order->addWaybill($waybill);
         }
 
@@ -252,10 +254,10 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return Address
      */
-    private function createAddressObject($data)
+    private function createAddress($data)
     {
         $address = new Address();
         $address->setId(Arr::get($data, 'id'))
@@ -276,11 +278,11 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return COD
      * @throws \PolkurierWebServiceApi\Exception\ErrorException
      */
-    private function createCodObject($data)
+    private function createCod($data)
     {
         $cod = new COD();
         $cod->setType(Arr::get($data, 'codtype'))
@@ -291,10 +293,10 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return Pickup
      */
-    private function createPickupObject($data)
+    private function createPickup($data)
     {
         $pickup = new Pickup();
         $pickup->setDate(Arr::get($data, 'pickupdate'));
@@ -316,11 +318,11 @@ class GetOrders extends AbstractMethod
 
 
     /**
-     * @param $data
+     * @param array $data
      * @return Pack
      * @throws \PolkurierWebServiceApi\Exception\ErrorException
      */
-    private function createPackObject($data)
+    private function createPack($data)
     {
         $pack = new Pack();
         $pack->setLength(Arr::get($data, 'length'))
@@ -333,10 +335,10 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return OrderItem
      */
-    private function createOrderItemObject($data)
+    private function createOrderItem($data)
     {
         $item = new OrderItem();
         $item->setDescription(Arr::get($data, 'description'))
@@ -349,10 +351,10 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return OrderWaybill
      */
-    private function createOrderWaybillObject($data)
+    private function createOrderWaybill($data)
     {
         $waybill = new OrderWaybill();
         $waybill->setNumber(Arr::get($data, 'number'))

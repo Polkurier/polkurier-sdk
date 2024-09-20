@@ -9,9 +9,12 @@ use PolkurierWebServiceApi\Util\Arr;
 class SaveBankAccount extends AbstractMethod
 {
     /**
-     * @var array
+     * @param BankAccount $bankAccount
      */
-    private $accountData = [];
+    public function __construct(BankAccount $bankAccount)
+    {
+        $this->setRequestData($bankAccount->jsonSerialize());
+    }
 
     /**
      * @return string
@@ -26,17 +29,7 @@ class SaveBankAccount extends AbstractMethod
      */
     public function getRequestData()
     {
-        return $this->accountData;
-    }
-
-    /**
-     * @param BankAccount $account
-     * @return $this
-     */
-    public function setAccountData(BankAccount $account)
-    {
-        $this->accountData = $account->toArray();
-        return $this;
+        return $this->requestData;
     }
 
     /**
@@ -51,6 +44,8 @@ class SaveBankAccount extends AbstractMethod
             ->setNumber(Arr::get($data, 'number'))
             ->setName(Arr::get($data, 'name'))
             ->setIsDefault(Arr::get($data, 'default'));
+
+        $this->responseData = $account;
 
         return $account;
     }

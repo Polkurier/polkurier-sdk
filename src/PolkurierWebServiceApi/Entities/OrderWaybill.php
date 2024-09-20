@@ -9,11 +9,12 @@ namespace PolkurierWebServiceApi\Entities;
 class OrderWaybill
 {
     /**
-     * @var
+     * @var string
      */
     private $number;
+
     /**
-     * @var
+     * @var bool
      */
     private $isDefault;
 

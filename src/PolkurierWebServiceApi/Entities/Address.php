@@ -2,79 +2,75 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class Address
- * @package PolkurierWebServiceApi\Entities
- */
-class Address
+class Address implements \JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
     /**
-     * @var
+     * @var string|null
      */
     private $name;
     /**
-     * @var
+     * @var string|null
      */
     private $company;
     /**
-     * @var
+     * @var string|null
      */
     private $person;
     /**
-     * @var
+     * @var string|null
      */
     private $city;
     /**
-     * @var
+     * @var string|null
      */
     private $postcode;
     /**
-     * @var
+     * @var string|null
      */
     private $street;
     /**
-     * @var
+     * @var string|null
      */
     private $houseNumber;
     /**
-     * @var
+     * @var string|null
      */
     private $flatNumber;
     /**
-     * @var
+     * @var string|null
      */
     private $email;
     /**
-     * @var
+     * @var string|null
      */
     private $phone;
     /**
-     * @var
+     * @var string|null
      */
     private $country;
     /**
-     * @var
+     * @var string|null
      */
     private $province;
     /**
-     * @var
+     * @var string|null
      */
     private $type;
     /**
-     * @var
+     * @var bool|null
      */
     private $default;
     /**
-     * @var
+     * @var bool|null
      */
     private $isCoverAddress;
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -84,7 +80,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -92,7 +88,7 @@ class Address
     }
 
     /**
-     * @param $name
+     * @param string|null $name
      * @return $this
      */
     public function setName($name)
@@ -102,7 +98,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getName()
     {
@@ -110,7 +106,7 @@ class Address
     }
 
     /**
-     * @param $company
+     * @param string|null $company
      * @return $this
      */
     public function setCompany($company)
@@ -120,7 +116,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getCompany()
     {
@@ -128,7 +124,7 @@ class Address
     }
 
     /**
-     * @param $person
+     * @param string|null $person
      * @return $this
      */
     public function setPerson($person)
@@ -138,7 +134,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getPerson()
     {
@@ -146,7 +142,7 @@ class Address
     }
 
     /**
-     * @param $city
+     * @param string|null $city
      * @return $this
      */
     public function setCity($city)
@@ -156,7 +152,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getCity()
     {
@@ -164,7 +160,7 @@ class Address
     }
 
     /**
-     * @param $postcode
+     * @param string|null $postcode
      * @return $this
      */
     public function setPostcode($postcode)
@@ -174,7 +170,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getPostcode()
     {
@@ -182,7 +178,7 @@ class Address
     }
 
     /**
-     * @param $street
+     * @param string|null $street
      * @return $this
      */
     public function setStreet($street)
@@ -192,7 +188,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getStreet()
     {
@@ -200,7 +196,7 @@ class Address
     }
 
     /**
-     * @param $houseNumber
+     * @param string|null $houseNumber
      * @return $this
      */
     public function setHouseNumber($houseNumber)
@@ -210,7 +206,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getHouseNumber()
     {
@@ -218,7 +214,7 @@ class Address
     }
 
     /**
-     * @param $flatNumber
+     * @param string|null $flatNumber
      * @return $this
      */
     public function setFlatNumber($flatNumber)
@@ -228,7 +224,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getFlatNumber()
     {
@@ -236,7 +232,7 @@ class Address
     }
 
     /**
-     * @param $email
+     * @param string|null $email
      * @return $this
      */
     public function setEmail($email)
@@ -246,7 +242,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getEmail()
     {
@@ -254,7 +250,7 @@ class Address
     }
 
     /**
-     * @param $phone
+     * @param string|null $phone
      * @return $this
      */
     public function setPhone($phone)
@@ -264,7 +260,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getPhone()
     {
@@ -272,7 +268,7 @@ class Address
     }
 
     /**
-     * @param $country
+     * @param string|null $country
      * @return $this
      */
     public function setCountry($country)
@@ -282,7 +278,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getCountry()
     {
@@ -290,7 +286,7 @@ class Address
     }
 
     /**
-     * @param $province
+     * @param string|null $province
      * @return $this
      */
     public function setProvince($province)
@@ -300,7 +296,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getProvince()
     {
@@ -308,7 +304,7 @@ class Address
     }
 
     /**
-     * @param $type
+     * @param string|null $type
      * @return $this
      */
     public function setType($type)
@@ -318,7 +314,7 @@ class Address
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getType()
     {
@@ -326,17 +322,17 @@ class Address
     }
 
     /**
-     * @param $default
+     * @param bool|null $default
      * @return $this
      */
     public function setDefault($default)
     {
-        $this->default = (bool)$default;
+        $this->default = $default;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getDefault()
     {
@@ -344,17 +340,17 @@ class Address
     }
 
     /**
-     * @param $isCoverAddress
+     * @param bool|null $isCoverAddress
      * @return $this
      */
     public function setIsCoverAddress($isCoverAddress)
     {
-        $this->isCoverAddress = (bool)$isCoverAddress;
+        $this->isCoverAddress = $isCoverAddress;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getIsCoverAddress()
     {
@@ -364,7 +360,7 @@ class Address
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->id,

@@ -41,7 +41,7 @@ class SavePackTemplate extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return PackTemplate
+     * @return self|AbstractMethod
      */
     public function setResponseData(Response $response)
     {
@@ -59,6 +59,8 @@ class SavePackTemplate extends AbstractMethod
             ->setDescription(Arr::get($data, 'description'))
             ->setType(Arr::get($data, 'type'));
 
-        return $template;
+        $this->responseData = $template->toArray();
+
+        return $this;
     }
 }

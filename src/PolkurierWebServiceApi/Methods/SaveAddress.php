@@ -26,7 +26,7 @@ class SaveAddress extends AbstractMethod
      */
     public function getRequestData()
     {
-        return ['data' => $this->addressData];
+        return $this->addressData;
     }
 
     /**
@@ -35,13 +35,13 @@ class SaveAddress extends AbstractMethod
      */
     public function setAddressData(Address $address)
     {
-        $this->addressData = $address->toArray();
+        $this->addressData = $address;
         return $this;
     }
 
     /**
      * @param Response $response
-     * @return Address
+     * @return $this
      */
     public function setResponseData(Response $response)
     {
@@ -64,6 +64,8 @@ class SaveAddress extends AbstractMethod
             ->setDefault(Arr::get($data, 'default'))
             ->setIsCoverAddress(Arr::get($data, 'is_cover_address'));
 
-        return $address;
+        $this->responseData = $address;
+
+        return $this;
     }
 }

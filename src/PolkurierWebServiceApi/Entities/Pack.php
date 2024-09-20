@@ -2,6 +2,7 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
+use JsonSerializable;
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Type\PackType;
 
@@ -10,7 +11,7 @@ use PolkurierWebServiceApi\Type\PackType;
  * @package PolkurierWebServiceApi\Entities
  *
  */
-class Pack
+class Pack implements JsonSerializable
 {
     /**
      * @var float
@@ -164,10 +165,7 @@ class Pack
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'length' => $this->length,
@@ -178,5 +176,4 @@ class Pack
             'type' => $this->type
         ];
     }
-
 }

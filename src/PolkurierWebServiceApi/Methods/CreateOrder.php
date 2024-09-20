@@ -87,9 +87,7 @@ class CreateOrder extends AbstractMethod
             'description' => $this->description,
             'sender' => $this->sender->toArray(),
             'recipient' => $this->recipient->toArray(),
-            'packs' => array_map(static function (Pack $pack) {
-                return $pack->toArray();
-            }, $this->packs),
+            'packs' => $this->packs,
             'pickup' => $this->pickup->toArray(),
             'COD' => $this->COD->toArray(),
             'insurance' => $this->insurance

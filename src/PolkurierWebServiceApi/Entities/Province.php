@@ -2,23 +2,19 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class Province
- * @package PolkurierWebServiceApi\Entities
- */
-class Province
+class Province implements \JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
     /**
-     * @var
+     * @var string|null
      */
     private $name;
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -28,7 +24,7 @@ class Province
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -36,7 +32,7 @@ class Province
     }
 
     /**
-     * @param $name
+     * @param string|null $name
      * @return $this
      */
     public function setName($name)
@@ -46,7 +42,7 @@ class Province
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getName()
     {
@@ -56,7 +52,7 @@ class Province
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->id,

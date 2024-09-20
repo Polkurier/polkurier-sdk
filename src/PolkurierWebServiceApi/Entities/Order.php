@@ -4,38 +4,143 @@ namespace PolkurierWebServiceApi\Entities;
 
 use DateTimeImmutable;
 
-/**
- * Class Order
- * @package PolkurierWebServiceApi\Entities
- */
-class Order
+class Order implements \JsonSerializable
 {
+    /**
+     * @var string|null
+     */
     private $number;
+
+    /**
+     * @var DateTimeImmutable|null
+     */
     private $date;
+
+    /**
+     * @var string|null
+     */
     private $description;
+
+    /**
+     * @var string|null
+     */
     private $courier;
+
+    /**
+     * @var string|null
+     */
     private $status;
+
+    /**
+     * @var string|null
+     */
     private $statusCode;
+
+    /**
+     * @var float|null
+     */
     private $priceGross;
+
+    /**
+     * @var float|null
+     */
     private $priceNet;
+
+    /**
+     * @var bool|null
+     */
     private $isPaid;
+
+    /**
+     * @var bool|null
+     */
     private $hasInvoice;
+
+    /**
+     * @var float|null
+     */
     private $unpaidAmount;
+
+    /**
+     * @var string|null
+     */
     private $url;
+
+    /**
+     * @var DateTimeImmutable|null
+     */
     private $statusDate;
+
+    /**
+     * @var DateTimeImmutable|null
+     */
     private $deliveredDate;
+
+    /**
+     * @var float|null
+     */
     private $insurance;
+
+    /**
+     * @var Address|null
+     */
     private $sender;
+
+    /**
+     * @var Address|null
+     */
     private $recipient;
+
+    /**
+     * @var COD|null
+     */
     private $cod;
+
+    /**
+     * @var Pickup|null
+     */
     private $pickup;
+
+    /**
+     * @var Pack[]
+     */
     private $packs = [];
+
+    /**
+     * @var CourierServiceInterface[]|array
+     * @deprecated Replaced by $items
+     */
     private $courierService = [];
+
+    /**
+     * @var OrderItem[]
+     */
     private $items = [];
+
+    /**
+     * @var OrderWaybill[]
+     */
     private $waybills = [];
+
+    /**
+     * @var string|null
+     */
     private $courierName;
+
+    /**
+     * @var string|null
+     */
     private $shipmentType;
+
+    /**
+     * @var string[]
+     * @deprecated Replaced by $waybills
+     */
     private $label = [];
+
+    /**
+     * @var mixed|null
+     */
     private $individualPricing;
 
     /**
@@ -535,7 +640,7 @@ class Order
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'number' => $this->number,
@@ -555,15 +660,20 @@ class Order
             'insurance' => $this->insurance,
             'sender' => $this->sender,
             'recipient' => $this->recipient,
-            'COD' => $this->cod,
-            'pickup' => $this->pickup,
+            'COD' => $this->cod ? $this->cod->toArray() : null,
+            'pickup' => $this->pickup ? $this->pickup->toArray() : null,
+//            'packs' => array_map(static function (Pack $pack) {
+//                return $pack->toArray();
+//            }, $this->packs),
             'packs' => $this->packs,
-            'courierservice' => $this->courierService,
-            'items' => $this->items,
-            'waybills' => $this->waybills,
+            'items' => array_map(static function (OrderItem $item) {
+                return $item->toArray();
+            }, $this->items),
+            'waybills' => array_map(static function (OrderWaybill $waybill) {
+                return $waybill->toArray();
+            }, $this->waybills),
             'courier_name' => $this->courierName,
             'shipmenttype' => $this->shipmentType,
-            'label' => $this->label,
             'individual_pricing' => $this->individualPricing
         ];
     }

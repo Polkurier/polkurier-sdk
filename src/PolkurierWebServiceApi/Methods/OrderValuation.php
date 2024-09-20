@@ -189,9 +189,7 @@ class OrderValuation extends AbstractMethod
             'recipient_country' => $this->recipient ? $this->recipient->getCountry() : '',
             'recipient_email' => $this->recipient ? $this->recipient->getEmail() : '',
             'shipmenttype' => $this->shipmentType,
-            'packs' => array_map(static function (Pack $pack) {
-                return $pack->toArray();
-            }, $this->packs),
+            'packs' => $this->packs,
             'COD' => $this->COD,
             'codtype' => $this->codtype,
             'return_cod' => $this->return_cod,

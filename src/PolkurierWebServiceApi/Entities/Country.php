@@ -2,31 +2,35 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class Country
+class Country implements \JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
-    /**
-     * @var
-     */
-    private $name;
-    /**
-     * @var
-     */
-    private $isUe;
-    /**
-     * @var
-     */
-    private $isDefault;
-    /**
-     * @var array
-     */
-    private $provinces = [];
 
     /**
-     * @param $id
+     * @var string
+     */
+    private $name;
+
+    /**
+     * @var bool
+     */
+    private $isUe;
+
+    /**
+     * @var bool
+     */
+    private $isDefault;
+
+    /**
+     * @var Province[]
+     */
+    private $provinces;
+
+    /**
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -36,7 +40,7 @@ class Country
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -44,7 +48,7 @@ class Country
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return $this
      */
     public function setName($name)
@@ -54,7 +58,7 @@ class Country
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
@@ -62,7 +66,7 @@ class Country
     }
 
     /**
-     * @param $isUe
+     * @param bool $isUe
      * @return $this
      */
     public function setIsUe($isUe)
@@ -72,7 +76,7 @@ class Country
     }
 
     /**
-     * @return mixed
+     * @return bool
      */
     public function getIsUe()
     {
@@ -80,7 +84,7 @@ class Country
     }
 
     /**
-     * @param $isDefault
+     * @param bool $isDefault
      * @return $this
      */
     public function setIsDefault($isDefault)
@@ -90,7 +94,7 @@ class Country
     }
 
     /**
-     * @return mixed
+     * @return bool mixed
      */
     public function getIsDefault()
     {
@@ -98,7 +102,7 @@ class Country
     }
 
     /**
-     * @param array $provinces
+     * @param Province[] $provinces
      * @return $this
      */
     public function setProvinces(array $provinces)
@@ -108,7 +112,7 @@ class Country
     }
 
     /**
-     * @return array
+     * @return Province[]
      */
     public function getProvinces()
     {
@@ -118,7 +122,7 @@ class Country
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->id,

@@ -113,7 +113,7 @@ class GetCourierPoint extends AbstractMethod
                 ->setRequireAppMessage(Arr::get($row, 'requireAppMessage'))
                 ->setFunctions(Arr::get($row, 'functions', []));
 
-            $this->responseData[] = $point;
+            $this->responseData[] = $point->toArray();
         }
 
         return $this;

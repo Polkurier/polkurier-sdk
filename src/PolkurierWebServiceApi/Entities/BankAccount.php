@@ -2,31 +2,30 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class BankAccount
- * @package PolkurierWebServiceApi\Entities
- */
-class BankAccount
+class BankAccount implements \JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
+
     /**
-     * @var
+     * @var int
      */
     private $number;
+
     /**
-     * @var
+     * @var string
      */
     private $name;
+
     /**
-     * @var
+     * @var bool
      */
     private $isDefault;
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -36,7 +35,7 @@ class BankAccount
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -44,7 +43,7 @@ class BankAccount
     }
 
     /**
-     * @param $number
+     * @param int $number
      * @return $this
      */
     public function setNumber($number)
@@ -54,7 +53,7 @@ class BankAccount
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getNumber()
     {
@@ -62,7 +61,7 @@ class BankAccount
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return $this
      */
     public function setName($name)
@@ -72,7 +71,7 @@ class BankAccount
     }
 
     /**
-     * @return mixed
+     * @return string mixed
      */
     public function getName()
     {
@@ -80,7 +79,7 @@ class BankAccount
     }
 
     /**
-     * @param $isDefault
+     * @param bool $isDefault
      * @return $this
      */
     public function setIsDefault($isDefault)
@@ -90,7 +89,7 @@ class BankAccount
     }
 
     /**
-     * @return mixed
+     * @return bool
      */
     public function getIsDefault()
     {
@@ -100,7 +99,7 @@ class BankAccount
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->id,
