@@ -288,7 +288,7 @@ class GetOrders extends AbstractMethod
         $cod = new COD();
         $cod->setType(Arr::get($data, 'codtype'))
             ->setAmount(Arr::get($data, 'codamount'))
-            ->setBankAccount(Arr::get($data, 'codbankaccount', ''))
+            ->setBankAccount(Arr::get($data, 'codbankaccount'))
             ->setReturnCod(Arr::get($data, 'return_cod'));
         return $cod;
     }
