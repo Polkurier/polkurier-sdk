@@ -14,19 +14,46 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetOrders extends AbstractMethod
 {
+    /**
+     * @var string
+     */
     private $orderno = '';
+    /**
+     * @var bool
+     */
     private $packs = false;
+    /**
+     * @var int
+     */
     private $pagesize = 100;
+    /**
+     * @var int
+     */
     private $page = 1;
+    /**
+     * @var string
+     */
     private $status = '';
+    /**
+     * @var bool
+     */
     private $items = false;
+    /**
+     * @var bool
+     */
     private $files = false;
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'get_orders';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         $data = [];
@@ -47,48 +74,82 @@ class GetOrders extends AbstractMethod
         return $data;
     }
 
+    /**
+     * @param $orderno
+     * @return $this
+     */
     public function setOrderno($orderno)
     {
         $this->orderno = $orderno;
         return $this;
     }
 
+    /**
+     * @param $packs
+     * @return $this
+     */
     public function setPacks($packs)
     {
         $this->packs = (bool)$packs;
         return $this;
     }
 
+    /**
+     * @param $pagesize
+     * @return $this
+     */
     public function setPageSize($pagesize)
     {
         $this->pagesize = $pagesize;
         return $this;
     }
 
+    /**
+     * @param $page
+     * @return $this
+     */
     public function setPage($page)
     {
         $this->page = $page;
         return $this;
     }
 
+    /**
+     * @param $status
+     * @return $this
+     */
     public function setStatus($status)
     {
         $this->status = $status;
         return $this;
     }
 
+    /**
+     * @param $items
+     * @return $this
+     */
     public function setItems($items)
     {
         $this->items = (bool)$items;
         return $this;
     }
 
+    /**
+     * @param $files
+     * @return $this
+     */
     public function setFiles($files)
     {
         $this->files = (bool)$files;
         return $this;
     }
 
+    /**
+     * @param Response $response
+     * @return $this|GetOrders
+     * @throws \DateMalformedStringException
+     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
@@ -108,6 +169,12 @@ class GetOrders extends AbstractMethod
         return $this;
     }
 
+    /**
+     * @param $data
+     * @return Order
+     * @throws \DateMalformedStringException
+     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     */
     private function createOrderObject($data)
     {
         $order = new Order();
@@ -184,6 +251,10 @@ class GetOrders extends AbstractMethod
         return $order;
     }
 
+    /**
+     * @param $data
+     * @return Address
+     */
     private function createAddressObject($data)
     {
         $address = new Address();
@@ -204,6 +275,11 @@ class GetOrders extends AbstractMethod
         return $address;
     }
 
+    /**
+     * @param $data
+     * @return COD
+     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     */
     private function createCodObject($data)
     {
         $cod = new COD();
@@ -214,16 +290,36 @@ class GetOrders extends AbstractMethod
         return $cod;
     }
 
+    /**
+     * @param $data
+     * @return Pickup
+     */
     private function createPickupObject($data)
     {
         $pickup = new Pickup();
-        $pickup->setDate(Arr::get($data, 'pickupdate'))
-            ->setTimeFrom(Arr::get($data, 'pickuptimefrom'))
-            ->setTimeTo(Arr::get($data, 'pickuptimeto'))
-            ->setNoCourierOrder(Arr::get($data, 'nocourierorder'));
+        $pickup->setDate(Arr::get($data, 'pickupdate'));
+
+        $timeRanges = [];
+        foreach (Arr::get($data, 'time', []) as $time) {
+            $timeRange = new PickupTimeRange(
+                Arr::get($time, 'timefrom'),
+                Arr::get($time, 'timeto')
+            );
+            $timeRanges[] = $timeRange;
+        }
+
+        $pickup->setTimeRanges($timeRanges);
+        $pickup->setNoCourierOrder(Arr::get($data, 'nocourierorder', false));
+
         return $pickup;
     }
 
+
+    /**
+     * @param $data
+     * @return Pack
+     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     */
     private function createPackObject($data)
     {
         $pack = new Pack();
@@ -236,6 +332,10 @@ class GetOrders extends AbstractMethod
         return $pack;
     }
 
+    /**
+     * @param $data
+     * @return OrderItem
+     */
     private function createOrderItemObject($data)
     {
         $item = new OrderItem();
@@ -248,6 +348,10 @@ class GetOrders extends AbstractMethod
         return $item;
     }
 
+    /**
+     * @param $data
+     * @return OrderWaybill
+     */
     private function createOrderWaybillObject($data)
     {
         $waybill = new OrderWaybill();

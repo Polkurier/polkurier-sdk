@@ -8,17 +8,53 @@ namespace PolkurierWebServiceApi\Entities;
  */
 class OrderValuation implements \JsonSerializable
 {
+    /**
+     * @var string
+     */
     private $servicecode = '';
+    /**
+     * @var string
+     */
     private $serviceName = '';
+    /**
+     * @var int
+     */
     private $netprice = 0;
+    /**
+     * @var int
+     */
     private $grossprice = 0;
+    /**
+     * @var float
+     */
     private $conditional_price_nett = 0.0;
+    /**
+     * @var float
+     */
     private $conditional_price_gross = 0.0;
+    /**
+     * @var float
+     */
     private $promotion_nett = 0.0;
+    /**
+     * @var float
+     */
     private $promotion_gross = 0.0;
+    /**
+     * @var float
+     */
     private $rebate_nett = 0.0;
+    /**
+     * @var float
+     */
     private $rebate_gross = 0.0;
+    /**
+     * @var bool
+     */
     private $available = true;
+    /**
+     * @var string
+     */
     private $unavailable_message = '';
 
     /**

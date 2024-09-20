@@ -8,16 +8,26 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetBankAccounts extends AbstractMethod
 {
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'get_bank_accounts';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         return [];
     }
 
+    /**
+     * @param Response $response
+     * @return $this|GetBankAccounts
+     */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];

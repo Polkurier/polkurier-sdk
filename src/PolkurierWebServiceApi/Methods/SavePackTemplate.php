@@ -8,24 +8,41 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class SavePackTemplate extends AbstractMethod
 {
+    /**
+     * @var array
+     */
     private $templateData = [];
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'save_pack_template';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         return $this->templateData;
     }
 
+    /**
+     * @param PackTemplate $template
+     * @return $this
+     */
     public function setTemplateData(PackTemplate $template)
     {
         $this->templateData = $template->toArray();
         return $this;
     }
 
+    /**
+     * @param Response $response
+     * @return PackTemplate
+     */
     public function setResponseData(Response $response)
     {
         $data = $response->get('response');

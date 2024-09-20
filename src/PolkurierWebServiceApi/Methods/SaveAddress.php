@@ -8,24 +8,41 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class SaveAddress extends AbstractMethod
 {
+    /**
+     * @var array
+     */
     private $addressData = [];
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'save_address';
     }
 
+    /**
+     * @return array[]
+     */
     public function getRequestData()
     {
         return ['data' => $this->addressData];
     }
 
+    /**
+     * @param Address $address
+     * @return $this
+     */
     public function setAddressData(Address $address)
     {
         $this->addressData = $address->toArray();
         return $this;
     }
 
+    /**
+     * @param Response $response
+     * @return Address
+     */
     public function setResponseData(Response $response)
     {
         $data = $response->get('response');

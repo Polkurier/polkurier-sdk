@@ -8,7 +8,13 @@ namespace PolkurierWebServiceApi\Entities;
  */
 class OrderWaybill
 {
+    /**
+     * @var
+     */
     private $number;
+    /**
+     * @var
+     */
     private $isDefault;
 
     /**

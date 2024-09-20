@@ -8,13 +8,22 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetAddresses extends AbstractMethod
 {
+    /**
+     * @var
+     */
     private $type;
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'get_addresses';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         $data = [];
@@ -24,12 +33,20 @@ class GetAddresses extends AbstractMethod
         return $data;
     }
 
+    /**
+     * @param $type
+     * @return $this
+     */
     public function setType($type)
     {
         $this->type = $type;
         return $this;
     }
 
+    /**
+     * @param Response $response
+     * @return $this|GetAddresses
+     */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];

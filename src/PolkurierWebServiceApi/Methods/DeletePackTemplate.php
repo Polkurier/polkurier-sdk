@@ -6,13 +6,22 @@ use PolkurierWebServiceApi\Response;
 
 class DeletePackTemplate extends AbstractMethod
 {
+    /**
+     * @var
+     */
     private $id;
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'delete_pack_template';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         return [
@@ -20,12 +29,20 @@ class DeletePackTemplate extends AbstractMethod
         ];
     }
 
+    /**
+     * @param $id
+     * @return $this
+     */
     public function setId($id)
     {
         $this->id = $id;
         return $this;
     }
 
+    /**
+     * @param Response $response
+     * @return $this|DeletePackTemplate
+     */
     public function setResponseData(Response $response)
     {
         $this->responseData = $response->get('response');

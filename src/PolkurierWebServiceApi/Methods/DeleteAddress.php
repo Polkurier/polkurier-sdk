@@ -6,14 +6,26 @@ use PolkurierWebServiceApi\Response;
 
 class DeleteAddress extends AbstractMethod
 {
+    /**
+     * @var
+     */
     private $id;
+    /**
+     * @var
+     */
     private $type;
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'delete_address';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         return [
@@ -22,12 +34,20 @@ class DeleteAddress extends AbstractMethod
         ];
     }
 
+    /**
+     * @param $id
+     * @return $this
+     */
     public function setId($id)
     {
         $this->id = $id;
         return $this;
     }
 
+    /**
+     * @param $type
+     * @return $this
+     */
     public function setType($type)
     {
         $this->type = $type;

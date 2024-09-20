@@ -8,16 +8,26 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetPackTemplates extends AbstractMethod
 {
+    /**
+     * @return string
+     */
     public function getName()
     {
         return 'get_pack_templates';
     }
 
+    /**
+     * @return array
+     */
     public function getRequestData()
     {
         return [];
     }
 
+    /**
+     * @param Response $response
+     * @return $this|GetPackTemplates
+     */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
