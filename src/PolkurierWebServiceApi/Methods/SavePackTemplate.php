@@ -35,7 +35,7 @@ class SavePackTemplate extends AbstractMethod
      */
     public function setTemplateData(PackTemplate $template)
     {
-        $this->templateData = $template->toArray();
+        $this->templateData = $template;
         return $this;
     }
 
@@ -59,7 +59,7 @@ class SavePackTemplate extends AbstractMethod
             ->setDescription(Arr::get($data, 'description'))
             ->setType(Arr::get($data, 'type'));
 
-        $this->responseData = $template->toArray();
+        $this->responseData = $template;
 
         return $this;
     }

@@ -2,87 +2,105 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class CourierPoint
+class CourierPoint implements \JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
+
     /**
-     * @var
+     * @var string|null
      */
     private $type;
+
     /**
-     * @var
+     * @var string|null
      */
     private $provider;
+
     /**
-     * @var
+     * @var string|null
      */
     private $city;
+
     /**
-     * @var
+     * @var string|null
      */
     private $zip;
+
     /**
-     * @var
+     * @var string|null
      */
     private $street;
+
     /**
-     * @var
+     * @var string|null
      */
     private $description;
+
     /**
-     * @var
+     * @var float|null
      */
     private $latitude;
+
     /**
-     * @var
+     * @var float|null
      */
     private $longitude;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $cod;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $available;
+
     /**
-     * @var
+     * @var string|null
      */
     private $status;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $send;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $collect;
+
     /**
-     * @var
+     * @var string|null
      */
     private $openingHours;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $visible;
+
     /**
-     * @var
+     * @var bool|null
      */
     private $requireApp;
+
     /**
-     * @var
+     * @var string|null
      */
     private $requireAppMessage;
+
     /**
-     * @var array
+     * @var array|null
      */
     private $functions = [];
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -92,7 +110,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -100,7 +118,7 @@ class CourierPoint
     }
 
     /**
-     * @param $type
+     * @param string|null $type
      * @return $this
      */
     public function setType($type)
@@ -110,7 +128,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getType()
     {
@@ -118,7 +136,7 @@ class CourierPoint
     }
 
     /**
-     * @param $provider
+     * @param string|null $provider
      * @return $this
      */
     public function setProvider($provider)
@@ -128,7 +146,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getProvider()
     {
@@ -136,7 +154,7 @@ class CourierPoint
     }
 
     /**
-     * @param $city
+     * @param string|null $city
      * @return $this
      */
     public function setCity($city)
@@ -146,7 +164,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getCity()
     {
@@ -154,7 +172,7 @@ class CourierPoint
     }
 
     /**
-     * @param $zip
+     * @param string|null $zip
      * @return $this
      */
     public function setZip($zip)
@@ -164,7 +182,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getZip()
     {
@@ -172,7 +190,7 @@ class CourierPoint
     }
 
     /**
-     * @param $street
+     * @param string|null $street
      * @return $this
      */
     public function setStreet($street)
@@ -182,7 +200,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getStreet()
     {
@@ -190,7 +208,7 @@ class CourierPoint
     }
 
     /**
-     * @param $description
+     * @param string|null $description
      * @return $this
      */
     public function setDescription($description)
@@ -200,7 +218,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getDescription()
     {
@@ -208,7 +226,7 @@ class CourierPoint
     }
 
     /**
-     * @param $latitude
+     * @param float|null $latitude
      * @return $this
      */
     public function setLatitude($latitude)
@@ -218,7 +236,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return float|null
      */
     public function getLatitude()
     {
@@ -226,7 +244,7 @@ class CourierPoint
     }
 
     /**
-     * @param $longitude
+     * @param float|null $longitude
      * @return $this
      */
     public function setLongitude($longitude)
@@ -236,7 +254,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return float|null
      */
     public function getLongitude()
     {
@@ -244,7 +262,7 @@ class CourierPoint
     }
 
     /**
-     * @param $cod
+     * @param bool|null $cod
      * @return $this
      */
     public function setCod($cod)
@@ -254,7 +272,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getCod()
     {
@@ -262,7 +280,7 @@ class CourierPoint
     }
 
     /**
-     * @param $available
+     * @param bool|null $available
      * @return $this
      */
     public function setAvailable($available)
@@ -272,7 +290,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getAvailable()
     {
@@ -280,7 +298,7 @@ class CourierPoint
     }
 
     /**
-     * @param $status
+     * @param string|null $status
      * @return $this
      */
     public function setStatus($status)
@@ -290,7 +308,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getStatus()
     {
@@ -298,7 +316,7 @@ class CourierPoint
     }
 
     /**
-     * @param $send
+     * @param bool|null $send
      * @return $this
      */
     public function setSend($send)
@@ -308,7 +326,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getSend()
     {
@@ -316,7 +334,7 @@ class CourierPoint
     }
 
     /**
-     * @param $collect
+     * @param bool|null $collect
      * @return $this
      */
     public function setCollect($collect)
@@ -326,7 +344,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getCollect()
     {
@@ -334,7 +352,7 @@ class CourierPoint
     }
 
     /**
-     * @param $openingHours
+     * @param string|null $openingHours
      * @return $this
      */
     public function setOpeningHours($openingHours)
@@ -344,7 +362,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getOpeningHours()
     {
@@ -352,7 +370,7 @@ class CourierPoint
     }
 
     /**
-     * @param $visible
+     * @param bool|null $visible
      * @return $this
      */
     public function setVisible($visible)
@@ -362,7 +380,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getVisible()
     {
@@ -370,7 +388,7 @@ class CourierPoint
     }
 
     /**
-     * @param $requireApp
+     * @param bool|null $requireApp
      * @return $this
      */
     public function setRequireApp($requireApp)
@@ -380,7 +398,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return bool|null
      */
     public function getRequireApp()
     {
@@ -388,7 +406,7 @@ class CourierPoint
     }
 
     /**
-     * @param $requireAppMessage
+     * @param string|null $requireAppMessage
      * @return $this
      */
     public function setRequireAppMessage($requireAppMessage)
@@ -398,7 +416,7 @@ class CourierPoint
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getRequireAppMessage()
     {
@@ -406,17 +424,17 @@ class CourierPoint
     }
 
     /**
-     * @param array $functions
+     * @param array|null $functions
      * @return $this
      */
-    public function setFunctions(array $functions)
+    public function setFunctions($functions)
     {
         $this->functions = $functions;
         return $this;
     }
 
     /**
-     * @return array
+     * @return array|null
      */
     public function getFunctions()
     {
@@ -426,28 +444,28 @@ class CourierPoint
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
-            'id' => $this->getId(),
-            'type' => $this->getType(),
-            'provider' => $this->getProvider(),
-            'city' => $this->getCity(),
-            'zip' => $this->getZip(),
-            'street' => $this->getStreet(),
-            'description' => $this->getDescription(),
-            'latitude' => $this->getLatitude(),
-            'longitude' => $this->getLongitude(),
-            'cod' => $this->getCod(),
-            'available' => $this->getAvailable(),
-            'status' => $this->getStatus(),
-            'send' => $this->getSend(),
-            'collect' => $this->getCollect(),
-            'openingHours' => $this->getOpeningHours(),
-            'visible' => $this->getVisible(),
-            'requireApp' => $this->getRequireApp(),
-            'requireAppMessage' => $this->getRequireAppMessage(),
-            'functions' => $this->getFunctions()
+            'id' => $this->id,
+            'type' => $this->type,
+            'provider' => $this->provider,
+            'city' => $this->city,
+            'zip' => $this->zip,
+            'street' => $this->street,
+            'description' => $this->description,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'cod' => $this->cod,
+            'available' => $this->available,
+            'status' => $this->status,
+            'send' => $this->send,
+            'collect' => $this->collect,
+            'openingHours' => $this->openingHours,
+            'visible' => $this->visible,
+            'requireApp' => $this->requireApp,
+            'requireAppMessage' => $this->requireAppMessage,
+            'functions' => $this->functions
         ];
     }
 }

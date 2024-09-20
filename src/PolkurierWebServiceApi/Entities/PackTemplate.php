@@ -2,59 +2,67 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class Template
- * @package PolkurierWebServiceApi\Entities
- */
-class PackTemplate
+use JsonSerializable;
+
+class PackTemplate implements JsonSerializable
 {
     /**
-     * @var
+     * @var string|null
      */
     private $id;
+
     /**
-     * @var
+     * @var string|null
      */
     private $name;
+
     /**
-     * @var
+     * @var string|null
      */
     private $shipmentType;
+
     /**
-     * @var
+     * @var int|null
      */
     private $length;
+
     /**
-     * @var
+     * @var int|null
      */
     private $width;
+
     /**
-     * @var
+     * @var int|null
      */
     private $height;
+
     /**
-     * @var
+     * @var float|null
      */
     private $weight;
+
     /**
-     * @var
+     * @var float|null
      */
     private $cod;
+
     /**
-     * @var
+     * @var float|null
      */
     private $insurance;
+
     /**
-     * @var
+     * @var string|null
      */
     private $description;
+
     /**
-     * @var
+     * @var string|null
      */
     private $type;
 
     /**
-     * @param $id
+     * @param string|null $id
      * @return $this
      */
     public function setId($id)
@@ -64,7 +72,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getId()
     {
@@ -72,7 +80,7 @@ class PackTemplate
     }
 
     /**
-     * @param $name
+     * @param string|null $name
      * @return $this
      */
     public function setName($name)
@@ -82,7 +90,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getName()
     {
@@ -90,7 +98,7 @@ class PackTemplate
     }
 
     /**
-     * @param $shipmentType
+     * @param string|null $shipmentType
      * @return $this
      */
     public function setShipmentType($shipmentType)
@@ -100,7 +108,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getShipmentType()
     {
@@ -108,7 +116,7 @@ class PackTemplate
     }
 
     /**
-     * @param $length
+     * @param int|null $length
      * @return $this
      */
     public function setLength($length)
@@ -118,7 +126,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
     public function getLength()
     {
@@ -126,7 +134,7 @@ class PackTemplate
     }
 
     /**
-     * @param $width
+     * @param int|null $width
      * @return $this
      */
     public function setWidth($width)
@@ -136,7 +144,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
     public function getWidth()
     {
@@ -144,7 +152,7 @@ class PackTemplate
     }
 
     /**
-     * @param $height
+     * @param int|null $height
      * @return $this
      */
     public function setHeight($height)
@@ -154,7 +162,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
     public function getHeight()
     {
@@ -162,7 +170,7 @@ class PackTemplate
     }
 
     /**
-     * @param $weight
+     * @param float|null $weight
      * @return $this
      */
     public function setWeight($weight)
@@ -172,7 +180,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return float|null
      */
     public function getWeight()
     {
@@ -180,7 +188,7 @@ class PackTemplate
     }
 
     /**
-     * @param $cod
+     * @param float|null $cod
      * @return $this
      */
     public function setCod($cod)
@@ -190,7 +198,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return float|null
      */
     public function getCod()
     {
@@ -198,7 +206,7 @@ class PackTemplate
     }
 
     /**
-     * @param $insurance
+     * @param float|null $insurance
      * @return $this
      */
     public function setInsurance($insurance)
@@ -208,7 +216,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return float|null
      */
     public function getInsurance()
     {
@@ -216,7 +224,7 @@ class PackTemplate
     }
 
     /**
-     * @param $description
+     * @param string|null $description
      * @return $this
      */
     public function setDescription($description)
@@ -226,7 +234,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getDescription()
     {
@@ -234,7 +242,7 @@ class PackTemplate
     }
 
     /**
-     * @param $type
+     * @param string|null $type
      * @return $this
      */
     public function setType($type)
@@ -244,7 +252,7 @@ class PackTemplate
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
     public function getType()
     {
@@ -254,7 +262,7 @@ class PackTemplate
     /**
      * @return array
      */
-    public function toArray()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->id,
