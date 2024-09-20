@@ -9,6 +9,7 @@ use PolkurierWebServiceApi\Entities\Pickup;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\OrderItem;
 use PolkurierWebServiceApi\Entities\OrderWaybill;
+use PolkurierWebServiceApi\Entities\PickupDate;
 use PolkurierWebServiceApi\Entities\PickupTimeRange;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
@@ -287,7 +288,7 @@ class GetOrders extends AbstractMethod
         $cod = new COD();
         $cod->setType(Arr::get($data, 'codtype'))
             ->setAmount(Arr::get($data, 'codamount'))
-            ->setBankAccount(Arr::get($data, 'codbankaccount'))
+            ->setBankAccount(Arr::get($data, 'codbankaccount', ''))
             ->setReturnCod(Arr::get($data, 'return_cod'));
         return $cod;
     }
@@ -300,17 +301,8 @@ class GetOrders extends AbstractMethod
     {
         $pickup = new Pickup();
         $pickup->setDate(Arr::get($data, 'pickupdate'));
-
-        $timeRanges = [];
-        foreach (Arr::get($data, 'time', []) as $time) {
-            $timeRange = new PickupTimeRange(
-                Arr::get($time, 'timefrom'),
-                Arr::get($time, 'timeto')
-            );
-            $timeRanges[] = $timeRange;
-        }
-
-        $pickup->setTimeRanges($timeRanges);
+        $pickup->setTimeTo(Arr::get($data, 'pickuptimeto'));
+        $pickup->setTimeFrom(Arr::get($data, 'pickuptimefrom'));
         $pickup->setNoCourierOrder(Arr::get($data, 'nocourierorder', false));
 
         return $pickup;
