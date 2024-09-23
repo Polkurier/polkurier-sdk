@@ -12,3 +12,20 @@ Instalacja
 ----------
 
 `composer require polkurier/polkurier-sdk`
+
+Uruchomienie serwera testowego
+----------
+Aby uruchomić serwer testowy, możesz skorzystać z dwóch sposobów:
+
+### 1. Uruchomienie serwera za pomocą Composer
+W pliku `composer.json` znajduje się skonfigurowane polecenie `serve`, które uruchomi serwer testowy. Wystarczy uruchomić następującą komendę:
+
+```bash
+composer serve
+```
+### 2 Uruchomienie serwera za pomocą serweru PHP
+Uruchom polecenie 
+```bash
+php -S localhost:9005 -t examples/
+```
+w dyrektorii projektu

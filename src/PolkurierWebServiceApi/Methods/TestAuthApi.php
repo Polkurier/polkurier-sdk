@@ -27,7 +27,7 @@ class TestAuthApi extends AbstractMethod
         $responseData = $response->get('response');
         $this->responseData = [
             'status' => $response->get('status'),
-            'authorization' => $responseData['authorization'] ?? false
+            'authorization' => isset($responseData['authorization']) ? $responseData['authorization'] : false
         ];
         return $this;
     }
