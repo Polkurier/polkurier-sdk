@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class HandleWithCareCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class HandleWithCareCourierService implements CourierServiceInterface
 {
     /**

@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class OrderValuation
- * @package PolkurierWebServiceApi\Entities
- */
 class OrderValuation implements \JsonSerializable
 {
     /**

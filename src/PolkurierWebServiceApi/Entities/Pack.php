@@ -167,6 +167,15 @@ class Pack implements JsonSerializable
 
     /**
      * @return array
+     * @deprecated
+     */
+    public function toArray()
+    {
+        return $this->jsonSerialize();
+    }
+
+    /**
+     * @return array
      */
     public function jsonSerialize()
     {

@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class DeliveryToOwnHandsCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class DeliveryToOwnHandsCourierService implements CourierServiceInterface
 {
     /**

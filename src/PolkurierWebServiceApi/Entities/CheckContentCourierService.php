@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class CheckContentCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class CheckContentCourierService implements CourierServiceInterface
 {
     /**

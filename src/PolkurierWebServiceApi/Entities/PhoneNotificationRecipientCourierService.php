@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class PhoneNotificationRecipientCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class PhoneNotificationRecipientCourierService implements CourierServiceInterface
 {
     /**

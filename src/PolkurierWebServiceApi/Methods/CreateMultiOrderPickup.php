@@ -8,15 +8,15 @@ use PolkurierWebServiceApi\Util\Arr;
 class CreateMultiOrderPickup extends AbstractMethod
 {
     /**
-     * @var
+     * @var string|null
      */
     private $pickupDate;
     /**
-     * @var
+     * @var string|null
      */
     private $pickupTimeFrom;
     /**
-     * @var
+     * @var string|null
      */
     private $pickupTimeTo;
     /**
@@ -46,7 +46,7 @@ class CreateMultiOrderPickup extends AbstractMethod
     }
 
     /**
-     * @param $pickupDate
+     * @param string|null $pickupDate
      * @return $this
      */
     public function setPickupDate($pickupDate)
@@ -56,7 +56,7 @@ class CreateMultiOrderPickup extends AbstractMethod
     }
 
     /**
-     * @param $pickupTimeFrom
+     * @param string|null $pickupTimeFrom
      * @return $this
      */
     public function setPickupTimeFrom($pickupTimeFrom)
@@ -66,7 +66,7 @@ class CreateMultiOrderPickup extends AbstractMethod
     }
 
     /**
-     * @param $pickupTimeTo
+     * @param string|null $pickupTimeTo
      * @return $this
      */
     public function setPickupTimeTo($pickupTimeTo)

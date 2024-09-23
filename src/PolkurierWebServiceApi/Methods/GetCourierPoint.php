@@ -6,11 +6,6 @@ use PolkurierWebServiceApi\Entities\CourierPoint;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetCourierPoint
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetCourierPoint extends AbstractMethod
 {
     /**

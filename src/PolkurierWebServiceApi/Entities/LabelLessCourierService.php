@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class LabelLessCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class LabelLessCourierService implements CourierServiceInterface
 {
     /**

@@ -7,11 +7,6 @@ use PolkurierWebServiceApi\Entities\Province;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetSupportedCountriesV2
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetSupportedCountriesV2 extends AbstractMethod
 {
     /**

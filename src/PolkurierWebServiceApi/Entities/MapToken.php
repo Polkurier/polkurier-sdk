@@ -2,10 +2,6 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class MapToken
- * @package PolkurierWebServiceApi\Entities
- */
 class MapToken implements \JsonSerializable
 {
     /**

@@ -4,11 +4,6 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
 
-/**
- * Class Heartbeat
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class Heartbeat extends AbstractMethod
 {
     /**
@@ -28,7 +23,7 @@ class Heartbeat extends AbstractMethod
         $responseData = $response->get('response');
         $this->responseData = [
             'status' => $response->get('status'),
-            'time' => $responseData['time'] ?? null
+            'time' => isset($responseData['time']) ? $responseData['time'] : null
         ];
         return $this;
     }
