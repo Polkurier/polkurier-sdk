@@ -8,13 +8,9 @@ use PolkurierWebServiceApi\Type\CourierMessageSeverity;
 use PolkurierWebServiceApi\Type\CourierMessageType;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetStatus
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetCouriersMessages extends AbstractMethod
 {
+
     /**
      * @var string
      */
@@ -30,11 +26,11 @@ class GetCouriersMessages extends AbstractMethod
 
     /**
      * @param string $courier
-     * @return $this
+     * @return GetCouriersMessages
      */
     public function setCourier($courier)
     {
-        $this->courier = $courier;
+        $this->courier = (string)$courier;
         return $this;
     }
 
@@ -50,7 +46,7 @@ class GetCouriersMessages extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetCouriersMessages
      */
     public function setResponseData(Response $response)
     {
@@ -66,4 +62,5 @@ class GetCouriersMessages extends AbstractMethod
         }
         return $this;
     }
+
 }

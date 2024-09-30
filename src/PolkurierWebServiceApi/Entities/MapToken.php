@@ -14,13 +14,18 @@ class MapToken implements \JsonSerializable
         $this->token = $token;
     }
 
+    public function __toString()
+    {
+        return $this->token;
+    }
+
     /**
-     * @return array
+     * @return string
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
-        return [
-            'token' => $this->token,
-        ];
+        return $this->token;
     }
+
 }

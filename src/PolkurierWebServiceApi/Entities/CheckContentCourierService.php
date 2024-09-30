@@ -4,6 +4,7 @@ namespace PolkurierWebServiceApi\Entities;
 
 class CheckContentCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
@@ -15,7 +16,7 @@ class CheckContentCourierService implements CourierServiceInterface
      */
     public function __construct($checkContent = false)
     {
-        $this->checkContent = $checkContent;
+        $this->checkContent = (bool)$checkContent;
     }
 
     /**
@@ -43,4 +44,5 @@ class CheckContentCourierService implements CourierServiceInterface
     {
         $this->checkContent = (bool)$checkContent;
     }
+
 }

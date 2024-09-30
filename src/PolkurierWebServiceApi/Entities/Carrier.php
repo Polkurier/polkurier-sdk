@@ -2,35 +2,33 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class Carrier
- * @package PolkurierWebServiceApi\Entities
- *
- */
-class Carrier implements \JsonSerializable
+use JsonSerializable;
+
+class Carrier implements JsonSerializable
 {
 
     /**
      * @var string
      */
-    private $servicecode;
+    private $servicecode = '';
+
     /**
      * @var string
      */
-    private $name;
+    private $name = '';
 
     /**
-     * @var
+     * @var array
      */
-    private $additionalData;
+    private $additionalData = [];
 
     /**
      * @var bool
      */
-    private $foreignShipments;
+    private $foreignShipments = false;
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getAdditionalData()
     {
@@ -38,15 +36,15 @@ class Carrier implements \JsonSerializable
     }
 
     /**
-     * @param mixed $additionalData
+     * @param array $additionalData
      */
-    public function setAdditionalData($additionalData)
+    public function setAdditionalData(array $additionalData)
     {
         $this->additionalData = $additionalData;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getServicecode()
     {
@@ -54,15 +52,15 @@ class Carrier implements \JsonSerializable
     }
 
     /**
-     * @param mixed $servicecode
+     * @param string $servicecode
      */
     public function setServicecode($servicecode)
     {
-        $this->servicecode = $servicecode;
+        $this->servicecode = (string)$servicecode;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
@@ -70,16 +68,15 @@ class Carrier implements \JsonSerializable
     }
 
     /**
-     * @param mixed $name
+     * @param string $name
      */
     public function setName($name)
     {
-        $this->name = $name;
+        $this->name = (string)$name;
     }
 
     /**
      * @return bool
-     * @return void
      */
     public function isForeignShipments()
     {
@@ -92,13 +89,14 @@ class Carrier implements \JsonSerializable
      */
     public function setForeignShipments($foreignShipments)
     {
-        $this->foreignShipments = $foreignShipments;
+        $this->foreignShipments = (bool)$foreignShipments;
         return $this;
     }
 
     /**
-     * @return array|mixed
+     * @return array
      */
+    #[\ReturnTypeWillChange]
     function jsonSerialize()
     {
         return [

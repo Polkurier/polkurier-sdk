@@ -4,12 +4,9 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
 
-/**
- * Interface MethodInterface
- * @package PolkurierWebServiceApi\Methods
- */
 interface MethodInterface
 {
+
     public function getName();
 
     public function setRequestData(array $data);
@@ -23,4 +20,5 @@ interface MethodInterface
     public function toArray();
 
     public function getData();
+
 }

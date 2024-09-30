@@ -6,6 +6,7 @@ use PolkurierWebServiceApi\Response;
 
 class Heartbeat extends AbstractMethod
 {
+
     /**
      * @return string
      */
@@ -16,7 +17,7 @@ class Heartbeat extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|AbstractMethod
+     * @return Heartbeat
      */
     public function setResponseData(Response $response)
     {
@@ -29,12 +30,11 @@ class Heartbeat extends AbstractMethod
     }
 
     /**
-     * Dane do wysłania w zapytaniu do API
-     * Heartbeat nie wymaga dodatkowych danych.
      * @return array
      */
     public function getRequestData()
     {
         return [];
     }
+
 }

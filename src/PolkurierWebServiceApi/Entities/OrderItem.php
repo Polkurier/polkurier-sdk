@@ -2,27 +2,68 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
+use PolkurierWebServiceApi\Type\OrderItemType;
+
 class OrderItem implements \JsonSerializable
 {
+
+    /**
+     * @var string
+     */
     private $description;
+
+    /**
+     * @var int
+     */
     private $amount;
+
+    /**
+     * @var float
+     */
     private $price;
+
+    /**
+     * @var float
+     */
     private $valueNett;
+
+    /**
+     * @var float
+     */
     private $valueGross;
+
+    /**
+     * @var string string
+     */
     private $type;
 
     /**
      * @param string $description
-     * @return $this
+     * @param int $amount
+     * @param float $price
+     * @param float $valueNett
+     * @param float $valueGross
+     * @param string $type
      */
-    public function setDescription($description)
+    public function __construct(
+        $description = '',
+        $amount = 0,
+        $price = 0.0,
+        $valueNett = 0.0,
+        $valueGross = 0.0,
+        $type = OrderItemType::SERVICE
+    )
     {
-        $this->description = $description;
-        return $this;
+        $this->description = (string)$description;
+        $this->amount = (int)$amount;
+        $this->price = (float)$price;
+        $this->valueNett = (float)$valueNett;
+        $this->valueGross = (float)$valueGross;
+        $this->type = (string)$type;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getDescription()
     {
@@ -30,17 +71,7 @@ class OrderItem implements \JsonSerializable
     }
 
     /**
-     * @param int $amount
-     * @return $this
-     */
-    public function setAmount($amount)
-    {
-        $this->amount = $amount;
-        return $this;
-    }
-
-    /**
-     * @return int|null
+     * @return int
      */
     public function getAmount()
     {
@@ -48,17 +79,7 @@ class OrderItem implements \JsonSerializable
     }
 
     /**
-     * @param float $price
-     * @return $this
-     */
-    public function setPrice($price)
-    {
-        $this->price = $price;
-        return $this;
-    }
-
-    /**
-     * @return float|null
+     * @return float
      */
     public function getPrice()
     {
@@ -66,17 +87,7 @@ class OrderItem implements \JsonSerializable
     }
 
     /**
-     * @param float $valueNett
-     * @return $this
-     */
-    public function setValueNett($valueNett)
-    {
-        $this->valueNett = $valueNett;
-        return $this;
-    }
-
-    /**
-     * @return float|null
+     * @return float
      */
     public function getValueNett()
     {
@@ -84,17 +95,7 @@ class OrderItem implements \JsonSerializable
     }
 
     /**
-     * @param float $valueGross
-     * @return $this
-     */
-    public function setValueGross($valueGross)
-    {
-        $this->valueGross = $valueGross;
-        return $this;
-    }
-
-    /**
-     * @return float|null
+     * @return float
      */
     public function getValueGross()
     {
@@ -102,17 +103,7 @@ class OrderItem implements \JsonSerializable
     }
 
     /**
-     * @param string $type
-     * @return $this
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-        return $this;
-    }
-
-    /**
-     * @return string|null
+     * @return string
      */
     public function getType()
     {
@@ -122,6 +113,7 @@ class OrderItem implements \JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -133,4 +125,5 @@ class OrderItem implements \JsonSerializable
             'type' => $this->type
         ];
     }
+
 }

@@ -4,18 +4,18 @@ namespace PolkurierWebServiceApi\Entities;
 
 class LabelLessCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $labelless;
 
     /**
-     * LabelLessCourierService constructor.
      * @param bool $labelless
      */
     public function __construct($labelless = false)
     {
-        $this->labelless = $labelless;
+        $this->labelless = (bool)$labelless;
     }
 
     /**
@@ -43,4 +43,5 @@ class LabelLessCourierService implements CourierServiceInterface
     {
         $this->labelless = (bool)$labelless;
     }
+
 }

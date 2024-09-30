@@ -8,6 +8,7 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetBankAccounts extends AbstractMethod
 {
+
     /**
      * @return string
      */
@@ -26,20 +27,18 @@ class GetBankAccounts extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this
+     * @return GetBankAccounts
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
 
         foreach ($response->get('response') as $row) {
-            $account = new BankAccount();
-            $account->setId(Arr::get($row, 'id'));
-            $account->setNumber(Arr::get($row, 'number'));
-            $account->setName(Arr::get($row, 'name'));
-            $account->setIsDefault(Arr::get($row, 'default'));
-
-            $this->responseData[] = $account;
+            $this->responseData[] = (new BankAccount())
+                ->setId((string)Arr::get($row, 'id'))
+                ->setNumber((string)Arr::get($row, 'number'))
+                ->setName((string)Arr::get($row, 'name'))
+                ->setDefault((bool)Arr::get($row, 'default'));
         }
         return $this;
     }

@@ -5,17 +5,12 @@ namespace PolkurierWebServiceApi\Methods;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class CancelOrder
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class CancelOrder extends AbstractMethod
 {
     /**
      * @var string
      */
-    private $orderNumber;
+    private $orderNumber = '';
 
     /**
      * @return string
@@ -26,12 +21,12 @@ class CancelOrder extends AbstractMethod
     }
 
     /**
-     * @param $orderNumber
-     * @return $this
+     * @param string $orderNumber
+     * @return CancelOrder
      */
     public function setOrderNumber($orderNumber)
     {
-        $this->orderNumber = $orderNumber;
+        $this->orderNumber = (string)$orderNumber;
         return $this;
     }
 
@@ -46,8 +41,7 @@ class CancelOrder extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return CancelOrder
      */
     public function setResponseData(Response $response)
     {
@@ -55,4 +49,5 @@ class CancelOrder extends AbstractMethod
         $this->responseData = Arr::get($response, 'cancellation', false);
         return $this;
     }
+
 }

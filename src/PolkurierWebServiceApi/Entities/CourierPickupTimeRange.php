@@ -4,37 +4,39 @@ namespace PolkurierWebServiceApi\Entities;
 
 use JsonSerializable;
 
-class PickupTimeRange implements JsonSerializable
+class CourierPickupTimeRange implements JsonSerializable
 {
-    /**
-     * @var string
-     */
-    public $timeFrom;
 
     /**
      * @var string
      */
-    public $timeTo;
+    public $from;
 
     /**
-     * PickupTimeRange constructor.
+     * @var string
+     */
+    public $to;
+
+    /**
      * @param string $timeFrom
      * @param string $timeTo
      */
     public function __construct($timeFrom = '', $timeTo = '')
     {
-        $this->timeFrom = $timeFrom;
-        $this->timeTo = $timeTo;
+        $this->from = (string)$timeFrom;
+        $this->to = (string)$timeTo;
     }
 
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
-            'timefrom' => $this->timeFrom,
-            'timeto' => $this->timeTo,
+            'timefrom' => $this->from,
+            'timeto' => $this->to,
         ];
     }
+
 }

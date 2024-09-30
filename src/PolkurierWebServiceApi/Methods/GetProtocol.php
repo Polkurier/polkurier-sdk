@@ -6,13 +6,9 @@ use PolkurierWebServiceApi\File;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetProtocol
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetProtocol extends AbstractMethod
 {
+
     /**
      * @var array
      */
@@ -27,8 +23,8 @@ class GetProtocol extends AbstractMethod
     }
 
     /**
-     * @param array $orderNumbers
-     * @return $this
+     * @param string[] $orderNumbers
+     * @return GetProtocol
      */
     public function setOrderNumbers(array $orderNumbers)
     {
@@ -38,7 +34,7 @@ class GetProtocol extends AbstractMethod
 
     /**
      * @param $orderNumber
-     * @return $this
+     * @return GetProtocol
      */
     public function addOrderNumber($orderNumber)
     {
@@ -57,8 +53,7 @@ class GetProtocol extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetProtocol
      */
     public function setResponseData(Response $response)
     {
@@ -66,4 +61,5 @@ class GetProtocol extends AbstractMethod
         $this->responseData = new File(base64_decode(Arr::get($data, 'file')));
         return $this;
     }
+
 }

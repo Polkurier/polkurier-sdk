@@ -4,18 +4,18 @@ namespace PolkurierWebServiceApi\Entities;
 
 class PhoneNotificationRecipientCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $phoneNotification;
 
     /**
-     * PhoneNotificationRecipientCourierService constructor.
      * @param bool $phoneNotification
      */
     public function __construct($phoneNotification = false)
     {
-        $this->phoneNotification = $phoneNotification;
+        $this->phoneNotification = (bool)$phoneNotification;
     }
 
     /**
@@ -43,4 +43,5 @@ class PhoneNotificationRecipientCourierService implements CourierServiceInterfac
     {
         $this->phoneNotification = (bool)$phoneNotification;
     }
+
 }

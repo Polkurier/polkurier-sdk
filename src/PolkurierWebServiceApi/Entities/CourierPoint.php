@@ -2,115 +2,119 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class CourierPoint implements \JsonSerializable
+use JsonSerializable;
+use PolkurierWebServiceApi\Util\Arr;
+
+class CourierPoint implements JsonSerializable
 {
-    /**
-     * @var string|null
-     */
-    private $id;
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $type;
+    private $id = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $provider;
+    private $type = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $city;
+    private $provider = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $zip;
+    private $city = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $street;
+    private $zip = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $description;
+    private $street = '';
 
     /**
-     * @var float|null
+     * @var string
      */
-    private $latitude;
+    private $description = '';
 
     /**
-     * @var float|null
+     * @var float
      */
-    private $longitude;
+    private $latitude = 0.0;
 
     /**
-     * @var bool|null
+     * @var float
      */
-    private $cod;
+    private $longitude = 0.0;
 
     /**
-     * @var bool|null
+     * @var bool
      */
-    private $available;
+    private $cod = false;
 
     /**
-     * @var string|null
+     * @var bool
      */
-    private $status;
+    private $available = false;
 
     /**
-     * @var bool|null
+     * @var string
      */
-    private $send;
+    private $status = '';
 
     /**
-     * @var bool|null
+     * @var bool
      */
-    private $collect;
+    private $send = false;
 
     /**
-     * @var string|null
+     * @var bool
      */
-    private $openingHours;
+    private $collect = false;
 
     /**
-     * @var bool|null
+     * @var string
      */
-    private $visible;
+    private $openingHours = '';
 
     /**
-     * @var bool|null
+     * @var bool
      */
-    private $requireApp;
+    private $visible = false;
 
     /**
-     * @var string|null
+     * @var bool
      */
-    private $requireAppMessage;
+    private $requireApp = false;
 
     /**
-     * @var array|null
+     * @var string
+     */
+    private $requireAppMessage = '';
+
+    /**
+     * @var string[]
      */
     private $functions = [];
 
     /**
-     * @param string|null $id
+     * @param string $id
      * @return $this
      */
     public function setId($id)
     {
-        $this->id = $id;
+        $this->id = (string)$id;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getId()
     {
@@ -118,17 +122,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $type
+     * @param string $type
      * @return $this
      */
     public function setType($type)
     {
-        $this->type = $type;
+        $this->type = (string)$type;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getType()
     {
@@ -136,17 +140,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $provider
+     * @param string $provider
      * @return $this
      */
     public function setProvider($provider)
     {
-        $this->provider = $provider;
+        $this->provider = (string)$provider;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getProvider()
     {
@@ -154,17 +158,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $city
+     * @param string $city
      * @return $this
      */
     public function setCity($city)
     {
-        $this->city = $city;
+        $this->city = (string)$city;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getCity()
     {
@@ -172,17 +176,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $zip
+     * @param string $zip
      * @return $this
      */
     public function setZip($zip)
     {
-        $this->zip = $zip;
+        $this->zip = (string)$zip;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getZip()
     {
@@ -190,17 +194,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $street
+     * @param string $street
      * @return $this
      */
     public function setStreet($street)
     {
-        $this->street = $street;
+        $this->street = (string)$street;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getStreet()
     {
@@ -208,17 +212,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $description
+     * @param string $description
      * @return $this
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        $this->description = (string)$description;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getDescription()
     {
@@ -226,17 +230,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param float|null $latitude
+     * @param float $latitude
      * @return $this
      */
     public function setLatitude($latitude)
     {
-        $this->latitude = $latitude;
+        $this->latitude = (float)$latitude;
         return $this;
     }
 
     /**
-     * @return float|null
+     * @return float
      */
     public function getLatitude()
     {
@@ -244,17 +248,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param float|null $longitude
+     * @param float $longitude
      * @return $this
      */
     public function setLongitude($longitude)
     {
-        $this->longitude = $longitude;
+        $this->longitude = (float)$longitude;
         return $this;
     }
 
     /**
-     * @return float|null
+     * @return float
      */
     public function getLongitude()
     {
@@ -262,17 +266,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $cod
+     * @param bool $cod
      * @return $this
      */
     public function setCod($cod)
     {
-        $this->cod = $cod;
+        $this->cod = (bool)$cod;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getCod()
     {
@@ -280,17 +284,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $available
+     * @param bool $available
      * @return $this
      */
     public function setAvailable($available)
     {
-        $this->available = $available;
+        $this->available = (bool)$available;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getAvailable()
     {
@@ -298,17 +302,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $status
+     * @param string $status
      * @return $this
      */
     public function setStatus($status)
     {
-        $this->status = $status;
+        $this->status = (string)$status;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getStatus()
     {
@@ -316,17 +320,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $send
+     * @param bool $send
      * @return $this
      */
     public function setSend($send)
     {
-        $this->send = $send;
+        $this->send = (bool)$send;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getSend()
     {
@@ -334,17 +338,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $collect
+     * @param bool $collect
      * @return $this
      */
     public function setCollect($collect)
     {
-        $this->collect = $collect;
+        $this->collect = (bool)$collect;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getCollect()
     {
@@ -352,17 +356,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $openingHours
+     * @param string $openingHours
      * @return $this
      */
     public function setOpeningHours($openingHours)
     {
-        $this->openingHours = $openingHours;
+        $this->openingHours = (string)$openingHours;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getOpeningHours()
     {
@@ -370,17 +374,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $visible
+     * @param bool $visible
      * @return $this
      */
     public function setVisible($visible)
     {
-        $this->visible = $visible;
+        $this->visible = (bool)$visible;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getVisible()
     {
@@ -388,17 +392,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $requireApp
+     * @param bool $requireApp
      * @return $this
      */
     public function setRequireApp($requireApp)
     {
-        $this->requireApp = $requireApp;
+        $this->requireApp = (bool)$requireApp;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
     public function getRequireApp()
     {
@@ -406,17 +410,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param string|null $requireAppMessage
+     * @param string $requireAppMessage
      * @return $this
      */
     public function setRequireAppMessage($requireAppMessage)
     {
-        $this->requireAppMessage = $requireAppMessage;
+        $this->requireAppMessage = (string)$requireAppMessage;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getRequireAppMessage()
     {
@@ -424,17 +428,17 @@ class CourierPoint implements \JsonSerializable
     }
 
     /**
-     * @param array|null $functions
+     * @param string[] $functions
      * @return $this
      */
-    public function setFunctions($functions)
+    public function setFunctions(array $functions)
     {
         $this->functions = $functions;
         return $this;
     }
 
     /**
-     * @return array|null
+     * @return string[]
      */
     public function getFunctions()
     {
@@ -444,6 +448,7 @@ class CourierPoint implements \JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -468,4 +473,36 @@ class CourierPoint implements \JsonSerializable
             'functions' => $this->functions
         ];
     }
+
+    /**
+     * @param array $row
+     * @return CourierPoint|null
+     */
+    public static function fromArray(array $row)
+    {
+        if (empty($row)) {
+            return null;
+        }
+        return (new self())
+            ->setId((string)Arr::get($row, 'id'))
+            ->setType((string)Arr::get($row, 'type'))
+            ->setProvider((string)Arr::get($row, 'provider'))
+            ->setCity((string)Arr::get($row, 'city'))
+            ->setZip((string)Arr::get($row, 'zip'))
+            ->setStreet((string)Arr::get($row, 'street'))
+            ->setDescription((string)Arr::get($row, 'description'))
+            ->setLatitude((float)Arr::get($row, 'latitude'))
+            ->setLongitude((float)Arr::get($row, 'longitude'))
+            ->setCod((bool)Arr::get($row, 'cod'))
+            ->setAvailable((bool)Arr::get($row, 'available'))
+            ->setStatus((string)Arr::get($row, 'status'))
+            ->setSend((bool)Arr::get($row, 'send'))
+            ->setCollect((bool)Arr::get($row, 'collect'))
+            ->setOpeningHours((string)Arr::get($row, 'openingHours'))
+            ->setVisible((bool)Arr::get($row, 'visible'))
+            ->setRequireApp((bool)Arr::get($row, 'requireApp'))
+            ->setRequireAppMessage((string)Arr::get($row, 'requireAppMessage'))
+            ->setFunctions((array)Arr::get($row, 'functions', []));
+    }
+
 }

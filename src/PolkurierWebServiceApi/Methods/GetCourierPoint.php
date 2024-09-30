@@ -8,20 +8,36 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetCourierPoint extends AbstractMethod
 {
+
     /**
-     * @var array
+     * @var string[]
      */
     private $couriers = [];
 
     /**
-     * @var string|null
+     * @var string
      */
-    private $searchquery = null;
+    private $searchQuery = '';
 
     /**
-     * @var array
+     * @var string[]
      */
     private $functions = [];
+
+    /**
+     * @var string
+     */
+    private $id = '';
+
+    /**
+     * @var int
+     */
+    private $limit = 0;
+
+    /**
+     * @var int
+     */
+    private $page = 0;
 
     /**
      * @return string
@@ -41,8 +57,20 @@ class GetCourierPoint extends AbstractMethod
             'functions' => $this->functions
         ];
 
-        if ($this->searchquery) {
-            $data['searchquery'] = $this->searchquery;
+        if ($this->searchQuery !== '') {
+            $data['searchquery'] = $this->searchQuery;
+        }
+
+        if ($this->id !== '') {
+            $data['id'] = $this->id;
+        }
+
+        if ($this->limit > 0) {
+            $data['limit'] = $this->limit;
+        }
+
+        if ($this->page > 1) {
+            $data['page'] = $this->page;
         }
 
         return $data;
@@ -50,22 +78,23 @@ class GetCourierPoint extends AbstractMethod
 
     /**
      * Ustawia listę przewoźników
-     * @param array $couriers
+     * @param string[] $couriers
      * @return GetCourierPoint
      */
     public function setCouriers(array $couriers)
     {
+        Arr::assertStrings($couriers);
         $this->couriers = $couriers;
         return $this;
     }
 
     /**
-     * @param string|null $searchquery
+     * @param string $searchQuery
      * @return GetCourierPoint
      */
-    public function setSearchquery($searchquery)
+    public function setSearchQuery($searchQuery)
     {
-        $this->searchquery = $searchquery;
+        $this->searchQuery = (string)$searchQuery;
         return $this;
     }
 
@@ -80,37 +109,46 @@ class GetCourierPoint extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @param string $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @param int $limit
+     */
+    public function setLimit($limit)
+    {
+        $this->limit = $limit;
+    }
+
+    /**
+     * @param int $page
+     */
+    public function setPage($page)
+    {
+        $this->page = $page;
+    }
+
+    /**
+     * @return GetCourierPoint
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
-        foreach ($response->get('response') as $row) {
-            $point = new CourierPoint();
-            $point->setId(Arr::get($row, 'id'))
-                ->setType(Arr::get($row, 'type'))
-                ->setProvider(Arr::get($row, 'provider'))
-                ->setCity(Arr::get($row, 'city'))
-                ->setZip(Arr::get($row, 'zip'))
-                ->setStreet(Arr::get($row, 'street'))
-                ->setDescription(Arr::get($row, 'description'))
-                ->setLatitude(Arr::get($row, 'latitude'))
-                ->setLongitude(Arr::get($row, 'longitude'))
-                ->setCod(Arr::get($row, 'cod'))
-                ->setAvailable(Arr::get($row, 'available'))
-                ->setStatus(Arr::get($row, 'status'))
-                ->setSend(Arr::get($row, 'send'))
-                ->setCollect(Arr::get($row, 'collect'))
-                ->setOpeningHours(Arr::get($row, 'openingHours'))
-                ->setVisible(Arr::get($row, 'visible'))
-                ->setRequireApp(Arr::get($row, 'requireApp'))
-                ->setRequireAppMessage(Arr::get($row, 'requireAppMessage'))
-                ->setFunctions(Arr::get($row, 'functions', []));
-
-            $this->responseData[] = $point;
+        if ($this->id) {
+            $row = (array)$response->get('response', []);
+            $this->responseData = !empty($row)
+                ? CourierPoint::fromArray((array)$response->get('response'))
+                : null;
+        } else {
+            foreach ($response->get('response', []) as $row) {
+                $this->responseData[] = CourierPoint::fromArray((array)$row);
+            }
         }
-
         return $this;
     }
+
 }

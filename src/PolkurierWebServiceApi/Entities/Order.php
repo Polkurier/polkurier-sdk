@@ -3,9 +3,11 @@
 namespace PolkurierWebServiceApi\Entities;
 
 use DateTimeImmutable;
+use JsonSerializable;
 
-class Order implements \JsonSerializable
+class Order implements JsonSerializable
 {
+
     /**
      * @var string|null
      */
@@ -82,12 +84,12 @@ class Order implements \JsonSerializable
     private $insurance;
 
     /**
-     * @var Address|null
+     * @var Sender|null
      */
     private $sender;
 
     /**
-     * @var Address|null
+     * @var Recipient|null
      */
     private $recipient;
 
@@ -360,10 +362,10 @@ class Order implements \JsonSerializable
     }
 
     /**
-     * @param DateTimeImmutable $statusDate
+     * @param DateTimeImmutable|null $statusDate
      * @return $this
      */
-    public function setStatusDate(DateTimeImmutable $statusDate)
+    public function setStatusDate($statusDate)
     {
         $this->statusDate = $statusDate;
         return $this;
@@ -378,10 +380,10 @@ class Order implements \JsonSerializable
     }
 
     /**
-     * @param DateTimeImmutable $deliveredDate
+     * @param DateTimeImmutable|null $deliveredDate
      * @return $this
      */
-    public function setDeliveredDate(DateTimeImmutable $deliveredDate)
+    public function setDeliveredDate($deliveredDate)
     {
         $this->deliveredDate = $deliveredDate;
         return $this;
@@ -414,17 +416,17 @@ class Order implements \JsonSerializable
     }
 
     /**
-     * @param Address $sender
+     * @param Sender $sender
      * @return $this
      */
-    public function setSender(Address $sender)
+    public function setSender(Sender $sender)
     {
         $this->sender = $sender;
         return $this;
     }
 
     /**
-     * @return Address|null
+     * @return Sender|null
      */
     public function getSender()
     {
@@ -432,17 +434,17 @@ class Order implements \JsonSerializable
     }
 
     /**
-     * @param Address $recipient
+     * @param Recipient $recipient
      * @return $this
      */
-    public function setRecipient(Address $recipient)
+    public function setRecipient(Recipient $recipient)
     {
         $this->recipient = $recipient;
         return $this;
     }
 
     /**
-     * @return Address|null
+     * @return Recipient|null
      */
     public function getRecipient()
     {
@@ -604,6 +606,7 @@ class Order implements \JsonSerializable
     /**
      * @param array $label
      * @return $this
+     * @deprecated
      */
     public function setLabel(array $label)
     {
@@ -613,6 +616,7 @@ class Order implements \JsonSerializable
 
     /**
      * @return array
+     * @deprecated
      */
     public function getLabel()
     {
@@ -640,6 +644,7 @@ class Order implements \JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -670,4 +675,5 @@ class Order implements \JsonSerializable
             'individual_pricing' => $this->individualPricing
         ];
     }
+
 }

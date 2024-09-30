@@ -3,72 +3,105 @@
 namespace PolkurierWebServiceApi\Entities;
 
 use JsonSerializable;
+use PolkurierWebServiceApi\Type\PackType;
+use PolkurierWebServiceApi\Type\ShipmentType;
 
 class PackTemplate implements JsonSerializable
 {
+
     /**
-     * @var string|null
+     * @var string
      */
     private $id;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $name;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $shipmentType;
 
     /**
-     * @var int|null
+     * @var int
      */
     private $length;
 
     /**
-     * @var int|null
+     * @var int
      */
     private $width;
 
     /**
-     * @var int|null
+     * @var int
      */
     private $height;
 
     /**
-     * @var float|null
+     * @var float
      */
     private $weight;
 
     /**
-     * @var float|null
+     * @var float
      */
     private $cod;
 
     /**
-     * @var float|null
+     * @var float
      */
     private $insurance;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $description;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $type;
 
     /**
-     * @param string|null $id
-     * @return $this
+     * @param string $id
+     * @param string $name
+     * @param string $shipmentType
+     * @param int $length
+     * @param int $width
+     * @param int $height
+     * @param float $weight
+     * @param float $cod
+     * @param float $insurance
+     * @param string $description
+     * @param string $type
      */
-    public function setId($id)
+    public function __construct(
+        $id = '',
+        $name = '',
+        $shipmentType = ShipmentType::BOX,
+        $length = 0,
+        $width = 0,
+        $height = 0,
+        $weight = 0.0,
+        $cod = 0.0,
+        $insurance = 0.0,
+        $description = '',
+        $type = PackType::ST
+    )
     {
-        $this->id = $id;
-        return $this;
+        $this->id = (string)$id;
+        $this->name = (string)$name;
+        $this->shipmentType = (string)$shipmentType;
+        $this->length = (int)$length;
+        $this->width = (int)$width;
+        $this->height = (int)$height;
+        $this->weight = (float)$weight;
+        $this->cod = (float)$cod;
+        $this->insurance = (float)$insurance;
+        $this->description = (string)$description;
+        $this->type = (string)$type;
     }
 
     /**
@@ -80,17 +113,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param string|null $name
-     * @return $this
+     * @param string $name
+     * @return PackTemplate
      */
     public function setName($name)
     {
-        $this->name = $name;
+        $this->name = (string)$name;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getName()
     {
@@ -98,17 +131,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param string|null $shipmentType
-     * @return $this
+     * @param string $shipmentType
+     * @return PackTemplate
      */
     public function setShipmentType($shipmentType)
     {
-        $this->shipmentType = $shipmentType;
+        $this->shipmentType = (string)$shipmentType;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getShipmentType()
     {
@@ -116,17 +149,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param int|null $length
-     * @return $this
+     * @param int $length
+     * @return PackTemplate
      */
     public function setLength($length)
     {
-        $this->length = $length;
+        $this->length = (int)$length;
         return $this;
     }
 
     /**
-     * @return int|null
+     * @return int
      */
     public function getLength()
     {
@@ -134,17 +167,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param int|null $width
-     * @return $this
+     * @param int $width
+     * @return PackTemplate
      */
     public function setWidth($width)
     {
-        $this->width = $width;
+        $this->width = (int)$width;
         return $this;
     }
 
     /**
-     * @return int|null
+     * @return int
      */
     public function getWidth()
     {
@@ -152,17 +185,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param int|null $height
-     * @return $this
+     * @param int $height
+     * @return PackTemplate
      */
     public function setHeight($height)
     {
-        $this->height = $height;
+        $this->height = (int)$height;
         return $this;
     }
 
     /**
-     * @return int|null
+     * @return int
      */
     public function getHeight()
     {
@@ -170,17 +203,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param float|null $weight
-     * @return $this
+     * @param float $weight
+     * @return PackTemplate
      */
     public function setWeight($weight)
     {
-        $this->weight = $weight;
+        $this->weight = (float)$weight;
         return $this;
     }
 
     /**
-     * @return float|null
+     * @return float
      */
     public function getWeight()
     {
@@ -188,17 +221,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param float|null $cod
-     * @return $this
+     * @param float $cod
+     * @return PackTemplate
      */
     public function setCod($cod)
     {
-        $this->cod = $cod;
+        $this->cod = (float)$cod;
         return $this;
     }
 
     /**
-     * @return float|null
+     * @return float
      */
     public function getCod()
     {
@@ -206,17 +239,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param float|null $insurance
-     * @return $this
+     * @param float $insurance
+     * @return PackTemplate
      */
     public function setInsurance($insurance)
     {
-        $this->insurance = $insurance;
+        $this->insurance = (float)$insurance;
         return $this;
     }
 
     /**
-     * @return float|null
+     * @return float
      */
     public function getInsurance()
     {
@@ -224,17 +257,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param string|null $description
-     * @return $this
+     * @param string $description
+     * @return PackTemplate
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        $this->description = (string)$description;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string|
      */
     public function getDescription()
     {
@@ -242,17 +275,17 @@ class PackTemplate implements JsonSerializable
     }
 
     /**
-     * @param string|null $type
-     * @return $this
+     * @param string $type
+     * @return PackTemplate
      */
     public function setType($type)
     {
-        $this->type = $type;
+        $this->type = (string)$type;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getType()
     {
@@ -262,6 +295,7 @@ class PackTemplate implements JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -278,4 +312,5 @@ class PackTemplate implements JsonSerializable
             'type' => $this->type,
         ];
     }
+
 }

@@ -4,18 +4,18 @@ namespace PolkurierWebServiceApi\Entities;
 
 class HandleWithCareCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $handleWithCare;
 
     /**
-     * HandleWithCareCourierService constructor.
      * @param bool $handleWithCare
      */
     public function __construct($handleWithCare = false)
     {
-        $this->handleWithCare = $handleWithCare;
+        $this->handleWithCare = (bool)$handleWithCare;
     }
 
     /**
@@ -43,4 +43,5 @@ class HandleWithCareCourierService implements CourierServiceInterface
     {
         $this->handleWithCare = (bool)$handleWithCare;
     }
+
 }

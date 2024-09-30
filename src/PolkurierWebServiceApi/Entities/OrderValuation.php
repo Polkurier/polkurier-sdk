@@ -2,52 +2,66 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class OrderValuation implements \JsonSerializable
+use JsonSerializable;
+
+class OrderValuation implements JsonSerializable
 {
+
     /**
      * @var string
      */
     private $servicecode = '';
+
     /**
      * @var string
      */
     private $serviceName = '';
+
     /**
      * @var int
      */
     private $netprice = 0;
+
     /**
      * @var int
      */
     private $grossprice = 0;
+
     /**
      * @var float
      */
     private $conditional_price_nett = 0.0;
+
     /**
      * @var float
      */
     private $conditional_price_gross = 0.0;
+
     /**
      * @var float
      */
     private $promotion_nett = 0.0;
+
     /**
      * @var float
      */
     private $promotion_gross = 0.0;
+
     /**
      * @var float
      */
     private $rebate_nett = 0.0;
+
     /**
      * @var float
      */
     private $rebate_gross = 0.0;
+
     /**
      * @var bool
      */
     private $available = true;
+
     /**
      * @var string
      */
@@ -72,7 +86,7 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getGrossPrice()
     {
@@ -80,7 +94,7 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param int $grossprice
+     * @param float $grossprice
      * @return OrderValuation
      */
     public function setGrossPrice($grossprice)
@@ -108,7 +122,7 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getNetPrice()
     {
@@ -116,7 +130,7 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param int $netprice
+     * @param float $netprice
      * @return OrderValuation
      */
     public function setNetPrice($netprice)
@@ -135,6 +149,7 @@ class OrderValuation implements \JsonSerializable
 
     /**
      * @param float $conditional_price_nett
+     * @return OrderValuation
      */
     public function setConditionalPriceNett($conditional_price_nett)
     {
@@ -168,8 +183,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $promotion_nett
-     * @return $this
+     * @param float $promotion_nett
+     * @return OrderValuation
      */
     public function setPromotionNett($promotion_nett)
     {
@@ -186,8 +201,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $promotion_gross
-     * @return $this
+     * @param float $promotion_gross
+     * @return OrderValuation
      */
     public function setPromotionGross($promotion_gross)
     {
@@ -204,8 +219,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $rebate_nett
-     * @return $this
+     * @param float $rebate_nett
+     * @return OrderValuation
      */
     public function setRebateNett($rebate_nett)
     {
@@ -222,8 +237,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $rebate_gross
-     * @return $this
+     * @param float $rebate_gross
+     * @return OrderValuation
      */
     public function setRebateGross($rebate_gross)
     {
@@ -240,8 +255,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $available
-     * @return $this
+     * @param bool $available
+     * @return OrderValuation
      */
     public function setAvailable($available)
     {
@@ -258,8 +273,8 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @param $unavailable_message
-     * @return $this
+     * @param string $unavailable_message
+     * @return OrderValuation
      */
     public function setUnavailableMessage($unavailable_message)
     {
@@ -268,8 +283,9 @@ class OrderValuation implements \JsonSerializable
     }
 
     /**
-     * @return array|mixed
+     * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -287,4 +303,5 @@ class OrderValuation implements \JsonSerializable
             'unavailable_message' => $this->getUnavailableMessage(),
         ];
     }
+
 }

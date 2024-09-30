@@ -9,6 +9,7 @@ use PolkurierWebServiceApi\Util\Arr;
 
 class GetSupportedCountriesV2 extends AbstractMethod
 {
+
     /**
      * @return string
      */
@@ -26,32 +27,27 @@ class GetSupportedCountriesV2 extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetSupportedCountriesV2
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
 
         foreach ($response->get('response') as $row) {
-            $country = new Country();
-            $country->setId(Arr::get($row, 'id'))
-                ->setName(Arr::get($row, 'name'))
-                ->setIsUe(Arr::get($row, 'is_ue'))
-                ->setIsDefault(Arr::get($row, 'is_default'));
-
-            $provinces = [];
-            foreach (Arr::get($row, 'provinces', []) as $provinceData) {
-                $province = new Province();
-                $province->setId(Arr::get($provinceData, 'id'))
-                    ->setName(Arr::get($provinceData, 'name'));
-                $provinces[] = $province;
-            }
-
-            $country->setProvinces($provinces);
-            $this->responseData[] = $country;
+            $this->responseData[] = (new Country(
+                (string)Arr::get($row, 'id', ''),
+                (string)Arr::get($row, 'name', ''),
+                (bool)Arr::get($row, 'is_ue', false),
+                (bool)Arr::get($row, 'is_default', false),
+                array_map(static function ($provinceData) {
+                    return new Province(
+                        (string)Arr::get($provinceData, 'id', ''),
+                        (string)Arr::get($provinceData, 'name', '')
+                    );
+                }, Arr::get($row, 'provinces', []))
+            ));
         }
-
         return $this;
     }
+
 }

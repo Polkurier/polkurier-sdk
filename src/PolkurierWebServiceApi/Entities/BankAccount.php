@@ -2,31 +2,34 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class BankAccount implements \JsonSerializable
-{
-    /**
-     * @var string|null
-     */
-    private $id;
+use JsonSerializable;
 
-    /**
-     * @var int
-     */
-    private $number;
+class BankAccount implements JsonSerializable
+{
 
     /**
      * @var string
      */
-    private $name;
+    private $id = '';
+
+    /**
+     * @var string
+     */
+    private $number = '';
+
+    /**
+     * @var string
+     */
+    private $name = '';
 
     /**
      * @var bool
      */
-    private $isDefault;
+    private $default = false;
 
     /**
-     * @param string|null $id
-     * @return $this
+     * @param string $id
+     * @return BankAccount
      */
     public function setId($id)
     {
@@ -35,7 +38,7 @@ class BankAccount implements \JsonSerializable
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getId()
     {
@@ -43,17 +46,17 @@ class BankAccount implements \JsonSerializable
     }
 
     /**
-     * @param int $number
-     * @return $this
+     * @param string $number
+     * @return BankAccount
      */
     public function setNumber($number)
     {
-        $this->number = $number;
+        $this->number = (string)$number;
         return $this;
     }
 
     /**
-     * @return int
+     * @return string
      */
     public function getNumber()
     {
@@ -62,7 +65,7 @@ class BankAccount implements \JsonSerializable
 
     /**
      * @param string $name
-     * @return $this
+     * @return BankAccount
      */
     public function setName($name)
     {
@@ -71,7 +74,7 @@ class BankAccount implements \JsonSerializable
     }
 
     /**
-     * @return string mixed
+     * @return string
      */
     public function getName()
     {
@@ -79,33 +82,35 @@ class BankAccount implements \JsonSerializable
     }
 
     /**
-     * @param bool $isDefault
-     * @return $this
+     * @param bool $default
+     * @return BankAccount
      */
-    public function setIsDefault($isDefault)
+    public function setDefault($default)
     {
-        $this->isDefault = (bool)$isDefault;
+        $this->default = (bool)$default;
         return $this;
     }
 
     /**
      * @return bool
      */
-    public function getIsDefault()
+    public function isDefault()
     {
-        return $this->isDefault;
+        return $this->default;
     }
 
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
             'id' => $this->id,
             'number' => $this->number,
             'name' => $this->name,
-            'default' => $this->isDefault,
+            'default' => $this->default,
         ];
     }
+
 }

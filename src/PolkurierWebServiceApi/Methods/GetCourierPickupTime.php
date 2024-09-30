@@ -2,29 +2,34 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Entities\PickupDate;
+use PolkurierWebServiceApi\Entities\CourierPickupDate;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
-use PolkurierWebServiceApi\Entities\PickupTimeRange;
+use PolkurierWebServiceApi\Entities\CourierPickupTimeRange;
+use PolkurierWebServiceApi\Util\Dates;
 
 class GetCourierPickupTime extends AbstractMethod
 {
+
     /**
      * @var string
      */
-    private $courier;
+    private $courier = '';
+
     /**
      * @var string
      */
-    private $shipFrom;
+    private $shipFrom = '';
+
     /**
      * @var string
      */
-    private $shipTo;
+    private $shipTo = '';
+
     /**
      * @var string
      */
-    private $parcel;
+    private $parcel = '';
 
     /**
      * @return string
@@ -49,70 +54,67 @@ class GetCourierPickupTime extends AbstractMethod
 
     /**
      * @param string $courier
-     * @return $this
+     * @return GetCourierPickupTime
      */
     public function setCourier($courier)
     {
-        $this->courier = $courier;
+        $this->courier = (string)$courier;
         return $this;
     }
 
     /**
      * @param string $shipFrom
-     * @return $this
+     * @return GetCourierPickupTime
      */
     public function setShipFrom($shipFrom)
     {
-        $this->shipFrom = $shipFrom;
+        $this->shipFrom = (string)$shipFrom;
         return $this;
     }
 
     /**
      * @param string $shipTo
-     * @return $this
+     * @return GetCourierPickupTime
      */
     public function setShipTo($shipTo)
     {
-        $this->shipTo = $shipTo;
+        $this->shipTo = (string)$shipTo;
         return $this;
     }
 
     /**
      * @param string $parcel
-     * @return $this
+     * @return GetCourierPickupTime
      */
     public function setParcel($parcel)
     {
-        $this->parcel = $parcel;
+        $this->parcel = (string)$parcel;
         return $this;
     }
 
     /**
-     * @param Response $response
-     * @return $this|GetCourierPickupTime
+     * @return GetCourierPickupTime
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
-
-        $rawData = $response->get('response');
+        $rawData = (array)$response->get('response');
         foreach ($rawData as $row) {
-            $pickupDate = new PickupDate();
-            $pickupDate->setPickupdate(Arr::get($row, 'pickupdate'));
-
-            $timeRanges = [];
-            foreach (Arr::get($row, 'time', []) as $time) {
-                $timeRange = new PickupTimeRange(
-                    Arr::get($time, 'timefrom'),
-                    Arr::get($time, 'timeto')
+            $date = Dates::dateTimeOrNull(Arr::get($row, 'pickupdate'));
+            if ($date !== null) {
+                $this->responseData[] = new CourierPickupDate(
+                    $date,
+                    array_map(static function ($time) {
+                        return new CourierPickupTimeRange(
+                            (string)Arr::get((array)$time, 'timefrom', ''),
+                            (string)Arr::get((array)$time, 'timeto', '')
+                        );
+                    }, Arr::get($row, 'time', []))
                 );
-                $timeRanges[] = $timeRange;
+
             }
-
-            $pickupDate->setTime($timeRanges);
-            $this->responseData[] = $pickupDate;
         }
-
         return $this;
     }
+
 }

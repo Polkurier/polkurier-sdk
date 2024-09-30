@@ -2,11 +2,6 @@
 
 namespace PolkurierWebServiceApi\Type;
 
-/**
- * Class ShipmentType
- * @package PolkurierWebServiceApi\Type
- *
- */
 class ShipmentType
 {
     const ENVELOPE = 'envelope';

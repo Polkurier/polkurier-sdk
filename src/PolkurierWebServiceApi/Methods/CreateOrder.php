@@ -9,56 +9,59 @@ use PolkurierWebServiceApi\Entities\Pickup;
 use PolkurierWebServiceApi\Entities\Recipient;
 use PolkurierWebServiceApi\Entities\Sender;
 
-/**
- * Class CreateOrder
- * @package PolkurierWebServiceApi\Methods
- */
 class CreateOrder extends AbstractMethod
 {
+
     /**
      * @var string
      */
     private $shipmenttype;
+
     /**
      * @var string
      */
     private $courier;
+
     /**
      * @var array
      */
     private $courierservice = [];
+
     /**
      * @var string
      */
     private $description;
+
     /**
      * @var Sender
      */
     private $sender;
+
     /**
      * @var Recipient
      */
     private $recipient;
+
     /**
      * @var array
      */
     private $packs = [];
+
     /**
      * @var Pickup
      */
     private $pickup;
+
     /**
      * @var COD
      */
     private $COD;
+
     /**
      * @var float
      */
     private $insurance;
 
-    /**
-     * CreateOrder constructor.
-     */
     public function __construct()
     {
         $this->sender = new Sender();
@@ -94,7 +97,6 @@ class CreateOrder extends AbstractMethod
         ];
     }
 
-
     /**
      * @param string $courier
      */
@@ -104,8 +106,8 @@ class CreateOrder extends AbstractMethod
     }
 
     /**
-     * @param $shipmenttype string
-     * @return $this
+     * @param string $shipmenttype
+     * @return CreateOrder
      */
     public function setShipmentType($shipmenttype)
     {
@@ -115,7 +117,7 @@ class CreateOrder extends AbstractMethod
 
     /**
      * @param string $description
-     * @return $this
+     * @return CreateOrder
      */
     public function setDescription($description)
     {
@@ -123,10 +125,9 @@ class CreateOrder extends AbstractMethod
         return $this;
     }
 
-
     /**
      * @param Sender $sender
-     * @return $this
+     * @return CreateOrder
      */
     public function setSender(Sender $sender)
     {
@@ -136,7 +137,7 @@ class CreateOrder extends AbstractMethod
 
     /**
      * @param Recipient $recipient
-     * @return $this
+     * @return CreateOrder
      */
     public function setRecipient(Recipient $recipient)
     {
@@ -156,7 +157,7 @@ class CreateOrder extends AbstractMethod
 
     /**
      * @param Pack $pack
-     * @return $this
+     * @return CreateOrder
      */
     public function addPack(Pack $pack)
     {
@@ -164,10 +165,9 @@ class CreateOrder extends AbstractMethod
         return $this;
     }
 
-
     /**
      * @param CourierServiceInterface $courierservice
-     * @return $this
+     * @return CreateOrder
      */
     public function addCourierService(CourierServiceInterface $courierservice)
     {
@@ -188,10 +188,9 @@ class CreateOrder extends AbstractMethod
         return $servicemap;
     }
 
-
     /**
      * @param Pickup $pickup
-     * @return $this
+     * @return CreateOrder
      */
     public function setPickup(Pickup $pickup)
     {
@@ -201,11 +200,12 @@ class CreateOrder extends AbstractMethod
 
     /**
      * @param COD $cod
-     * @return $this
+     * @return CreateOrder
      */
     public function setCOD(COD $cod)
     {
         $this->COD = $cod;
         return $this;
     }
+
 }

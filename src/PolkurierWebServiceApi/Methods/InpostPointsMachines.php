@@ -6,8 +6,6 @@ use PolkurierWebServiceApi\Response;
 
 
 /**
- * Class InpostPointsMachines
- * @package PolkurierWebServiceApi\Methods
  * @deprecated Use method GetCourierPoint
  */
 class InpostPointsMachines extends AbstractMethod
@@ -21,7 +19,6 @@ class InpostPointsMachines extends AbstractMethod
         return 'inpost_points_machines';
     }
 
-
     /**
      * @return array
      */
@@ -30,10 +27,8 @@ class InpostPointsMachines extends AbstractMethod
         return [];
     }
 
-
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return InpostPointsMachines
      */
     public function setResponseData(Response $response)
     {
@@ -41,4 +36,5 @@ class InpostPointsMachines extends AbstractMethod
         $this->responseData = $response->get('response');
         return $this;
     }
+
 }

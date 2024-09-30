@@ -3,19 +3,16 @@
 namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Entities\CourierServiceInterface;
+use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\Recipient;
 use PolkurierWebServiceApi\Entities\Sender;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
-use PolkurierWebServiceApi\Entities\OrderValuation as Valuation;
 
-/**
- * Class OrderValuation
- * @package PolkurierWebServiceApi\Methods
- */
 class OrderValuation extends AbstractMethod
 {
+
     /**
      * @var string
      */
@@ -75,8 +72,7 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @param Pack $pack
-     * @return $this
+     * @return OrderValuation
      */
     public function addPack(Pack $pack)
     {
@@ -106,7 +102,7 @@ class OrderValuation extends AbstractMethod
 
     /**
      * @param string $codtype
-     * @return $this
+     * @return OrderValuation
      */
     public function setCodtype($codtype)
     {
@@ -116,7 +112,7 @@ class OrderValuation extends AbstractMethod
 
     /**
      * @param string $return_cod
-     * @return $this
+     * @return OrderValuation
      */
     public function setReturnCod($return_cod)
     {
@@ -136,7 +132,7 @@ class OrderValuation extends AbstractMethod
 
     /**
      * @param Recipient|null $recipient
-     * @return $this
+     * @return OrderValuation
      */
     public function setRecipient($recipient)
     {
@@ -146,7 +142,7 @@ class OrderValuation extends AbstractMethod
 
     /**
      * @param Sender|null $sender
-     * @return $this
+     * @return OrderValuation
      */
     public function setSender($sender)
     {
@@ -155,8 +151,7 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @param CourierServiceInterface $courierservice
-     * @return $this
+     * @return OrderValuation
      */
     public function addCourierService(CourierServiceInterface $courierservice)
     {
@@ -199,8 +194,7 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return OrderValuation
      */
     public function setResponseData(Response $response)
     {
@@ -230,4 +224,5 @@ class OrderValuation extends AbstractMethod
         }
         return $this;
     }
+
 }

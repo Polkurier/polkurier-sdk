@@ -5,11 +5,6 @@ namespace PolkurierWebServiceApi;
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class Response
- * @package PolkurierWebService
- *
- */
 class Response
 {
     /**
@@ -23,8 +18,7 @@ class Response
     private $responseData;
 
     /**
-     * Response constructor.
-     * @param $responseString
+     * @param mixed $responseString
      * @throws ErrorException
      */
     public function __construct($responseString)
@@ -37,9 +31,9 @@ class Response
     }
 
     /**
-     * @param $key
-     * @param null $default
-     * @return mixed|null
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
      */
     public function get($key, $default = null)
     {

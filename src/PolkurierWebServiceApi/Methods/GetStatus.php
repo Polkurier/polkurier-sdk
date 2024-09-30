@@ -5,13 +5,9 @@ namespace PolkurierWebServiceApi\Methods;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetStatus
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetStatus extends AbstractMethod
 {
+
     /**
      * @var string
      */
@@ -27,7 +23,7 @@ class GetStatus extends AbstractMethod
 
     /**
      * @param $orderNumber
-     * @return $this
+     * @return GetStatus
      */
     public function setOrderNumber($orderNumber)
     {
@@ -46,8 +42,7 @@ class GetStatus extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetStatus
      */
     public function setResponseData(Response $response)
     {
@@ -60,4 +55,5 @@ class GetStatus extends AbstractMethod
         $this->responseData['delivered_date'] = Arr::get($response, 'delivered_date');
         return $this;
     }
+
 }

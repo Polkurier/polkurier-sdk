@@ -2,10 +2,13 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
+use PolkurierWebServiceApi\Util\Arr;
+
 class Country implements \JsonSerializable
 {
+
     /**
-     * @var string|null
+     * @var string
      */
     private $id;
 
@@ -17,44 +20,40 @@ class Country implements \JsonSerializable
     /**
      * @var bool
      */
-    private $isUe;
+    private $ue;
 
     /**
      * @var bool
      */
-    private $isDefault;
+    private $default;
 
     /**
      * @var Province[]
      */
     private $provinces;
 
-    /**
-     * @param string|null $id
-     * @return $this
-     */
-    public function setId($id)
+    public function __construct(
+        $id = '',
+        $name = '',
+        $isUe = false,
+        $isDefault = false,
+        array $provinces = []
+    )
     {
-        $this->id = $id;
-        return $this;
+        Arr::assertInstancesOf($provinces, Province::class);
+        $this->id = (string)$id;
+        $this->name = (string)$name;
+        $this->ue = (bool)$isUe;
+        $this->default = (bool)$isDefault;
+        $this->provinces = $provinces;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-        return $this;
     }
 
     /**
@@ -66,49 +65,19 @@ class Country implements \JsonSerializable
     }
 
     /**
-     * @param bool $isUe
-     * @return $this
+     * @return bool
      */
-    public function setIsUe($isUe)
+    public function isUe()
     {
-        $this->isUe = (bool)$isUe;
-        return $this;
+        return $this->ue;
     }
 
     /**
      * @return bool
      */
-    public function getIsUe()
+    public function isDefault()
     {
-        return $this->isUe;
-    }
-
-    /**
-     * @param bool $isDefault
-     * @return $this
-     */
-    public function setIsDefault($isDefault)
-    {
-        $this->isDefault = (bool)$isDefault;
-        return $this;
-    }
-
-    /**
-     * @return bool mixed
-     */
-    public function getIsDefault()
-    {
-        return $this->isDefault;
-    }
-
-    /**
-     * @param Province[] $provinces
-     * @return $this
-     */
-    public function setProvinces(array $provinces)
-    {
-        $this->provinces = $provinces;
-        return $this;
+        return $this->default;
     }
 
     /**
@@ -122,14 +91,18 @@ class Country implements \JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'is_ue' => $this->isUe,
-            'is_default' => $this->isDefault,
-            'provinces' => $this->provinces,
+            'is_ue' => $this->ue,
+            'is_default' => $this->default,
+            'provinces' => array_map(static function (Province $province) {
+                return $province->jsonSerialize();
+            }, $this->provinces),
         ];
     }
+
 }

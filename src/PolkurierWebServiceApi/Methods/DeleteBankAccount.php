@@ -6,10 +6,11 @@ use PolkurierWebServiceApi\Response;
 
 class DeleteBankAccount extends AbstractMethod
 {
+
     /**
-     * @var string|null
+     * @var string
      */
-    private $id;
+    private $id = '';
 
     /**
      * @return string
@@ -31,7 +32,7 @@ class DeleteBankAccount extends AbstractMethod
 
     /**
      * @param string|null $id
-     * @return $this
+     * @return DeleteBankAccount
      */
     public function setId($id)
     {
@@ -41,7 +42,7 @@ class DeleteBankAccount extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|DeleteBankAccount
+     * @return DeleteBankAccount
      */
     public function setResponseData(Response $response)
     {

@@ -5,12 +5,38 @@ namespace PolkurierWebServiceApi\Entities;
 class CourierMessage
 {
 
+    /**
+     * @var string
+     */
     private $courier;
+
+    /**
+     * @var string
+     */
     private $message;
+
+    /**
+     * @var string
+     */
     private $type;
+
+    /**
+     * @var string
+     */
     private $severity;
+
+    /**
+     * @var int
+     */
     private $hide_timeout;
 
+    /**
+     * @param string $courier
+     * @param string $message
+     * @param string $type
+     * @param string $severity
+     * @param int $hide_timeout
+     */
     public function __construct(
         $courier = '',
         $message = '',
@@ -19,11 +45,11 @@ class CourierMessage
         $hide_timeout = 0
     )
     {
-        $this->courier = $courier;
-        $this->message = $message;
-        $this->type = $type;
-        $this->severity = $severity;
-        $this->hide_timeout = $hide_timeout;
+        $this->courier = (string)$courier;
+        $this->message = (string)$message;
+        $this->type = (string)$type;
+        $this->severity = (string)$severity;
+        $this->hide_timeout = (int)$hide_timeout;
     }
 
     /**

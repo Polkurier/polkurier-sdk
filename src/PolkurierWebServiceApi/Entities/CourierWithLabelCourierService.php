@@ -2,24 +2,20 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class CourierWithLabelCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class CourierWithLabelCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $courier_with_label;
 
     /**
-     * CourierWithLabelCourierService constructor.
      * @param false $courier_with_label
      */
     public function __construct($courier_with_label = false)
     {
-        $this->courier_with_label = $courier_with_label;
+        $this->courier_with_label = (bool)$courier_with_label;
     }
 
     /**
@@ -45,6 +41,7 @@ class CourierWithLabelCourierService implements CourierServiceInterface
      */
     public function setCourierWithLabel($courier_with_label)
     {
-        $this->courier_with_label = $courier_with_label;
+        $this->courier_with_label = (bool)$courier_with_label;
     }
+
 }

@@ -6,10 +6,11 @@ use PolkurierWebServiceApi\Response;
 
 class DeletePackTemplate extends AbstractMethod
 {
+
     /**
-     * @var string|null
+     * @var string
      */
-    private $id;
+    private $id = '';
 
     /**
      * @return string
@@ -30,8 +31,8 @@ class DeletePackTemplate extends AbstractMethod
     }
 
     /**
-     * @param string|null $id
-     * @return $this
+     * @param string $id
+     * @return DeletePackTemplate
      */
     public function setId($id)
     {
@@ -41,11 +42,12 @@ class DeletePackTemplate extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|DeletePackTemplate
+     * @return DeletePackTemplate
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = $response->get('response');
         return $this;
     }
+
 }

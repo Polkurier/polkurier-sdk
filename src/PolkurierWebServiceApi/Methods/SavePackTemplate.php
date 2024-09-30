@@ -2,12 +2,13 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Entities\PackTemplate;
+use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
 class SavePackTemplate extends AbstractMethod
 {
+
     /**
      * @var array
      */
@@ -30,8 +31,7 @@ class SavePackTemplate extends AbstractMethod
     }
 
     /**
-     * @param PackTemplate $template
-     * @return $this
+     * @return SavePackTemplate
      */
     public function setTemplateData(PackTemplate $template)
     {
@@ -40,27 +40,25 @@ class SavePackTemplate extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return self|AbstractMethod
+     * @return SavePackTemplate
      */
     public function setResponseData(Response $response)
     {
         $data = $response->get('response');
-        $template = new PackTemplate();
-        $template->setId(Arr::get($data, 'id'))
-            ->setName(Arr::get($data, 'name'))
-            ->setShipmentType(Arr::get($data, 'shipmenttype'))
-            ->setLength(Arr::get($data, 'length'))
-            ->setWidth(Arr::get($data, 'width'))
-            ->setHeight(Arr::get($data, 'height'))
-            ->setWeight(Arr::get($data, 'weight'))
-            ->setCod(Arr::get($data, 'COD'))
-            ->setInsurance(Arr::get($data, 'insurance'))
-            ->setDescription(Arr::get($data, 'description'))
-            ->setType(Arr::get($data, 'type'));
-
-        $this->responseData = $template;
-
+        $this->responseData = new PackTemplate(
+            (string)Arr::get($data, 'id', ''),
+            (string)Arr::get($data, 'name', ''),
+            (string)Arr::get($data, 'shipmenttype', ''),
+            (int)Arr::get($data, 'length', 0),
+            (int)Arr::get($data, 'width', 0),
+            (int)Arr::get($data, 'height', 0),
+            (float)Arr::get($data, 'weight', 0.0),
+            (float)Arr::get($data, 'COD', 0.0),
+            (float)Arr::get($data, 'insurance', 0.0),
+            (string)Arr::get($data, 'description', ''),
+            (string)Arr::get($data, 'type', '')
+        );
         return $this;
     }
+
 }

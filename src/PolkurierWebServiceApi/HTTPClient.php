@@ -5,37 +5,30 @@ namespace PolkurierWebServiceApi;
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Exception\FatalException;
 
-/**
- * Class HTTPClient
- * @package PolkurierWebServiceApi
- *
- */
 class HTTPClient
 {
+
     /**
      * @var bool
      */
     private $returnTransfer = true;
+
     /**
      * @var bool
      */
     private $sslVerifyPeer = true;
+
     /**
      * @var int
      */
     private $sslVerifyHost = 2;
 
-    /**
-     * HTTPClient constructor.
-     * @param Config $config
-     */
     public function __construct(Config $config)
     {
         $this->config = $config;
     }
 
     /**
-     * @param Request $request
      * @return array
      */
     protected function prepareHeaders(Request $request)
@@ -48,7 +41,6 @@ class HTTPClient
     }
 
     /**
-     * @param Request $request
      * @return string
      */
     protected function preparePayload(Request $request)
@@ -57,7 +49,6 @@ class HTTPClient
     }
 
     /**
-     * @param Request $request
      * @return Response
      * @throws ErrorException
      * @throws FatalException

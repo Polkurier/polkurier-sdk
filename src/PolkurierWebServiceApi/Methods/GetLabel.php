@@ -5,11 +5,6 @@ use PolkurierWebServiceApi\File;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class GetLabel
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetLabel extends AbstractMethod
 {
 
@@ -27,8 +22,8 @@ class GetLabel extends AbstractMethod
     }
 
     /**
-     * @param array $orderNumbers
-     * @return $this
+     * @param string[] $orderNumbers
+     * @return GetLabel
      */
     public function setOrderNumbers(array $orderNumbers)
     {
@@ -37,12 +32,12 @@ class GetLabel extends AbstractMethod
     }
 
     /**
-     * @param $orderNumber
-     * @return $this
+     * @param string $orderNumber
+     * @return GetLabel
      */
     public function addOrderNumber($orderNumber)
     {
-        $this->orderNumbers[] = $orderNumber;
+        $this->orderNumbers[] = (string)$orderNumber;
         return $this;
     }
 
@@ -57,8 +52,7 @@ class GetLabel extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetLabel
      */
     public function setResponseData(Response $response)
     {

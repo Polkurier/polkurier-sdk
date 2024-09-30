@@ -4,10 +4,6 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
 
-/**
- * Class TestAuthApi
- * @package PolkurierWebServiceApi\Methods
- */
 class TestAuthApi extends AbstractMethod
 {
     /**
@@ -20,7 +16,7 @@ class TestAuthApi extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|AbstractMethod
+     * @return AbstractMethod
      */
     public function setResponseData(Response $response)
     {
@@ -39,4 +35,5 @@ class TestAuthApi extends AbstractMethod
     {
         return [];
     }
+
 }

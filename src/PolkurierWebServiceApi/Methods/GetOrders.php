@@ -2,44 +2,56 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Entities\Order;
-use PolkurierWebServiceApi\Entities\Address;
+use DateTimeImmutable;
+use Exception;
 use PolkurierWebServiceApi\Entities\COD;
-use PolkurierWebServiceApi\Entities\Pickup;
-use PolkurierWebServiceApi\Entities\Pack;
+use PolkurierWebServiceApi\Entities\CourierPoint;
+use PolkurierWebServiceApi\Entities\Order;
 use PolkurierWebServiceApi\Entities\OrderItem;
 use PolkurierWebServiceApi\Entities\OrderWaybill;
-use PolkurierWebServiceApi\Entities\PickupDate;
-use PolkurierWebServiceApi\Entities\PickupTimeRange;
+use PolkurierWebServiceApi\Entities\Pack;
+use PolkurierWebServiceApi\Entities\Pickup;
+use PolkurierWebServiceApi\Entities\Recipient;
+use PolkurierWebServiceApi\Entities\Sender;
+use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
+use PolkurierWebServiceApi\Util\Dates;
+use PolkurierWebServiceApi\Util\Validators;
 
 class GetOrders extends AbstractMethod
 {
+
     /**
      * @var string
      */
     private $orderno = '';
+
     /**
      * @var bool
      */
     private $packs = false;
+
     /**
      * @var int
      */
     private $pagesize = 100;
+
     /**
      * @var int
      */
     private $page = 1;
+
     /**
      * @var string
      */
     private $status = '';
+
     /**
      * @var bool
      */
     private $items = false;
+
     /**
      * @var bool
      */
@@ -59,7 +71,6 @@ class GetOrders extends AbstractMethod
     public function getRequestData()
     {
         $data = [];
-
         if ($this->orderno) {
             $data['orderno'] = $this->orderno;
         } else {
@@ -72,13 +83,12 @@ class GetOrders extends AbstractMethod
             $data['items'] = $this->items;
             $data['files'] = $this->files;
         }
-
         return $data;
     }
 
     /**
-     * @param $orderno
-     * @return $this
+     * @param string $orderno
+     * @return GetOrders
      */
     public function setOrderno($orderno)
     {
@@ -87,8 +97,8 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param $packs
-     * @return $this
+     * @param bool $packs
+     * @return GetOrders
      */
     public function setPacks($packs)
     {
@@ -98,7 +108,7 @@ class GetOrders extends AbstractMethod
 
     /**
      * @param $pagesize
-     * @return $this
+     * @return GetOrders
      */
     public function setPageSize($pagesize)
     {
@@ -108,7 +118,7 @@ class GetOrders extends AbstractMethod
 
     /**
      * @param $page
-     * @return $this
+     * @return GetOrders
      */
     public function setPage($page)
     {
@@ -118,7 +128,7 @@ class GetOrders extends AbstractMethod
 
     /**
      * @param $status
-     * @return $this
+     * @return GetOrders
      */
     public function setStatus($status)
     {
@@ -128,7 +138,7 @@ class GetOrders extends AbstractMethod
 
     /**
      * @param $items
-     * @return $this
+     * @return GetOrders
      */
     public function setItems($items)
     {
@@ -138,7 +148,7 @@ class GetOrders extends AbstractMethod
 
     /**
      * @param $files
-     * @return $this
+     * @return GetOrders
      */
     public function setFiles($files)
     {
@@ -147,210 +157,224 @@ class GetOrders extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|GetOrders
-     * @throws \DateMalformedStringException
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @return GetOrders
+     * @throws Exception
+     * @throws ErrorException
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = [];
 
         if ($this->orderno) {
-            $orderData = $response->get('response');
-            $order = $this->createOrder($orderData);
-
-            $this->responseData = $order;
+            $this->responseData = $this->createOrder((array)$response->get('response'));
         } else {
-            $rawData = $response->get('response')['result'];
+            $rawData = (array)$response->get('response')['result'];
             foreach ($rawData as $row) {
-                $order = $this->createOrder($row);
-                $this->responseData[] = $order;
+                $this->responseData[] = $this->createOrder($row);
             }
         }
-
         return $this;
     }
 
     /**
-     * @param array $data
      * @return Order
-     * @throws \DateMalformedStringException
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @throws Exception
+     * @throws ErrorException
      */
-    private function createOrder($data)
+    private function createOrder(array $data)
     {
-        $order = new Order();
-
-        $order->setNumber(Arr::get($data, 'number'))
-            ->setDate(new \DateTimeImmutable(Arr::get($data, 'date')))
-            ->setDescription(Arr::get($data, 'description'))
-            ->setCourier(Arr::get($data, 'courier'))
-            ->setStatus(Arr::get($data, 'status'))
-            ->setStatusCode(Arr::get($data, 'status_code'))
-            ->setPriceGross(Arr::get($data, 'price_gross'))
-            ->setPriceNet(Arr::get($data, 'price_net'))
-            ->setIsPaid(Arr::get($data, 'is_paid'))
-            ->setHasInvoice(Arr::get($data, 'has_invoice'))
-            ->setUnpaidAmount(Arr::get($data, 'unpaid_amount'))
-            ->setUrl(Arr::get($data, 'url'))
-            ->setStatusDate(new \DateTimeImmutable(Arr::get($data, 'status_date')))
-            ->setDeliveredDate(new \DateTimeImmutable(Arr::get($data, 'delivered_date')))
-            ->setInsurance(Arr::get($data, 'insurance'))
-            ->setCourierName(Arr::get($data, 'courier_name'))
-            ->setShipmentType(Arr::get($data, 'shipmenttype'))
-            ->setLabel(Arr::get($data, 'label'))
-            ->setIndividualPricing(Arr::get($data, 'individual_pricing'));
-
-        // Set Sender Address
-        $senderData = Arr::get($data, 'sender', []);
-        if (!empty($senderData)) {
-            $sender = $this->createAddress($senderData);
-            $order->setSender($sender);
-        }
-
-        // Set Recipient Address
-        $recipientData = Arr::get($data, 'recipient', []);
-        if (!empty($recipientData)) {
-            $recipient = $this->createAddress($recipientData);
-            $order->setRecipient($recipient);
-        }
-
-        // Set COD
-        $codData = Arr::get($data, 'COD', []);
-        if (!empty($codData)) {
-            $cod = $this->createCod($codData);
-            $order->setCod($cod);
-        }
-
-        // Set Pickup
-        $pickupData = Arr::get($data, 'pickup', []);
-        if (!empty($pickupData)) {
-            $pickup = $this->createPickup($pickupData);
-            $order->setPickup($pickup);
-        }
+        $order = (new Order())
+            ->setNumber((string)Arr::get($data, 'number', ''))
+            ->setDate(Dates::ensureDateTime(Arr::get($data, 'date')))
+            ->setDescription((string)Arr::get($data, 'description', ''))
+            ->setCourier((string)Arr::get($data, 'courier', ''))
+            ->setStatus((string)Arr::get($data, 'status', ''))
+            ->setStatusCode((string)Arr::get($data, 'status_code', ''))
+            ->setPriceGross((float)Arr::get($data, 'price_gross', 0.0))
+            ->setPriceNet((float)Arr::get($data, 'price_net', 0.0))
+            ->setIsPaid((bool)Arr::get($data, 'is_paid', false))
+            ->setHasInvoice((bool)Arr::get($data, 'has_invoice', false))
+            ->setUnpaidAmount((float)Arr::get($data, 'unpaid_amount', 0.0))
+            ->setUrl((string)Arr::get($data, 'url', ''))
+            ->setStatusDate(Dates::dateTimeOrNull(Arr::get($data, 'status_date')))
+            ->setDeliveredDate(Dates::dateTimeOrNull(Arr::get($data, 'delivered_date')))
+            ->setInsurance((float)Arr::get($data, 'insurance', 0.0))
+            ->setCourierName((string)Arr::get($data, 'courier_name', ''))
+            ->setShipmentType((string)Arr::get($data, 'shipmenttype', ''))
+            ->setLabel((array)Arr::get($data, 'label', ''))
+            ->setIndividualPricing(Arr::get($data, 'individual_pricing'))
+            ->setSender($this->createSenderAddress((array)Arr::get($data, 'sender', [])))
+            ->setRecipient($this->createRecipientAddress((array)Arr::get($data, 'recipient', [])))
+            ->setCod($this->createCod((array)Arr::get($data, 'COD', [])))
+            ->setPickup($this->createPickup((array)Arr::get($data, 'pickup', [])));
 
         // Set Packs
-        $packsData = Arr::get($data, 'packs', []);
+        $packsData = (array)Arr::get($data, 'packs', []);
         foreach ($packsData as $packData) {
-            $pack = $this->createPack($packData);
-            $order->addPack($pack);
+            $order->addPack($this->createPack((array)$packData));
         }
 
         // Set Items
-        $itemsData = Arr::get($data, 'items', []);
+        $itemsData = (array)Arr::get($data, 'items', []);
         foreach ($itemsData as $itemData) {
-            $item = $this->createOrderItem($itemData);
-            $order->addItem($item);
+            $order->addItem($this->createOrderItem((array)$itemData));
         }
 
         // Set Waybills
         $waybillsData = Arr::get($data, 'waybills', []);
         foreach ($waybillsData as $waybillData) {
-            $waybill = $this->createOrderWaybill($waybillData);
-            $order->addWaybill($waybill);
+            $order->addWaybill($this->createOrderWaybill((array)$waybillData));
         }
 
         return $order;
     }
 
     /**
-     * @param array $data
-     * @return Address
+     * @return Sender
      */
-    private function createAddress($data)
+    private function createSenderAddress(array $data)
     {
-        $address = new Address();
-        $address->setId(Arr::get($data, 'id'))
-            ->setName(Arr::get($data, 'name'))
-            ->setCompany(Arr::get($data, 'company'))
-            ->setPerson(Arr::get($data, 'person'))
-            ->setStreet(Arr::get($data, 'street'))
-            ->setPostcode(Arr::get($data, 'postcode'))
-            ->setCity(Arr::get($data, 'city'))
-            ->setPhone(Arr::get($data, 'phone'))
-            ->setEmail(Arr::get($data, 'email'))
-            ->setCountry(Arr::get($data, 'country'))
-            ->setProvince(Arr::get($data, 'province'))
-            ->setType(Arr::get($data, 'type'))
-            ->setDefault(Arr::get($data, 'default'))
-            ->setIsCoverAddress(Arr::get($data, 'is_cover_address'));
+        $address = new Sender();
+        $this->setAddressProperties($address, $data);
         return $address;
     }
 
     /**
-     * @param array $data
-     * @return COD
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
+     * @return Recipient
      */
-    private function createCod($data)
+    private function createRecipientAddress(array $data)
     {
-        $cod = new COD();
-        $cod->setType(Arr::get($data, 'codtype'))
+        $address = new Recipient();
+        $this->setAddressProperties($address, $data);
+        return $address;
+    }
+
+    /**
+     * @param Sender|Recipient $address
+     * @param array $data
+     * @return void
+     */
+    private function setAddressProperties($address, array $data)
+    {
+        $address->setCompany((string)Arr::get($data, 'company', ''));
+        $address->setPerson((string)Arr::get($data, 'person', ''));
+        $address->setStreet((string)Arr::get($data, 'streetname', ''));
+        $address->setHouseNumber((string)Arr::get($data, 'housenumber', ''));
+        $address->setFlatNumber((string)Arr::get($data, 'flatnumber', ''));
+        $address->setPostcode((string)Arr::get($data, 'postcode', ''));
+        $address->setCity((string)Arr::get($data, 'city', ''));
+        $address->setPhone((string)Arr::get($data, 'phone', ''));
+        $address->setEmail((string)Arr::get($data, 'email', ''));
+        $address->setCountry((string)Arr::get($data, 'country', ''));
+        $address->setPointId((string)Arr::get($data, 'point_id', ''));
+        $address->setPoint(CourierPoint::fromArray((array)Arr::get($data, 'point', [])));
+    }
+
+    /**
+     * @return COD
+     * @throws ErrorException
+     */
+    private function createCod(array $data)
+    {
+        $cod = (new COD())
+            ->setType(Arr::get($data, 'codtype'))
             ->setAmount(Arr::get($data, 'codamount'))
-            ->setBankAccount(Arr::get($data, 'codbankaccount'))
             ->setReturnCod(Arr::get($data, 'return_cod'));
+
+        $bankAccount = (string)Arr::get($data, 'codbankaccount');
+        if ($bankAccount !== '') {
+            $cod->setBankAccount(Arr::get($data, 'codbankaccount'));
+        }
         return $cod;
     }
 
     /**
-     * @param array $data
      * @return Pickup
      */
-    private function createPickup($data)
+    private function createPickup(array $data)
     {
         $pickup = new Pickup();
         $pickup->setDate(Arr::get($data, 'pickupdate'));
-        $pickup->setTimeTo(Arr::get($data, 'pickuptimeto'));
-        $pickup->setTimeFrom(Arr::get($data, 'pickuptimefrom'));
         $pickup->setNoCourierOrder(Arr::get($data, 'nocourierorder', false));
 
+        try {
+            $pickupTimeFrom = (string)Arr::get($data, 'pickuptimefrom');
+            if (Validators::validateHourFormat($pickupTimeFrom)) {
+                $pickup->setTimeFrom($pickupTimeFrom);
+            }
+        } catch (Exception $e) {
+        }
+
+        try {
+            $pickupTimeTo = (string)Arr::get($data, 'pickuptimeto');
+            if (Validators::validateHourFormat($pickupTimeTo)) {
+                $pickup->setTimeTo($pickupTimeTo);
+            }
+        } catch (ErrorException $e) {
+        }
         return $pickup;
     }
 
-
     /**
-     * @param array $data
      * @return Pack
-     * @throws \PolkurierWebServiceApi\Exception\ErrorException
      */
-    private function createPack($data)
+    private function createPack(array $data)
     {
         $pack = new Pack();
-        $pack->setLength(Arr::get($data, 'length'))
-            ->setWidth(Arr::get($data, 'width'))
-            ->setHeight(Arr::get($data, 'height'))
-            ->setWeight(Arr::get($data, 'weight'))
-            ->setAmount(Arr::get($data, 'amount'))
-            ->setType(Arr::get($data, 'type'));
+        $pack->setType(Arr::get($data, 'type'));
+
+        try {
+            $pack->setLength((float)Arr::get($data, 'length'));
+        } catch (ErrorException $e) {
+        }
+
+        try {
+            $pack->setWidth((float)Arr::get($data, 'width'));
+        } catch (ErrorException $e) {
+        }
+
+        try {
+            $pack->setHeight((float)Arr::get($data, 'height'));
+        } catch (ErrorException $e) {
+        }
+
+        try {
+            $pack->setWeight((float)Arr::get($data, 'weight'));
+        } catch (ErrorException $e) {
+        }
+
+        try {
+            $pack->setAmount((int)Arr::get($data, 'amount'));
+        } catch (ErrorException $e) {
+        }
+
         return $pack;
     }
 
     /**
-     * @param array $data
      * @return OrderItem
      */
-    private function createOrderItem($data)
+    private function createOrderItem(array $data)
     {
-        $item = new OrderItem();
-        $item->setDescription(Arr::get($data, 'description'))
-            ->setAmount(Arr::get($data, 'amount'))
-            ->setPrice(Arr::get($data, 'price'))
-            ->setValueNett(Arr::get($data, 'value_nett'))
-            ->setValueGross(Arr::get($data, 'value_gross'))
-            ->setType(Arr::get($data, 'type'));
-        return $item;
+        return new OrderItem(
+            (string)Arr::get($data, 'description', ''),
+            (int)Arr::get($data, 'amount', 0),
+            (float)Arr::get($data, 'price', 0.0),
+            (float)Arr::get($data, 'value_nett', 0.0),
+            (float)Arr::get($data, 'value_gross', 0.0),
+            (string)Arr::get($data, 'type', '')
+        );
     }
 
     /**
-     * @param array $data
      * @return OrderWaybill
      */
-    private function createOrderWaybill($data)
+    private function createOrderWaybill(array $data)
     {
-        $waybill = new OrderWaybill();
-        $waybill->setNumber(Arr::get($data, 'number'))
-            ->setIsDefault(Arr::get($data, 'is_default'));
-        return $waybill;
+        return new OrderWaybill(
+            (string)Arr::get($data, 'number'),
+            (bool)Arr::get($data, 'is_default')
+        );
     }
+
 }

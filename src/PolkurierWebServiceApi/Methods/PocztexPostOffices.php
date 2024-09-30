@@ -20,7 +20,6 @@ class PocztexPostOffices extends AbstractMethod
         return 'pocztex_post_offices';
     }
 
-
     /**
      * @return array
      */
@@ -29,15 +28,14 @@ class PocztexPostOffices extends AbstractMethod
         return [];
     }
 
-
     /**
      * @param Response $response
      * @return $this|AbstractMethod
      */
     public function setResponseData(Response $response)
     {
-
         $this->responseData = $response->get('response');
         return $this;
     }
+
 }

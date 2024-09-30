@@ -1,4 +1,5 @@
 <?php
+
 namespace PolkurierWebServiceApi\Util;
 
 use PolkurierWebServiceApi\Exception\ErrorException;

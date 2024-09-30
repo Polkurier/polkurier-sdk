@@ -1,19 +1,20 @@
 <?php
 require('../autoload.php');
+require('./config.php');
 
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Methods\CreateOrder;
-use PolkurierWebServiceApi\Type\ShipmentType;
-use PolkurierWebServiceApi\Entities\RodCourierService;
-use PolkurierWebServiceApi\Entities\Recipient;
-use PolkurierWebServiceApi\PolkurierWebService;
 use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Type\PackType;
-use PolkurierWebServiceApi\Entities\Pickup;
-use PolkurierWebServiceApi\Entities\Pack;
+use PolkurierWebServiceApi\Config;
 use PolkurierWebServiceApi\Entities\COD;
+use PolkurierWebServiceApi\Entities\Pack;
+use PolkurierWebServiceApi\Entities\Pickup;
+use PolkurierWebServiceApi\Entities\Recipient;
+use PolkurierWebServiceApi\Entities\RodCourierService;
 use PolkurierWebServiceApi\Entities\Sender;
 use PolkurierWebServiceApi\Exception\ErrorException;
+use PolkurierWebServiceApi\Methods\CreateOrder;
+use PolkurierWebServiceApi\PolkurierWebService;
+use PolkurierWebServiceApi\Type\PackType;
+use PolkurierWebServiceApi\Type\ShipmentType;
 
 $method = new CreateOrder();
 $method->setShipmentType(ShipmentType::BOX);
@@ -69,7 +70,10 @@ $method->setCod($cod);
 
 $method->setInsurance(0);
 
-$config = new Config;
+$config = new Config();
+$config->setAuthLogin(API_LOGIN);
+$config->setAuthToken(API_TOKEN);
+
 $auth = new Auth($config);
 $webApi = new PolkurierWebService($auth, $config);
 

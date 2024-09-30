@@ -10,12 +10,11 @@ class DeliveryToOwnHandsCourierService implements CourierServiceInterface
     private $deliveryToOwnHands;
 
     /**
-     * DeliveryToOwnHandsCourierService constructor.
      * @param bool $deliveryToOwnHands
      */
     public function __construct($deliveryToOwnHands = false)
     {
-        $this->deliveryToOwnHands = $deliveryToOwnHands;
+        $this->deliveryToOwnHands = (bool)$deliveryToOwnHands;
     }
 
     /**
@@ -43,4 +42,5 @@ class DeliveryToOwnHandsCourierService implements CourierServiceInterface
     {
         $this->deliveryToOwnHands = (bool)$deliveryToOwnHands;
     }
+
 }

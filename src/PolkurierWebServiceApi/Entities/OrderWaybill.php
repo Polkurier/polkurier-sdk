@@ -2,8 +2,11 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class OrderWaybill implements \JsonSerializable
+use JsonSerializable;
+
+class OrderWaybill implements JsonSerializable
 {
+
     /**
      * @var string
      */
@@ -12,16 +15,16 @@ class OrderWaybill implements \JsonSerializable
     /**
      * @var bool
      */
-    private $isDefault;
+    private $default;
 
     /**
      * @param string $number
-     * @return $this
+     * @param bool $default
      */
-    public function setNumber($number)
+    public function __construct($number = '', $default = false)
     {
-        $this->number = $number;
-        return $this;
+        $this->number = (string)$number;
+        $this->default = (bool)$default;
     }
 
     /**
@@ -33,31 +36,23 @@ class OrderWaybill implements \JsonSerializable
     }
 
     /**
-     * @param bool $isDefault
-     * @return $this
+     * @return bool
      */
-    public function setIsDefault($isDefault)
+    public function isDefault()
     {
-        $this->isDefault = (bool)$isDefault;
-        return $this;
-    }
-
-    /**
-     * @return bool|null
-     */
-    public function getIsDefault()
-    {
-        return $this->isDefault;
+        return $this->default;
     }
 
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
             'number' => $this->number,
-            'is_default' => $this->isDefault,
+            'is_default' => $this->default,
         ];
     }
+
 }

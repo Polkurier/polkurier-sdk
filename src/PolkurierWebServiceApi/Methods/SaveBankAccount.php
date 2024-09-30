@@ -2,18 +2,19 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Entities\BankAccount;
+use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Util\Arr;
 
 class SaveBankAccount extends AbstractMethod
 {
-    /**
-     * @param BankAccount $bankAccount
-     */
-    public function __construct(BankAccount $bankAccount)
+
+    public function __construct(BankAccount $bankAccount, $access_pin = '')
     {
-        $this->setRequestData($bankAccount->jsonSerialize());
+        $this->requestData = $bankAccount->jsonSerialize();
+        if ($access_pin !== '') {
+            $this->requestData['access_pin'] = $access_pin;
+        }
     }
 
     /**
@@ -33,20 +34,17 @@ class SaveBankAccount extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this
+     * @return SaveBankAccount
      */
     public function setResponseData(Response $response)
     {
         $data = $response->get('response');
-        $account = new BankAccount();
-        $account->setId(Arr::get($data, 'id'))
-            ->setNumber(Arr::get($data, 'number'))
-            ->setName(Arr::get($data, 'name'))
-            ->setIsDefault(Arr::get($data, 'default'));
-
-        $this->responseData = $account;
-
+        $this->responseData = (new BankAccount())
+            ->setId((string)Arr::get($data, 'id', ''))
+            ->setNumber((string)Arr::get($data, 'number', ''))
+            ->setName((string)Arr::get($data, 'name', ''))
+            ->setDefault((bool)Arr::get($data, 'default', false));
         return $this;
     }
+
 }

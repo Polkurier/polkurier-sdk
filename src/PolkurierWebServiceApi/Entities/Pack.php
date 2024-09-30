@@ -6,39 +6,41 @@ use JsonSerializable;
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Type\PackType;
 
-/**
- * Class Pack
- * @package PolkurierWebServiceApi\Entities
- *
- */
 class Pack implements JsonSerializable
 {
+
     /**
-     * @var float
+     * @var int
      */
     private $length = 0;
+
     /**
-     * @var float
+     * @var int
      */
     private $width = 0;
+
     /**
-     * @var float
+     * @var int
      */
     private $height = 0;
+
     /**
      * @var float
      */
     private $weight = 0;
+
     /**
-     * @var float
+     * @var int
      */
     private $amount = 1;
+
     /**
      * @var string
      */
     private $type = PackType::ST;
+
     /**
-     * @return mixed
+     * @return int
      */
     public function getLength()
     {
@@ -46,8 +48,8 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param $length
-     * @return $this
+     * @param int $length
+     * @return Pack
      * @throws ErrorException
      */
     public function setLength($length)
@@ -60,7 +62,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getWidth()
     {
@@ -68,7 +70,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param mixed $width
+     * @param int $width
      * @return Pack
      * @throws ErrorException
      */
@@ -77,12 +79,12 @@ class Pack implements JsonSerializable
         if ($width <= 0) {
             throw new ErrorException('Szerokość przesyłki musi być większa niż 0');
         }
-        $this->width = (float)$width;
+        $this->width = (int)$width;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getHeight()
     {
@@ -90,7 +92,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param mixed $height
+     * @param int $height
      * @return Pack
      * @throws ErrorException
      */
@@ -99,12 +101,12 @@ class Pack implements JsonSerializable
         if ($height <= 0) {
             throw new ErrorException('Wysokość przesyłki musi być większa niż 0');
         }
-        $this->height = (float)$height;
+        $this->height = (int)$height;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return float
      */
     public function getWeight()
     {
@@ -112,7 +114,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param mixed $weight
+     * @param float $weight
      * @return Pack
      * @throws ErrorException
      */
@@ -126,7 +128,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getAmount()
     {
@@ -134,7 +136,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param mixed $amount
+     * @param int $amount
      * @return Pack
      * @throws ErrorException
      */
@@ -148,7 +150,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getType()
     {
@@ -156,7 +158,7 @@ class Pack implements JsonSerializable
     }
 
     /**
-     * @param mixed $type
+     * @param string $type
      * @return Pack
      */
     public function setType($type)
@@ -177,6 +179,7 @@ class Pack implements JsonSerializable
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -188,4 +191,5 @@ class Pack implements JsonSerializable
             'type' => $this->type
         ];
     }
+
 }

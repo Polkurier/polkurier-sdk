@@ -4,13 +4,9 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Response;
 
-/**
- * Class GetCountries
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class GetCountries extends AbstractMethod
 {
+
     /**
      * @var string
      */
@@ -34,7 +30,6 @@ class GetCountries extends AbstractMethod
 
     /**
      * @param string $couriers
-     * @return GetCountries
      */
     public function setCouriers($couriers)
     {
@@ -54,11 +49,12 @@ class GetCountries extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|AbstractMethod
+     * @return GetCountries
      */
     public function setResponseData(Response $response)
     {
         $this->responseData = $response->get('response');
         return $this;
     }
+
 }

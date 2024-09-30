@@ -5,13 +5,10 @@ use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Type\ReturnCodType;
 use PolkurierWebServiceApi\Type\ReturnTimeCodType;
 
-/**
- * Class COD
- * @package PolkurierWebServiceApi\Entities
- *
- */
+
 class COD
 {
+
     /**
      * @var string
      */
@@ -21,24 +18,24 @@ class COD
      * @var float
      */
     private $amount = 0;
-    
+
     /**
      * @var string
      */
-    private $bankAccount = null;
+    private $bankAccount = '';
 
     /**
      * @var string
      */
     private $returnCod = ReturnCodType::BA;
-    
+
     /**
-     * @param mixed $type
+     * @param string $type
      * @return COD
      */
     public function setType($type)
     {
-        $this->type = $type;
+        $this->type = (string)$type;
         return $this;
     }
 
@@ -48,7 +45,7 @@ class COD
      */
     public function setReturnCod($returnCod)
     {
-        $this->returnCod = $returnCod;
+        $this->returnCod = (string)$returnCod;
         return $this;
     }
 
@@ -63,8 +60,8 @@ class COD
     }
 
     /**
-     * @param $bankAccount
-     * @return $this
+     * @param string $bankAccount
+     * @return COD
      * @throws ErrorException
      */
     public function setBankAccount($bankAccount)
@@ -108,6 +105,9 @@ class COD
         return $this->bankAccount;
     }
 
+    /**
+     * @return array
+     */
     public function toArray()
     {
         return [

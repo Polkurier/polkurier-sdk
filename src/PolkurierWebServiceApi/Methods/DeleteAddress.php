@@ -2,18 +2,18 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Response;
-
 class DeleteAddress extends AbstractMethod
 {
+
     /**
-     * @var string|null
+     * @var string
      */
-    private $id;
+    private $id = '';
+
     /**
-     * @var string|null
+     * @var string
      */
-    private $type;
+    private $type = '';
 
     /**
      * @return string
@@ -36,7 +36,7 @@ class DeleteAddress extends AbstractMethod
 
     /**
      * @param string|null $id
-     * @return $this
+     * @return DeleteAddress
      */
     public function setId($id)
     {
@@ -46,11 +46,12 @@ class DeleteAddress extends AbstractMethod
 
     /**
      * @param string|null $type
-     * @return $this
+     * @return DeleteAddress
      */
     public function setType($type)
     {
         $this->type = $type;
         return $this;
     }
+
 }

@@ -2,85 +2,103 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-class Address implements \JsonSerializable
+use JsonSerializable;
+
+class Address implements JsonSerializable
 {
-    /**
-     * @var string|null
-     */
-    private $id;
-    /**
-     * @var string|null
-     */
-    private $name;
-    /**
-     * @var string|null
-     */
-    private $company;
-    /**
-     * @var string|null
-     */
-    private $person;
-    /**
-     * @var string|null
-     */
-    private $city;
-    /**
-     * @var string|null
-     */
-    private $postcode;
-    /**
-     * @var string|null
-     */
-    private $street;
-    /**
-     * @var string|null
-     */
-    private $houseNumber;
-    /**
-     * @var string|null
-     */
-    private $flatNumber;
-    /**
-     * @var string|null
-     */
-    private $email;
-    /**
-     * @var string|null
-     */
-    private $phone;
-    /**
-     * @var string|null
-     */
-    private $country;
-    /**
-     * @var string|null
-     */
-    private $province;
-    /**
-     * @var string|null
-     */
-    private $type;
-    /**
-     * @var bool|null
-     */
-    private $default;
-    /**
-     * @var bool|null
-     */
-    private $isCoverAddress;
 
     /**
-     * @param string|null $id
-     * @return $this
+     * @var string
+     */
+    private $id = '';
+
+    /**
+     * @var string
+     */
+    private $name = '';
+
+    /**
+     * @var string
+     */
+    private $company = '';
+
+    /**
+     * @var string
+     */
+    private $person = '';
+
+    /**
+     * @var string
+     */
+    private $city = '';
+
+    /**
+     * @var string
+     */
+    private $postcode = '';
+
+    /**
+     * @var string
+     */
+    private $street = '';
+
+    /**
+     * @var string
+     */
+    private $houseNumber = '';
+
+    /**
+     * @var string
+     */
+    private $flatNumber = '';
+
+    /**
+     * @var string
+     */
+    private $email = '';
+
+    /**
+     * @var string
+     */
+    private $phone = '';
+
+    /**
+     * @var string
+     */
+    private $country = '';
+
+    /**
+     * @var string
+     */
+    private $province = '';
+
+    /**
+     * @var string
+     */
+    private $type = '';
+
+    /**
+     * @var bool
+     */
+    private $default = false;
+
+    /**
+     * @var bool
+     */
+    private $coverAddress = false;
+
+    /**
+     * @param string $id
+     * @return Address
      */
     public function setId($id)
     {
-        $this->id = $id;
+        $this->id = (string)$id;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getId()
     {
@@ -88,17 +106,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $name
-     * @return $this
+     * @param string $name
+     * @return Address
      */
     public function setName($name)
     {
-        $this->name = $name;
+        $this->name = (string)$name;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getName()
     {
@@ -106,17 +124,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $company
-     * @return $this
+     * @param string $company
+     * @return Address
      */
     public function setCompany($company)
     {
-        $this->company = $company;
+        $this->company = (string)$company;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getCompany()
     {
@@ -124,17 +142,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $person
-     * @return $this
+     * @param string $person
+     * @return Address
      */
     public function setPerson($person)
     {
-        $this->person = $person;
+        $this->person = (string)$person;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getPerson()
     {
@@ -142,17 +160,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $city
-     * @return $this
+     * @param string $city
+     * @return Address
      */
     public function setCity($city)
     {
-        $this->city = $city;
+        $this->city = (string)$city;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getCity()
     {
@@ -160,17 +178,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $postcode
-     * @return $this
+     * @param string $postcode
+     * @return Address
      */
     public function setPostcode($postcode)
     {
-        $this->postcode = $postcode;
+        $this->postcode = (string)$postcode;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getPostcode()
     {
@@ -178,17 +196,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $street
-     * @return $this
+     * @param string $street
+     * @return Address
      */
     public function setStreet($street)
     {
-        $this->street = $street;
+        $this->street = (string)$street;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getStreet()
     {
@@ -196,17 +214,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $houseNumber
-     * @return $this
+     * @param string $houseNumber
+     * @return Address
      */
     public function setHouseNumber($houseNumber)
     {
-        $this->houseNumber = $houseNumber;
+        $this->houseNumber = (string)$houseNumber;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getHouseNumber()
     {
@@ -215,16 +233,16 @@ class Address implements \JsonSerializable
 
     /**
      * @param string|null $flatNumber
-     * @return $this
+     * @return Address
      */
     public function setFlatNumber($flatNumber)
     {
-        $this->flatNumber = $flatNumber;
+        $this->flatNumber = (string)$flatNumber;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getFlatNumber()
     {
@@ -232,17 +250,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $email
-     * @return $this
+     * @param string $email
+     * @return Address
      */
     public function setEmail($email)
     {
-        $this->email = $email;
+        $this->email = (string)$email;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getEmail()
     {
@@ -250,17 +268,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $phone
-     * @return $this
+     * @param string $phone
+     * @return Address
      */
     public function setPhone($phone)
     {
-        $this->phone = $phone;
+        $this->phone = (string)$phone;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getPhone()
     {
@@ -268,17 +286,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $country
-     * @return $this
+     * @param string $country
+     * @return Address
      */
     public function setCountry($country)
     {
-        $this->country = $country;
+        $this->country = (string)$country;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getCountry()
     {
@@ -286,17 +304,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $province
-     * @return $this
+     * @param string $province
+     * @return Address
      */
     public function setProvince($province)
     {
-        $this->province = $province;
+        $this->province = (string)$province;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getProvince()
     {
@@ -304,17 +322,17 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param string|null $type
-     * @return $this
+     * @param string $type
+     * @return Address
      */
     public function setType($type)
     {
-        $this->type = $type;
+        $this->type = (string)$type;
         return $this;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
     public function getType()
     {
@@ -322,44 +340,45 @@ class Address implements \JsonSerializable
     }
 
     /**
-     * @param bool|null $default
-     * @return $this
+     * @param bool $default
+     * @return Address
      */
     public function setDefault($default)
     {
-        $this->default = $default;
+        $this->default = (bool)$default;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
-    public function getDefault()
+    public function isDefault()
     {
         return $this->default;
     }
 
     /**
-     * @param bool|null $isCoverAddress
-     * @return $this
+     * @param bool $coverAddress
+     * @return Address
      */
-    public function setIsCoverAddress($isCoverAddress)
+    public function setCoverAddress($coverAddress)
     {
-        $this->isCoverAddress = $isCoverAddress;
+        $this->coverAddress = (bool)$coverAddress;
         return $this;
     }
 
     /**
-     * @return bool|null
+     * @return bool
      */
-    public function getIsCoverAddress()
+    public function isCoverAddress()
     {
-        return $this->isCoverAddress;
+        return $this->coverAddress;
     }
 
     /**
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [
@@ -378,7 +397,8 @@ class Address implements \JsonSerializable
             'province' => $this->province,
             'type' => $this->type,
             'default' => $this->default,
-            'is_cover_address' => $this->isCoverAddress,
+            'is_cover_address' => $this->coverAddress,
         ];
     }
+
 }
