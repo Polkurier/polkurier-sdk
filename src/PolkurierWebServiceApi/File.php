@@ -2,15 +2,11 @@
 
 namespace PolkurierWebServiceApi;
 
-/**
- * Class File
- * @package PolkurierWebServiceApi
- *
- */
 class File
 {
+
     /**
-     * @var mixed
+     * @var string
      */
     private $content;
 
@@ -23,4 +19,5 @@ class File
     {
         return $this->content;
     }
+
 }

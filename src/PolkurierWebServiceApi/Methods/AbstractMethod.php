@@ -2,16 +2,12 @@
 
 namespace PolkurierWebServiceApi\Methods;
 
-use PolkurierWebServiceApi\Response;
 use JsonSerializable;
+use PolkurierWebServiceApi\Response;
 
-/**
- * Class AbstractMethod
- * @package PolkurierWebServiceApi\Methods
- *
- */
 abstract class AbstractMethod implements MethodInterface
 {
+
     /**
      * Dane zwrócone z API
      * @var array
@@ -34,9 +30,8 @@ abstract class AbstractMethod implements MethodInterface
     }
 
     /**
-     * Ustawai dane do wysłanie w zapytaniu do API
-     * @param array $data
-     * @return $this
+     * Ustawia dane do wysłania w zapytaniu do API
+     * @return AbstractMethod
      */
     public function setRequestData(array $data)
     {
@@ -55,8 +50,7 @@ abstract class AbstractMethod implements MethodInterface
 
     /**
      * Ustawia dane zwrócone w zapytaniu do API
-     * @param Response $response
-     * @return $this
+     * @return AbstractMethod
      */
     public function setResponseData(Response $response)
     {
@@ -65,7 +59,7 @@ abstract class AbstractMethod implements MethodInterface
     }
 
     /**
-     * Zwraca obiekty zwrówone z API jako tablice
+     * Zwraca obiekty zwrócone z API jako tablice
      * @return array
      */
     public function toArray()

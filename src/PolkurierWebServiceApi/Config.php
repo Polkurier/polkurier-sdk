@@ -2,11 +2,6 @@
 
 namespace PolkurierWebServiceApi;
 
-/**
- * Class Config
- * @package PolkurierWebServiceApi
- *
- */
 class Config
 {
     /**
@@ -100,4 +95,5 @@ class Config
         $this->apiUrl = $apiUrl;
         return $this;
     }
+
 }

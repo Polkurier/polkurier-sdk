@@ -2,24 +2,20 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class SmsNotificationRecipientCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class SmsNotificationRecipientWithNameCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $smsNotificationRecipientWithName;
 
     /**
-     * SmsNotificationRecipientCourierService constructor.
      * @param bool $enabled
      */
     public function __construct($enabled = false)
     {
-        $this->smsNotificationRecipientWithName = $enabled;
+        $this->smsNotificationRecipientWithName = (bool)$enabled;
     }
 
     /**
@@ -45,7 +41,7 @@ class SmsNotificationRecipientWithNameCourierService implements CourierServiceIn
      */
     public function setSmsNotificationRecipientWithName($smsNotificationRecipientWithName)
     {
-        $this->smsNotificationRecipientWithName = $smsNotificationRecipientWithName;
+        $this->smsNotificationRecipientWithName = (bool)$smsNotificationRecipientWithName;
     }
 
 }

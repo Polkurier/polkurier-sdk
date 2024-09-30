@@ -2,11 +2,6 @@
 
 namespace PolkurierWebServiceApi\Type;
 
-/**
- * Class ReturnTimeCodType
- * @package PolkurierWebServiceApi\Type
- *
- */
 class ReturnTimeCodType
 {
     const TYPE_ST = 'S';

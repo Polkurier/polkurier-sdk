@@ -15,16 +15,12 @@ class Request
      * @var Auth
      */
     private $auth;
+
     /**
      * @var MethodInterface
      */
     private $method;
 
-    /**
-     * Request constructor.
-     * @param MethodInterface $method
-     * @param Auth $auth
-     */
     public function __construct(MethodInterface $method, Auth $auth)
     {
         $this->method = $method;
@@ -55,4 +51,5 @@ class Request
             'Content-Type' => 'application/json'
         ];
     }
+
 }

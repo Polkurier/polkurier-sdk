@@ -5,13 +5,9 @@ use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Entities\Carrier;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class AvailableCarriers
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class AvailableCarriers extends AbstractMethod
 {
+
     /**
      * @return string
      */
@@ -22,15 +18,16 @@ class AvailableCarriers extends AbstractMethod
 
     /**
      * @param Response $response
-     * @return $this|AbstractMethod
+     * @return AvailableCarriers
      */
     public function setResponseData(Response $response) {
         $this->responseData = [];
         foreach ($response->get('response') as $row) {
             $item = new Carrier();
-            $item->setServicecode(Arr::get($row, 'servicecode'));
-            $item->setName(Arr::get($row, 'name'));
-            $item->setAdditionalData(Arr::get($row, 'additional_data', []));
+            $item->setServicecode((string)Arr::get($row, 'servicecode', ''));
+            $item->setName((string)Arr::get($row, 'name', ''));
+            $item->setAdditionalData((array)Arr::get($row, 'additional_data', []));
+            $item->setForeignShipments(Arr::get($row, 'foreign_shipments', false));
             $this->responseData[] = $item;
         }
         return $this;

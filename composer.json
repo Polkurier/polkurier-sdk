@@ -18,5 +18,10 @@
     "psr-0": {
       "PolkurierWebServiceApi": "src/"
     }
+  },
+  "scripts": {
+    "serve": [
+      "php -S localhost:9005 -t examples/"
+    ]
   }
 }

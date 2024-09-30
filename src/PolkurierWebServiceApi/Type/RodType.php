@@ -2,11 +2,6 @@
 
 namespace PolkurierWebServiceApi\Type;
 
-/**
- * Class RodType
- * @package PolkurierWebServiceApi\Type
- *
- */
 class RodType
 {
     const RIN = 'RIN';

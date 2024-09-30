@@ -1,57 +1,70 @@
 <?php
 
 namespace PolkurierWebServiceApi\Entities;
-/**
- * Class Recipient
- * @package PolkurierWebServiceApi\Entities
- *
- */
+
+
 class Recipient
 {
+
     /**
      * @var string
      */
     private $company;
+
     /**
      * @var string
      */
     private $person;
+
     /**
      * @var string
      */
     private $street;
+
     /**
      * @var string
      */
     private $houseNumber;
+
     /**
      * @var string
      */
     private $flatNumber;
+
     /**
      * @var string
      */
     private $postcode;
+
     /**
      * @var string
      */
     private $city;
+
     /**
      * @var string
      */
     private $email;
+
     /**
      * @var int
      */
     private $phone;
+
     /**
-     * @var
+     * @var string
      */
     private $country = 'PL';
+
     /**
      * @var string
      */
     private $point_id;
+
+    /**
+     * @var CourierPoint|null
+     */
+    private $point = null;
 
     /**
      * @return string
@@ -63,7 +76,7 @@ class Recipient
 
     /**
      * @param string $company
-     * @return $this
+     * @return Recipient
      */
     public function setCompany($company)
     {
@@ -81,7 +94,7 @@ class Recipient
 
     /**
      * @param string $person
-     * @return $this
+     * @return Recipient
      */
     public function setPerson($person)
     {
@@ -99,7 +112,7 @@ class Recipient
 
     /**
      * @param string $street
-     * @return $this
+     * @return Recipient
      */
     public function setStreet($street)
     {
@@ -117,7 +130,7 @@ class Recipient
 
     /**
      * @param string $houseNumber
-     * @return $this
+     * @return Recipient
      */
     public function setHouseNumber($houseNumber)
     {
@@ -135,7 +148,7 @@ class Recipient
 
     /**
      * @param string $flatNumber
-     * @return $this
+     * @return Recipient
      */
     public function setFlatNumber($flatNumber)
     {
@@ -153,7 +166,7 @@ class Recipient
 
     /**
      * @param string $postcode
-     * @return $this
+     * @return Recipient
      */
     public function setPostcode($postcode)
     {
@@ -189,7 +202,7 @@ class Recipient
 
     /**
      * @param string $email
-     * @return $this
+     * @return Recipient
      */
     public function setEmail($email)
     {
@@ -207,7 +220,7 @@ class Recipient
 
     /**
      * @param int $phone
-     * @return $this
+     * @return Recipient
      */
     public function setPhone($phone)
     {
@@ -216,7 +229,7 @@ class Recipient
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getCountry()
     {
@@ -224,8 +237,8 @@ class Recipient
     }
 
     /**
-     * @param $country
-     * @return $this
+     * @param string $country
+     * @return Recipient
      */
     public function setCountry($country)
     {
@@ -245,7 +258,7 @@ class Recipient
     /**
      * @deprecated
      * @param string $machineName
-     * @return $this
+     * @return Recipient
      */
     public function setMachineName($machineName)
     {
@@ -270,6 +283,22 @@ class Recipient
     }
 
     /**
+     * @return CourierPoint|null
+     */
+    public function getPoint()
+    {
+        return $this->point;
+    }
+
+    /**
+     * @param CourierPoint|null $point
+     */
+    public function setPoint($point)
+    {
+        $this->point = $point;
+    }
+
+    /**
      * @return array
      */
     public function toArray()
@@ -288,4 +317,5 @@ class Recipient
             'point_id' => $this->getPointId(),
         ];
     }
+
 }

@@ -2,22 +2,20 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class RodCourierService
- * @package PolkurierWebServiceApi\Entities
- *
- */
 class RodCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $rod;
+
     /**
      * @var string
      * @deprecated
      */
     private $type;
+
     /**
      * @var string
      * @deprecated
@@ -25,12 +23,11 @@ class RodCourierService implements CourierServiceInterface
     private $description;
 
     /**
-     * RodCourierService constructor.
-     * @param false $rod
+     * @param bool $rod
      */
     public function __construct($rod = false)
     {
-        $this->rod = $rod;
+        $this->rod = (bool)$rod;
     }
 
     /**
@@ -56,7 +53,7 @@ class RodCourierService implements CourierServiceInterface
      */
     public function setRod($rod)
     {
-        $this->rod = $rod;
+        $this->rod = (bool)$rod;
     }
 
     /**
@@ -95,7 +92,8 @@ class RodCourierService implements CourierServiceInterface
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        $this->description = (string)$description;
         return $this;
     }
+
 }

@@ -7,10 +7,6 @@ use PolkurierWebServiceApi\Exception\FatalException;
 use PolkurierWebServiceApi\Methods\MethodInterface;
 use PolkurierWebServiceApi\Type\ResponseStatus;
 
-/**
- * Class PolkurierWebService
- * @package PolkurierWebServiceApi
- */
 class PolkurierWebService
 {
     /**
@@ -28,11 +24,6 @@ class PolkurierWebService
      */
     private $config;
 
-    /**
-     * PolkurierWebService constructor.
-     * @param Auth $auth
-     * @param Config $config
-     */
     public function __construct(Auth $auth, Config $config)
     {
         $this->HTTPClient = new HTTPClient($config);
@@ -41,7 +32,6 @@ class PolkurierWebService
     }
 
     /**
-     * @param MethodInterface $method
      * @return Response
      * @throws ErrorException
      * @throws FatalException
@@ -56,4 +46,5 @@ class PolkurierWebService
         $method->setResponseData($response);
         return $response;
     }
+
 }

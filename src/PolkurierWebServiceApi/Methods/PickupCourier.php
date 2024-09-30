@@ -6,30 +6,28 @@ use PolkurierWebServiceApi\Response;
 use PolkurierWebServiceApi\Type\ShipmentType;
 use PolkurierWebServiceApi\Util\Arr;
 
-/**
- * Class PickupCourier
- * @package PolkurierWebServiceApi\Methods
- *
- */
 class PickupCourier extends AbstractMethod
 {
+
     /**
      * @var string
      */
     private $pickupdate;
+
     /**
      * @var string
      */
     private $courier;
+
     /**
      * @var string
      */
     private $shipfrom;
+
     /**
      * @var string
      */
     private $parcel = ShipmentType::BOX;
-
 
     /**
      * @return string
@@ -125,8 +123,7 @@ class PickupCourier extends AbstractMethod
     }
 
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return PickupCourier
      */
     public function setResponseData(Response $response)
     {
@@ -136,4 +133,5 @@ class PickupCourier extends AbstractMethod
         $this->responseData['time'] = Arr::get($response, 'time', []);
         return $this;
     }
+
 }

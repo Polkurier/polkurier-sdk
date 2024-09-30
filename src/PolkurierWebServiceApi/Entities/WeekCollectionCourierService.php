@@ -2,24 +2,20 @@
 
 namespace PolkurierWebServiceApi\Entities;
 
-/**
- * Class WeekCollectionCourierService
- * @package PolkurierWebServiceApi\Entities
- */
 class WeekCollectionCourierService implements CourierServiceInterface
 {
+
     /**
      * @var bool
      */
     private $week_collection;
 
     /**
-     * WeekCollectionCourierService constructor.
-     * @param false $week_collection
+     * @param bool $week_collection
      */
     public function __construct($week_collection = false)
     {
-        $this->week_collection = $week_collection;
+        $this->week_collection = (bool)$week_collection;
     }
 
     /**
@@ -45,6 +41,7 @@ class WeekCollectionCourierService implements CourierServiceInterface
      */
     public function setWeekCollection($week_collection)
     {
-        $this->week_collection = $week_collection;
+        $this->week_collection = (bool)$week_collection;
     }
+
 }

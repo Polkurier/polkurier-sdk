@@ -5,13 +5,9 @@ namespace PolkurierWebServiceApi\Entities;
 use PolkurierWebServiceApi\Exception\ErrorException;
 use PolkurierWebServiceApi\Util\Validators;
 
-/**
- * Class Pickup
- * @package PolkurierWebServiceApi\Entities
- *
- */
 class Pickup
 {
+
     /**
      * @var string
      */
@@ -34,7 +30,7 @@ class Pickup
 
     /**
      * @param $date
-     * @return $this
+     * @return Pickup
      */
     public function setDate($date)
     {
@@ -51,8 +47,8 @@ class Pickup
     }
 
     /**
-     * @param $hour
-     * @return $this
+     * @param string $hour
+     * @return Pickup
      * @throws ErrorException
      */
     public function setTimeFrom($hour)
@@ -71,10 +67,9 @@ class Pickup
         return $this->timeFrom;
     }
 
-
     /**
-     * @param $hour
-     * @return $this
+     * @param string $hour
+     * @return Pickup
      * @throws ErrorException
      */
     public function setTimeTo($hour)
@@ -92,7 +87,6 @@ class Pickup
         return $this->timeTo;
     }
 
-
     /**
      * @param boolean $noCourierOrder
      * @return Pickup
@@ -103,7 +97,6 @@ class Pickup
         return $this;
     }
 
-
     /**
      * @return bool
      */
@@ -112,17 +105,16 @@ class Pickup
         return $this->noCourierOrder;
     }
 
-
     /**
      * @return array
      */
     public function toArray()
     {
         return [
-            'pickupdate' => $this->getDate(),
-            'pickuptimefrom' => $this->getTimeFrom(),
-            'pickuptimeto' => $this->getTimeTo(),
-            'nocourierorder' => $this->getNoCourierOrder(),
+            'pickupdate' => $this->date,
+            'pickuptimefrom' => $this->timeFrom,
+            'pickuptimeto' => $this->timeTo,
+            'nocourierorder' => $this->noCourierOrder,
         ];
     }
 }

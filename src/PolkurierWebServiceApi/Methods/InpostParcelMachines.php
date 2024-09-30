@@ -5,11 +5,11 @@ namespace PolkurierWebServiceApi\Methods;
 use PolkurierWebServiceApi\Response;
 
 /**
- * Class InpostParcelMachines
- * @package PolkurierWebServiceApi\Methods
+ * @deprecated Use method GetCourierPoint
  */
 class InpostParcelMachines extends AbstractMethod
 {
+
     /**
      * @var bool
      */
@@ -76,15 +76,13 @@ class InpostParcelMachines extends AbstractMethod
         ];
     }
 
-
     /**
-     * @param Response $response
-     * @return $this|AbstractMethod
+     * @return InpostParcelMachines
      */
     public function setResponseData(Response $response)
     {
-
         $this->responseData = $response->get('response');
         return $this;
     }
+
 }

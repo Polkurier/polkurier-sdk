@@ -2,11 +2,6 @@
 
 namespace PolkurierWebServiceApi;
 
-/**
- * Class Auth
- * @package PolkurierWebServiceApi
- *
- */
 class Auth
 {
 
@@ -20,10 +15,6 @@ class Auth
      */
     private $token;
 
-    /**
-     * Auth constructor.
-     * @param Config|null $config
-     */
     public function __construct(Config $config = null)
     {
         if ($config) {
@@ -67,4 +58,5 @@ class Auth
         $this->token = $token;
         return $this;
     }
+
 }
