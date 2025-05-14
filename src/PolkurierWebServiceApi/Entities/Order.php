@@ -94,6 +94,11 @@ class Order implements JsonSerializable
     private $recipient;
 
     /**
+     * @var CoverAddress|null
+     */
+    private $coverAddress;
+
+    /**
      * @var COD|null
      */
     private $cod;
@@ -452,6 +457,22 @@ class Order implements JsonSerializable
     }
 
     /**
+     * @return CoverAddress|null
+     */
+    public function getCoverAddress()
+    {
+        return $this->coverAddress;
+    }
+
+    /**
+     * @param CoverAddress|null $coverAddress
+     */
+    public function setCoverAddress(CoverAddress $coverAddress = null)
+    {
+        $this->coverAddress = $coverAddress;
+    }
+
+    /**
      * @param COD $cod
      * @return $this
      */
@@ -665,6 +686,7 @@ class Order implements JsonSerializable
             'insurance' => $this->insurance,
             'sender' => $this->sender,
             'recipient' => $this->recipient,
+            'cover_address' => $this->coverAddress ? $this->coverAddress->toArray() : null,
             'COD' => $this->cod ? $this->cod->toArray() : null,
             'pickup' => $this->pickup ? $this->pickup->toArray() : null,
             'packs' => $this->packs,

@@ -87,4 +87,5 @@ require_once($basePath . 'Entities/Address.php');
 require_once($basePath . 'Entities/MapToken.php');
 require_once($basePath . 'Entities/BankAccount.php');
 require_once($basePath . 'Entities/OrderWaybill.php');
+require_once($basePath . 'Entities/CoverAddress.php');
 require_once($basePath . 'Entities/CourierService.php');
