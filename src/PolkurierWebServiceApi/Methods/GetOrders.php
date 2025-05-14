@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Exception;
 use PolkurierWebServiceApi\Entities\COD;
 use PolkurierWebServiceApi\Entities\CourierPoint;
+use PolkurierWebServiceApi\Entities\CoverAddress;
 use PolkurierWebServiceApi\Entities\Order;
 use PolkurierWebServiceApi\Entities\OrderItem;
 use PolkurierWebServiceApi\Entities\OrderWaybill;
@@ -207,6 +208,11 @@ class GetOrders extends AbstractMethod
             ->setRecipient($this->createRecipientAddress((array)Arr::get($data, 'recipient', [])))
             ->setCod($this->createCod((array)Arr::get($data, 'COD', [])))
             ->setPickup($this->createPickup((array)Arr::get($data, 'pickup', [])));
+
+        if (!empty($data['cover_address'])) {
+            $order->setCoverAddress(new CoverAddress());
+            $this->setAddressProperties($order->getCoverAddress(), (array)$data['cover_address']);
+        }
 
         // Set Packs
         $packsData = (array)Arr::get($data, 'packs', []);

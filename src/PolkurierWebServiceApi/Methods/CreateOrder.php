@@ -4,6 +4,7 @@ namespace PolkurierWebServiceApi\Methods;
 
 use PolkurierWebServiceApi\Entities\COD;
 use PolkurierWebServiceApi\Entities\CourierServiceInterface;
+use PolkurierWebServiceApi\Entities\CoverAddress;
 use PolkurierWebServiceApi\Entities\Pack;
 use PolkurierWebServiceApi\Entities\Pickup;
 use PolkurierWebServiceApi\Entities\Recipient;
@@ -41,6 +42,11 @@ class CreateOrder extends AbstractMethod
      * @var Recipient
      */
     private $recipient;
+
+    /**
+     * @var CoverAddress|null
+     */
+    private $coverAddress;
 
     /**
      * @var array
@@ -90,6 +96,7 @@ class CreateOrder extends AbstractMethod
             'description' => $this->description,
             'sender' => $this->sender->toArray(),
             'recipient' => $this->recipient->toArray(),
+            'cover_address' => $this->coverAddress !== null ? $this->coverAddress->toArray() : null,
             'packs' => $this->packs,
             'pickup' => $this->pickup->toArray(),
             'COD' => $this->COD->toArray(),
@@ -143,6 +150,14 @@ class CreateOrder extends AbstractMethod
     {
         $this->recipient = $recipient;
         return $this;
+    }
+
+    /**
+     * @param CoverAddress|null $coverAddress
+     */
+    public function setCoverAddress(CoverAddress $coverAddress)
+    {
+        $this->coverAddress = $coverAddress;
     }
 
     /**
