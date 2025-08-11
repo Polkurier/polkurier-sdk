@@ -23,6 +23,11 @@ class HTTPClient
      */
     private $sslVerifyHost = 2;
 
+    /**
+     * @var Config
+     */
+    private $config;
+
     public function __construct(Config $config)
     {
         $this->config = $config;
