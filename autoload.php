@@ -38,9 +38,11 @@ require_once($basePath . 'Entities/PhoneNotificationRecipientCourierService.php'
 require_once($basePath . 'Entities/CourierMessage.php');
 require_once($basePath . 'Methods/MethodInterface.php');
 require_once($basePath . 'Methods/AbstractMethod.php');
+require_once($basePath . 'Methods/AbstractOrderMethod.php');
 require_once($basePath . 'Methods/AvailableCarriers.php');
 require_once($basePath . 'Methods/CreateOrder.php');
 require_once($basePath . 'Methods/OrderValuation.php');
+require_once($basePath . 'Methods/OrderValuationV2.php');
 require_once($basePath . 'Methods/GetLabel.php');
 require_once($basePath . 'Methods/GetProtocol.php');
 require_once($basePath . 'Methods/GetStatus.php');
