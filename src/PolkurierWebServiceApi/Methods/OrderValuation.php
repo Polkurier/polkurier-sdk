@@ -72,6 +72,16 @@ class OrderValuation extends AbstractMethod
     }
 
     /**
+     * @param string $returnValuations
+     * @return OrderValuation
+     */
+    public function setReturnValuations($returnValuations)
+    {
+        $this->returnValuations = $returnValuations;
+        return $this;
+    }
+
+    /**
      * @return OrderValuation
      */
     public function addPack(Pack $pack)
