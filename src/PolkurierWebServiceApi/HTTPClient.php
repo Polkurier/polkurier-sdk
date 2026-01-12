@@ -50,7 +50,12 @@ class HTTPClient
      */
     protected function preparePayload(Request $request)
     {
-        return json_encode($request->getBody());
+        $data = $request->getBody();
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data['data']['platform'] = $this->config->getPlatform();
+            $data['data']['platform_version'] = $this->config->getPlatformVersion();
+        }
+        return json_encode($data);
     }
 
     /**

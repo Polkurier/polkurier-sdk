@@ -17,12 +17,22 @@ class Config
     /**
      * @var int
      */
-    private $authLogin = '000000';
+    private $authLogin = '';
 
     /**
      * @var string
      */
-    private $authToken = 'XYZ';
+    private $authToken = '';
+
+    /**
+     * @var string|int|null
+     */
+    private $platform = null;
+
+    /**
+     * @var string|null
+     */
+    private $platformVersion = null;
 
     /**
      * @return int
@@ -94,6 +104,42 @@ class Config
     {
         $this->apiUrl = $apiUrl;
         return $this;
+    }
+
+    /**
+     * @param string|null $platformVersion
+     * @return Config
+     */
+    public function setPlatformVersion($platformVersion)
+    {
+        $this->platformVersion = $platformVersion;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPlatformVersion()
+    {
+        return $this->platformVersion;
+    }
+
+    /**
+     * @param int|string|null $platform
+     * @return Config
+     */
+    public function setPlatform($platform)
+    {
+        $this->platform = $platform;
+        return $this;
+    }
+
+    /**
+     * @return int|string|null
+     */
+    public function getPlatform()
+    {
+        return $this->platform;
     }
 
 }
