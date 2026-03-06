@@ -68,6 +68,11 @@ abstract class AbstractOrderMethod extends AbstractMethod
      */
     protected $insurance;
 
+    /**
+     * @var array<string, string>
+     */
+    protected $additional_fields = [];
+
     public function __construct()
     {
         $this->sender = new Sender();
@@ -92,7 +97,8 @@ abstract class AbstractOrderMethod extends AbstractMethod
             'packs' => $this->packs,
             'pickup' => $this->pickup->toArray(),
             'COD' => $this->COD->toArray(),
-            'insurance' => $this->insurance
+            'insurance' => $this->insurance,
+            'additional_fields' => $this->additional_fields
         ];
     }
 
@@ -212,6 +218,17 @@ abstract class AbstractOrderMethod extends AbstractMethod
     public function setCOD(COD $cod)
     {
         $this->COD = $cod;
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return AbstractOrderMethod
+     */
+    public function setAdditionalField($key, $value)
+    {
+        $this->additional_fields[(string)$key] = (string)$value;
         return $this;
     }
 
