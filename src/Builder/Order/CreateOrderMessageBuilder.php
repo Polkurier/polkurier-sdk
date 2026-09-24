@@ -1,0 +1,168 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Builder\Order;
+
+use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Request\Order\CodMessage;
+use Polkurier\Webservice\Request\Order\CoverAddressMessage;
+use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Request\Order\OrderAddressMessage;
+use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Request\Order\PickupMessage;
+
+/**
+ * Assembles an order, for pricing or for placing.
+ *
+ * The largest payload in the SDK and the one most often built up rather than written out: the
+ * parcels come from one place, the addresses from another, and the extras from whatever the
+ * customer chose.
+ */
+class CreateOrderMessageBuilder extends AbstractBuilder
+{
+    /**
+     * @param string $courier required before build()
+     *
+     * @return static
+     */
+    public function courier(string $courier): static
+    {
+        return $this->set('courier', $courier);
+    }
+
+    /**
+     * @param ShipmentTypeEnum $shipmentType required before build()
+     *
+     * @return static
+     */
+    public function shipmentType(ShipmentTypeEnum $shipmentType): static
+    {
+        return $this->set('shipmentType', $shipmentType);
+    }
+
+    /**
+     * @param PackMessage[] $packs required before build()
+     *
+     * @return static
+     */
+    public function packs(array $packs): static
+    {
+        return $this->set('packs', $packs);
+    }
+
+    /**
+     * @param OrderAddressMessage $sender required before build()
+     *
+     * @return static
+     */
+    public function sender(OrderAddressMessage $sender): static
+    {
+        return $this->set('sender', $sender);
+    }
+
+    /**
+     * @param OrderAddressMessage $recipient required before build()
+     *
+     * @return static
+     */
+    public function recipient(OrderAddressMessage $recipient): static
+    {
+        return $this->set('recipient', $recipient);
+    }
+
+    /**
+     * @param CodMessage|null $cod
+     *
+     * @return static
+     */
+    public function cod(?CodMessage $cod): static
+    {
+        return $this->set('cod', $cod);
+    }
+
+    /**
+     * @param float|null $insurance
+     *
+     * @return static
+     */
+    public function insurance(?float $insurance): static
+    {
+        return $this->set('insurance', $insurance);
+    }
+
+    /**
+     * @param CoverAddressMessage|null $coverAddress
+     *
+     * @return static
+     */
+    public function coverAddress(?CoverAddressMessage $coverAddress): static
+    {
+        return $this->set('coverAddress', $coverAddress);
+    }
+
+    /**
+     * @param PickupMessage|null $pickup
+     *
+     * @return static
+     */
+    public function pickup(?PickupMessage $pickup): static
+    {
+        return $this->set('pickup', $pickup);
+    }
+
+    /**
+     * @param AdditionalServiceEnum[] $courierService
+     *
+     * @return static
+     */
+    public function courierService(array $courierService): static
+    {
+        return $this->set('courierService', $courierService);
+    }
+
+    /**
+     * @param array<string, string> $additionalFields
+     *
+     * @return static
+     */
+    public function additionalFields(array $additionalFields): static
+    {
+        return $this->set('additionalFields', $additionalFields);
+    }
+
+    /**
+     * @param string|null $description
+     *
+     * @return static
+     */
+    public function description(?string $description): static
+    {
+        return $this->set('description', $description);
+    }
+
+    /**
+     * @param string|null $couponCode
+     *
+     * @return static
+     */
+    public function couponCode(?string $couponCode): static
+    {
+        return $this->set('couponCode', $couponCode);
+    }
+
+    /**
+     * @return CreateOrderMessage
+     * @throws InvalidArgumentException
+     */
+    public function build(): CreateOrderMessage
+    {
+        return $this->make(CreateOrderMessage::class);
+    }
+}
