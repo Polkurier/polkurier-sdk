@@ -1,0 +1,23 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Exception;
+
+/**
+ * The request never completed.
+ *
+ * DNS failure, refused connection, TLS problem or timeout — the API was never reached, so nothing
+ * was processed and the call is safe to retry. Contrast {@see WebserviceException}, where the API
+ * answered and refused.
+ *
+ * The underlying PSR-18 exception is available through getPrevious().
+ *
+ * @api
+ */
+class ConnectionException extends Exception
+{
+}
