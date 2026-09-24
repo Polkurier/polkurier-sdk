@@ -1,0 +1,42 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Validator\Rule;
+
+use Attribute;
+use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+
+/**
+ * A number that may be zero but not below it.
+ *
+ * Distinct from {@see Positive} because zero carries meaning in several places: an insurance value of
+ * zero means no insurance, and a cash-on-delivery amount of zero means the whole block is ignored.
+ * Neither is an error.
+ */
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
+class NonNegative implements ValueValidatorInterface
+{
+    /**
+     * @param mixed $value
+     *
+     * @return string[]
+     */
+    public function validate(mixed $value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+        if (!\is_int($value) && !\is_float($value)) {
+            return ['must be a number'];
+        }
+        if ($value < 0) {
+            return ['must not be negative'];
+        }
+
+        return [];
+    }
+}
