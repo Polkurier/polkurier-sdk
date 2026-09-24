@@ -1,28 +1,37 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * pickup_courier — book a collection that is not tied to one order.
+ *
+ * A standing collection request, for handing over whatever is ready when the courier arrives
+ * rather than a specific consignment. An order placed with its own pickup block does not need
+ * this. Which carriers accept it, and how far ahead, varies — available_carriers reports it.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\PolkurierWebService;
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\PickupCourier;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Courier\PickupMessage;
+
+
+require __DIR__ . '/bootstrap.php';
 
 try {
+    $pickup = polkurier()->courier()->pickupCourier(new PickupMessage(
+        courier: 'UPS',
+        shipFrom: '61-001',
+        parcel: ShipmentTypeEnum::Box,
+        pickupDate: new DateTimeImmutable('tomorrow'),
+    ));
 
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
-
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new PickupCourier();
-    $method->setPickupdate('2018-06-24');
-    $method->setShipfrom('63-400');
-    $method->setCourier('DPD');
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    foreach ($pickup->getTime() as $window) {
+        \printf("Collection booked between %s and %s\n", $window->getTimeFrom()->format('H:i'), $window->getTimeTo()->format('H:i'));
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

@@ -1,0 +1,37 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * cancel_money_box_payout — withdraw a payout request.
+ *
+ * Only while it is still cancellable: each payout reports that as a flag, and one already being
+ * settled cannot be stopped.
+ */
+declare(strict_types=1);
+
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
+
+
+require __DIR__ . '/bootstrap.php';
+
+if (!hasFlag('--confirm')) {
+    echo "This example cancels a real payout. Re-run with --confirm to do it for real.\n";
+    exit(0);
+}
+
+$payoutNumber = arguments()[0] ?? 'WP/2026/0001';
+
+try {
+    $payout = polkurier()->moneyBox()->cancelPayout(
+        new CancelMoneyBoxPayoutMessage(payoutNumber: $payoutNumber)
+    );
+
+    \printf("Payout %s is now %s\n", $payout->getNumber(), $payout->getStatus());
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}
+

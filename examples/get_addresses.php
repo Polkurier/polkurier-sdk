@@ -1,25 +1,34 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * get_addresses — read the account's address book.
+ *
+ * Entries are filed per role, so the same place kept as both a sender and a recipient is two
+ * entries with two ids. Exactly one entry per role is the default.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\GetAddresses;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+
+
+require __DIR__ . '/bootstrap.php';
 
 try {
-
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
-
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-
-    $method = new GetAddresses();
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    foreach (polkurier()->addresses()->getAddresses() as $address) {
+        \printf(
+            "%-8s %-20s %-24s %-10s %s\n",
+            $address->getId() ?? '',
+            $address->getName(),
+            $address->getPerson(),
+            $address->getPostcode(),
+            $address->isDefault() ? '(default)' : ''
+        );
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

@@ -1,94 +1,83 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * order_valuation_v2 + create_order — price an order, then place it.
+ *
+ * The two methods share one payload, which does not mean both will accept it. A successful quote
+ * is a price, not a guarantee that the same payload will be accepted for creation, so this example
+ * does both in turn rather than treating the quote as a dry run.
+ *
+ * Nothing is placed unless you pass --create, so the script is safe to run as-is.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Entities\COD;
-use PolkurierWebServiceApi\Entities\Pack;
-use PolkurierWebServiceApi\Entities\Pickup;
-use PolkurierWebServiceApi\Entities\Recipient;
-use PolkurierWebServiceApi\Entities\RodCourierService;
-use PolkurierWebServiceApi\Entities\Sender;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\CreateOrder;
-use PolkurierWebServiceApi\PolkurierWebService;
-use PolkurierWebServiceApi\Type\PackType;
-use PolkurierWebServiceApi\Type\ShipmentType;
+use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
+use Polkurier\Webservice\Enum\Order\PackTypeEnum;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Request\Order\OrderAddressMessage;
+use Polkurier\Webservice\Request\Order\PackMessage;
 
-$method = new CreateOrder();
-$method->setShipmentType(ShipmentType::BOX);
-$method->setCourier('INPOST');
+require __DIR__ . '/bootstrap.php';
 
-$rod = new RodCourierService;
-$rod->setRod(false);
-$method->addCourierService($rod);
-$method->setDescription('testowa paczka');
+$order = new CreateOrderMessage(
+    // Carrier codes come from available_carriers; see examples/available_carriers.php.
+    courier: 'UPS',
+    shipmentType: ShipmentTypeEnum::Box,
+    packs: [
+        new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+    ],
+    sender: new OrderAddressMessage(
+        person: 'Jan Kowalski',
+        street: 'Długa',
+        city: 'Poznań',
+        postcode: '61-001',
+        email: 'jan.kowalski@example.com',
+        phone: '500600700',
+        company: 'Acme sp. z o.o.',
+        houseNumber: '12',
+    ),
+    recipient: new OrderAddressMessage(
+        person: 'Anna Nowak',
+        street: 'Krótka',
+        city: 'Warszawa',
+        postcode: '00-001',
+        email: 'anna.nowak@example.com',
+        phone: '600700800',
+        houseNumber: '5',
+        flatNumber: '3',
+    ),
+    // Declared value in PLN. Zero means no insurance.
+    insurance: 500.0,
+    courierService: [AdditionalServiceEnum::SmsNotificationRecipient],
+    // Keep it short: see CreateOrderMessage::DESCRIPTION_MAX_LENGTH, and carriers may be stricter.
+    description: 'Books',
+);
 
-$recipient = new Recipient();
-$recipient->setPerson('Jan Nowak');
-$recipient->setStreet('Poznańska');
-$recipient->setHouseNumber(123);
-$recipient->setFlatNumber(1);
-$recipient->setPostcode('60-001');
-$recipient->setCity('Poznań');
-$recipient->setEmail('test@test.pl');
-$recipient->setPhone('987654321');
-$recipient->setCountry('PL');
-$method->setRecipient($recipient);
-
-$sender = new Sender();
-$sender->setPerson('Jan Kowalski');
-$sender->setStreet('Kurierska');
-$sender->setHouseNumber(1);
-$sender->setPostcode('63-400');
-$sender->setCity('Ostrów Wielkopolski');
-$sender->setEmail('test@test.pl');
-$sender->setPhone('123456789');
-$sender->setCountry('PL');
-$method->setSender($sender);
-
-$pack = new Pack();
-$pack->setWidth(10);
-$pack->setHeight(10);
-$pack->setLength(10);
-$pack->setWeight(5);
-$pack->setAmount(1);
-$pack->setType(PackType::NST);
-$method->addPack($pack);
-
-$pickup = new Pickup();
-$pickup->setDate('2018-05-15');
-$pickup->setTimeFrom('10:00');
-$pickup->setTimeTo('14:00');
-$method->setPickup($pickup);
-
-$cod = new COD();
-$cod->setAmount(0);
-$cod->setBankAccount('66116022020000000249765498');
-$method->setCod($cod);
-
-$method->setInsurance(0);
-
-$config = new Config();
-$config->setAuthLogin(API_LOGIN);
-$config->setAuthToken(API_TOKEN);
-
-$auth = new Auth($config);
-$webApi = new PolkurierWebService($auth, $config);
+$sdk = polkurier();
 
 try {
+    echo "Quote:\n";
+    dumpResponse($sdk->orders()->orderValuation($order));
 
-    $webApi->requestMethod($method);
-    $data = $method->getData();
-    var_dump($data);
+    if (!hasFlag('--create')) {
+        echo "\nRe-run with --create to place this order.\n";
+        exit(0);
+    }
 
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    $created = $sdk->orders()->createOrder($order);
+
+    \printf(
+        "\nOrder %s placed. Waybills: %s. Gross: %.2f PLN\n",
+        $created->getOrderNumber(),
+        \implode(', ', $created->getLabel()) ?: '(pending)',
+        $created->getPriceGross()
+    );
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
-
-
-
-
-
-

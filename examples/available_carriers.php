@@ -1,27 +1,35 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * available_carriers — list the carriers this account may use.
+ *
+ * Start here when building an integration: the carrier codes this returns are what `create_order`
+ * and `order_valuation_v2` expect in their `courier` field, and the additional data describes which
+ * services, pack types and pickup rules each carrier supports.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\AvailableCarriers;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
+
+require __DIR__ . '/bootstrap.php';
 
 try {
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
+    $carriers = polkurier()->courier()
+        ->availableCarriers(new AvailableCarriersMessage(additionalData: true));
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new AvailableCarriers();
-    $method->setReturncarrier('UPS');
-    $method->setAdditionalData(true);
-    $webApi->requestMethod($method);
-    $data = $method->getData();
-    var_dump($data);
-
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    foreach ($carriers as $carrier) {
+        \printf(
+            "%-24s %-40s %s\n",
+            $carrier->getServiceCode(),
+            $carrier->getName(),
+            $carrier->isForeignShipments() ? 'international' : 'domestic'
+        );
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }

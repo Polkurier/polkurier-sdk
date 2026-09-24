@@ -1,80 +1,55 @@
 <?php
-require('./config.php');
-require('../autoload.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * order_valuation_v2 — price a fully assembled order before placing it.
+ *
+ * Takes the same payload as create_order and answers with what each carrier would charge, so an
+ * order can be quoted and then placed without rebuilding it. Validation is deliberately looser
+ * here than on create_order: a payload that quotes may still be rejected when placed.
+ * examples/create_order.php shows the two in sequence.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Entities\COD;
-use PolkurierWebServiceApi\Entities\Pack;
-use PolkurierWebServiceApi\Entities\Recipient;
-use PolkurierWebServiceApi\Entities\RodCourierService;
-use PolkurierWebServiceApi\Entities\Sender;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\OrderValuationV2;
-use PolkurierWebServiceApi\PolkurierWebService;
-use PolkurierWebServiceApi\Type\PackType;
-use PolkurierWebServiceApi\Type\ShipmentType;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Request\Order\OrderAddressMessage;
+use Polkurier\Webservice\Request\Order\PackMessage;
 
-$method = new OrderValuationV2();
-$method->setShipmentType(ShipmentType::BOX);
-$method->setCourier('INPOST');
 
-$rod = new RodCourierService;
-$rod->setRod(false);
-$method->addCourierService($rod);
-$method->setDescription('testowa paczka');
+require __DIR__ . '/bootstrap.php';
 
-$recipient = new Recipient();
-$recipient->setPerson('Jan Nowak');
-$recipient->setStreet('Poznańska');
-$recipient->setHouseNumber(123);
-$recipient->setFlatNumber(1);
-$recipient->setPostcode('60-001');
-$recipient->setCity('Poznań');
-$recipient->setEmail('test@test.pl');
-$recipient->setPhone('987654321');
-$recipient->setCountry('PL');
-$method->setRecipient($recipient);
-
-$sender = new Sender();
-$sender->setPerson('Jan Kowalski');
-$sender->setStreet('Kurierska');
-$sender->setHouseNumber(1);
-$sender->setPostcode('63-400');
-$sender->setCity('Ostrów Wielkopolski');
-$sender->setEmail('test@test.pl');
-$sender->setPhone('123456789');
-$sender->setCountry('PL');
-$method->setSender($sender);
-
-$pack = new Pack();
-$pack->setWidth(10);
-$pack->setHeight(10);
-$pack->setLength(10);
-$pack->setWeight(5);
-$pack->setAmount(1);
-$pack->setType(PackType::NST);
-$method->addPack($pack);
-
-$cod = new COD();
-$cod->setAmount(100.56);
-$method->setCod($cod);
-
-$method->setInsurance(400);
-
-$config = new Config();
-$config->setAuthLogin(API_LOGIN);
-$config->setAuthToken(API_TOKEN);
-
-$auth = new Auth($config);
-$webApi = new PolkurierWebService($auth, $config);
+$order = new CreateOrderMessage(
+    courier: 'UPS',
+    shipmentType: ShipmentTypeEnum::Box,
+    packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
+    sender: new OrderAddressMessage(
+        person: 'Jan Kowalski',
+        street: 'Długa',
+        city: 'Poznań',
+        postcode: '61-001',
+        email: 'jan.kowalski@example.com',
+        phone: '500600700',
+        houseNumber: '12',
+    ),
+    recipient: new OrderAddressMessage(
+        person: 'Anna Nowak',
+        street: 'Krótka',
+        city: 'Warszawa',
+        postcode: '00-001',
+        email: 'anna.nowak@example.com',
+        phone: '600700800',
+        houseNumber: '3',
+    ),
+);
 
 try {
-
-    $webApi->requestMethod($method);
-    $data = $method->getData();
-    var_dump($data);
-
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    dumpResponse(polkurier()->orders()->orderValuation($order));
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

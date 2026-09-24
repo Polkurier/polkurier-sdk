@@ -1,0 +1,27 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * get_account_verification_info — check how identity verification is going.
+ *
+ * Poll this after register_account_verification to see whether the provider has finished.
+ * get_account_info's verified flag is the same fact seen from the account's side.
+ */
+declare(strict_types=1);
+
+use Polkurier\Webservice\Exception\Exception;
+
+
+require __DIR__ . '/bootstrap.php';
+
+try {
+    $verification = polkurier()->accountVerification()->getInfo();
+
+    \printf("%s: %s\n", $verification->getVerificationId(), $verification->getStatus());
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}
+

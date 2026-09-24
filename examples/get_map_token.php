@@ -1,23 +1,27 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * get_map_token — get a short-lived token for the pickup-point map.
+ *
+ * The map widget authenticates with its own token rather than with the API token, so that the API
+ * token never reaches the browser. Fetch one per page load and hand it to the widget.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Methods\GetMapToken;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+
+
+require __DIR__ . '/bootstrap.php';
 
 try {
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
+    $token = polkurier()->geo()->getMapToken();
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new GetMapToken();
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-
-} catch (Exception $ex) {
-    echo $ex->getMessage();
+    \printf("Map token: %s\n", $token->getToken());
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

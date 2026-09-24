@@ -1,24 +1,23 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+/**
+ * heartbeat — check that the API is reachable.
+ *
+ * The only method that needs no credentials, which makes it the right probe for connectivity and
+ * for confirming the configured API URL is correct.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Methods\Heartbeat;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\ConnectionException;
+
+require __DIR__ . '/bootstrap.php';
 
 try {
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
-
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-
-    $method = new Heartbeat();
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-
-} catch (Exception $ex) {
-    echo $ex->getMessage();
+    dumpResponse(polkurier()->utils()->heartbeat());
+} catch (ConnectionException $e) {
+    \fwrite(STDERR, 'The API could not be reached: ' . $e->getMessage() . "\n");
+    exit(1);
 }
