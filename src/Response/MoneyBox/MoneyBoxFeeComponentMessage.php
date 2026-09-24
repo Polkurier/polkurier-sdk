@@ -1,0 +1,122 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Response\MoneyBox;
+
+use Polkurier\Webservice\Api\MessageInterface;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+/**
+ * One line of the payout fee breakdown.
+ */
+readonly class MoneyBoxFeeComponentMessage implements MessageInterface
+{
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_TYPE = 'type';
+    public const string FIELD_NAME = 'name';
+    public const string FIELD_DESCRIPTION = 'description';
+    public const string FIELD_FEE = 'fee';
+    public const string FIELD_FEE_NETT = 'fee_nett';
+    public const string FIELD_VAT_RATE = 'vat_rate';
+    /**-@#*/
+
+    /**
+     * @param string $type machine-readable component code, e.g. PAYOUT_FEE
+     * @param string $name display name, in Polish
+     * @param string $description
+     * @param float $fee gross amount in PLN
+     * @param float $feeNett net amount in PLN
+     * @param float $vatRate VAT rate as a percentage
+     */
+    public function __construct(
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_TYPE)]
+        private string $type = '',
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_NAME)]
+        private string $name = '',
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
+        private string $description = '',
+
+        /**
+         * @var float
+         */
+        #[Serializer\SerializedName(self::FIELD_FEE)]
+        private float $fee = 0.0,
+
+        /**
+         * @var float
+         */
+        #[Serializer\SerializedName(self::FIELD_FEE_NETT)]
+        private float $feeNett = 0.0,
+
+        /**
+         * @var float
+         */
+        #[Serializer\SerializedName(self::FIELD_VAT_RATE)]
+        private float $vatRate = 0.0,
+    ) {}
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @return float
+     */
+    public function getFee(): float
+    {
+        return $this->fee;
+    }
+
+    /**
+     * @return float
+     */
+    public function getFeeNett(): float
+    {
+        return $this->feeNett;
+    }
+
+    /**
+     * @return float
+     */
+    public function getVatRate(): float
+    {
+        return $this->vatRate;
+    }
+}

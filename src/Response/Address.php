@@ -1,0 +1,288 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * All Rights Reserved
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Response;
+
+use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
+use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+/**
+ * One entry of the account's address book, as it is stored.
+ *
+ * Writing an entry is {@see \Polkurier\Webservice\Request\Address\SaveMessage} instead,
+ * which takes the fields the API accepts; the rest of what is here — the parsed street name, the
+ * resolved pickup point, whether the entry is shared — the API works out for itself.
+ */
+class Address extends BaseAddress
+{
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_ID = 'id';
+    public const string FIELD_NAME = 'name';
+    public const string FIELD_TYPE = 'type';
+    public const string FIELD_HOUSE_NUMBER = 'housenumber';
+    public const string FIELD_FLAT_NUMBER = 'flatnumber';
+    public const string FIELD_DEFAULT = 'default';
+    public const string FIELD_SHARED = 'shared';
+    public const string FIELD_COVER_ADDRESS = 'is_cover_address';
+    /**
+     * -@#
+     */
+
+    public const AddressTypeEnum DEFAULT_TYPE = AddressTypeEnum::Sender;
+
+    /**
+     * @param string $person
+     * @param string $street
+     * @param string $city
+     * @param string $postcode
+     * @param string $email
+     * @param string $phone
+     * @param string $name
+     * @param string $houseNumber
+     * @param string|null $company
+     * @param string|null $province
+     * @param string|null $country
+     * @param string|null $pointId
+     * @param string|null $id
+     * @param AddressTypeEnum $type
+     * @param string|null $flatNumber
+     * @param bool $default
+     * @param bool $shared
+     * @param bool $coverAddress
+     */
+    public function __construct(
+        string $person,
+
+        string $street,
+
+        string $city,
+
+        string $postcode,
+
+        string $email,
+
+        string $phone,
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_NAME)]
+        private string $name,
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
+        private string $houseNumber,
+
+        ?string $company = null,
+
+        ?string $province = null,
+
+        ?string $country = self::DEFAULT_COUNTRY,
+
+        ?string $pointId = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_ID)]
+        #[OmitWhenEmpty]
+        private ?string $id = null,
+
+        /**
+         * @var AddressTypeEnum
+         */
+        #[Serializer\SerializedName(self::FIELD_TYPE)]
+        private AddressTypeEnum $type = self::DEFAULT_TYPE,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
+        #[OmitWhenEmpty]
+        private ?string $flatNumber = null,
+
+        /**
+         * @var bool
+         */
+        #[Serializer\SerializedName(self::FIELD_DEFAULT)]
+        private bool $default = false,
+
+        /**
+         * @var bool
+         */
+        #[Serializer\SerializedName(self::FIELD_SHARED)]
+        private bool $shared = false,
+
+        /**
+         * @var bool
+         */
+        #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS)]
+        private bool $coverAddress = false,
+    ) {
+        parent::__construct(
+            person: $person,
+            street: $street,
+            city: $city,
+            postcode: $postcode,
+            email: $email,
+            phone: $phone,
+            company: $company,
+            province: $province,
+            country: $country,
+            pointId: $pointId,
+        );
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string|null $id
+     *
+     * @return void
+     */
+    public function setId($id): void
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return void
+     */
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * @return AddressTypeEnum
+     */
+    public function getType(): AddressTypeEnum
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param AddressTypeEnum $type
+     *
+     * @return void
+     */
+    public function setType(AddressTypeEnum $type): void
+    {
+        $this->type = $type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHouseNumber(): string
+    {
+        return $this->houseNumber;
+    }
+
+    /**
+     * @param string $houseNumber
+     *
+     * @return void
+     */
+    public function setHouseNumber(string $houseNumber): void
+    {
+        $this->houseNumber = $houseNumber;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFlatNumber(): string
+    {
+        return $this->flatNumber;
+    }
+
+    /**
+     * @param string $flatNumber
+     *
+     * @return void
+     */
+    public function setFlatNumber(string $flatNumber): void
+    {
+        $this->flatNumber = $flatNumber;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDefault(): bool
+    {
+        return $this->default;
+    }
+
+    /**
+     * @param bool $default
+     *
+     * @return void
+     */
+    public function setDefault(bool $default): void
+    {
+        $this->default = $default;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isShared(): bool
+    {
+        return $this->shared;
+    }
+
+    /**
+     * @param bool $shared
+     *
+     * @return void
+     */
+    public function setShared(bool $shared): void
+    {
+        $this->shared = $shared;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCoverAddress(): bool
+    {
+        return $this->coverAddress;
+    }
+
+    /**
+     * @param bool $coverAddress
+     *
+     * @return void
+     */
+    public function setCoverAddress(bool $coverAddress): void
+    {
+        $this->coverAddress = $coverAddress;
+    }
+}
