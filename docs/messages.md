@@ -232,7 +232,7 @@ area. The ones you will actually touch:
 |------|----------|
 | `Order\ShipmentTypeEnum` | Box, envelope, pallet |
 | `Order\PackTypeEnum` | What kind of parcel |
-| `Order\AdditionalServiceEnum` | Services to buy with the shipment (23 of them) |
+| `Order\AdditionalServiceEnum` | Services to buy with the shipment (25 of them) |
 | `Order\OrderStatusCodeEnum` | Delivery state |
 | `Order\CodTypeEnum`, `CodStatusEnum`, `CodReturnTypeEnum`, `CodReturnReasonEnum` | Cash on delivery |
 | `Order\LabelFileFormatEnum` | Printer language for labels |

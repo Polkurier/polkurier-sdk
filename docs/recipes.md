@@ -83,7 +83,9 @@ Three things the SDK cannot check for you:
   one, and a carrier may impose a shorter. Keep it short, and do not rely on a long value surviving
   in full.
 - **Some additional services have prerequisites**, which `availableCarriers(additionalData: true)`
-  reports per carrier. Read them from there; they vary by carrier and by account.
+  reports per carrier. Read them from there; they vary by carrier and by account. The recipient
+  SMS notifications are the exception: they are not listed there, and their rules are on
+  `AdditionalServiceEnum`.
 
 > A successful `orderValuation()` is a price, not a dry run. The two calls take the same payload,
 > which does not mean a payload that prices cleanly will be accepted for creation.
@@ -141,7 +143,8 @@ foreach ($carriers as $carrier) {
 ```
 
 With `additionalData: true` each `Carrier` also carries what it supports — shipment types, pack
-limits, pickup requirements, the services it sells, which point map it uses. That is the data the
+limits, pickup requirements, the services it sells (other than the SMS notifications), which
+point map it uses. That is the data the
 SDK deliberately does not validate against, and the data you need to build a sensible form.
 
 **Let the price choose.** Quote the same shipment against several carriers and compare:

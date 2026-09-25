@@ -28,9 +28,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * - `pickup`. Some carriers need a pickup date, some also a time window. `available_carriers`
  *   reports which, per carrier.
  * - {@see AdditionalServiceEnum::WeekCollection} is only available for InPost parcel lockers.
- * - {@see AdditionalServiceEnum::SmsNotificationRecipientWithName} requires a default SMS sender
- *   name on the account, and takes the place of SMS_NOTIFICATION_RECIPIENT rather than adding to
- *   it — send one or the other.
+ * - The recipient SMS notifications — on dispatch and on going out for delivery — are ordered
+ *   independently. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
+ *   takes the place of its plain variant rather than adding to it; {@see AdditionalServiceEnum}
+ *   describes how the two kinds combine.
  * - `description` has a length limit: {@see self::DESCRIPTION_MAX_LENGTH} in general, and possibly
  *   shorter for a given carrier. A longer value is not reported as an error, so keep it short
  *   rather than relying on it arriving intact.
