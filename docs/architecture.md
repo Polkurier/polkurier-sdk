@@ -8,20 +8,20 @@ The source is organised by role:
 
 | Namespace | Holds |
 |-----------|-------|
-| `Api\Service` | One contract per service. Type-hint these |
-| `Api\Validation` | The 3 contracts the validation layer is built on |
-| `Api` | `ConfigInterface`, `ConfigProviderInterface`, `MessageInterface` |
-| `Service` | The 16 services, and `AbstractService` |
+| [`Api\Service`](../src/Api/Service/) | One contract per service. Type-hint these |
+| [`Api\Validation`](../src/Api/Validation/) | The 3 contracts the validation layer is built on |
+| `Api` | [`ConfigInterface`](../src/Api/ConfigInterface.php), [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php), [`MessageInterface`](../src/Api/MessageInterface.php) |
+| `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
 | `Request` | Everything you send |
 | `Response` | Everything you get back |
-| `Builder` | `AbstractBuilder` and the 22 hand-written builders |
+| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the 22 hand-written builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, 2 custom normalizers and 1 attribute |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |
-| `Exception` | Everything the SDK throws |
+| [`Exception`](../src/Exception/Exception.php) | Everything the SDK throws |
 
-`Config`, `ConfigProvider` and `PolkurierWebservice` sit at the root. They wire the layers together
+[`Config`](../src/Config.php), [`ConfigProvider`](../src/ConfigProvider.php) and [`PolkurierWebservice`](../src/PolkurierWebservice.php) sit at the root. They wire the layers together
 and do not belong to any one of them.
 
 `Api` holds only contracts, and only those where your own implementation can do something useful.
@@ -52,21 +52,21 @@ $client->orders()->createOrder($message)
 ```
 
 There are 7 collaborators, each behind an interface you can replace. Steps (a) to (h) happen in
-`AbstractService`. Every service extends it, and it is the only place a request is sent.
+[`AbstractService`](../src/Service/AbstractService.php). Every service extends it, and it is the only place a request is sent.
 
 ### The request helpers
 
-A service method picks an API method, a response shape and a payload. `AbstractService` has one
+A service method picks an API method, a response shape and a payload. [`AbstractService`](../src/Service/AbstractService.php) has one
 protected helper per shape:
 
 | Helper | Returns | For |
 |--------|---------|-----|
-| `requestObject()` | `T` | One object, guaranteed |
-| `requestNullableObject()` | `?T` | One object, where `[]` means absent |
-| `requestList()` | `list<T>` | A list. Empty is a valid answer |
-| `requestStringMap()` | `array<string, string>` | A map of plain strings |
-| `requestRawArray()` | `array` | The 2 endpoints with no stable shape |
-| `requestAcknowledgement()` | `bool` | Endpoints that only acknowledge |
+| [`AbstractService::requestObject()`](../src/Service/AbstractService.php) | `T` | One object, guaranteed |
+| [`AbstractService::requestNullableObject()`](../src/Service/AbstractService.php) | `?T` | One object, where `[]` means absent |
+| [`AbstractService::requestList()`](../src/Service/AbstractService.php) | `list<T>` | A list. Empty is a valid answer |
+| [`AbstractService::requestStringMap()`](../src/Service/AbstractService.php) | `array<string, string>` | A map of plain strings |
+| [`AbstractService::requestRawArray()`](../src/Service/AbstractService.php) | `array` | The 2 endpoints with no stable shape |
+| [`AbstractService::requestAcknowledgement()`](../src/Service/AbstractService.php) | `bool` | Endpoints that only acknowledge |
 
 So a service method is usually a single statement:
 
@@ -81,23 +81,23 @@ public function createOrder(CreateOrderMessage $createOrderMessage): CreatedOrde
 }
 ```
 
-`requestNullableObject()` is only used where "nothing matched" is a valid answer, e.g. looking up a
+[`AbstractService::requestNullableObject()`](../src/Service/AbstractService.php) is only used where "nothing matched" is a valid answer, e.g. looking up a
 pickup point by an unknown id, or a verification that was never started. Everywhere else a missing
 object is an error and throws.
 
-`requestAcknowledgement()` is for calls whose payload has nothing to map. Casting whatever is in
+[`AbstractService::requestAcknowledgement()`](../src/Service/AbstractService.php) is for calls whose payload has nothing to map. Casting whatever is in
 `response` could read an empty value as a failure, so the envelope's success status is used
 instead. The result is `true` unless the payload explicitly says `false`.
 
 Which classes are final
 -----------------------
 
-**Final:** `PolkurierWebservice`, and the JSON envelope: `RequestMessage`, `ErrorMessage` and
-`ResponseWrapper`. `OmitWhenEmpty` is final as well, being an attribute.
+**Final:** [`PolkurierWebservice`](../src/PolkurierWebservice.php), and the JSON envelope: [`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) and
+[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php). [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) is final as well, being an attribute.
 
-**Open:** everything else. That covers `Config` and `ConfigProvider`, the serializer wiring
-(`SerializerProvider`, `SerializerConfig` and the two normalizers), the three factories
-(`ClientFactory`, `RequestFactory`, `ResponseFactory`), every service, request and response class and
+**Open:** everything else. That covers [`Config`](../src/Config.php) and [`ConfigProvider`](../src/ConfigProvider.php), the serializer wiring
+([`SerializerProvider`](../src/Serializer/SerializerProvider.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) and the two normalizers), the three factories
+([`ClientFactory`](../src/Http/ClientFactory.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php), [`ResponseFactory`](../src/Http/Response/ResponseFactory.php)), every service, request and response class and
 builder, and the validation layer down to the individual rules. Subclass one to change a single
 step, or implement its interface (where it has one) to replace it outright. A broken change to the
 configuration, the serializer or a factory affects every call and tends to look like an API
@@ -105,13 +105,13 @@ problem, so test such changes well.
 
 Internals in the open classes are `protected`, so you can override them in a subclass.
 
-`AbstractBuilder::__construct()` is final even though the class is not, so `create()` is safe to
+[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) is final even though the class is not, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to
 call on a subclass.
 
 Extension points
 ----------------
 
-Every collaborator of `PolkurierWebservice` is optional and passed through the constructor:
+Every collaborator of [`PolkurierWebservice`](../src/PolkurierWebservice.php) is optional and passed through the constructor:
 
 ```php
 new PolkurierWebservice(
@@ -167,12 +167,12 @@ See [Configuration: per-tenant credentials](configuration.md#per-tenant-credenti
 ### `RequestFactoryInterface` and `ResponseFactoryInterface`: the envelope
 
 You will rarely need these. They keep the envelope format out of the services. You might replace
-`RequestFactory` to add a header to every request, or `ResponseFactory` to accept a status value
+[`RequestFactory`](../src/Http/Request/RequestFactory.php) to add a header to every request, or [`ResponseFactory`](../src/Http/Response/ResponseFactory.php) to accept a status value
 the SDK does not recognise.
 
 ### Substituting a service
 
-`PolkurierWebservice` builds its own services through the constructor they share. Your service does
+[`PolkurierWebservice`](../src/PolkurierWebservice.php) builds its own services through the constructor they share. Your service does
 not need that constructor. Build it however you like and pass it in with `services:`:
 
 ```php
@@ -228,7 +228,7 @@ small changes.
 Not using the facade at all
 ---------------------------
 
-`PolkurierWebservice` is a convenience and nothing depends on it. In an application with a DI
+[`PolkurierWebservice`](../src/PolkurierWebservice.php) is a convenience and nothing depends on it. In an application with a DI
 container you usually should not use it, because it does the wiring the container should be doing.
 
 Wire a service directly:
@@ -258,9 +258,9 @@ $orders->getOrders($filter);
 ```
 
 Every service takes the same 6 arguments in the same order. Note: the default `validator` on
-`AbstractService` is `NullValidator`. A service you build by hand validates nothing unless you pass
+[`AbstractService`](../src/Service/AbstractService.php) is [`NullValidator`](../src/Validator/NullValidator.php). A service you build by hand validates nothing unless you pass
 a validator, which is the opposite of the facade's default. Pass
-`DefaultValidatorRegistryFactory::create()` unless you want validation off.
+[`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php) unless you want validation off.
 
 [Integrations](integrations/README.md) shows this wiring for each major framework.
 
@@ -279,13 +279,13 @@ Thread-safety and reuse
 
 The SDK holds no connection state and does no I/O until you call a service method.
 
-- `PolkurierWebservice` caches each service after first use, so repeated calls to an accessor
+- [`PolkurierWebservice`](../src/PolkurierWebservice.php) caches each service after first use, so repeated calls to an accessor
   return the same instance.
-- `AbstractService` and `ClientFactory` each resolve configuration once, in their constructors.
-- `SerializerProvider` holds no per-call state and can be shared across any number of clients.
-- The reflection caches in `AttributeValidator`, `MessageFields`, `OmitEmptyNormalizer` and
-  `AbstractBuilder` are `static` and keyed by class name, so they fill once per process.
+- [`AbstractService`](../src/Service/AbstractService.php) and [`ClientFactory`](../src/Http/ClientFactory.php) each resolve configuration once, in their constructors.
+- [`SerializerProvider`](../src/Serializer/SerializerProvider.php) holds no per-call state and can be shared across any number of clients.
+- The reflection caches in [`AttributeValidator`](../src/Validator/AttributeValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) and
+  [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) are `static` and keyed by class name, so they fill once per process.
 
-`AbstractService::$lastHttpResponse` is the only mutable per-call state. The exception factories use
+[`AbstractService::$lastHttpResponse`](../src/Service/AbstractService.php) is the only mutable per-call state. The exception factories use
 it to report what came back. In a normal shared-nothing PHP process this does not matter. In a
 long-running worker, do not share one service instance across concurrent coroutines.

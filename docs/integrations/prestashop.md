@@ -126,11 +126,11 @@ class Polkurier extends Module
 }
 ```
 
-`testAuthApi()` takes the credentials as an argument and ignores the configured ones. In a
+[`UtilsServiceInterface::testAuthApi()`](../../src/Api/Service/UtilsServiceInterface.php) takes the credentials as an argument and ignores the configured ones. In a
 settings form, that lets you check what the merchant just typed before you rely on it.
 
 > PrestaShop stores `Configuration` values in plain text. If that's a concern for the shop, encrypt
-> the token before storing it (e.g. with `sodium_crypto_secretbox()` and a key kept outside the
+> the token before storing it (e.g. with [`sodium_crypto_secretbox()`](https://www.php.net/manual/en/function.sodium-crypto-secretbox.php) and a key kept outside the
 > database), and decrypt it in the client factory below. `Hashing` won't do: it's one-way.
 
 Building the client
@@ -216,7 +216,7 @@ services:
         factory: ['Polkurier\PrestaShop\Client', 'orders']
 ```
 
-This needs a matching static `orders()` method on `Client`. Front-office code keeps using
+This needs a matching static `Client::orders()` method on `Client`. Front-office code keeps using
 `Client::build()`.
 
 Placing the shipment
@@ -306,8 +306,8 @@ final class ShipmentDispatcher
 }
 ```
 
-`formatErrors()` works for both exception types because `ValidationException::getValidationErrors()`
-and `ErrorMessage::getValidationErrors()` return the same shape. The merchant sees local and API
+`ShipmentDispatcher::formatErrors()` works for both exception types because [`ValidationException::getValidationErrors()`](../../src/Exception/ValidationException.php)
+and [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) return the same shape. The merchant sees local and API
 rejections in the same format.
 
 Mapping a PrestaShop address
@@ -342,7 +342,7 @@ to.
 A carrier in checkout
 ---------------------
 
-Register a `Carrier` on install and price it with your own rules:
+Register a PrestaShop [`Carrier`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/Carrier.php) on install and price it with your own rules:
 
 ```php
 $carrier = new Carrier();
@@ -354,7 +354,7 @@ $carrier->need_range = true;
 $carrier->add();
 ```
 
-PrestaShop calls `getOrderShippingCost()` on every cart change. If you call `orderValuation()` from
+PrestaShop calls [`CarrierModule::getOrderShippingCost()`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/module/CarrierModule.php) on every cart change. If you call [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from
 there, every cart update waits on a third-party request, and the shop feels slow. Price from a
 cached table instead, and compare with the real quote when the merchant dispatches the order.
 
@@ -366,11 +366,11 @@ Pickup point selection
 
 There are two options:
 
-- The map widget, using `geo()->getMapToken()`, embedded in the carrier's extra content. This gives
+- The map widget, using [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php), embedded in the carrier's extra content. This gives
   the best experience for customers.
 
 Either way, store the selected point ID against the cart and set it on the order address with
-`OrderAddressMessageBuilder::pointId()`.
+[`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
 
 Cache the lists. There are tens of thousands of lockers, and fetching them on every page load makes
 the shop look broken.
@@ -409,7 +409,7 @@ exit;
 Multistore
 ----------
 
-All the code above is keyed by `id_shop`. `Configuration::get()` takes it, and `Client::build()`
+All the code above is keyed by `id_shop`. [`Configuration::get()`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/Configuration.php) takes it, and `Client::build()`
 caches one client per shop. Avoid a single static client built on first use. Under multistore it
 quietly sends shop B's orders on shop A's account.
 

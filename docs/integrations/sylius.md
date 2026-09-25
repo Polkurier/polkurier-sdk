@@ -22,7 +22,7 @@ src/
 ```
 
 Wire the SDK's services the same way as in [Symfony](symfony.md#wiring). Bind the interfaces,
-share one `SerializerProvider` and register the services you use.
+share one [`SerializerProvider`](../../src/Serializer/SerializerProvider.php) and register the services you use.
 
 Credentials per channel
 -----------------------
@@ -65,7 +65,7 @@ final readonly class GatewayConfigFactory
 ```
 
 If the credentials belong to the channel and not to the shipping method, implement
-`ConfigProviderInterface` on top of `ChannelContextInterface`:
+[`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) on top of [`Sylius\Component\Channel\Context\ChannelContextInterface`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Channel/Context/ChannelContextInterface.php):
 
 ```php
 <?php
@@ -106,7 +106,7 @@ final readonly class ChannelConfigProvider implements ConfigProviderInterface
 }
 ```
 
-You need the `ChannelNotFoundException` branch. `ChannelContextInterface` throws outside a
+You need the [`Sylius\Component\Channel\Context\ChannelNotFoundException`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Channel/Context/ChannelNotFoundException.php) branch. [`Sylius\Component\Channel\Context\ChannelContextInterface`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Channel/Context/ChannelContextInterface.php) throws outside a
 storefront request (in Messenger handlers, commands and fixtures). If the provider doesn't catch it,
 all of those break.
 
@@ -123,7 +123,7 @@ Sylius treats *calculating* a shipping cost and *exporting* a shipment as separa
 use the SDK almost only for the export.
 
 **Calculators** run on every cart change. Use the built-in ones (flat rate, per unit rate, a
-channel price matrix) and don't call `orderValuation()` from them. A request to a third party on
+channel price matrix) and don't call [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from them. A request to a third party on
 every cart recalculation makes the storefront feel broken.
 
 If you really need live prices, write a calculator that reads from a cache filled by your own
@@ -259,7 +259,7 @@ final readonly class ExportShipmentHandler
 }
 ```
 
-Don't leave out `UnrecoverableMessageHandlingException` for the permanent failures. Without it, an
+Don't leave out [`Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Messenger/Exception/UnrecoverableMessageHandlingException.php) for the permanent failures. Without it, an
 address Polkurier will never accept uses up every retry and ends up in the failure transport, where
 it looks like an outage.
 
@@ -332,13 +332,14 @@ final readonly class ShipmentMapper
 
 There are two problems specific to Sylius.
 
-**Sylius's `AddressInterface` has no house number.** `getStreet()` returns one free-text line.
+**Sylius's [`Sylius\Component\Addressing\Model\AddressInterface`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) has no house number.**
+[`AddressInterface::getStreet()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) returns one free-text line.
 Most carriers need the number as a separate field, and the API validates it. You can extend
-`Address` with a `houseNumber` field and add it to the checkout form, or parse the number out of the
+[`Sylius\Component\Core\Model\Address`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Core/Model/Address.php) with a `houseNumber` field and add it to the checkout form, or parse the number out of the
 street and accept some failures. Parsing Polish street lines isn't reliable, so extend the entity.
 
-**`getPhoneNumber()` is optional in Sylius, but carriers need it.** Make it required in the
-shipping address form for the countries you ship to. Otherwise a `ValidationException` on `phone`
+**[`AddressInterface::getPhoneNumber()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) is optional in Sylius, but carriers need it.** Make it required in the
+shipping address form for the countries you ship to. Otherwise a [`ValidationException`](../../src/Exception/ValidationException.php) on `phone`
 will be by far your most common failure.
 
 Pickup points at checkout
@@ -355,7 +356,7 @@ $builder->add('pickupPoint', ChoiceType::class, [
 ```
 
 Save the selected ID on the shipment (in a custom field or a small related entity). In the mapper,
-read it back and pass it to `OrderAddressMessageBuilder::pointId()`.
+read it back and pass it to [`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
 
 Cache the lists. See [Recipes: caching](../recipes.md#caching-what-does-not-change).
 
@@ -379,7 +380,7 @@ public function labels(Request $request): Response
 }
 ```
 
-Add it to the shipment index grid as a bulk action by overriding the grid template. `getLabel()`
+Add it to the shipment index grid as a bulk action by overriding the grid template. [`OrdersServiceInterface::getLabel()`](../../src/Api/Service/OrdersServiceInterface.php)
 accepts a list, so 50 selected shipments take one API call and produce one PDF.
 
 Testing

@@ -38,9 +38,9 @@ $account  = $client->account()->getAccountInfo();
 Reading a rejection
 -------------------
 
-A rejected payload throws `ValidationException` and **nothing is sent**. That's the key
-difference: a `ValidationException` means no request was made and nothing changed. A
-`WebserviceException` with validation errors means the request was made and the API refused it.
+A rejected payload throws [`ValidationException`](../src/Exception/ValidationException.php) and **nothing is sent**. That's the key
+difference: a [`ValidationException`](../src/Exception/ValidationException.php) means no request was made and nothing changed. A
+[`WebserviceException`](../src/Exception/WebserviceException.php) with validation errors means the request was made and the API refused it.
 
 ```php
 use Polkurier\Webservice\Exception\ValidationException;
@@ -101,16 +101,16 @@ readonly class GetOrdersMessage implements MessageInterface
 }
 ```
 
-`AttributeValidator` reads six kinds of declaration:
+[`AttributeValidator`](../src/Validator/AttributeValidator.php) reads six kinds of declaration:
 
 | Declaration | Where | What it does |
 |-------------|-------|--------------|
-| A `ValueValidatorInterface` | property | Checks that one value's format |
+| A [`ValueValidatorInterface`](../src/Api/Validation/ValueValidatorInterface.php) | property | Checks that one value's format |
 | `#[Valid]` | property | Descend into a nested object, or into each object in a list |
-| `#[Each(RuleClass::class)]` | property | Apply one rule to every entry of a list of plain values |
-| A `MessageRuleInterface` | class | A rule about how two fields relate |
-| `#[IgnoredWhen(...)]` | class | Skip every rule, because the block does not apply |
-| `#[ValidatedBy(Validator::class)]` | class | Run a validator written as a class |
+| [`#[Each(RuleClass::class)]`](../src/Validator/Rule/Each.php) | property | Apply one rule to every entry of a list of plain values |
+| A [`MessageRuleInterface`](../src/Api/Validation/MessageRuleInterface.php) | class | A rule about how two fields relate |
+| [`#[IgnoredWhen(...)]`](../src/Validator/Rule/IgnoredWhen.php) | class | Skip every rule, because the block does not apply |
+| [`#[ValidatedBy(Validator::class)]`](../src/Validator/Rule/ValidatedBy.php) | class | Run a validator written as a class |
 
 The two class-level kinds are inherited, so a rule declared on a base message applies to every
 message that extends it.
@@ -119,7 +119,7 @@ Reflection runs once per class and the result is cached.
 
 ### Cross-field rules
 
-A property attribute that names a sibling, like `#[Postcode(countryFrom: 'country')]`, links two
+A property attribute that names a sibling, like [`#[Postcode(countryFrom: 'country')]`](../src/Validator/Rule/Postcode.php), links two
 fields from a place that can only see one of them, and the pairing has to be kept right by hand.
 Only the class sees both fields, so cross-field rules go there:
 
@@ -137,23 +137,23 @@ The rules
 
 | Rule | Checks |
 |------|--------|
-| `NotBlank` | Present, and not just whitespace |
-| `NotEmptyList` | At least one non-blank entry |
-| `Positive` | Above zero: dimensions, weights, quantities |
-| `NonNegative` | Zero or above. Zero is meaningful for insurance and cash on delivery |
-| `IntegerRange(min, max)` | A whole number within bounds, mostly for paging |
-| `Email` | Permissive. Only catches what clearly isn't an address |
-| `PhoneNumber` | Length only, after stripping non-digits |
-| `Postcode` / `Postcode(country: 'DE')` | The NN-NNN form. Other countries' formats are skipped |
-| `OrderNumber` | The documented order-number format |
-| `Iban` | ISO 13616 check digits, on a full IBAN or a bare national number |
+| [`NotBlank`](../src/Validator/Rule/NotBlank.php) | Present, and not just whitespace |
+| [`NotEmptyList`](../src/Validator/Rule/NotEmptyList.php) | At least one non-blank entry |
+| [`Positive`](../src/Validator/Rule/Positive.php) | Above zero: dimensions, weights, quantities |
+| [`NonNegative`](../src/Validator/Rule/NonNegative.php) | Zero or above. Zero is meaningful for insurance and cash on delivery |
+| [`IntegerRange(min, max)`](../src/Validator/Rule/IntegerRange.php) | A whole number within bounds, mostly for paging |
+| [`Email`](../src/Validator/Rule/Email.php) | Permissive. Only catches what clearly isn't an address |
+| [`PhoneNumber`](../src/Validator/Rule/PhoneNumber.php) | Length only, after stripping non-digits |
+| [`Postcode`](../src/Validator/Rule/Postcode.php) / [`Postcode(country: 'DE')`](../src/Validator/Rule/Postcode.php) | The NN-NNN form. Other countries' formats are skipped |
+| [`OrderNumber`](../src/Validator/Rule/OrderNumber.php) | The documented order-number format |
+| [`Iban`](../src/Validator/Rule/Iban.php) | ISO 13616 check digits, on a full IBAN or a bare national number |
 
-Two points explain most of this list. First, only `NotBlank` checks whether a value is present.
+Two points explain most of this list. First, only [`NotBlank`](../src/Validator/Rule/NotBlank.php) checks whether a value is present.
 Format rules pass on null, so the same postcode rule can be optional in one message and required
-in another. Second, `Email` and `PhoneNumber` are loose. They only reject values that are
+in another. Second, [`Email`](../src/Validator/Rule/Email.php) and [`PhoneNumber`](../src/Validator/Rule/PhoneNumber.php) are loose. They only reject values that are
 clearly wrong, because a stricter check would refuse recipients the carrier can deliver to.
 
-`Iban` is stricter. It fully verifies the check digits, because the field decides where collected
+[`Iban`](../src/Validator/Rule/Iban.php) is stricter. It fully verifies the check digits, because the field decides where collected
 money is paid out and a typo would send it to the wrong account. A country that isn't in its
 registry is skipped, not rejected, so an account the bank accepts isn't refused just because the
 registry is behind.
@@ -164,7 +164,7 @@ registry is behind.
 and reported fields include the path. It's a marker with no rules of its own. It isn't applied by
 default, since most nested values are never sent anywhere.
 
-`#[Each(OrderNumber::class)]` applies one rule to every entry of a list of *plain values* and
+[`#[Each(OrderNumber::class)]`](../src/Validator/Rule/Each.php) applies one rule to every entry of a list of *plain values* and
 reports errors against the index:
 
 ```php
@@ -178,18 +178,18 @@ depends on a sibling field, write a message validator.
 
 ### Class rules
 
-`#[RequiredWhen(field: 'twoFactorCode', property: 'default', equals: true)]`: a field becomes
+[`#[RequiredWhen(field: 'twoFactorCode', property: 'default', equals: true)]`](../src/Validator/Rule/RequiredWhen.php): a field becomes
 required based on the value of another.
 
-`#[InOrder(earlier: 'dateFrom', later: 'dateTo')]`: a range that must run forwards. Works for
+[`#[InOrder(earlier: 'dateFrom', later: 'dateTo')]`](../src/Validator/Rule/InOrder.php): a range that must run forwards. Works for
 dates and numbers. If either end is missing there's no range to check, so it passes.
 
-`#[IgnoredWhen(property: 'amount', equals: 0.0)]`: the block doesn't apply, so none of its fields
+[`#[IgnoredWhen(property: 'amount', equals: 0.0)]`](../src/Validator/Rule/IgnoredWhen.php): the block doesn't apply, so none of its fields
 are checked. The typical case is cash on delivery with nothing to collect. An amount of zero means
 no collection, and the other fields in the block would otherwise fail their usual rules on a valid
 payload.
 
-`#[ValidatedBy(SomeValidator::class)]`: see below.
+[`#[ValidatedBy(SomeValidator::class)]`](../src/Validator/Rule/ValidatedBy.php): see below.
 
 Validators written as classes
 -----------------------------
@@ -198,12 +198,12 @@ Four rules need more logic than an attribute can hold:
 
 | Validator | Enforces |
 |-----------|----------|
-| `CreateOrderMessageValidator` | The order rules that depend on context, not on a single value |
-| `OrderAddressValidator` | Which address fields are required, given the role the address plays |
-| `RegisterPaymentMessageValidator` | The amount is required for exactly one payment mode |
-| `ValidateCouponMessageValidator` | Coupon-against-order means all three fields, or none |
+| [`CreateOrderMessageValidator`](../src/Validator/Message/CreateOrderMessageValidator.php) | The order rules that depend on context, not on a single value |
+| [`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) | Which address fields are required, given the role the address plays |
+| [`RegisterPaymentMessageValidator`](../src/Validator/Message/RegisterPaymentMessageValidator.php) | The amount is required for exactly one payment mode |
+| [`ValidateCouponMessageValidator`](../src/Validator/Message/ValidateCouponMessageValidator.php) | Coupon-against-order means all three fields, or none |
 
-`OrderAddressValidator` is a good example. A sender must have an email address and a recipient
+[`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) is a good example. A sender must have an email address and a recipient
 doesn't have to. A recipient collecting from a pickup point needs no street address at all. Which
 fields are required depends on the *role* of the address in the order, which the address itself
 doesn't know.
@@ -223,13 +223,13 @@ There are five options, roughly from most to least drastic.
 new Config(/* … */, validatePayloads: false);
 ```
 
-The service layer then uses `NullValidator`, which accepts everything, so the code path is the
+The service layer then uses [`NullValidator`](../src/Validator/NullValidator.php), which accepts everything, so the code path is the
 same either way. Use this when the SDK disagrees with the API and you need to ship, and report the
 disagreement.
 
 ### 2. Drop one rule, keep the rest
 
-`AttributeValidator` isn't final and its internals are `protected`. Filter what `rulesFor()`
+[`AttributeValidator`](../src/Validator/AttributeValidator.php) isn't final and its internals are `protected`. Filter what [`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php)
 returns:
 
 ```php
@@ -284,7 +284,7 @@ $validator = DefaultValidatorRegistryFactory::create()
     ->register(CreateOrderMessage::class, new MyOrderPolicy());
 ```
 
-`MyOrderPolicy` extends `AbstractMessageValidator`. It collects violations instead of throwing,
+`MyOrderPolicy` extends [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php). It collects violations instead of throwing,
 so its findings are reported along with the rest:
 
 ```php
@@ -307,9 +307,9 @@ final class MyOrderPolicy extends AbstractMessageValidator
 }
 ```
 
-`ViolationPool` has `add()`, `check()` (run value validators against a value), `checkWhen()` (run
-them only if a condition holds) and `mergeUnder()` (add a nested report under a prefix). Use
-`MessageFields::field()` to get the wire name, so your field names match the SDK's.
+[`ViolationPool`](../src/Validator/ViolationPool.php) has [`ViolationPool::add()`](../src/Validator/ViolationPool.php), [`ViolationPool::check()`](../src/Validator/ViolationPool.php) (run value validators against a value), [`ViolationPool::checkWhen()`](../src/Validator/ViolationPool.php) (run
+them only if a condition holds) and [`ViolationPool::mergeUnder()`](../src/Validator/ViolationPool.php) (add a nested report under a prefix). Use
+[`MessageFields::field()`](../src/Validator/MessageFields.php) to get the wire name, so your field names match the SDK's.
 
 ### 4. Attach a rule to your own message
 
@@ -319,7 +319,7 @@ parent declares.
 
 ### 5. Replace the validator
 
-`ValidatorInterface` has one method. Implement it and pass it as `validator:`, and none of the
+[`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) has one method. Implement it and pass it as `validator:`, and none of the
 SDK's rules run:
 
 ```php
@@ -338,7 +338,7 @@ final class MyValidator implements ValidatorInterface
 Where validation happens
 ------------------------
 
-In `AbstractService::processRequest()`, before the request is built:
+In [`AbstractService::processRequest()`](../src/Service/AbstractService.php), before the request is built:
 
 ```php
 if ($payload !== null && $this->config->validatePayloads()) {
@@ -348,7 +348,7 @@ if ($payload !== null && $this->config->validatePayloads()) {
 
 This covers every service method that takes a payload. Methods without a message have nothing to
 check. If you write your own service and pass it to the client through `services:`, it gets this
-behaviour only if it extends `AbstractService`.
+behaviour only if it extends [`AbstractService`](../src/Service/AbstractService.php).
 
 Testing against the rules
 -------------------------

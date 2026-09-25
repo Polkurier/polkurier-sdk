@@ -12,7 +12,7 @@ It gets awkward when you don't, e.g. with an optional filter, a payload assemble
 or a form where many fields are optional. With the constructor alone you end up with a stack of
 ternaries feeding named arguments, or an untyped `$args` array spread in at the end.
 
-For these cases the larger messages have builders under `Polkurier\Webservice\Builder`. Each
+For these cases the larger messages have builders under [`Polkurier\Webservice\Builder`](../src/Builder/). Each
 builder sits in the same sub-namespace as the message it builds.
 
 ```php
@@ -34,22 +34,22 @@ $points = $client->courier()->findCourierPoints($search->build());
 How builders behave
 -------------------
 
-**Setters have the same types as the constructor.** For example `length(int $length)`, not a
-generic `set(string, mixed)`. Static analysis catches a wrong type the same way it would on the
+**Setters have the same types as the constructor.** For example [`PackMessageBuilder::length(int $length)`](../src/Builder/Order/PackMessageBuilder.php), not a
+generic [`AbstractBuilder::set(string, mixed)`](../src/Builder/AbstractBuilder.php). Static analysis catches a wrong type the same way it would on the
 constructor.
 
 **Fields you never set aren't passed to the constructor.** The builder stores values by name and
 spreads them as named arguments, so the message's own defaults apply. The builder doesn't keep a
 copy of those defaults that could go out of date.
 
-**`build()` lists every missing field in one go.**
+**[`build()`](../src/Builder/) lists every missing field in one go.**
 
 ```php
 Polkurier\Webservice\Request\Order\PackMessage cannot be built without width, height, weight.
 ```
 
 The constructor on its own would only report the first missing argument. The exception thrown is
-`Exception\InvalidArgumentException`.
+[`Exception\InvalidArgumentException`](../src/Exception/InvalidArgumentException.php).
 
 What builders do not do
 -----------------------
@@ -68,28 +68,28 @@ There are 22 builders. Every message with four or more fields has one.
 
 | Builder | Builds |
 |---------|--------|
-| `Account\SavePayerAddressMessageBuilder` | `Request\Account\SavePayerAddressMessage` |
-| `Account\SavePhoneNumberMessageBuilder` | `Request\Account\SavePhoneNumberMessage` |
-| `Address\SaveMessageBuilder` | `Request\Address\SaveMessage` |
-| `BankAccount\SaveMessageBuilder` | `Request\BankAccount\SaveMessage` |
-| `Common\BasePackMessageBuilder` | `Request\Common\BasePackMessage` |
-| `Courier\GetPickupTimeMessageBuilder` | `Request\Courier\GetPickupTimeMessage` |
-| `Courier\GetPointMessageBuilder` | `Request\Courier\GetPointMessage` |
-| `Courier\PickupMessageBuilder` | `Request\Courier\PickupMessage` |
-| `MoneyBox\CreateMoneyBoxPayoutMessageBuilder` | `Request\MoneyBox\CreateMoneyBoxPayoutMessage` |
-| `MoneyBox\GetMoneyBoxPayoutsMessageBuilder` | `Request\MoneyBox\GetMoneyBoxPayoutsMessage` |
-| `Order\CodMessageBuilder` | `Request\Order\CodMessage` |
-| `Order\CoverAddressMessageBuilder` | `Request\Order\CoverAddressMessage` |
-| `Order\CreateOrderMessageBuilder` | `Request\Order\CreateOrderMessage` |
-| `Order\GetOrdersMessageBuilder` | `Request\Order\GetOrdersMessage` |
-| `Order\MultiPickupRequestMessageBuilder` | `Request\Order\MultiPickupRequestMessage` |
-| `Order\OrderAddressMessageBuilder` | `Request\Order\OrderAddressMessage` |
-| `Order\PackMessageBuilder` | `Request\Order\PackMessage` |
-| `Order\PickupMessageBuilder` | `Request\Order\PickupMessage` |
-| `PackTemplate\SaveMessageBuilder` | `Request\PackTemplate\SaveMessage` |
-| `System\ValidateCouponMessageBuilder` | `Request\System\ValidateCouponMessage` |
-| `Ticket\CreateTicketMessageBuilder` | `Request\Ticket\CreateTicketMessage` |
-| `Ticket\GetTicketsMessageBuilder` | `Request\Ticket\GetTicketsMessage` |
+| [`Account\SavePayerAddressMessageBuilder`](../src/Builder/Account/SavePayerAddressMessageBuilder.php) | [`Request\Account\SavePayerAddressMessage`](../src/Request/Account/SavePayerAddressMessage.php) |
+| [`Account\SavePhoneNumberMessageBuilder`](../src/Builder/Account/SavePhoneNumberMessageBuilder.php) | [`Request\Account\SavePhoneNumberMessage`](../src/Request/Account/SavePhoneNumberMessage.php) |
+| [`Address\SaveMessageBuilder`](../src/Builder/Address/SaveMessageBuilder.php) | [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) |
+| [`BankAccount\SaveMessageBuilder`](../src/Builder/BankAccount/SaveMessageBuilder.php) | [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) |
+| [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php) | [`Request\Common\BasePackMessage`](../src/Request/Common/BasePackMessage.php) |
+| [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php) | [`Request\Courier\GetPickupTimeMessage`](../src/Request/Courier/GetPickupTimeMessage.php) |
+| [`Courier\GetPointMessageBuilder`](../src/Builder/Courier/GetPointMessageBuilder.php) | [`Request\Courier\GetPointMessage`](../src/Request/Courier/GetPointMessage.php) |
+| [`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) | [`Request\Courier\PickupMessage`](../src/Request/Courier/PickupMessage.php) |
+| [`MoneyBox\CreateMoneyBoxPayoutMessageBuilder`](../src/Builder/MoneyBox/CreateMoneyBoxPayoutMessageBuilder.php) | [`Request\MoneyBox\CreateMoneyBoxPayoutMessage`](../src/Request/MoneyBox/CreateMoneyBoxPayoutMessage.php) |
+| [`MoneyBox\GetMoneyBoxPayoutsMessageBuilder`](../src/Builder/MoneyBox/GetMoneyBoxPayoutsMessageBuilder.php) | [`Request\MoneyBox\GetMoneyBoxPayoutsMessage`](../src/Request/MoneyBox/GetMoneyBoxPayoutsMessage.php) |
+| [`Order\CodMessageBuilder`](../src/Builder/Order/CodMessageBuilder.php) | [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) |
+| [`Order\CoverAddressMessageBuilder`](../src/Builder/Order/CoverAddressMessageBuilder.php) | [`Request\Order\CoverAddressMessage`](../src/Request/Order/CoverAddressMessage.php) |
+| [`Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) | [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) |
+| [`Order\GetOrdersMessageBuilder`](../src/Builder/Order/GetOrdersMessageBuilder.php) | [`Request\Order\GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php) |
+| [`Order\MultiPickupRequestMessageBuilder`](../src/Builder/Order/MultiPickupRequestMessageBuilder.php) | [`Request\Order\MultiPickupRequestMessage`](../src/Request/Order/MultiPickupRequestMessage.php) |
+| [`Order\OrderAddressMessageBuilder`](../src/Builder/Order/OrderAddressMessageBuilder.php) | [`Request\Order\OrderAddressMessage`](../src/Request/Order/OrderAddressMessage.php) |
+| [`Order\PackMessageBuilder`](../src/Builder/Order/PackMessageBuilder.php) | [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) |
+| [`Order\PickupMessageBuilder`](../src/Builder/Order/PickupMessageBuilder.php) | [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) |
+| [`PackTemplate\SaveMessageBuilder`](../src/Builder/PackTemplate/SaveMessageBuilder.php) | [`Request\PackTemplate\SaveMessage`](../src/Request/PackTemplate/SaveMessage.php) |
+| [`System\ValidateCouponMessageBuilder`](../src/Builder/System/ValidateCouponMessageBuilder.php) | [`Request\System\ValidateCouponMessage`](../src/Request/System/ValidateCouponMessage.php) |
+| [`Ticket\CreateTicketMessageBuilder`](../src/Builder/Ticket/CreateTicketMessageBuilder.php) | [`Request\Ticket\CreateTicketMessage`](../src/Request/Ticket/CreateTicketMessage.php) |
+| [`Ticket\GetTicketsMessageBuilder`](../src/Builder/Ticket/GetTicketsMessageBuilder.php) | [`Request\Ticket\GetTicketsMessage`](../src/Request/Ticket/GetTicketsMessage.php) |
 
 Nesting builders
 ----------------
@@ -128,14 +128,14 @@ $order = CreateOrderMessageBuilder::create()
     ->build();
 ```
 
-Each `build()` returns a complete, immutable message, and the outer builder takes it as a value.
-You can pass a builder around before calling `build()`, but the result is an ordinary message with
+Each [`build()`](../src/Builder/) returns a complete, immutable message, and the outer builder takes it as a value.
+You can pass a builder around before calling [`build()`](../src/Builder/), but the result is an ordinary message with
 no link back to the builder.
 
 Reusing a builder
 -----------------
 
-A builder keeps its values after `build()`, so you can build several variants from one base:
+A builder keeps its values after [`build()`](../src/Builder/), so you can build several variants from one base:
 
 ```php
 $base = GetOrdersMessageBuilder::create()
@@ -152,8 +152,8 @@ independent builders, create two.
 Writing your own
 ----------------
 
-Builders are hand-written, one file each, and contain little more than setters and a `build()`
-method. `AbstractBuilder` does the rest: it collects values, works out which fields are required
+Builders are hand-written, one file each, and contain little more than setters and a [`build()`](../src/Builder/)
+method. [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) does the rest: it collects values, works out which fields are required
 and refuses to build without them.
 
 ```php
@@ -178,12 +178,12 @@ class MyMessageBuilder extends AbstractBuilder
 }
 ```
 
-`set()` stores a value under its constructor parameter name. The name must match, since it's
-spread as a named argument. `make()` reads the required parameters from the message constructor
+[`AbstractBuilder::set()`](../src/Builder/AbstractBuilder.php) stores a value under its constructor parameter name. The name must match, since it's
+spread as a named argument. [`AbstractBuilder::make()`](../src/Builder/AbstractBuilder.php) reads the required parameters from the message constructor
 by reflection, so it always agrees with the constructor.
 
 Builders aren't `final`, because their setters return `static` and a subclass can add setters.
-`AbstractBuilder::__construct()` **is** final, so `create()` is safe to call on a subclass.
+[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) **is** final, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
 
 Drift test
 ----------

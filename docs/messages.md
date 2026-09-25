@@ -8,13 +8,13 @@ Request/    65 classes: everything you send
 Response/   81 classes: everything you get back
 ```
 
-Both sit at the root of `Polkurier\Webservice`, not under a shared `Model` namespace. They hold
+Both sit at the root of [`Polkurier\Webservice`](../src/), not under a shared `Model` namespace. They hold
 payload classes only. The validator, the serializer and the HTTP envelope live elsewhere.
 
 Requests
 --------
 
-A request payload (a **message**) is a readonly class that implements `Api\MessageInterface`. You
+A request payload (a **message**) is a readonly class that implements [`Api\MessageInterface`](../src/Api/MessageInterface.php). You
 construct it with named arguments:
 
 ```php
@@ -91,11 +91,11 @@ Responses
 
 Response classes are built through their constructors. If a required field is missing from the
 reply, mapping fails straight away and the error names the field. You never get an object whose
-getters throw, so a method that returns an `Order` always returns a complete one.
+getters throw, so a method that returns an [`Order`](../src/Response/Order.php) always returns a complete one.
 
-Most response classes are readonly. These 13 are not: `Order`, `Address`, `BankAccount`, `Pack`,
-`PackTemplate`, `Cod`, `Cod\ReturnDetails`, `Pickup`, `Waybill`, `Item`, `IndividualPricing`,
-`BaseAddress` and `BasePack`. Some of them have setters. They are the entity-like classes an
+Most response classes are readonly. These 13 are not: [`Order`](../src/Response/Order.php), [`Address`](../src/Response/Address.php), [`BankAccount`](../src/Response/BankAccount.php), [`Pack`](../src/Response/Order/Pack.php),
+[`PackTemplate`](../src/Response/PackTemplate.php), [`Cod`](../src/Response/Order/Cod.php), [`Cod\ReturnDetails`](../src/Response/Order/Cod/ReturnDetails.php), [`Pickup`](../src/Response/Order/Pickup.php), [`Waybill`](../src/Response/Order/Waybill.php), [`Item`](../src/Response/Order/Item.php), [`IndividualPricing`](../src/Response/Order/IndividualPricing.php),
+[`BaseAddress`](../src/Response/BaseAddress.php) and [`BasePack`](../src/Response/BasePack.php). Some of them have setters. They are the entity-like classes an
 application often keeps and edits locally before saving. The SDK itself never calls those setters.
 
 ### Lists, maps and pages
@@ -104,10 +104,10 @@ Responses come in four shapes:
 
 | Shape | Example | What you get |
 |-------|---------|--------------|
-| One object | `createOrder()` | `CreatedOrderMessage` |
-| A list | `availableCarriers()` | `Carrier[]`, possibly empty |
-| A map of strings | `getCountries()` | `array<string, string>` |
-| A page | `getOrders()` | `OrderListMessage` wrapping `Order[]` |
+| One object | [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | [`CreatedOrderMessage`](../src/Response/Order/CreatedOrderMessage.php) |
+| A list | [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `Carrier[]`, possibly empty |
+| A map of strings | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | `array<string, string>` |
+| A page | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php) wrapping `Order[]` |
 
 A page has its own navigation getters:
 
@@ -120,22 +120,22 @@ $list->getPageSize();
 ```
 
 Five endpoints return pages, and they do **not** all have the same fields. Check this table before
-you write a loop around `getTotalPages()`:
+you write a paging loop:
 
 | Class | `getResult()` | Rows | Pages | Current page | Page size |
 |-------|---------------|------|-------|--------------|-----------|
-| `Order\OrderListMessage` | `Order[]` | yes | **yes** | yes | yes |
-| `MoneyBox\MoneyBoxPayoutListMessage` | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
-| `Invoice\InvoiceListMessage` | `InvoiceMessage[]` | yes | no | yes | yes |
-| `Ticket\TicketListMessage` | `TicketMessage[]` | yes | no | yes | yes |
-| `Payment\PrepaidHistoryMessage` | `PrepaidEntryMessage[]` | yes | no | yes | yes |
+| [`Order\OrderListMessage`](../src/Response/Order/OrderListMessage.php) | `Order[]` | yes | **yes** | yes | yes |
+| [`MoneyBox\MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php) | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
+| [`Invoice\InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php) | `InvoiceMessage[]` | yes | no | yes | yes |
+| [`Ticket\TicketListMessage`](../src/Response/Ticket/TicketListMessage.php) | `TicketMessage[]` | yes | no | yes | yes |
+| [`Payment\PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php) | `PrepaidEntryMessage[]` | yes | no | yes | yes |
 
 For the three without a page count, work it out from the row count and page size, or stop when a
 page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows both loops.
 
 ### The two unmapped responses
 
-`orders()->orderValuation()` and `tickets()->getContactForm()` return `array<array-key, mixed>`,
+[`$client->orders()->orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) and [`$client->tickets()->getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) return `array<array-key, mixed>`,
 which is just the decoded JSON. Their shape depends on the request, so there's no fixed structure
 to map. Every other method returns a typed object.
 
@@ -145,22 +145,22 @@ Why requests and responses are split
 Request and response classes stay separate even when they describe the same thing, because the
 shapes differ.
 
-`Request\Order\PackMessage` has the dimensions you choose. `Response\Order\Pack` has those plus
-what the carrier charged for them. `Request\Order\CodMessage` says what to collect.
-`Response\Order\Cod` says what happened to the money: when it was paid out, whether it was
+[`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) has the dimensions you choose. [`Response\Order\Pack`](../src/Response/Order/Pack.php) has those plus
+what the carrier charged for them. [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) says what to collect.
+[`Response\Order\Cod`](../src/Response/Order/Cod.php) says what happened to the money: when it was paid out, whether it was
 returned, and why.
 
 The pairs:
 
 | You send | You receive |
 |----------|-------------|
-| `Request\Address\SaveMessage` | `Response\Address` |
-| `Request\BankAccount\SaveMessage` | `Response\BankAccount` |
-| `Request\PackTemplate\SaveMessage` | `Response\PackTemplate` |
-| `Request\Order\PackMessage` | `Response\Order\Pack` |
-| `Request\Order\CodMessage` | `Response\Order\Cod` |
-| `Request\Order\PickupMessage` | `Response\Order\Pickup` |
-| `Request\Order\CreateOrderMessage` | `Response\Order` |
+| [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) | [`Response\Address`](../src/Response/Address.php) |
+| [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) | [`Response\BankAccount`](../src/Response/BankAccount.php) |
+| [`Request\PackTemplate\SaveMessage`](../src/Request/PackTemplate/SaveMessage.php) | [`Response\PackTemplate`](../src/Response/PackTemplate.php) |
+| [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) | [`Response\Order\Pack`](../src/Response/Order/Pack.php) |
+| [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) | [`Response\Order\Cod`](../src/Response/Order/Cod.php) |
+| [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) | [`Response\Order\Pickup`](../src/Response/Order/Pickup.php) |
+| [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) | [`Response\Order`](../src/Response/Order.php) |
 
 The docblock of each response class names the request that writes it, so you can find the pair
 from either side.
@@ -172,16 +172,16 @@ on both, and most getters would return a nullable type.
 Naming
 ------
 
-Under `Request`, every class ends in `Message`: `CreateOrderMessage`, `SaveMessage`,
-`GetOrdersMessage`. The suffix means "a payload".
+Under `Request`, every class ends in `Message`: [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php), [`Address\SaveMessage`](../src/Request/Address/SaveMessage.php),
+[`GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php). The suffix means "a payload".
 
 Under `Response`, it depends. Entity-like classes that exist independently of any call are named
-after the thing itself: `Order`, `Address`, `Carrier`, `CourierPoint`, `Country`, `BankAccount`,
-`PackTemplate`. Classes that only exist as the answer from one endpoint keep the suffix:
-`OrderListMessage`, `AccountInfoMessage`, `HeartbeatMessage`.
+after the thing itself: [`Order`](../src/Response/Order.php), [`Address`](../src/Response/Address.php), [`Carrier`](../src/Response/Carrier.php), [`CourierPoint`](../src/Response/CourierPoint.php), [`Country`](../src/Response/Country.php), [`BankAccount`](../src/Response/BankAccount.php),
+[`PackTemplate`](../src/Response/PackTemplate.php). Classes that only exist as the answer from one endpoint keep the suffix:
+[`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`AccountInfoMessage`](../src/Response/Account/AccountInfoMessage.php), [`HeartbeatMessage`](../src/Response/Util/HeartbeatMessage.php).
 
-When a request and a response class share a short name, like `Request\Order\PickupMessage` and
-`Response\Order\Pickup`, import one and use the fully qualified name for the other, or alias it:
+When a request and a response class share a short name, like [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) and
+[`Response\Order\Pickup`](../src/Response/Order/Pickup.php), import one and use the fully qualified name for the other, or alias it:
 
 ```php
 use Polkurier\Webservice\Request\Order\PickupMessage;
@@ -210,40 +210,40 @@ CreateOrderMessage::FIELD_SHIPMENT_TYPE;   // 'shipmenttype'
 ```
 
 The attribute references the constant, so each wire name is written in one place only. Use the
-constants when you need the API's own field names, e.g. when reading a `ValidationException`,
+constants when you need the API's own field names, e.g. when reading a [`ValidationException`](../src/Exception/ValidationException.php),
 matching a field in an error from the API, or building a raw request for debugging.
 
 Enums
 -----
 
-Values the API accepts and returns are backed enums under `Polkurier\Webservice\Enum`, grouped by
+Values the API accepts and returns are backed enums under [`Polkurier\Webservice\Enum`](../src/Enum/), grouped by
 area. The ones you're most likely to use:
 
 | Enum | Used for |
 |------|----------|
-| `Order\ShipmentTypeEnum` | Box, envelope, pallet |
-| `Order\PackTypeEnum` | What kind of parcel |
-| `Order\AdditionalServiceEnum` | Services to buy with the shipment (25 of them) |
-| `Order\OrderStatusCodeEnum` | Delivery state |
-| `Order\CodTypeEnum`, `CodStatusEnum`, `CodReturnTypeEnum`, `CodReturnReasonEnum` | Cash on delivery |
-| `Order\LabelFileFormatEnum` | Printer language for labels |
-| `Order\OrderItemTypeEnum` | Line item classification |
-| `Account\PayerAddressTypeEnum` | Billing, correspondence or contact |
-| `Account\PayerUserTypeEnum`, `RegulationsTypeEnum` | Account and terms |
-| `Address\AddressTypeEnum` | Address book entry kind |
-| `Courier\PointFunctionEnum`, `PointRequirementEnum` | What a pickup point can do |
-| `Courier\CourierMessageTypeEnum`, `CourierMessageSeverityEnum` | Notice board |
-| `Courier\AdditionalFieldTypeEnum` | Carrier-specific extra fields |
-| `Payment\PaymentModeEnum` | What a payment settles |
-| `MoneyBox\MoneyBoxPayoutTypeEnum`, `MoneyBoxFeePaymentTypeEnum` | Payouts |
-| `Invoice\InvoiceTypeEnum` | Invoice kind |
-| `Ticket\TicketStatusEnum`, `TicketAuthorEnum`, `TicketOriginEnum`, `TicketTimelineItemTypeEnum` | Support |
-| `KnowledgeBase\KnowledgeBaseEntryTypeEnum` | Category or article |
-| `TwoFactorToken\TwoFactorNamespaceEnum` | Which operation a code authorises |
+| [`Order\ShipmentTypeEnum`](../src/Enum/Order/ShipmentTypeEnum.php) | Box, envelope, pallet |
+| [`Order\PackTypeEnum`](../src/Enum/Order/PackTypeEnum.php) | What kind of parcel |
+| [`Order\AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php) | Services to buy with the shipment (25 of them) |
+| [`Order\OrderStatusCodeEnum`](../src/Enum/Order/OrderStatusCodeEnum.php) | Delivery state |
+| [`Order\CodTypeEnum`](../src/Enum/Order/CodTypeEnum.php), [`CodStatusEnum`](../src/Enum/Order/CodStatusEnum.php), [`CodReturnTypeEnum`](../src/Enum/Order/CodReturnTypeEnum.php), [`CodReturnReasonEnum`](../src/Enum/Order/CodReturnReasonEnum.php) | Cash on delivery |
+| [`Order\LabelFileFormatEnum`](../src/Enum/Order/LabelFileFormatEnum.php) | Printer language for labels |
+| [`Order\OrderItemTypeEnum`](../src/Enum/Order/OrderItemTypeEnum.php) | Line item classification |
+| [`Account\PayerAddressTypeEnum`](../src/Enum/Account/PayerAddressTypeEnum.php) | Billing, correspondence or contact |
+| [`Account\PayerUserTypeEnum`](../src/Enum/Account/PayerUserTypeEnum.php), [`RegulationsTypeEnum`](../src/Enum/Account/RegulationsTypeEnum.php) | Account and terms |
+| [`Address\AddressTypeEnum`](../src/Enum/Address/AddressTypeEnum.php) | Address book entry kind |
+| [`Courier\PointFunctionEnum`](../src/Enum/Courier/PointFunctionEnum.php), [`PointRequirementEnum`](../src/Enum/Courier/PointRequirementEnum.php) | What a pickup point can do |
+| [`Courier\CourierMessageTypeEnum`](../src/Enum/Courier/CourierMessageTypeEnum.php), [`CourierMessageSeverityEnum`](../src/Enum/Courier/CourierMessageSeverityEnum.php) | Notice board |
+| [`Courier\AdditionalFieldTypeEnum`](../src/Enum/Courier/AdditionalFieldTypeEnum.php) | Carrier-specific extra fields |
+| [`Payment\PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) | What a payment settles |
+| [`MoneyBox\MoneyBoxPayoutTypeEnum`](../src/Enum/MoneyBox/MoneyBoxPayoutTypeEnum.php), [`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php) | Payouts |
+| [`Invoice\InvoiceTypeEnum`](../src/Enum/Invoice/InvoiceTypeEnum.php) | Invoice kind |
+| [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
+| [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
+| [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
 
-There are also four protocol-level enums under `Enum\Http`: `ApiMethodEnum` (every endpoint, see
-the [API method index](api-methods.md)), `ApiStatusCodeEnum`, `ApiErrorCodeEnum` and
-`ResponseStatusEnum`.
+There are also four protocol-level enums under [`Enum\Http`](../src/Enum/Http/): [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) (every endpoint, see
+the [API method index](api-methods.md)), [`ApiStatusCodeEnum`](../src/Enum/Http/ApiStatusCodeEnum.php), [`ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) and
+[`ResponseStatusEnum`](../src/Enum/Http/ResponseStatusEnum.php).
 
 ### Enums on responses, strings on some fields
 

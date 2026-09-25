@@ -3,24 +3,24 @@ Configuration
 
 The SDK has two configuration objects.
 
-`Config` covers the API: the endpoint, your credentials, the timeout and logging.
-`SerializerConfig` covers your application: caching, the timezone dates are read into, and whether
+[`Config`](../src/Config.php) covers the API: the endpoint, your credentials, the timeout and logging.
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php) covers your application: caching, the timezone dates are read into, and whether
 unknown response fields are an error. The two are independent. If your application runs two
 clients against two accounts, they will usually share one serializer.
 
 You can supply the configuration in three ways, depending on when the values are known:
 
-1. A `Config` object, built once and passed to the client. This is the usual case, described
+1. A [`Config`](../src/Config.php) object, built once and passed to the client. This is the usual case, described
    below.
-2. Your own `ConfigInterface` implementation, when the values come from somewhere else, e.g. a
-   settings table, a framework's parameter bag or a feature flag. You can also extend `Config` and
+2. Your own [`ConfigInterface`](../src/Api/ConfigInterface.php) implementation, when the values come from somewhere else, e.g. a
+   settings table, a framework's parameter bag or a feature flag. You can also extend [`Config`](../src/Config.php) and
    override the getters you need.
-3. Your own `ConfigProviderInterface`, when the configuration isn't known until it is used, e.g.
+3. Your own [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php), when the configuration isn't known until it is used, e.g.
    per tenant, per shop or per job. See [per-tenant credentials](#per-tenant-credentials).
 
-These can be combined. A provider returns a `ConfigInterface`, which can be a plain `Config`.
+These can be combined. A provider returns a [`ConfigInterface`](../src/Api/ConfigInterface.php), which can be a plain [`Config`](../src/Config.php).
 
-`Config`
+[`Config`](../src/Config.php)
 --------
 
 ```php
@@ -38,7 +38,7 @@ Three arguments are required. The others have defaults.
 
 | Argument | Type | Default | Meaning |
 |----------|------|---------|---------|
-| `authorization` | `AuthorizationMessage` | required | Customer id and API token |
+| `authorization` | [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) | required | Customer id and API token |
 | `platform` | `string` | required | Name identifying your integration |
 | `platformVersion` | `string` | required | Its version |
 | `apiUrl` | `?string` | `null` | Overrides the endpoint entirely |
@@ -48,12 +48,12 @@ Three arguments are required. The others have defaults.
 | `methodsToLog` | `ApiMethodEnum[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
 
-`Config` is `readonly` and implements `Api\ConfigInterface`. If the configuration needs to change
+[`Config`](../src/Config.php) is `readonly` and implements [`Api\ConfigInterface`](../src/Api/ConfigInterface.php). If the configuration needs to change
 at runtime, implement the interface or use a different provider.
 
 ### Choosing an endpoint
 
-If you set `apiUrl`, it is used. Otherwise `sandbox` picks one of the two constants on `Config`:
+If you set `apiUrl`, it is used. Otherwise `sandbox` picks one of the two constants on [`Config`](../src/Config.php):
 
 ```php
 Config::API_URL         // https://api.polkurier.pl
@@ -83,7 +83,7 @@ is enough for most calls, but a few can take longer. `get_label` with 12 order n
 labels into one PDF, and `get_orders` with `packs`, `items` and `files` requested returns a large
 response. Raise the timeout if you send batches like these.
 
-A timeout throws a `ConnectionException`, the same class as DNS and TLS failures. The SDK can't
+A timeout throws a [`ConnectionException`](../src/Exception/ConnectionException.php), the same class as DNS and TLS failures. The SDK can't
 tell whether the order was placed before the timeout, only that no answer arrived. See
 [Recipes: retrying safely](recipes.md#retrying-safely).
 
@@ -113,10 +113,10 @@ new Config(
 );
 ```
 
-`isExtendedLoggingEnabled()` checks both settings. If `loggingEnabled` is off, nothing is logged,
+[`ConfigInterface::isExtendedLoggingEnabled()`](../src/Api/ConfigInterface.php) checks both settings. If `loggingEnabled` is off, nothing is logged,
 whatever `methodsToLog` contains.
 
-> **Request bodies contain the API token.** `AuthorizationMessage` is included in every
+> **Request bodies contain the API token.** [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) is included in every
 > authenticated request, and the logger receives the body unchanged. Send the logs somewhere you are
 > OK with storing credentials, or filter the record first. The SDK does not redact anything.
 
@@ -134,7 +134,7 @@ Only turn it off if the SDK rejects a payload that the API would accept. Please 
 bug. To drop a single rule instead of all of them, see
 [Validation: changing the rules](validation.md#changing-the-rules).
 
-`SerializerConfig`
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php)
 ------------------
 
 ```php
@@ -177,7 +177,7 @@ uses. Measure before adding a cache to a classic PHP-FPM setup.
 
 ### jsonEncodeOptions
 
-The default is `SerializerConfig::DEFAULT_JSON_OPTIONS`:
+The default is [`SerializerConfig::DEFAULT_JSON_OPTIONS`](../src/Serializer/SerializerConfig.php):
 
 ```php
 \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES | \JSON_PRESERVE_ZERO_FRACTION
@@ -196,7 +196,7 @@ The default is `SerializerConfig::DEFAULT_JSON_OPTIONS`:
 
 ### timezone
 
-If this is not set, dates keep the timezone the API sent. If it is set, every `DateTimeInterface`
+If this is not set, dates keep the timezone the API sent. If it is set, every [`DateTimeInterface`](https://www.php.net/manual/en/class.datetimeinterface.php)
 the SDK creates is converted to that zone:
 
 ```php
@@ -225,8 +225,8 @@ Per-tenant credentials
 ----------------------
 
 The services, the client factory and the request factory get their configuration from a
-`ConfigProviderInterface` instead of holding a `Config` directly. The default implementation,
-`ConfigProvider`, just returns a configuration that is already known.
+[`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) instead of holding a [`Config`](../src/Config.php) directly. The default implementation,
+[`ConfigProvider`](../src/ConfigProvider.php), just returns a configuration that is already known.
 
 With your own provider, you can look up credentials when they are needed, e.g. from a container, a
 database row or a tenant context:
@@ -262,7 +262,7 @@ $client = new PolkurierWebservice(
 
 If you pass a provider, the `config` argument is ignored.
 
-Note: `AbstractService` and `ClientFactory` each call `getConfig()` once, in their constructors,
+Note: [`AbstractService`](../src/Service/AbstractService.php) and [`ClientFactory`](../src/Http/ClientFactory.php) each call [`MoneyBoxServiceInterface::getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) once, in their constructors,
 and keep the result. Services are created on first use and then reused, so the provider is called
 once per service per client instance, not once per call. If the tenant can change between
 requests, create one client per tenant. Clients are inexpensive to create. The serializer is the
@@ -283,13 +283,13 @@ foreach ($tenants as $tenant) {
 }
 ```
 
-`SerializerProvider` has no per-call state, so one instance can serve any number of clients. For
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) has no per-call state, so one instance can serve any number of clients. For
 a multi-tenant application, we recommend one serializer and one client per tenant.
 
 Full wiring reference
 ---------------------
 
-All of `PolkurierWebservice`'s collaborators are optional constructor arguments:
+All of [`PolkurierWebservice`](../src/PolkurierWebservice.php)'s collaborators are optional constructor arguments:
 
 ```php
 new PolkurierWebservice(

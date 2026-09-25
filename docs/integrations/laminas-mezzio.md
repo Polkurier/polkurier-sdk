@@ -241,7 +241,7 @@ final readonly class TrackHandler implements RequestHandlerInterface
 }
 ```
 
-For its factory, use a one-line `ConfigAbstractFactory` entry or write a small class.
+For its factory, use a one-line [`Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory`](https://docs.laminas.dev/laminas-servicemanager/v4/config-abstract-factory/) entry or write a small class.
 
 Error handling middleware
 -------------------------

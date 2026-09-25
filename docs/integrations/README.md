@@ -24,15 +24,15 @@ Every host needs the same five steps. Only the syntax changes from page to page.
 
 ### 1. Make the configuration a service
 
-`Config` needs credentials. Keep them in the host's configuration mechanism (environment
+[`Config`](../../src/Config.php) needs credentials. Keep them in the host's configuration mechanism (environment
 variables, a settings table, an admin screen) and never in code. Each page starts with this step
 because it varies the most between hosts.
 
 [Configuration](../configuration.md) describes three levels:
 
-- a `Config` built from values read at boot
-- your own `ConfigInterface`, when the values don't come from a constructor call
-- your own `ConfigProviderInterface`, when the values are only known at call time (per shop, per
+- a [`Config`](../../src/Config.php) built from values read at boot
+- your own [`ConfigInterface`](../../src/Api/ConfigInterface.php), when the values don't come from a constructor call
+- your own [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php), when the values are only known at call time (per shop, per
   tenant or per sales channel)
 
 Multi-store platforms (Magento, Shopware, PrestaShop multistore, Sylius channels) usually need the
@@ -40,7 +40,7 @@ third one.
 
 ### 2. Share one serializer
 
-`SerializerProvider` is expensive to build. Register it as a singleton and give it a PSR-6 cache
+[`SerializerProvider`](../../src/Serializer/SerializerProvider.php) is expensive to build. Register it as a singleton and give it a PSR-6 cache
 pool. All the frameworks below already have one.
 
 ```php
@@ -55,14 +55,14 @@ on each class the request uses.
 You can do this in two ways.
 
 Register the facade. That's one service with 16 accessors, built lazily. It needs the least wiring,
-and your code depends on `PolkurierWebservice`.
+and your code depends on [`PolkurierWebservice`](../../src/PolkurierWebservice.php).
 
 ```php
 $client->orders()->createOrder($message);
 ```
 
 Or register the services one by one. Your code then depends only on
-`Api\Service\OrdersServiceInterface`, which is easier to test. With autowiring in Symfony, Laravel
+[`Api\Service\OrdersServiceInterface`](../../src/Api/Service/OrdersServiceInterface.php), which is easier to test. With autowiring in Symfony, Laravel
 and Sylius this takes very little extra setup.
 
 ```php
@@ -89,7 +89,7 @@ With `methodsToLog` left empty, only errors are logged. Use that in production.
 ### 5. Decide about the HTTP client
 
 By default the SDK builds its own Guzzle client, and that works fine. Replace
-`ClientFactoryInterface` if the host already has a client you want to use, e.g. for its
+[`ClientFactoryInterface`](../../src/Http/ClientFactoryInterface.php) if the host already has a client you want to use, e.g. for its
 instrumentation, proxy settings or retry policy. On Magento and Shopware there are good reasons
 to. A plain Symfony application usually doesn't need to.
 
@@ -115,7 +115,7 @@ common reason an integration feels broken.
 [Errors: retrying safely](../errors.md#retrying-safely)). In a queue-based integration, write the
 job so it checks first and then acts. Setting `retry: 3` in the worker configuration is not enough.
 
-**Store the order number.** `CreatedOrderMessage::getOrderNumber()` is what you use for everything
+**Store the order number.** [`CreatedOrderMessage::getOrderNumber()`](../../src/Response/Order/CreatedOrderMessage.php) is what you use for everything
 afterwards: labels, protocols, status and cancellation. Save it against your own order as soon as
 it comes back, in the same transaction if you can.
 
@@ -138,5 +138,5 @@ Most of the integration lives in the adapter. It is a plain class with no framew
 unit test it against a mocked interface, and it is the only part that changes when either side
 does.
 
-Avoid calling `$client->orders()->createOrder()` from a controller, plugin hook or observer with
+Avoid calling [`$client->orders()->createOrder()`](../../src/Api/Service/OrdersServiceInterface.php) from a controller, plugin hook or observer with
 the mapping written inline. Every page below keeps the mapping in its own class.

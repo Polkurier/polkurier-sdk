@@ -94,7 +94,7 @@ needs WooCommerce to be loaded.
 Settings
 --------
 
-`WC_Integration` adds a settings tab under WooCommerce > Settings > Integration. WooCommerce
+[`WC_Integration`](https://woocommerce.github.io/code-reference/classes/WC-Integration.html) adds a settings tab under WooCommerce > Settings > Integration. WooCommerce
 renders and saves the fields for you:
 
 ```php
@@ -320,7 +320,8 @@ The two catch blocks handle different cases. If you retry a rejected payload 5 t
 identical failures and a confused merchant. After a lost connection, retrying is correct, and it's
 safe only because of the meta check at the top.
 
-Use `update_meta_data()` and `get_meta()`, not `update_post_meta()`. WooCommerce HPOS
+Use [`WC_Data::update_meta_data()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html) and [`WC_Data::get_meta()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html), not
+[`update_post_meta()`](https://developer.wordpress.org/reference/functions/update_post_meta/). WooCommerce HPOS
 (High-Performance Order Storage) moves orders out of `wp_posts`, and the CRUD methods work with both
 storage types.
 
@@ -396,8 +397,8 @@ final class OrderMapper
 }
 ```
 
-Don't skip `wc_get_weight()`. WooCommerce stores weights in the unit the shop has configured, and
-the API expects kilograms. Convert dimensions the same way with `wc_get_dimension()`.
+Don't skip [`wc_get_weight()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html). WooCommerce stores weights in the unit the shop has configured, and
+the API expects kilograms. Convert dimensions the same way with [`wc_get_dimension()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html).
 
 A shipping method
 -----------------
@@ -459,14 +460,14 @@ function polkurier_lockers(): array
 ```
 
 There are tens of thousands of lockers, far too many for a `<select>`. Put them behind an AJAX
-autocomplete, or use the map widget with `geo()->getMapToken()`.
+autocomplete, or use the map widget with [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php).
 
 Save the selected ID as order meta and read it back in the mapper, as shown above.
 
 Labels from the orders list
 ---------------------------
 
-`getLabel()` accepts a list, so a bulk action on the selected orders needs only one API call:
+[`OrdersServiceInterface::getLabel()`](../../src/Api/Service/OrdersServiceInterface.php) accepts a list, so a bulk action on the selected orders needs only one API call:
 
 ```php
 add_filter('bulk_actions-woocommerce_page_wc-orders', static function (array $actions): array {
@@ -525,7 +526,7 @@ add_filter('site_status_tests', static function (array $tests): array {
 });
 ```
 
-`heartbeat()` doesn't send credentials, so this test checks the connection and ignores the token.
+[`UtilsServiceInterface::heartbeat()`](../../src/Api/Service/UtilsServiceInterface.php) doesn't send credentials, so this test checks the connection and ignores the token.
 
 What to watch out for
 ---------------------
@@ -533,7 +534,7 @@ What to watch out for
 - **Prefix the vendor tree.** If a plugin works on its own but causes a fatal error next to another
   plugin, this is usually why.
 - **Don't call the API during checkout.** Use Action Scheduler.
-- **Use `$order->get_meta()`, not `get_post_meta()`,** so the code works with HPOS.
+- **Use [`WC_Data::get_meta()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html), not [`get_post_meta()`](https://developer.wordpress.org/reference/functions/get_post_meta/),** so the code works with HPOS.
 - **Don't log the SDK's context array.** It contains the request body, and the body contains the
   token.
 - **Use `declare(strict_types=1)` only in your own files.** WordPress often passes strings where

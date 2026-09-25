@@ -11,7 +11,7 @@ Start here
 | Page | What it covers |
 |------|----------------|
 | [Getting started](getting-started.md) | Installation, credentials, the first call, and how every call works |
-| [Configuration](configuration.md) | `Config`, `SerializerConfig`, logging, timeouts, sandbox, per-tenant credentials |
+| [Configuration](configuration.md) | [`Config`](../src/Config.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php), logging, timeouts, sandbox, per-tenant credentials |
 | [Services](services.md) | All 16 services and their methods, with return types |
 | [Messages and models](messages.md) | Requests, responses, enums, wire names, and why requests and responses are separate classes |
 | [Builders](builders.md) | Building a payload step by step instead of in one constructor call |
@@ -50,7 +50,7 @@ How the API works
 
 **The API has a single endpoint.** Every call is a `POST /` with a JSON envelope containing
 `apimethod`, `authorization` and `data`. There are no paths, HTTP verbs or status codes to deal
-with. `ApiMethodEnum` holds the values for `apimethod`, and the code under `src/Http` builds and
+with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
 unwraps the envelope.
 
 **The API returns HTTP 200 for everything**, including a bad token and a rejected payload. Don't
@@ -67,9 +67,9 @@ Conventions used in these pages
 -------------------------------
 
 - Class names are written short when the namespace is clear from context, and fully qualified when
-  it isn't. Everything is under `Polkurier\Webservice\`.
+  it isn't. Everything is under [`Polkurier\Webservice\`](../src/).
 - "Message" means a request payload: a class under `Request` that implements
-  `Api\MessageInterface`. Many response classes are also named `…Message`, which can be confusing.
+  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`, which can be confusing.
   The namespace tells them apart. [Messages and models](messages.md) explains why.
 - Code that places an order, moves money or deletes something is marked.
 - [`examples/`](../examples) has runnable versions of most of this, one file per API method. They

@@ -9,7 +9,7 @@ order all come back as 200. Don't branch on the transport status. The SDK doesn'
 shouldn't either.
 
 The actual outcome is in the envelope's `status` field. The SDK reads it and throws an exception
-for each failure case. A method that returns an `Order` either returns one or throws.
+for each failure case. A method that returns an [`Order`](../src/Response/Order.php) either returns one or throws.
 
 The hierarchy
 -------------
@@ -24,19 +24,19 @@ Polkurier\Webservice\Exception\Exception            (extends \Exception)
     └── AuthorizationException
 ```
 
-Catch `Exception` to handle any SDK failure in one place, or catch a subclass to tell them apart.
+Catch [`Exception`](../src/Exception/Exception.php) to handle any SDK failure in one place, or catch a subclass to tell them apart.
 
 | Exception | Raised when | Was anything sent? | Retry? |
 |-----------|-------------|--------------------|--------|
-| `ValidationException` | A payload was rejected before sending | No | Not without changing it |
-| `InvalidArgumentException` | A message was constructed with values the SDK rejects | No | No |
-| `ConnectionException` | The request never completed | **Unknown** | Maybe, see below |
-| `MalformedResponseException` | The reply was not an API envelope, or not the promised shape | Yes | Rarely helps |
-| `AuthorizationException` | Credentials missing, wrong, or inactive | Yes | No |
-| `WebserviceException` | Any other error the API reported | Yes | Depends on the error |
+| [`ValidationException`](../src/Exception/ValidationException.php) | A payload was rejected before sending | No | Not without changing it |
+| [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) | A message was constructed with values the SDK rejects | No | No |
+| [`ConnectionException`](../src/Exception/ConnectionException.php) | The request never completed | **Unknown** | Maybe, see below |
+| [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) | The reply was not an API envelope, or not the promised shape | Yes | Rarely helps |
+| [`AuthorizationException`](../src/Exception/AuthorizationException.php) | Credentials missing, wrong, or inactive | Yes | No |
+| [`WebserviceException`](../src/Exception/WebserviceException.php) | Any other error the API reported | Yes | Depends on the error |
 
-Put the subclasses first in your catch blocks: `AuthorizationException` before
-`WebserviceException`, and `ValidationException` before `InvalidArgumentException`.
+Put the subclasses first in your catch blocks: [`AuthorizationException`](../src/Exception/AuthorizationException.php) before
+[`WebserviceException`](../src/Exception/WebserviceException.php), and [`ValidationException`](../src/Exception/ValidationException.php) before [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php).
 
 ```php
 use Polkurier\Webservice\Exception\AuthorizationException;
@@ -62,7 +62,7 @@ try {
 
 ---
 
-`ValidationException`
+[`ValidationException`](../src/Exception/ValidationException.php)
 ---------------------
 
 The payload was rejected locally. **Nothing was sent and nothing changed.**
@@ -77,24 +77,25 @@ Field names are the API's own, and the array has the same shape the API uses for
 validation errors, so you can display both the same way. See [Validation](validation.md) for
 details.
 
-`InvalidArgumentException`
+[`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php)
 --------------------------
 
 A message was constructed with values the SDK rejects outright. Examples: a list holding the wrong
-type, a `ValidatedBy` that names something that isn't a validator, or a builder's `build()` called
+type, a [`ValidatedBy`](../src/Validator/Rule/ValidatedBy.php) that names something that isn't a validator, or a builder's [`build()`](../src/Builder/) called
 without a required field. These are programming errors. They mean the code is wrong, not the data.
 
-`ConnectionException`
+[`ConnectionException`](../src/Exception/ConnectionException.php)
 ---------------------
 
 The request never completed because of a DNS failure, refused connection, TLS failure or timeout.
-The underlying PSR-18 `ClientExceptionInterface` is available through `$e->getPrevious()`.
+The underlying PSR-18 [`Psr\Http\Client\ClientExceptionInterface`](https://www.php-fig.org/psr/psr-18/) is available
+through [`Throwable::getPrevious()`](https://www.php.net/manual/en/throwable.getprevious.php).
 
 > **You don't know whether the request was processed.** A timeout 30 seconds into `create_order`
 > may mean the order was never created, or that it was created and the response was lost. See
 > [retrying safely](#retrying-safely).
 
-`MalformedResponseException`
+[`MalformedResponseException`](../src/Exception/MalformedResponseException.php)
 ----------------------------
 
 The transport succeeded, but the body wasn't a Polkurier envelope or didn't have the shape the
@@ -119,7 +120,7 @@ the wrong type.
 $e->getResponse();   // Psr\Http\Message\ResponseInterface: status line, headers, body
 ```
 
-`WebserviceException`
+[`WebserviceException`](../src/Exception/WebserviceException.php)
 ---------------------
 
 The API processed the request and refused it. The exception gives you the full exchange:
@@ -130,7 +131,7 @@ $e->getRequest();        // Psr\Http\Message\RequestInterface  (body contains th
 $e->getResponse();       // Psr\Http\Message\ResponseInterface
 ```
 
-`ErrorMessage` is the error form of the envelope:
+[`ErrorMessage`](../src/Http/Response/ErrorMessage.php) is the error form of the envelope:
 
 ```php
 $error = $e->getErrorMessage();
@@ -142,12 +143,12 @@ $error->getValidationErrors();  // ?array<string, string[]>
 ```
 
 > **Both codes are nullable, so treat them that way.** Either one can be missing from an error
-> response. Calling a method on the result of `$error->getStatusCode()` without a null check is a
+> response. Calling a method on the result of [`ErrorMessage::getStatusCode()`](../src/Http/Response/ErrorMessage.php) without a null check is a
 > fatal error. Check for null, or use `?->`.
 
-`getValidationErrors()` is only set when the API rejects a payload during validation. The main
+[`ErrorMessage::getValidationErrors()`](../src/Http/Response/ErrorMessage.php) is only set when the API rejects a payload during validation. The main
 message only names the first failing field, but this array has every failure. It uses the same
-shape as `ValidationException`, so you can handle both together:
+shape as [`ValidationException`](../src/Exception/ValidationException.php), so you can handle both together:
 
 ```php
 function fieldErrors(\Throwable $e): array
@@ -162,7 +163,7 @@ function fieldErrors(\Throwable $e): array
 
 ### The code enums
 
-`Enum\Http\ApiStatusCodeEnum` and `Enum\Http\ApiErrorCodeEnum` hold the values the API is known to
+[`Enum\Http\ApiStatusCodeEnum`](../src/Enum/Http/ApiStatusCodeEnum.php) and [`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) hold the values the API is known to
 send. There are 35 of each, covering the same conditions as numbers and as strings. Compare
 against them instead of literals:
 
@@ -175,10 +176,10 @@ if ($e->getErrorMessage()->getErrorCode() === ApiErrorCodeEnum::TokenNotActive->
 You compare against `->value` because the properties are plain strings and ints, not enums, just
 like the order status. An unknown code simply won't match, and the response still maps.
 
-`AuthorizationException`
+[`AuthorizationException`](../src/Exception/AuthorizationException.php)
 ------------------------
 
-A `WebserviceException` whose error code or status code says the credentials are the problem. They
+A [`WebserviceException`](../src/Exception/WebserviceException.php) whose error code or status code says the credentials are the problem. They
 may be missing, malformed, unknown or inactive, or used with an authorization method the account
 isn't allowed to use.
 
@@ -204,19 +205,19 @@ Which failures to retry:
 
 | Exception | Retry |
 |-----------|-------|
-| `ValidationException`, `InvalidArgumentException` | No. The payload is wrong. |
-| `AuthorizationException` | No. Raise an alert instead. |
-| `MalformedResponseException` | Rarely. Maybe after a proxy glitch, never for an unexpected payload. |
-| `ConnectionException` | **Only for reads, unless you can check first.** |
-| `WebserviceException` | Depends on the error code. |
+| [`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) | No. The payload is wrong. |
+| [`AuthorizationException`](../src/Exception/AuthorizationException.php) | No. Raise an alert instead. |
+| [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) | Rarely. Maybe after a proxy glitch, never for an unexpected payload. |
+| [`ConnectionException`](../src/Exception/ConnectionException.php) | **Only for reads, unless you can check first.** |
+| [`WebserviceException`](../src/Exception/WebserviceException.php) | Depends on the error code. |
 
-The risky case is a `ConnectionException` on a write. You can retry reads freely. A write such as
-`createOrder()`, `createPayout()` or `saveAddress()` without an id may already have gone through,
+The risky case is a [`ConnectionException`](../src/Exception/ConnectionException.php) on a write. You can retry reads freely. A write such as
+[`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php), [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) or [`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) without an id may already have gone through,
 and the SDK can't tell you whether it did.
 
-**There is no idempotency key.** `CreateOrderMessage` has no field for one. `GetOrdersMessage` can
-*filter* on `externalApplicationId` and `externalOrderId`, and `Order` returns them, but
-`createOrder()` has no way to set them. A blind retry can create a second shipment, and nothing
+**There is no idempotency key.** [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) has no field for one. [`GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php) can
+*filter* on `externalApplicationId` and `externalOrderId`, and [`Order`](../src/Response/Order.php) returns them, but
+[`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) has no way to set them. A blind retry can create a second shipment, and nothing
 will stop it.
 
 Instead, reconcile before retrying. Look for an order that matches the one you tried to place, and
@@ -254,7 +255,7 @@ $existing = $client->orders()->getOrders(new GetOrdersMessage(
 ));
 ```
 
-Payouts have nothing similar. Check `moneyBox()->getPayouts()` before retrying, and preferably
+Payouts have nothing similar. Check [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) before retrying, and preferably
 have a person make the call.
 
 Logging a failure
@@ -265,8 +266,8 @@ failing request, its body and the response, at `error` level with structured con
 [Configuration: logging](configuration.md#logging), including the warning about tokens in request
 bodies.
 
-If you log the exception yourself, note that `WebserviceException::getRequest()` returns a request
-whose body contains the API token. Log `$e->getErrorMessage()` instead, unless you need the
+If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
+whose body contains the API token. Log [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) instead, unless you need the
 payload.
 
 A complete handler

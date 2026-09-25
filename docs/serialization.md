@@ -26,7 +26,7 @@ dropped. The other one is covered [below](#why-objects-are-built-through-their-c
 The stack
 ---------
 
-`SerializerProvider` builds a `Symfony\Component\Serializer\Serializer` and keeps it. Building one
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) builds a [`Symfony\Component\Serializer\Serializer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Serializer.php) and keeps it. Building one
 takes a while, so share a single instance. The facade already does.
 
 ```php
@@ -45,15 +45,15 @@ new Serializer(
 ```
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
-first one to say yes handles it. `AbsentDateNormalizer` comes before `DateTimeNormalizer` so it can
-catch an empty string before the date parser sees it. `OmitEmptyNormalizer` goes last because it
+first one to say yes handles it. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
+catch an empty string before the date parser sees it. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes last because it
 wraps the general object normalizer, which supports nearly everything.
 
 The object normalizer is set up with four pieces:
 
 | Piece | Why |
 |-------|-----|
-| `ClassMetadataFactory` + `AttributeLoader` | Reads `#[SerializedName]` and friends off the classes |
+| [`Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Mapping/Factory/ClassMetadataFactory.php) + `AttributeLoader` | Reads `#[SerializedName]` and friends off the classes |
 | `MetadataAwareNameConverter` | Resolves those names in both directions |
 | `PropertyInfoExtractor` with `PhpStanExtractor` | Reads element types out of docblocks |
 | `ALLOW_EXTRA_ATTRIBUTES` | On unless `rejectUnknownFields` says otherwise |
@@ -71,16 +71,16 @@ back as an `array`, check the docblock first.
 Reading responses
 -----------------
 
-`ResponseFactory` decodes the body, reads the envelope and passes the payload to the serializer,
+[`ResponseFactory`](../src/Http/Response/ResponseFactory.php) decodes the body, reads the envelope and passes the payload to the serializer,
 along with a format string that says what shape to expect. There are 5 formats:
 
 | Format | Meaning | Produced by |
 |--------|---------|-------------|
-| `SomeClass::class` | One object | `requestObject()`, `requestNullableObject()` |
-| `SomeClass::class . '[]'` | A list of objects | `requestList()` |
-| `FORMAT_STRING_LIST` | A map or list of plain strings | `requestStringMap()` |
-| `FORMAT_RAW_ARRAY` | Decoded JSON, unmapped | `requestRawArray()` |
-| `FORMAT_BOOLEAN` | An acknowledgement | `requestAcknowledgement()` |
+| `SomeClass::class` | One object | [`AbstractService::requestObject()`](../src/Service/AbstractService.php), [`AbstractService::requestNullableObject()`](../src/Service/AbstractService.php) |
+| `SomeClass::class . '[]'` | A list of objects | [`AbstractService::requestList()`](../src/Service/AbstractService.php) |
+| `FORMAT_STRING_LIST` | A map or list of plain strings | [`AbstractService::requestStringMap()`](../src/Service/AbstractService.php) |
+| `FORMAT_RAW_ARRAY` | Decoded JSON, unmapped | [`AbstractService::requestRawArray()`](../src/Service/AbstractService.php) |
+| `FORMAT_BOOLEAN` | An acknowledgement | [`AbstractService::requestAcknowledgement()`](../src/Service/AbstractService.php) |
 
 The wire format is always passed as `json`. This matters because JSON does not distinguish integers
 from floats, so a price with no fractional part can arrive as an int where a float is declared. The
@@ -111,7 +111,7 @@ nullable.
 An optional nested object can arrive as an empty array instead of null. Turning that into an object
 would either fail on its first required field or make up values that were never sent.
 
-`OmitEmptyNormalizer::denormalize()` reads it as `null`:
+[`OmitEmptyNormalizer::denormalize()`](../src/Serializer/OmitEmptyNormalizer.php) reads it as `null`:
 
 ```php
 if ($data === [] && !\str_ends_with($type, '[]')) {
@@ -128,7 +128,7 @@ An optional date can arrive as an empty string. `DateTimeNormalizer` rejects it,
 string is not a date, and its error message talks about parse formats without naming the field or
 the cause.
 
-`AbsentDateNormalizer` runs before it and turns the empty string into `null`. It handles nothing
+[`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) runs before it and turns the empty string into `null`. It handles nothing
 else, so a real date string passes straight through.
 
 ### An absent key
@@ -156,7 +156,7 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 private ?PickupMessage $pickup = null,
 ```
 
-`OmitEmptyNormalizer` drops these keys when the value is empty. Empty means `null`, `''` or `[]`.
+[`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) drops these keys when the value is empty. Empty means `null`, `''` or `[]`.
 **`false` and `0` are real values and are sent.**
 
 The attribute works on properties and on methods (for computed fields). Parent classes are checked
@@ -174,7 +174,7 @@ The API uses several date formats, so each date property declares its own:
 private ?\DateTimeInterface $dateFrom = null,
 ```
 
-The `timezone` setting in `SerializerConfig` only affects *reading*. The formats used for writing
+The `timezone` setting in [`SerializerConfig`](../src/Serializer/SerializerConfig.php) only affects *reading*. The formats used for writing
 are fixed by the protocol.
 
 ### JSON flags
@@ -196,7 +196,7 @@ Every request is the same object with 3 fields:
 }
 ```
 
-`RequestMessage` is that object. Both `authorization` and `data` are marked `OmitWhenEmpty`, so
+[`RequestMessage`](../src/Http/Request/RequestMessage.php) is that object. Both `authorization` and `data` are marked [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php), so
 unauthenticated methods (`heartbeat`) and methods without parameters (`get_bank_accounts`) use the
 same class.
 
@@ -207,8 +207,8 @@ Responses look like this:
 {"status": "error", "response": "…", "status_code": 401, "error_code": "INVALID_AUTH_DATA"}
 ```
 
-`ResponseMessage` and `ErrorMessage` map these two. `ResponseMessage` is the only envelope class
-that is not `final`, because `ErrorMessage` extends it. Nothing else should.
+[`ResponseMessage`](../src/Http/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) map these two. [`ResponseMessage`](../src/Http/Response/ResponseMessage.php) is the only envelope class
+that is not `final`, because [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) extends it. Nothing else should.
 
 Extending the serializer
 ------------------------
@@ -217,12 +217,12 @@ There are 3 levels, depending on how much you need to change.
 
 ### 1. Configure it
 
-`SerializerConfig` sets metadata caching, JSON flags, the timezone and whether unknown fields are
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php) sets metadata caching, JSON flags, the timezone and whether unknown fields are
 rejected. See [Configuration](configuration.md#serializerconfig). This is enough for most cases.
 
 ### 2. Replace or add a normalizer
 
-You can subclass `SerializerProvider`, or implement `SerializerProviderInterface` to build the
+You can subclass [`SerializerProvider`](../src/Serializer/SerializerProvider.php), or implement [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) to build the
 serializer from scratch. Either way, test the result well: a misconfigured serializer fails in ways
 that look like the API misbehaving. Implementing the interface looks like this:
 
@@ -254,16 +254,16 @@ final readonly class MySerializerProvider implements SerializerProviderInterface
 ```
 
 Start from the SDK's normalizer list, in the same order. The order matters, and
-`SerializerProvider` shows what it should be.
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) shows what it should be.
 
 Typical reasons to do this: accepting a new enum value from the API, mapping a field the SDK does
 not know about yet, or instrumenting the mapping to see where a response loses data.
 
 ### 3. Wrap the whole serializer
 
-`SerializerProviderInterface` returns `SerializerInterface&DenormalizerInterface`, so you can wrap
+[`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) returns `SerializerInterface&DenormalizerInterface`, so you can wrap
 it in a decorator that logs or times every payload, or answers one method with a recorded fixture.
-For fixtures, `Testing\RecordingClient` is usually the better choice. It works at the transport
+For fixtures, [`Testing\RecordingClient`](../src/Testing/RecordingClient.php) is usually the better choice. It works at the transport
 level and deals with the raw body.
 
 Debugging a mapping problem
@@ -275,7 +275,7 @@ Common symptoms and where to look:
 |---------|---------|
 | A nested object arrives as a plain `array` | The `@var` docblock on the property. The extractor reads that, not the PHP type |
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
-| "Failed to parse time string" | An empty-string date reaching `DateTimeNormalizer`. `AbsentDateNormalizer` should have caught it |
+| "Failed to parse time string" | An empty-string date reaching `DateTimeNormalizer`. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
 | A required-field error on a response | An empty array arrived where an object was expected, or a key with no default was absent |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
 | An unexpected field breaks the call | `rejectUnknownFields: true`. Meant for CI, not production |

@@ -86,8 +86,8 @@ return [
 ];
 ```
 
-`autowire()` can build the services because each constructor parameter is an interface bound
-above. The exception is `LoggerInterface`. Bind it to your application's logger, otherwise PHP-DI
+PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services because each constructor parameter is an interface bound
+above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/). Bind it to your application's logger, otherwise PHP-DI
 tries to instantiate the interface and fails.
 
 Slim
@@ -130,7 +130,7 @@ final readonly class TrackAction
 ```
 
 > With compilation enabled, PHP-DI freezes the definitions, so clear `var/cache` when you deploy.
-> Also, `factory()` closures can't be compiled. Either accept the small cost or move them into
+> Also, [`DI\factory()`](https://php-di.org/doc/php-definitions.html) closures can't be compiled. Either accept the small cost or move them into
 > invokable factory classes.
 
 To keep error handling out of the actions, convert SDK exceptions into responses in a middleware:
@@ -225,9 +225,9 @@ $orders = new OrdersService(
 );
 ```
 
-> **Pass the validator explicitly.** `AbstractService` defaults it to `NullValidator`, so a service
+> **Pass the validator explicitly.** [`AbstractService`](../../src/Service/AbstractService.php) defaults it to [`NullValidator`](../../src/Validator/NullValidator.php), so a service
 > you construct by hand doesn't validate anything. The facade does validate by default. The
-> `NullValidator` default keeps older code that builds services by hand working, but you'll want
+> [`NullValidator`](../../src/Validator/NullValidator.php) default keeps older code that builds services by hand working, but you'll want
 > the real validator.
 
 Long-running processes
@@ -239,8 +239,8 @@ This covers Swoole, RoadRunner, FrankenPHP, ReactPHP and any worker that handles
 the SDK's biggest start-up cost. In a worker you pay it once, as long as the same provider instance
 is kept between requests.
 
-**Watch how long configuration lives.** `AbstractService` and `ClientFactory` each call
-`getConfig()` once, in the constructor. A per-tenant `ConfigProviderInterface` will *not* make a
+**Watch how long configuration lives.** [`AbstractService`](../../src/Service/AbstractService.php) and [`ClientFactory`](../../src/Http/ClientFactory.php) each call
+[`MoneyBoxServiceInterface::getConfig()`](../../src/Api/Service/MoneyBoxServiceInterface.php) once, in the constructor. A per-tenant [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) will *not* make a
 long-lived service switch tenants. Build the client per job instead, and share the serializer:
 
 ```php
@@ -250,13 +250,13 @@ $client = new PolkurierWebservice(
 );
 ```
 
-**Don't share a service between concurrent coroutines.** `AbstractService::$lastHttpResponse` is
+**Don't share a service between concurrent coroutines.** [`AbstractService::$lastHttpResponse`](../../src/Service/AbstractService.php) is
 mutable state set on each call, so that exceptions can report the response that came back. In a
 shared-nothing process that's harmless. With real concurrency, give each coroutine its own client.
 
-**Static caches last for the whole process.** `AttributeValidator`, `MessageFields`,
-`OmitEmptyNormalizer` and `AbstractBuilder` each keep a static reflection cache keyed by class
-name. Once filled, they stay filled. As a result, an `AttributeValidator` subclass that filters
-rules must filter what `parent::rulesFor()` returns. If it replaces the cached entry, two
+**Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFields`](../../src/Validator/MessageFields.php),
+[`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php) and [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php) each keep a static reflection cache keyed by class
+name. Once filled, they stay filled. As a result, an [`AttributeValidator`](../../src/Validator/AttributeValidator.php) subclass that filters
+rules must filter what [`AttributeValidator::rulesFor()`](../../src/Validator/AttributeValidator.php) returns. If it replaces the cached entry, two
 validators with different settings will overwrite each other's rules. See
 [Validation](../validation.md#2-drop-one-rule-keep-the-rest).

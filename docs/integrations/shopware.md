@@ -77,8 +77,8 @@ channel by default:
 </config>
 ```
 
-The values differ per sales channel, so implement `ConfigProviderInterface` instead of using a
-fixed `Config`:
+The values differ per sales channel, so implement [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) instead of using a
+fixed [`Config`](../../src/Config.php):
 
 ```php
 <?php declare(strict_types=1);
@@ -126,7 +126,7 @@ class SalesChannelConfigProvider implements ConfigProviderInterface
 }
 ```
 
-A message handler has no current sales channel to fall back on. `forSalesChannel()` returns a copy
+A message handler has no current sales channel to fall back on. `SalesChannelConfigProvider::forSalesChannel()` returns a copy
 bound to a given channel, so you can use the provider there too. See
 [below](#sales-channel-scoping).
 
@@ -202,7 +202,7 @@ Shopware loads the plugin's `Resources/config/packages/*.yaml` files.
 Sales-channel scoping
 ---------------------
 
-Shopware integrations most often go wrong here. `AbstractService` reads its configuration **once,
+Shopware integrations most often go wrong here. [`AbstractService`](../../src/Service/AbstractService.php) reads its configuration **once,
 in the constructor**. A service taken from the container keeps the credentials of whichever sales
 channel was current when it was built. In a storefront request that's what you want. In a
 **message handler or a scheduled task** there is no current channel at all.
@@ -352,7 +352,7 @@ A shipping method
 -----------------
 
 Register a `shipping_method` on install and price it with a Shopware rule-based price matrix.
-Avoid live quotes: calling `orderValuation()` from the cart means a third-party request on every
+Avoid live quotes: calling [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from the cart means a third-party request on every
 line item change.
 
 ```php
@@ -396,8 +396,8 @@ final class SyncStatusesTask extends ScheduledTask
 }
 ```
 
-For each sales channel, the handler builds a client and pages through `getOrders()` filtered to a
-recent date range. Don't call `getStatus()` for each order. One paged query covers hundreds of
+For each sales channel, the handler builds a client and pages through [`OrdersServiceInterface::getOrders()`](../../src/Api/Service/OrdersServiceInterface.php) filtered to a
+recent date range. Don't call [`OrdersServiceInterface::getStatus()`](../../src/Api/Service/OrdersServiceInterface.php) for each order. One paged query covers hundreds of
 orders.
 
 Caching
@@ -443,5 +443,5 @@ final class LabelController extends AbstractController
 }
 ```
 
-`getLabel()` accepts a list, so printing labels for several orders selected in the grid takes one
+[`OrdersServiceInterface::getLabel()`](../../src/Api/Service/OrdersServiceInterface.php) accepts a list, so printing labels for several orders selected in the grid takes one
 call.

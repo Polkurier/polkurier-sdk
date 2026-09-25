@@ -78,14 +78,14 @@ printf(
 The SDK cannot check these for you:
 
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
-  window. Check what a carrier requires with `availableCarriers(additionalData: true)`.
-- `description` has a length limit. `CreateOrderMessage::DESCRIPTION_MAX_LENGTH` is the general
+  window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
+- `description` has a length limit. [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) is the general
   one, and a carrier may set a lower one. Keep it short.
-- Some additional services have prerequisites. `availableCarriers(additionalData: true)` lists them
+- Some additional services have prerequisites. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists them
   per carrier, and they vary by carrier and by account. The recipient SMS notifications are the
-  exception: they are not listed there, and their rules are documented on `AdditionalServiceEnum`.
+  exception: they are not listed there, and their rules are documented on [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
 
-> `orderValuation()` only returns a price. It is not a dry run of `createOrder()`. Both take the
+> [`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) only returns a price. It is not a dry run of [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). Both take the
 > same payload, but a payload that gets a price can still be rejected when you create the order.
 
 ### The same thing with builders
@@ -122,7 +122,7 @@ There are 2 approaches. Most integrations use both.
 
 ### Let the customer choose
 
-`availableCarriers()` returns the carriers this account can ship with:
+[`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
 
 ```php
 use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
@@ -141,7 +141,7 @@ foreach ($carriers as $carrier) {
 }
 ```
 
-With `additionalData: true`, each `Carrier` also describes what it supports: shipment types, pack
+With `additionalData: true`, each [`Carrier`](../src/Response/Carrier.php) also describes what it supports: shipment types, pack
 limits, pickup requirements, the additional services it offers (except the SMS notifications) and
 which point map it uses. The SDK does not validate against this data. Use it to build your
 shipping form.
@@ -191,15 +191,15 @@ $order = CreateOrderMessageBuilder::create()
 ```
 
 **An amount of zero means no cash on delivery.** The SDK expresses this with
-`#[IgnoredWhen(property: 'amount', equals: 0.0)]`, so the rest of a zero-amount block is not
+[`#[IgnoredWhen(property: 'amount', equals: 0.0)]`](../src/Validator/Rule/IgnoredWhen.php), so the rest of a zero-amount block is not
 validated. For example, no bank account is required.
 
-**The account number is fully checked.** `Validate\Iban` verifies the ISO 13616 check digits, for
+**The account number is fully checked.** [`Validator\Rule\Iban`](../src/Validator/Rule/Iban.php) verifies the ISO 13616 check digits, for
 either a full IBAN or a bare Polish national number. The SDK is strict here because this field
 decides where the money goes.
 
-When you read an order back, cash on delivery comes as a different class. `Response\Order\Cod`
-reports what happened to the money (status, payout, return details), while `CodMessage` describes
+When you read an order back, cash on delivery comes as a different class. [`Response\Order\Cod`](../src/Response/Order/Cod.php)
+reports what happened to the money (status, payout, return details), while [`CodMessage`](../src/Request/Order/CodMessage.php) describes
 what to collect.
 
 ```php
@@ -253,7 +253,7 @@ $recipient = OrderAddressMessageBuilder::create()
 ```
 
 For several carriers, a recipient collecting from a point needs no street address.
-`OrderAddressValidator` accounts for this: an address with a point only needs the point and a phone
+[`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) accounts for this: an address with a point only needs the point and a phone
 number.
 
 ---
@@ -284,16 +284,16 @@ $days = $client->courier()->getCourierPickupTime($whenMessage);   // PickupTimeM
 Each entry is a day with its available time windows. Offer these to the customer, so they cannot
 pick a time the carrier will refuse.
 
-You can also book the collection as part of the order, through `CreateOrderMessage::$pickup`. Which
+You can also book the collection as part of the order, through [`CreateOrderMessage::$pickup`](../src/Request/Order/CreateOrderMessage.php). Which
 option to use depends on the carrier. Some require the pickup on the order, others accept a separate
-booking later. `availableCarriers(additionalData: true)` tells you which.
+booking later. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) tells you which.
 
 ---
 
 Labels and protocols
 --------------------
 
-`getLabel()` takes a **list** of order numbers and returns a single PDF with all their labels. You
+[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns a single PDF with all their labels. You
 do not need one call per order:
 
 ```php
@@ -329,8 +329,8 @@ use Polkurier\Webservice\Enum\Order\LabelFileFormatEnum;
 new GetDocumentMessage(orderNo: $numbers, fileFormat: LabelFileFormatEnum::Zpl);
 ```
 
-`getProtocol()` works the same way and returns the handover list the courier signs.
-`getOrderFile()` fetches a document attached to one order. `invoices()->getInvoicePdf()` also
+[`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) works the same way and returns the handover list the courier signs.
+[`OrdersServiceInterface::getOrderFile()`](../src/Api/Service/OrdersServiceInterface.php) fetches a document attached to one order. [`$client->invoices()->getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) also
 returns base64 in the same way.
 
 ---
@@ -377,7 +377,7 @@ Paging through a list
 The paged responses do not all have the same shape, so there are 2 loops. See
 [Messages](messages.md#lists-maps-and-pages).
 
-**When the response has a page count** (`OrderListMessage`, `MoneyBoxPayoutListMessage`):
+**When the response has a page count** ([`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php)):
 
 ```php
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
@@ -399,7 +399,7 @@ do {
 } while ($page <= $list->getTotalPages());
 ```
 
-**When it does not** (`InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage`), stop
+**When it does not** ([`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php)), stop
 when a page comes back short:
 
 ```php
@@ -443,8 +443,8 @@ function allOrders(PolkurierWebservice $client, GetOrdersMessageBuilder $filter)
 }
 ```
 
-Page sizes have a maximum, and the SDK checks it before sending: `GetOrdersMessage::MAX_PAGE_SIZE`
-is 100 and `GetTicketsMessage::MAX_PAGE_SIZE` is 250. A larger value throws a `ValidationException`.
+Page sizes have a maximum, and the SDK checks it before sending: [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Request/Order/GetOrdersMessage.php)
+is 100 and [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) is 250. A larger value throws a [`ValidationException`](../src/Exception/ValidationException.php).
 
 ---
 
@@ -489,7 +489,7 @@ $client->twoFactorToken()->twoFactorTokenChangeTransportMethod($changeMessage);
 ```
 
 Whether a call needs this depends on the account settings. Read
-`account()->getAccountInfo()->getPinLocks()`. The SDK does not guess: a wrong guess means either a
+[`$client->account()->getAccountInfo()->getPinLocks()`](../src/Api/Service/AccountServiceInterface.php). The SDK does not guess: a wrong guess means either a
 refused call or a code sent to the customer for no reason.
 
 ---
@@ -516,12 +516,12 @@ printf("Payout %s for %.2f PLN is %s\n",
     $payout->getNumber(), $payout->getAmount(), $payout->getStatus());
 ```
 
-> This moves real money, and there is no idempotency key. If `createPayout()` throws a
-> `ConnectionException`, check `getPayouts()` before you do anything else. Do not just retry.
+> This moves real money, and there is no idempotency key. If [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) throws a
+> [`ConnectionException`](../src/Exception/ConnectionException.php), check [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) before you do anything else. Do not just retry.
 
-`cancelPayout()` only works while the payout has not been sent. Current balances are on
-`account()->getAccountInfo()`: `getMoneyBoxBalance()`, `getMoneyBoxPayoutAvailableBalance()` and
-`getMoneyBoxToPayoutBalance()`.
+[`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while the payout has not been sent. Current balances are on
+[`$client->account()->getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::getMoneyBoxBalance()`](../src/Response/Account/AccountInfoMessage.php), [`AccountInfoMessage::getMoneyBoxPayoutAvailableBalance()`](../src/Response/Account/AccountInfoMessage.php) and
+[`AccountInfoMessage::getMoneyBoxToPayoutBalance()`](../src/Response/Account/AccountInfoMessage.php).
 
 ---
 
@@ -529,11 +529,11 @@ Retrying safely
 ---------------
 
 [Errors](errors.md#retrying-safely) lists which failures can be retried, and shows the
-reconcile-then-retry pattern for `createOrder()`. In short:
+reconcile-then-retry pattern for [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). In short:
 
 - Reads: retry freely.
-- `ValidationException`, `InvalidArgumentException`, `AuthorizationException`: never.
-- Writes after a `ConnectionException`: reconcile first. There is no idempotency key.
+- [`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php), [`AuthorizationException`](../src/Exception/AuthorizationException.php): never.
+- Writes after a [`ConnectionException`](../src/Exception/ConnectionException.php): reconcile first. There is no idempotency key.
 
 To retry at the transport level instead of around each call, use a
 [custom `ClientFactory`](architecture.md#clientfactoryinterface-your-own-http-client). A retry
@@ -549,12 +549,12 @@ Several responses stay the same for hours or days and are slow to fetch:
 
 | Call | Typical lifetime |
 |------|------------------|
-| `courier()->findCourierPoints()`, with only the carriers | Hours. Large. |
-| `courier()->getSupportedCountries()` | Days |
-| `knowledgeBase()->getIndex()` | Hours |
-| `tickets()->getContactTopics()` | Days |
-| `system()->getSystemInfo()` | Hours |
-| `courier()->availableCarriers()` | Minutes to hours. Account-specific |
+| [`$client->courier()->findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php), with only the carriers | Hours. Large. |
+| [`$client->courier()->getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | Days |
+| [`$client->knowledgeBase()->getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Hours |
+| [`$client->tickets()->getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | Days |
+| [`$client->system()->getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | Hours |
+| [`$client->courier()->availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Minutes to hours. Account-specific |
 
 You can cache around a single call, which is the simplest option:
 
@@ -569,7 +569,7 @@ $lockers = $cache->get('polkurier.inpost.lockers', function (ItemInterface $item
 Or around a whole service, which keeps caching out of your call sites. See
 [Architecture: substituting a service](architecture.md#substituting-a-service).
 
-Separately, set `metadataCache` on `SerializerConfig` in a long-running process. This caches the
+Separately, set `metadataCache` on [`SerializerConfig`](../src/Serializer/SerializerConfig.php) in a long-running process. This caches the
 serializer's reflection data, not API responses, and it is the SDK's biggest start-up cost. See
 [Configuration](configuration.md#metadatacache).
 
@@ -578,7 +578,7 @@ serializer's reflection data, not API responses, and it is the SDK's biggest sta
 Health checks
 -------------
 
-`heartbeat()` sends no credentials, so it tells you whether the API is reachable regardless of
+[`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) sends no credentials, so it tells you whether the API is reachable regardless of
 your token. Use it as the health probe.
 
 ```php
@@ -606,5 +606,5 @@ try {
 }
 ```
 
-`testAuthApi()` takes credentials as an argument instead of using the configured ones, so you can
+[`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) takes credentials as an argument instead of using the configured ones, so you can
 check what the user just typed before you save it.

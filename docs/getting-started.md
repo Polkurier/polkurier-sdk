@@ -26,7 +26,7 @@ You need two values from the customer panel at <https://www.polkurier.pl>:
 - `login`: your numeric customer id (not your email address).
 - `token`: generate one under *Settings > API token*.
 
-Both go into an `AuthorizationMessage`, which is included in every authenticated request. Don't
+Both go into an [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php), which is included in every authenticated request. Don't
 commit them to version control, and be careful where request bodies get logged. See
 [Configuration](configuration.md#logging).
 
@@ -69,8 +69,8 @@ $client->utils()->heartbeat();        // no credentials needed: is the API reach
 $client->utils()->testAuthApi($auth); // are these credentials good?
 ```
 
-`heartbeat()` sends no authorization, so it works even with a wrong token. If it succeeds and
-`testAuthApi()` throws an `AuthorizationException`, the token is the problem.
+[`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) sends no authorization, so it works even with a wrong token. If it succeeds and
+[`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) throws an [`AuthorizationException`](../src/Exception/AuthorizationException.php), the token is the problem.
 
 Making a call
 -------------
@@ -114,15 +114,15 @@ foreach ($list->getResult() as $order) {         // Order[]
 }
 ```
 
-Methods return typed values such as `Carrier[]`, an `Order`, or a `bool` for endpoints that only
+Methods return typed values such as `Carrier[]`, an [`Order`](../src/Response/Order.php), or a `bool` for endpoints that only
 acknowledge. You don't need to unwrap or cast anything. If the API returns something that doesn't
-match the method's return type, you get a `MalformedResponseException` instead of an unexpected
+match the method's return type, you get a [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of an unexpected
 null.
 
 What can go wrong
 -----------------
 
-Every exception the SDK throws extends `Polkurier\Webservice\Exception\Exception`, so you can catch
+Every exception the SDK throws extends [`Polkurier\Webservice\Exception\Exception`](../src/Exception/Exception.php), so you can catch
 them all at once, or catch the subclasses separately:
 
 ```php
@@ -144,8 +144,8 @@ try {
 }
 ```
 
-The order of the catch blocks matters. `AuthorizationException` extends `WebserviceException`,
-and `ValidationException` extends `InvalidArgumentException`. See [Errors](errors.md) for the full
+The order of the catch blocks matters. [`AuthorizationException`](../src/Exception/AuthorizationException.php) extends [`WebserviceException`](../src/Exception/WebserviceException.php),
+and [`ValidationException`](../src/Exception/ValidationException.php) extends [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php). See [Errors](errors.md) for the full
 hierarchy.
 
 Running the examples

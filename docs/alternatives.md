@@ -9,7 +9,7 @@ Building the client
 
 | Route | Use when | Where |
 |-------|----------|-------|
-| `new PolkurierWebservice(new Config(…))` | Scripts, cron, small applications | [Getting started](getting-started.md) |
+| [`new PolkurierWebservice(new Config(…))`](../src/PolkurierWebservice.php) | Scripts, cron, small applications | [Getting started](getting-started.md) |
 | Facade with substituted collaborators | You need your own HTTP client, serializer or validator | [Architecture](architecture.md#extension-points) |
 | Facade with `services: [Foo::class => $bar]` | One service needs to behave differently | [Architecture](architecture.md#substituting-a-service) |
 | Wiring a service by hand, no facade | A container is doing the wiring | [Architecture](architecture.md#not-using-the-facade-at-all) |
@@ -22,9 +22,9 @@ Supplying configuration
 
 | Route | Use when | Where |
 |-------|----------|-------|
-| A `Config` object | The values are known at wiring time | [Configuration](configuration.md#config) |
-| Your own `ConfigInterface` | The values come from a settings store or parameter bag | [Configuration](configuration.md) |
-| Your own `ConfigProviderInterface` | The values are not known until the call (per tenant, shop or channel) | [Configuration](configuration.md#per-tenant-credentials) |
+| A [`Config`](../src/Config.php) object | The values are known at wiring time | [Configuration](configuration.md#config) |
+| Your own [`ConfigInterface`](../src/Api/ConfigInterface.php) | The values come from a settings store or parameter bag | [Configuration](configuration.md) |
+| Your own [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) | The values are not known until the call (per tenant, shop or channel) | [Configuration](configuration.md#per-tenant-credentials) |
 | A client per tenant, sharing one serializer | Long-running workers, where a provider is not enough | [Configuration](configuration.md#sharing-a-serializer-across-clients) |
 
 Choosing an endpoint
@@ -53,9 +53,9 @@ Finding a pickup point
 
 | Route | Answers |
 |-------|---------|
-| `findCourierPoints()` | "Which points are near here, across these carriers?" |
-| `getCourierPoint($id, $couriers)` | "Does this id still exist?" Nullable |
-| `geo()->getMapToken()` | "Let the customer pick one on a map" |
+| [`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php) | "Which points are near here, across these carriers?" |
+| [`CourierServiceInterface::getCourierPoint($id, $couriers)`](../src/Api/Service/CourierServiceInterface.php) | "Does this id still exist?" Nullable |
+| [`$client->geo()->getMapToken()`](../src/Api/Service/GeoServiceInterface.php) | "Let the customer pick one on a map" |
 
 See [Services](services.md#finding-a-pickup-point) for details.
 
@@ -64,17 +64,17 @@ Reading orders back
 
 | Route | Use for |
 |-------|---------|
-| `getStatus()` | One order's current state. Fast. |
-| `getStatus(tracking: true)` | The same, plus the carrier's scan history. Slower. |
-| `getOrders()` | Querying and reconciliation. Paged, filterable, full `Order` objects. |
+| [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current state. Fast. |
+| [`OrdersServiceInterface::getStatus(tracking: true)`](../src/Api/Service/OrdersServiceInterface.php) | The same, plus the carrier's scan history. Slower. |
+| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Response/Order.php) objects. |
 
 Paging
 ------
 
 | Route | Use when |
 |-------|----------|
-| `while ($page <= $list->getTotalPages())` | `OrderListMessage`, `MoneyBoxPayoutListMessage` |
-| Stop when a page comes back short | `InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage` (no page count) |
+| `while ($page <= $list->getTotalPages())` | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
+| Stop when a page comes back short | [`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
 | A generator wrapping either | Application code that just wants to iterate |
 
 [Recipes](recipes.md#paging-through-a-list) shows both loops.
@@ -84,42 +84,46 @@ Country coverage
 
 | Route | Answers |
 |-------|---------|
-| `getSupportedCountries()` | "What does Polkurier serve?" Returns `Country[]` with regions |
-| `getCountries()` | "Where does *this* carrier deliver?" Returns a code-to-name map |
+| [`CourierServiceInterface::getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | "What does Polkurier serve?" Returns `Country[]` with regions |
+| [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | "Where does *this* carrier deliver?" Returns a code-to-name map |
 
 Support
 -------
 
 | Route | Use for |
 |-------|---------|
-| `createTicket()` + `getTicketMessages()` | A conversation you own and can poll |
-| `getContactForm()` + `saveContactForm()` | A one-way submission whose fields the API defines |
+| [`TicketsServiceInterface::createTicket()`](../src/Api/Service/TicketsServiceInterface.php) + [`TicketsServiceInterface::getTicketMessages()`](../src/Api/Service/TicketsServiceInterface.php) | A conversation you own and can poll |
+| [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) + [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) | A one-way submission whose fields the API defines |
 
 Knowledge base
 --------------
 
 | Route | Use when |
 |-------|----------|
-| `getIndex()` | You want everything, and will filter locally. Cacheable. |
-| `search()` | The customer is typing. |
+| [`KnowledgeBaseServiceInterface::getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | You want everything, and will filter locally. Cacheable. |
+| [`KnowledgeBaseServiceInterface::search()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | The customer is typing. |
 
 Invoices
 --------
 
 | Route | Gives you |
 |-------|-----------|
-| `getInvoicePdf()` | The document, for filing |
-| `getInvoiceSummaryList()` | The itemised summary, for reconciling line by line |
+| [`InvoicesServiceInterface::getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) | The document, for filing |
+| [`InvoicesServiceInterface::getInvoiceSummaryList()`](../src/Api/Service/InvoicesServiceInterface.php) | The itemised summary, for reconciling line by line |
 
 Documents in general
 --------------------
 
+Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Response/Order/OrderFileMessage.php),
+[`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php) and
+[`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
+
 | Route | Gives you |
 |-------|-----------|
-| `getFile()` | Base64, as received. Use it for a `data:` URI or to pass the file on |
-| `getDecodedFile()` | The raw bytes. Use it to write to disk or stream to a browser |
+| [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received. Use it for a `data:` URI or to pass the file on |
+| [`DocumentMessage::getDecodedFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | The raw bytes. Use it to write to disk or stream to a browser |
 
-`getLabel()` takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
+[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.
 
 Changing what gets validated
@@ -128,10 +132,10 @@ Changing what gets validated
 | Route | Takes away |
 |-------|-----------|
 | `validatePayloads: false` | Everything |
-| Subclass `AttributeValidator`, filter `rulesFor()` | One rule |
+| Subclass [`AttributeValidator`](../src/Validator/AttributeValidator.php), filter [`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php) | One rule |
 | Register an extra validator on the registry | Nothing. Adds your own |
 | Declare rules on your own message subclass | Nothing. Adds your own |
-| Implement `ValidatorInterface` | Everything the SDK had |
+| Implement [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Everything the SDK had |
 
 [Validation](validation.md#changing-the-rules) shows all 5 with code.
 
@@ -140,10 +144,10 @@ Reading a rejection
 
 | Route | Gives you |
 |-------|-----------|
-| `ValidationException::getValidationErrors()` | Everything, keyed by wire field name |
-| `ValidationException::getFieldErrors($field)` | One field |
-| `ValidationException::getMessage()` | All of it flattened into a sentence |
-| `WebserviceException::getErrorMessage()->getValidationErrors()` | The same shape, from the service side |
+| [`ValidationException::getValidationErrors()`](../src/Exception/ValidationException.php) | Everything, keyed by wire field name |
+| [`ValidationException::getFieldErrors($field)`](../src/Exception/ValidationException.php) | One field |
+| [`ValidationException::getMessage()`](../src/Exception/ValidationException.php) | All of it flattened into a sentence |
+| [`WebserviceException::getErrorMessage()->getValidationErrors()`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
 
 Because of the last row, you can display a local rejection and a server-side one with the same
 code.
@@ -153,11 +157,11 @@ Changing how requests are made
 
 | Route | Replaces |
 |-------|----------|
-| `ClientFactoryInterface` | The HTTP client (any PSR-18 client) |
-| `RequestFactoryInterface` | How the envelope is built |
-| `ResponseFactoryInterface` | How the envelope is read |
-| `SerializerProviderInterface` | The whole mapping stack |
-| `SerializerConfig` | Caching, JSON flags, timezone, strictness |
+| [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
+| [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) | How the envelope is built |
+| [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) | How the envelope is read |
+| [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | The whole mapping stack |
+| [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Caching, JSON flags, timezone, strictness |
 | Subclassing a service | One method |
 | `services: [...]` with your own implementation | One service entirely |
 
@@ -179,8 +183,8 @@ Testing
 |------|----------|
 | Inject `Api\Service\*Interface` and mock it | Most unit tests |
 | `services: [Foo::class => $mock]` | Testing your flow through the facade |
-| Replace `ClientFactoryInterface` | Testing that you talk to the API correctly |
-| `AttributeValidator` on its own | Testing a payload, with no client at all |
+| Replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
+| [`AttributeValidator`](../src/Validator/AttributeValidator.php) on its own | Testing a payload, with no client at all |
 | The live API with `rejectUnknownFields: true` | Catching a response that has grown a field |
 
 [Testing](testing.md) covers each of these.

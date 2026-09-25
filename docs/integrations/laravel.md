@@ -158,7 +158,7 @@ final class PolkurierServiceProvider extends ServiceProvider
 Register the provider in `bootstrap/providers.php` (Laravel 11+) or `config/app.php` (Laravel 10).
 
 > `Psr16Adapter` comes from `symfony/cache`. It wraps Laravel's PSR-16 cache in the PSR-6 pool that
-> `SerializerConfig` expects. If you don't want that dependency, pass `metadataCache: null`.
+> [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) expects. If you don't want that dependency, pass `metadataCache: null`.
 > Everything still works, just without the metadata cache.
 
 Using it
@@ -265,7 +265,7 @@ final class PlaceShipment implements ShouldQueue
 }
 ```
 
-Note the `$this->fail()` call in place of a rethrow. A rejected payload will be rejected again.
+Note the [`Illuminate\Queue\InteractsWithQueue::fail()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Queue/InteractsWithQueue.php) call in place of a rethrow. A rejected payload will be rejected again.
 If you rethrow, the job uses up all its retries and ends up in `failed_jobs`, where it looks like
 an outage.
 
@@ -307,12 +307,12 @@ try {
 
 `$fieldMap` maps the API's wire names (`sender.postcode`) to your form's field names
 (`shipping.postal_code`). The same code works for a rejection from the API, because
-`WebserviceException::getErrorMessage()->getValidationErrors()` returns the same shape.
+[`WebserviceException::getErrorMessage()->getValidationErrors()`](../../src/Exception/WebserviceException.php) returns the same shape.
 
 Per-tenant credentials
 ----------------------
 
-Bind `ConfigProviderInterface` to a class that reads the current tenant:
+Bind [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) to a class that reads the current tenant:
 
 ```php
 $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new class($app) implements ConfigProviderInterface {
@@ -333,8 +333,8 @@ $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new cla
 
 > **In this setup, don't register the services as singletons.** Each service reads its
 > configuration once, in the constructor. A singleton built for tenant A keeps tenant A's
-> credentials until the process ends. Register the services with `bind()` instead of
-> `singleton()`. `SerializerProviderInterface` can stay a singleton, since it is stateless and
+> credentials until the process ends. Register the services with [`Illuminate\Container\Container::bind()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Container/Container.php)
+> instead of [`Container::singleton()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Container/Container.php). [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) can stay a singleton, since it is stateless and
 > expensive to build. Under Octane, also reset anything tenant-scoped between requests.
 
 Artisan commands

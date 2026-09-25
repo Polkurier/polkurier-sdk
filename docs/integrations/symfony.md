@@ -121,7 +121,7 @@ monolog:
 ```
 
 > Leave this handler at `error` unless the log goes somewhere safe. If you set `methodsToLog` on
-> `Config`, full request bodies are logged, and they contain the API token.
+> [`Config`](../../src/Config.php), full request bodies are logged, and they contain the API token.
 
 Autowiring
 ----------
@@ -151,7 +151,7 @@ Aim for this: each class depends on one interface and doesn't know the facade ex
 Using the facade
 ----------------
 
-If you prefer one service to 16, register `PolkurierWebservice` and leave out the per-service
+If you prefer one service to 16, register [`PolkurierWebservice`](../../src/PolkurierWebservice.php) and leave out the per-service
 aliases:
 
 ```yaml
@@ -198,7 +198,7 @@ Per-tenant credentials
 ----------------------
 
 If the credentials depend on the user, the shop or the request, implement
-`ConfigProviderInterface` and alias it instead of `ConfigProvider`:
+[`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) and alias it instead of [`ConfigProvider`](../../src/ConfigProvider.php):
 
 ```php
 namespace App\Polkurier;
@@ -323,10 +323,10 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-Two things to note. `UnrecoverableMessageHandlingException` stops Messenger from retrying a payload
+Two things to note. [`Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Messenger/Exception/UnrecoverableMessageHandlingException.php) stops Messenger from retrying a payload
 that will never be accepted. Without it, a bad postcode uses up 3 retries and ends up in the
-failure transport, where it looks like an outage. Second, the guard at the top of `__invoke()`
-makes it safe to retry after a `ConnectionException`. There's no idempotency key, so your own
+failure transport, where it looks like an outage. Second, the guard at the top of `PlaceShipmentHandler::__invoke()`
+makes it safe to retry after a [`ConnectionException`](../../src/Exception/ConnectionException.php). There's no idempotency key, so your own
 record of the placed order is the only protection. For a stricter version, reconcile against
 `get_orders` instead (see [Errors](../errors.md#retrying-safely)).
 
@@ -396,13 +396,13 @@ final readonly class PolkurierHealthCheck
 }
 ```
 
-`heartbeat()` doesn't send credentials. It tells you whether the API is reachable, whether or not
+[`UtilsServiceInterface::heartbeat()`](../../src/Api/Service/UtilsServiceInterface.php) doesn't send credentials. It tells you whether the API is reachable, whether or not
 the token is valid.
 
 Validation errors in a form
 ---------------------------
 
-`ValidationException` uses the wire field names, which won't match the fields in your form. Map
+[`ValidationException`](../../src/Exception/ValidationException.php) uses the wire field names, which won't match the fields in your form. Map
 them in one place:
 
 ```php
@@ -424,7 +424,7 @@ function applyToForm(ValidationException $e, FormInterface $form, array $fieldMa
 }
 ```
 
-`WebserviceException::getErrorMessage()->getValidationErrors()` returns the same shape, so the same
+[`WebserviceException::getErrorMessage()`](../../src/Exception/WebserviceException.php) followed by [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) returns the same shape, so the same
 function works when the API rejects the payload.
 
 Testing

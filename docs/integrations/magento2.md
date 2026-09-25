@@ -89,14 +89,15 @@ Defaults go in `etc/config.xml`:
 ```
 
 > With `type="obscure"` and the `Encrypted` backend model, the token isn't stored as plain text in
-> `core_config_data`. Always read it back through `EncryptorInterface::decrypt()`. The raw value
-> from `ScopeConfigInterface` is still encrypted.
+> `core_config_data`. Always read it back through
+> [`Magento\Framework\Encryption\EncryptorInterface::decrypt()`](https://github.com/magento/magento2/blob/2.4-develop/lib/internal/Magento/Framework/Encryption/EncryptorInterface.php). The raw value
+> from [`Magento\Framework\App\Config\ScopeConfigInterface`](https://github.com/magento/magento2/blob/2.4-develop/lib/internal/Magento/Framework/App/Config/ScopeConfigInterface.php) is still encrypted.
 
 The config provider
 -------------------
 
-The configuration is scoped per store, so implement `ConfigProviderInterface` instead of using a
-fixed `Config`:
+The configuration is scoped per store, so implement [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) instead of using a
+fixed [`Config`](../../src/Config.php):
 
 ```php
 <?php
@@ -147,7 +148,7 @@ class ConfigProvider implements ConfigProviderInterface
 ```
 
 > Watch the object lifetime. Magento's object manager caches shared instances for the request, and
-> `AbstractService` reads its configuration once, in the constructor. A normal storefront or admin
+> [`AbstractService`](../../src/Service/AbstractService.php) reads its configuration once, in the constructor. A normal storefront or admin
 > request deals with one store, so that's fine. A **cron job or consumer that loops over stores**
 > will keep the first store's config. Emulate the store *before* resolving the service, or build
 > the client per store. See [the multi-store note](#multi-store-and-cron) below.
@@ -317,10 +318,12 @@ class OrderMapper
 }
 ```
 
-Watch out for two Magento quirks. `getStreetLine(2)` is often empty, because Magento doesn't keep
+Watch out for two Magento quirks.
+[`Magento\Sales\Model\Order\Address::getStreetLine(2)`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Sales/Model/Order/Address.php) is often empty, because Magento doesn't keep
 the house number separate from the street. The API needs the number, so pick a convention and
-enforce it in checkout. Also, Magento requires `getTelephone()` but doesn't validate it. Expect
-more `ValidationException`s on `phone` than on any other field.
+enforce it in checkout. Also, Magento requires
+[`Address::getTelephone()`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Sales/Model/Order/Address.php) but doesn't validate it. Expect
+more [`ValidationException`](../../src/Exception/ValidationException.php)s on `phone` than on any other field.
 
 Placing the order from a consumer
 ---------------------------------
@@ -389,15 +392,17 @@ Add `polkurier_number` and `polkurier_carrier` as extension attributes or as sal
 A shipping carrier
 ------------------
 
-To show Polkurier rates in checkout, extend `Magento\Shipping\Model\Carrier\AbstractCarrier` and
-implement `CarrierInterface`. Magento calls `collectRates()` on every cart change, so:
+To show Polkurier rates in checkout, extend [`Magento\Shipping\Model\Carrier\AbstractCarrier`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Shipping/Model/Carrier/AbstractCarrier.php)
+and implement [`Magento\Shipping\Model\Carrier\CarrierInterface`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Shipping/Model/Carrier/CarrierInterface.php).
+Magento calls [`AbstractCarrierInterface::collectRates()`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Shipping/Model/Carrier/AbstractCarrierInterface.php)
+on every cart change, so:
 
-- **Cache `availableCarriers()`.** The result depends on the account but stays the same for minutes
+- **Cache [`CourierServiceInterface::availableCarriers()`](../../src/Api/Service/CourierServiceInterface.php).** The result depends on the account but stays the same for minutes
   to hours.
-- **Avoid calling `orderValuation()` for every quote.** Each call is a request to a third party in
+- **Avoid calling [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) for every quote.** Each call is a request to a third party in
   the middle of a cart update. If you need it, cache the result by destination and parcel
   dimensions, and use a short timeout.
-- **Return `false` on errors.** If `collectRates()` returns `false`, your method is hidden. If it
+- **Return `false` on errors.** If [`collectRates()`](https://github.com/magento/magento2/blob/2.4-develop/app/code/Magento/Shipping/Model/Carrier/AbstractCarrierInterface.php) returns `false`, your method is hidden. If it
   throws, checkout breaks.
 
 ```php
@@ -422,7 +427,7 @@ public function collectRates(RateRequest $request)
 Printing labels from the admin grid
 -----------------------------------
 
-`getLabel()` accepts a list of order numbers and returns a single PDF. A mass action on the sales
+[`OrdersServiceInterface::getLabel()`](../../src/Api/Service/OrdersServiceInterface.php) accepts a list of order numbers and returns a single PDF. A mass action on the sales
 grid therefore needs only one call:
 
 ```php

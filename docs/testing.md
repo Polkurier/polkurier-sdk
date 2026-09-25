@@ -12,11 +12,11 @@ to replace is the HTTP client.
 
 ### 1. Substitute the transport (recommended)
 
-If you replace `ClientFactoryInterface`, everything above it runs as normal: request building,
+If you replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), everything above it runs as normal: request building,
 serialization, envelope parsing, response mapping and exception handling. Only the network call is
 fake.
 
-The SDK includes a client for this, `Polkurier\Webservice\Testing\RecordingClient`. It answers
+The SDK includes a client for this, [`Polkurier\Webservice\Testing\RecordingClient`](../src/Testing/RecordingClient.php). It answers
 every request with a canned envelope and records what it was sent:
 
 ```php
@@ -81,7 +81,7 @@ Replace the transport to test that you are calling the API correctly.
 
 ### 3. Don't use the facade at all
 
-Your code should type-hint `Api\Service\OrdersServiceInterface` instead of `PolkurierWebservice`.
+Your code should type-hint [`Api\Service\OrdersServiceInterface`](../src/Api/Service/OrdersServiceInterface.php) instead of [`PolkurierWebservice`](../src/PolkurierWebservice.php).
 Then most of your tests need neither of the approaches above. Pass a mock of the interface directly
 and do not construct the SDK at all.
 
@@ -133,12 +133,12 @@ A new field in a response then fails the build instead of being silently ignored
 
 | Seam | Replace | Use when |
 |------|---------|----------|
-| Transport | `ClientFactoryInterface` | Testing that you talk to the API correctly |
+| Transport | [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | Service | `services: [Foo::class => $mock]` | Testing your flow, not the SDK |
 | Interface | Inject `Api\Service\*Interface` | Most unit tests, if your design allows |
-| Serializer | `SerializerProviderInterface` | Testing mapping changes of your own |
-| Validator | `ValidatorInterface` | Testing rules, or turning them off in a fixture |
-| Config | `ConfigProviderInterface` | Testing per-tenant resolution |
+| Serializer | [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | Testing mapping changes of your own |
+| Validator | [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Testing rules, or turning them off in a fixture |
+| Config | [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) | Testing per-tenant resolution |
 
 ---
 
@@ -199,7 +199,7 @@ fixtures miss. It is read-only: nothing in it places an order, moves money or de
 ### Adding a test
 
 Unit tests go under `tests/Unit`, mirroring the namespace they cover, with `#[CoversClass]`.
-Anything touching the network goes under `tests/Integration` with `#[Group('integration')]` and
+Anything touching the network goes under `tests/Integration` with PHPUnit's [`#[Group('integration')]`](https://docs.phpunit.de/en/11.5/attributes.html#group) and
 `#[CoversNothing]`.
 
 PHPUnit is configured to fail on warnings, notices and deprecations. A test that emits a
