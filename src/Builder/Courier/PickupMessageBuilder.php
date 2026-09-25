@@ -13,10 +13,10 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 /**
- * Assembles a standing collection request, not tied to an order.
+ * Assembles a collection request that is not tied to an order.
  *
- * The date and the shipment type are optional because which of them a carrier wants varies, and
- * available_carriers is what says so.
+ * The date and the shipment type are optional. Which of them a carrier needs varies, and
+ * available_carriers tells you.
  */
 class PickupMessageBuilder extends AbstractBuilder
 {

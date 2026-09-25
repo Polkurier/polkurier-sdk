@@ -20,12 +20,11 @@ use Polkurier\Webservice\Response\PackTemplate;
 /**
  * Saved parcel templates: reusable dimensions, weight and service selections.
  *
- * Templates exist to save re-entering the same parcel; they are not referenced by an order. Read
- * one and copy its values into the order payload.
+ * An order can't reference a template. To use one, read it and copy its values into the order
+ * payload.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -33,8 +32,8 @@ use Polkurier\Webservice\Response\PackTemplate;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface PackTemplatesServiceInterface
 {
@@ -85,16 +84,16 @@ interface PackTemplatesServiceInterface
     /**
      * Creates a template, or updates the one its id names.
      *
-     * Values are normalised rather than rejected: dimensions come back as whole numbers, weight and
-     * monetary amounts to two decimals, an unrecognised parcel type as an unknown marker, and
-     * unrecognised service codes are not kept — so a template can come back with fewer services than
-     * were sent. Read the response rather than assuming it echoes the request.
+     * Dimensions are in whole centimetres. Give the weight and monetary amounts to at most 2
+     * decimals. Use parcel types from {@see \Polkurier\Webservice\Enum\Order\PackTypeEnum} and
+     * service codes from {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum}. Read the
+     * stored values from the response.
      *
-     * The name, however, is required, and the shipment type must be a known one.
+     * The name is required. The SDK checks this before sending.
      *
      * Endpoint: `save_pack_template`
      *
-     * Request; omit `id` to create:
+     * Request (omit `id` to create):
      * ```json
      * {
      *     "apimethod": "save_pack_template",
@@ -124,8 +123,8 @@ interface PackTemplatesServiceInterface
      *      "shipmenttype": ["Błędny typ przesyłki"]
      *  }}
      * ```
-     * The message names only the first failure; `validation_errors` carries them all, keyed by the
-     * API's own field names.
+     * The message names only the first failure. `validation_errors` has all of them, keyed by the
+     * API's field names.
      *
      * @param SaveMessage $saveMessage
      *
@@ -142,10 +141,9 @@ interface PackTemplatesServiceInterface
     /**
      * Deletes a template.
      *
-     * Templates are only a convenience for composing orders, so removing one has no effect on orders
-     * already placed from it.
+     * Orders already placed from the template are not affected.
      *
-     * As with bank accounts, deleting an unknown id is a silent success rather than an error.
+     * As with bank accounts, deleting an unknown id succeeds without an error.
      *
      * Endpoint: `delete_pack_template`
      *

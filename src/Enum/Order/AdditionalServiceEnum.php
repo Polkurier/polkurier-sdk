@@ -10,24 +10,22 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * Optional services that can be bought alongside carriage.
  *
- * Availability is per carrier and sometimes per account; `available_carriers` reports the
- * supported set, except for the SMS notifications, which it does not list. Asking for an
- * unsupported service is an error rather than a no-op. Services are sent as a map of code to
- * `true` — {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} builds that from a
- * plain list.
+ * Availability depends on the carrier and sometimes on the account. `available_carriers` lists
+ * the supported services, except the SMS notifications. Asking for an unsupported service is an
+ * error. Services are sent as a map of code to `true`.
+ * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} builds the map from a plain list.
  *
- * Conditions the SDK cannot check locally:
+ * Conditions the SDK can't check locally:
  *
- * - WEEK_COLLECTION is InPost parcel lockers only.
+ * - WEEK_COLLECTION is for InPost parcel lockers only.
  * - COVER_ADDRESS_SENDER requires a cover address on the order.
- * - The recipient SMS notifications come in two independent kinds — when the parcel is
- *   dispatched, and when it goes out for delivery — and either or both can be ordered. Each has a
- *   _WITH_NAME variant that replaces its plain variant rather than combining with it, and that
- *   needs a default SMS sender name on the account: without one the order is refused with
- *   PARAMS_NOT_SET. Ordering the named dispatch notification also sends an ordered out-for-delivery
- *   notification under that name; the reverse does not hold.
- * - For several UPS services SMS notifications are skipped without an error: the order is
- *   accepted, and nothing is sent or charged.
+ * - There are 2 independent recipient SMS notifications: one when the parcel is dispatched and
+ *   one when it goes out for delivery. You can order either or both. Each has a _WITH_NAME
+ *   variant that replaces the plain one (don't order both). It needs a default SMS sender name on
+ *   the account, otherwise the order is refused with PARAMS_NOT_SET. If you order the named
+ *   dispatch notification, an out-for-delivery notification you also ordered is sent under that
+ *   name too. It doesn't work the other way round.
+ * - Not every UPS service supports SMS notifications.
  */
 enum AdditionalServiceEnum: string
 {
@@ -43,7 +41,7 @@ enum AdditionalServiceEnum: string
     case CourierWithLabel = 'COURIER_WITH_LABEL';
 
     /**
-     * A standing weekly collection. InPost parcel lockers only; requesting it
+     * A regular weekly collection. InPost parcel lockers only. Requesting it
      * for any other carrier is rejected.
      */
     case WeekCollection = 'WEEK_COLLECTION';
@@ -54,30 +52,28 @@ enum AdditionalServiceEnum: string
     case SmsNotificationRecipient = 'SMS_NOTIFICATION_RECIPIENT';
 
     /**
-     * As SMS_NOTIFICATION_RECIPIENT, but sent under the
-     * account's own sender name. Requires that name to be
-     * configured, and replaces the plain variant rather
-     * than adding to it.
+     * Like SMS_NOTIFICATION_RECIPIENT, but sent under the
+     * account's own sender name. The name must be set on the
+     * account. Replaces the plain variant, so don't order both.
      */
     case SmsNotificationRecipientWithName = 'SMS_NOTIFICATION_RECIPIENT_WITH_NAME';
 
     /**
      * Texts the recipient when the parcel goes out for delivery.
-     * Independent of SMS_NOTIFICATION_RECIPIENT: either, or both,
-     * can be ordered.
+     * Independent of SMS_NOTIFICATION_RECIPIENT. You can order
+     * either or both.
      */
     case SmsNotificationRecipientOutForDelivery = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY';
 
     /**
-     * As SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY, but
-     * sent under the account's own sender name. Requires that name
-     * to be configured, and replaces the plain variant rather than
-     * adding to it.
+     * Like SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY, but
+     * sent under the account's own sender name. The name must be set
+     * on the account. Replaces the plain variant, so don't order both.
      */
     case SmsNotificationRecipientOutForDeliveryWithName = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY_WITH_NAME';
 
     /**
-     * No printed label: the sender presents a code at drop-off. The code comes back
+     * No printed label. The sender shows a code at drop-off. The code is returned
      * as the order's shipment code.
      */
     case Labelless = 'LABELLESS';
@@ -109,7 +105,7 @@ enum AdditionalServiceEnum: string
     case Tires = 'TIRES';
 
     /**
-     * The courier carries the parcel to the door rather than the kerb.
+     * The courier carries the parcel to the door, not just to the kerb.
      */
     case BringingDeliveredParcel = 'BRINGING_DELIVERED_PARCEL';
 
@@ -129,7 +125,7 @@ enum AdditionalServiceEnum: string
     case DeliveryToTime = 'DELIVERY_TO_TIME';
 
     /**
-     * Handed to a person rather than left in a safe place.
+     * Handed to a person, not left in a safe place.
      */
     case HandDelivery = 'HAND_DELIVERY';
 

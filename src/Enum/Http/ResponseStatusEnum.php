@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\Http;
 /**
  * The `status` field every API response carries.
  *
- * This, not the HTTP status, says whether a call succeeded. The API answers HTTP 200 for
- * everything — authentication failures, validation errors and internal faults included.
+ * Use this to check whether a call succeeded. The API returns HTTP 200 for everything, including
+ * authentication failures, validation errors and internal errors.
  */
 enum ResponseStatusEnum: string
 {

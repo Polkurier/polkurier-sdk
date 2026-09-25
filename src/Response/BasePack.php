@@ -12,11 +12,11 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The dimensions and weight of one parcel, as the API reports them.
+ * Dimensions and weight of one parcel, as the API reports them.
  *
- * Sending them is {@see \Polkurier\Webservice\Request\Common\BasePackMessage} and its
- * subclasses instead. Lengths are whole centimetres and the weight is in kilograms, and carriers
- * enforce their own limits on both, which `available_carriers` reports.
+ * To send them, use {@see \Polkurier\Webservice\Request\Common\BasePackMessage} or one of its
+ * subclasses. Lengths are whole centimetres and the weight is in kilograms. Each carrier has its own
+ * limits on both, and `available_carriers` reports them.
  */
 class BasePack implements MessageInterface
 {

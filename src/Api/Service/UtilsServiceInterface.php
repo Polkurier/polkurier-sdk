@@ -19,9 +19,8 @@ use Polkurier\Webservice\Response\Util\HeartbeatMessage;
 /**
  * Checks that do not belong to any one functional area.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -29,20 +28,20 @@ use Polkurier\Webservice\Response\Util\HeartbeatMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface UtilsServiceInterface
 {
     /**
      * Confirms the API is reachable and reports its clock.
      *
-     * The only method that needs no credentials, which makes it the right probe for connectivity and
-     * for verifying a configured API URL before credentials exist. The SDK omits the authorization
-     * block entirely rather than sending empty credentials.
+     * It needs no credentials. Use it to check connectivity, or to test a
+     * configured API URL before you have credentials. The SDK leaves out the authorization block
+     * entirely.
      *
-     * The returned time is the server's, so comparing it with your own is a cheap way to catch clock
-     * skew — which matters for anything scheduling a collection.
+     * The returned time is the server's. Compare it with your own clock to catch clock skew, which
+     * matters when you schedule a collection.
      *
      * Endpoint: `heartbeat`
      *
@@ -75,12 +74,11 @@ interface UtilsServiceInterface
     /**
      * Verifies a set of credentials without doing anything else.
      *
-     * Takes the credentials explicitly rather than using the configured ones, so it can validate a
-     * token a customer has just pasted in before it is stored anywhere.
+     * Takes the credentials as an argument instead of using the configured ones. You can use it to
+     * check a token a customer has just pasted in, before you store it.
      *
-     * Authorization is enforced before any method runs, so bad credentials surface as an
-     * AuthorizationException rather than as a negative result. The payload's flag is consequently
-     * always true — reaching it at all is the answer.
+     * Bad credentials throw an AuthorizationException. The `authorization` flag in a successful
+     * response is therefore always true.
      *
      * Endpoint: `test_auth_api`
      *
@@ -101,7 +99,7 @@ interface UtilsServiceInterface
      * }
      * ```
      *
-     * On bad credentials, which raises AuthorizationException rather than returning:
+     * Failed authorization (this example has empty credentials) throws AuthorizationException:
      * ```json
      * {
      *     "status": "error",

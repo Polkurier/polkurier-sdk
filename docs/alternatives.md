@@ -1,8 +1,8 @@
-More than one way
-=================
+Alternatives
+============
 
-Where the SDK offers several routes to the same outcome, this is the index of them — what the
-choices are, and which one to reach for. Each row links to the full treatment.
+Where the SDK offers several ways to do the same thing, this page lists them and says when to use
+each. Most rows link to the full description.
 
 Building the client
 -------------------
@@ -11,11 +11,11 @@ Building the client
 |-------|----------|-------|
 | `new PolkurierWebservice(new Config(…))` | Scripts, cron, small applications | [Getting started](getting-started.md) |
 | Facade with substituted collaborators | You need your own HTTP client, serializer or validator | [Architecture](architecture.md#extension-points) |
-| Facade with `services: [Foo::class => $bar]` | One service behaves differently; the rest do not | [Architecture](architecture.md#services--substituting-a-service) |
+| Facade with `services: [Foo::class => $bar]` | One service needs to behave differently | [Architecture](architecture.md#substituting-a-service) |
 | Wiring a service by hand, no facade | A container is doing the wiring | [Architecture](architecture.md#not-using-the-facade-at-all) |
 
-Type-hint `Api\Service\*Interface` in your own code whichever route you take. The facade is a
-convenience, not a dependency.
+Whichever you choose, type-hint `Api\Service\*Interface` in your own code. Your code should not
+depend on the facade.
 
 Supplying configuration
 -----------------------
@@ -24,7 +24,7 @@ Supplying configuration
 |-------|----------|-------|
 | A `Config` object | The values are known at wiring time | [Configuration](configuration.md#config) |
 | Your own `ConfigInterface` | The values come from a settings store or parameter bag | [Configuration](configuration.md) |
-| Your own `ConfigProviderInterface` | The values are not known until the call — per tenant, shop, channel | [Configuration](configuration.md#per-tenant-credentials) |
+| Your own `ConfigProviderInterface` | The values are not known until the call (per tenant, shop or channel) | [Configuration](configuration.md#per-tenant-credentials) |
 | A client per tenant, sharing one serializer | Long-running workers, where a provider is not enough | [Configuration](configuration.md#sharing-a-serializer-across-clients) |
 
 Choosing an endpoint
@@ -46,7 +46,7 @@ Building a request payload
 | `new Message(...$array)` | Input is already an associative array you have validated | [Messages](messages.md#three-ways-to-build-one) |
 | Subclassing a message | The API grew a field the SDK has not caught up with | [Messages](messages.md#extending-a-message) |
 
-All four reach the same validation, at the same point.
+All 4 go through the same validation at the same point.
 
 Finding a pickup point
 ----------------------
@@ -54,18 +54,18 @@ Finding a pickup point
 | Route | Answers |
 |-------|---------|
 | `findCourierPoints()` | "Which points are near here, across these carriers?" |
-| `getCourierPoint($id, $couriers)` | "Does this id still exist?" — nullable |
+| `getCourierPoint($id, $couriers)` | "Does this id still exist?" Nullable |
 | `geo()->getMapToken()` | "Let the customer pick one on a map" |
 
-Full treatment in [Services](services.md#finding-a-pickup-point--three-ways).
+See [Services](services.md#finding-a-pickup-point) for details.
 
 Reading orders back
 -------------------
 
 | Route | Use for |
 |-------|---------|
-| `getStatus()` | One order's current state. Cheap. |
-| `getStatus(tracking: true)` | …plus the carrier's scan history. Slower — it queries the carrier. |
+| `getStatus()` | One order's current state. Fast. |
+| `getStatus(tracking: true)` | The same, plus the carrier's scan history. Slower. |
 | `getOrders()` | Querying and reconciliation. Paged, filterable, full `Order` objects. |
 
 Paging
@@ -74,18 +74,18 @@ Paging
 | Route | Use when |
 |-------|----------|
 | `while ($page <= $list->getTotalPages())` | `OrderListMessage`, `MoneyBoxPayoutListMessage` |
-| Stop when a page comes back short | `InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage` — no page count |
+| Stop when a page comes back short | `InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage` (no page count) |
 | A generator wrapping either | Application code that just wants to iterate |
 
-Both loops, and why the responses differ, are in [Recipes](recipes.md#paging-through-a-list).
+[Recipes](recipes.md#paging-through-a-list) shows both loops.
 
 Country coverage
 ----------------
 
 | Route | Answers |
 |-------|---------|
-| `getSupportedCountries()` | "What does Polkurier serve?" — `Country[]` with regions |
-| `getCountries()` | "Where does *this* carrier deliver?" — a code-to-name map |
+| `getSupportedCountries()` | "What does Polkurier serve?" Returns `Country[]` with regions |
+| `getCountries()` | "Where does *this* carrier deliver?" Returns a code-to-name map |
 
 Support
 -------
@@ -116,11 +116,11 @@ Documents in general
 
 | Route | Gives you |
 |-------|-----------|
-| `getFile()` | Base64, as it arrived — for a `data:` URI or onward transport |
-| `getDecodedFile()` | The bytes — for writing to disk or streaming to a browser |
+| `getFile()` | Base64, as received. Use it for a `data:` URI or to pass the file on |
+| `getDecodedFile()` | The raw bytes. Use it to write to disk or stream to a browser |
 
-And `getLabel()` takes a **list** of order numbers, answering with one PDF: printing fifty labels
-is one call, not fifty.
+`getLabel()` takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
+call.
 
 Changing what gets validated
 ----------------------------
@@ -129,11 +129,11 @@ Changing what gets validated
 |-------|-----------|
 | `validatePayloads: false` | Everything |
 | Subclass `AttributeValidator`, filter `rulesFor()` | One rule |
-| Register an extra validator on the registry | Nothing — adds your own |
-| Declare rules on your own message subclass | Nothing — adds your own |
+| Register an extra validator on the registry | Nothing. Adds your own |
+| Declare rules on your own message subclass | Nothing. Adds your own |
 | Implement `ValidatorInterface` | Everything the SDK had |
 
-All five, with code, in [Validation](validation.md#changing-the-rules).
+[Validation](validation.md#changing-the-rules) shows all 5 with code.
 
 Reading a rejection
 -------------------
@@ -145,14 +145,15 @@ Reading a rejection
 | `ValidationException::getMessage()` | All of it flattened into a sentence |
 | `WebserviceException::getErrorMessage()->getValidationErrors()` | The same shape, from the service side |
 
-The last row is why one presentation path can serve both a local rejection and a server-side one.
+Because of the last row, you can display a local rejection and a server-side one with the same
+code.
 
 Changing how requests are made
 ------------------------------
 
 | Route | Replaces |
 |-------|----------|
-| `ClientFactoryInterface` | The HTTP client — any PSR-18 |
+| `ClientFactoryInterface` | The HTTP client (any PSR-18 client) |
 | `RequestFactoryInterface` | How the envelope is built |
 | `ResponseFactoryInterface` | How the envelope is read |
 | `SerializerProviderInterface` | The whole mapping stack |
@@ -160,7 +161,7 @@ Changing how requests are made
 | Subclassing a service | One method |
 | `services: [...]` with your own implementation | One service entirely |
 
-[Architecture — extension points](architecture.md#extension-points).
+See [Architecture: extension points](architecture.md#extension-points).
 
 Logging
 -------
@@ -169,7 +170,7 @@ Logging
 |-------|------|
 | No logger | Nothing |
 | A PSR-3 logger, `loggingEnabled: true` | Errors and transport failures |
-| …plus `methodsToLog: [...]` | The full request and response of those methods — **including the token** |
+| The same, plus `methodsToLog: [...]` | The full request and response of those methods, **including the token** |
 
 Testing
 -------
@@ -182,4 +183,4 @@ Testing
 | `AttributeValidator` on its own | Testing a payload, with no client at all |
 | The live API with `rejectUnknownFields: true` | Catching a response that has grown a field |
 
-[Testing](testing.md) covers each.
+[Testing](testing.md) covers each of these.

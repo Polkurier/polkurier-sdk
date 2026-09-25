@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Whether a submitted security PIN was correct.
  *
- * A wrong PIN is a verdict, not an error, so check the flag rather than relying on an exception.
+ * A wrong PIN is not an API error and throws no exception. Check the flag.
  */
 readonly class PinValidityMessage implements MessageInterface
 {

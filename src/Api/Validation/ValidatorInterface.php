@@ -13,10 +13,10 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 /**
  * Validates a message before it is sent.
  *
- * No implementation ships with the SDK: messages check their own invariants in their constructors,
- * and everything beyond that depends on carrier and account rules the client cannot know. This is
- * the extension point for an application that wants to enforce its own rules before spending a
- * request.
+ * The SDK's default implementation is the {@see \Polkurier\Webservice\Validator\ValidatorRegistry}
+ * built by {@see \Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory}, which
+ * {@see \Polkurier\Webservice\PolkurierWebservice} uses unless you pass your own validator.
+ * Implement this interface to replace it or to check your own rules before a request is sent.
  */
 interface ValidatorInterface
 {

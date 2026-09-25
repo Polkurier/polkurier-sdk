@@ -35,15 +35,15 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Shared request pipeline for every service.
+ * Shared request handling for all services.
  *
- * Builds the request, sends it, parses the reply, logs according to configuration, and converts an
- * API error into the matching exception. Subclasses supply only the method, the type to
- * deserialize into, and the payload.
+ * Builds the request, sends it, parses the reply, logs according to the configuration, and turns
+ * an API error into the matching exception. Subclasses only supply the method, the type to
+ * deserialize into and the payload.
  *
- * On logging: request and response bodies are logged verbatim, and a request body contains the API
- * token. Configure a logger accordingly, and note that extended logging is opt-in per method while
- * error logging follows the base logging flag.
+ * Logging: request and response bodies are logged as is, and a request body contains the API
+ * token. Configure your logger with that in mind. Extended logging is enabled per method, while
+ * error logging follows the basic logging flag.
  */
 abstract class AbstractService
 {
@@ -68,9 +68,8 @@ abstract class AbstractService
      * @param LoggerInterface $logger
      * @param ClientFactoryInterface $clientFactory
      * @param ConfigProviderInterface $configProvider
-     * @param ValidatorInterface $validator checks payloads before they are sent; defaults to one
-     *        that accepts everything, so a service constructed by hand behaves as it did before
-     *        validation existed
+     * @param ValidatorInterface $validator checks payloads before they are sent. Defaults to one
+     *        that accepts everything
      */
     public function __construct(
         /**
@@ -106,7 +105,7 @@ abstract class AbstractService
      * @param MessageInterface|null $payload
      * @param AuthorizationMessage|bool|null $authorization
      *
-     * @return mixed the deserialized payload, in whatever shape $responseFormat asked for
+     * @return mixed the deserialized payload, in the shape $responseFormat asks for
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws MalformedResponseException
@@ -154,7 +153,7 @@ abstract class AbstractService
     }
 
     /**
-     * The payload, insisting it is the object the endpoint promises.
+     * Returns the payload, which must be the object the endpoint promises.
      *
      * @template T of object
      *
@@ -166,7 +165,7 @@ abstract class AbstractService
      * @return T
      * @throws AuthorizationException
      * @throws ConnectionException
-     * @throws MalformedResponseException when the API answers with something else
+     * @throws MalformedResponseException when the API returns something else
      * @throws ValidationException
      * @throws WebserviceException
      * @throws InvalidArgumentException
@@ -192,11 +191,11 @@ abstract class AbstractService
     }
 
     /**
-     * The payload for an endpoint that answers with nothing when it has nothing to answer with.
+     * Returns the payload for an endpoint that may return nothing.
      *
-     * The API says "not found" by sending an empty array rather than an error, which the response
-     * factory turns into null. Only the endpoints that genuinely do this should use this method;
-     * everywhere else a missing object is a broken promise, not an absence.
+     * Some endpoints say "not found" with an empty array instead of an error, and the response
+     * factory turns that into null. Use this method only for those endpoints. Elsewhere a missing
+     * object is an error.
      *
      * @template T of object
      *
@@ -234,7 +233,7 @@ abstract class AbstractService
     }
 
     /**
-     * The payload for an endpoint that answers with a list. An empty list is a valid answer.
+     * Returns the payload for an endpoint that returns a list. An empty list is valid.
      *
      * @template T of object
      *
@@ -288,8 +287,8 @@ abstract class AbstractService
     }
 
     /**
-     * The payload for an endpoint that answers with a map of plain strings, such as a code to a
-     * name.
+     * Returns the payload for an endpoint that returns a map of plain strings, such as codes to
+     * names.
      *
      * @param ApiMethodInterface $apiMethod
      * @param MessageInterface|null $payload
@@ -333,10 +332,9 @@ abstract class AbstractService
     }
 
     /**
-     * The payload for an endpoint whose shape varies with what was asked for.
+     * Returns the payload for an endpoint whose shape depends on the request.
      *
-     * A last resort, for the two endpoints whose answer has no stable structure to map onto. The
-     * result is decoded JSON and nothing more.
+     * Only for the 2 endpoints whose answer has no fixed structure. The result is the decoded JSON.
      *
      * @param ApiMethodInterface $apiMethod
      * @param MessageInterface|null $payload
@@ -375,7 +373,7 @@ abstract class AbstractService
     }
 
     /**
-     * The payload for an endpoint that only acknowledges.
+     * Returns the payload for an endpoint that only acknowledges.
      *
      * @param ApiMethodInterface $apiMethod
      * @param MessageInterface|null $payload
@@ -403,10 +401,10 @@ abstract class AbstractService
     }
 
     /**
-     * The HTTP response behind the most recent call this service made.
+     * The HTTP response from this service's most recent call.
      *
-     * Kept for the exception factories, which report what arrived. On a failed call the response
-     * is on the exception itself; this is only ever the one just parsed.
+     * Used by the exception factories to report what arrived. For a failed call, the response is
+     * on the exception. This is always the response that was just parsed.
      *
      * @return ResponseInterface
      * @throws InvalidArgumentException when no request has been made yet
@@ -414,8 +412,8 @@ abstract class AbstractService
     protected function lastHttpResponse(): ResponseInterface
     {
         if ($this->lastHttpResponse === null) {
-            // The SDK's own hierarchy rather than \LogicException, so that everything a caller
-            // can see leaving the SDK extends Polkurier's base exception.
+            // An SDK exception instead of \LogicException, so every exception the SDK throws
+            // extends the SDK's base exception.
             throw new InvalidArgumentException('No request has been made yet, so there is no response to report.');
         }
 
@@ -425,8 +423,8 @@ abstract class AbstractService
     /**
      * Picks the exception class for an API error.
      *
-     * Either `status_code` or `error_code` may be absent from an error response, so neither can be
-     * dereferenced unconditionally and the classification has to work from whichever arrived.
+     * An error response can lack either `status_code` or `error_code`, so the check uses whichever
+     * one is present.
      *
      * @param ErrorMessage $errorMessage
      * @param RequestInterface $request

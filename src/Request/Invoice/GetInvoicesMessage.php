@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Filters and paging for the invoice list.
  *
- * The type is mandatory and must be one of the two the API recognises; anything else is rejected
- * naming the acceptable set.
+ * The type is required and must be one of the 2 the API accepts. Any other value is rejected with
+ * an error listing the accepted ones.
  */
 readonly class GetInvoicesMessage implements MessageInterface
 {
@@ -30,7 +30,7 @@ readonly class GetInvoicesMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param InvoiceTypeEnum $type which document kind to list
+     * @param InvoiceTypeEnum $type which kind of document to list
      * @param ?int $pageSize invoices per page
      * @param ?int $page 1-based page index
      */

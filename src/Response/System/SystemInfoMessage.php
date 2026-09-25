@@ -11,10 +11,10 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The limits and policy a client needs in order to validate input the way the service will.
+ * Limits and policy to validate input against.
  *
- * Fetch this once at start-up and reuse it rather than hard-coding the numbers: they are policy,
- * not contract, and can change without an API version bump.
+ * Fetch this once at start-up and reuse it. Do not hard-code the numbers: they are policy and can
+ * change without an API version bump.
  */
 readonly class SystemInfoMessage implements MessageInterface
 {

@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Enum\Invoice;
 /**
  * Which kind of accounting document to list.
  *
- * The two are listed separately, so a full picture of what an account owes needs both calls.
+ * The 2 types are listed separately, so you need both calls to see everything an account owes.
  */
 enum InvoiceTypeEnum: string
 {

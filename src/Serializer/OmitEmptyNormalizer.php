@@ -14,27 +14,25 @@ use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Handles the two places where empty means absent.
+ * Treats empty values as missing, in both directions.
  *
- * On the way out it drops the fields a class marked {@see OmitWhenEmpty} when they turn out to be
- * empty. On the way in it reads an empty array as no object at all, which is one of the forms an
- * absent nested object arrives in.
+ * When writing, it drops empty fields marked with {@see OmitWhenEmpty}. When reading, it turns an
+ * empty array into null, since a missing nested object can arrive that way.
  *
- * Wraps the object normalizer rather than replacing it: the wrapped normalizer decides what the
- * payload looks like, and this removes the keys that should not have been in it. The keys it
- * matches on are the wire names, since that is what it is handed back.
+ * It wraps the object normalizer. The wrapped normalizer builds the payload, and this one removes
+ * the keys that shouldn't be there. Keys are matched by wire name, since that is what the wrapped
+ * normalizer returns.
  *
- * Which fields those are is read once per class and cached, as reflection over a payload on every
- * request would be the most expensive thing the SDK does.
+ * The list of fields is read once per class and cached, to avoid reflection on every request.
  */
-final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
+class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     /**
      * Wire names to drop when empty, per class.
      *
      * @var array<class-string, string[]>
      */
-    private static array $omitted = [];
+    protected static array $omitted = [];
 
     /**
      * @param NormalizerInterface&DenormalizerInterface $inner
@@ -43,12 +41,11 @@ final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInte
         /**
          * @var NormalizerInterface&DenormalizerInterface
          */
-        private readonly NormalizerInterface&DenormalizerInterface $inner,
+        protected readonly NormalizerInterface&DenormalizerInterface $inner,
     ) {}
 
     /**
-     * The wrapped normalizer needs the serializer to reach nested objects, and it is handed to
-     * this decorator rather than to it.
+     * Passes the serializer on to the wrapped normalizer, which needs it for nested objects.
      *
      * @param SerializerInterface $serializer
      *
@@ -79,8 +76,8 @@ final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInte
             return $normalized;
         }
 
-        foreach (self::omittedFor($data::class) as $field) {
-            if (\array_key_exists($field, $normalized) && self::isEmpty($normalized[$field])) {
+        foreach (static::omittedFor($data::class) as $field) {
+            if (\array_key_exists($field, $normalized) && static::isEmpty($normalized[$field])) {
                 unset($normalized[$field]);
             }
         }
@@ -110,9 +107,9 @@ final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInte
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        // An optional nested object can arrive as an empty array rather than as null. Building that
-        // into an object would either fail on its first required field or invent one that was never
-        // sent, so it becomes null and the property that receives it says whether that is allowed.
+        // An optional nested object can arrive as an empty array instead of null. Building an
+        // object from it would fail on the first required field or invent one that was never sent.
+        // So it becomes null, and the receiving property decides whether null is allowed.
         if ($data === [] && !\str_ends_with($type, '[]')) {
             return null;
         }
@@ -148,23 +145,23 @@ final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInte
     }
 
     /**
-     * The wire names of every field the class asked to have dropped when empty.
+     * The wire names of all fields the class marks to be dropped when empty.
      *
-     * Properties and getters both, since a field can be computed — and the hierarchy is walked,
-     * so a base message's optional fields stay optional in its subclasses.
+     * Checks both properties and getters, since a field can be computed. Parent classes are
+     * included, so a base message's optional fields stay optional in its subclasses.
      *
      * @param class-string $class
      *
      * @return string[]
      */
-    private static function omittedFor(string $class): array
+    protected static function omittedFor(string $class): array
     {
         if (isset(self::$omitted[$class])) {
             return self::$omitted[$class];
         }
 
         $fields = [];
-        // Always the class of an object being normalized, so there is nothing here that can fail.
+        // Always the class of an object being normalized, so this can't fail.
         $reflection = new \ReflectionClass($class);
 
         for ($current = $reflection; $current !== false; $current = $current->getParentClass()) {
@@ -198,7 +195,7 @@ final class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @return bool
      */
-    private static function isEmpty(mixed $value): bool
+    protected static function isEmpty(mixed $value): bool
     {
         return $value === null || $value === '' || $value === [];
     }

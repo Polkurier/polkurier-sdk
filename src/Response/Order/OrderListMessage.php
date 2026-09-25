@@ -12,6 +12,8 @@ use Polkurier\Webservice\Response\Order;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * One page of the order list.
+ *
  * @see OrderListMessage
  */
 readonly class OrderListMessage implements MessageInterface
@@ -66,8 +68,8 @@ readonly class OrderListMessage implements MessageInterface
     ) {}
 
     /**
-      * Total number of orders matching the filters, across all pages.
-      *
+     * Total number of orders matching the filters, across all pages.
+     *
      * @return int
      */
     public function getTotalRows(): int
@@ -84,8 +86,8 @@ readonly class OrderListMessage implements MessageInterface
     }
 
     /**
-      * 1-based index of the page in this response.
-      *
+     * 1-based index of the page in this response.
+     *
      * @return int
      */
     public function getCurrentPage(): int
@@ -94,9 +96,8 @@ readonly class OrderListMessage implements MessageInterface
     }
 
     /**
-      * Orders per page as the API actually applied it, which is not necessarily the value requested:
-      * it is clamped to 100, and 0 is treated as 100.
-      *
+     * Orders per page, as applied to this response.
+     *
      * @return int
      */
     public function getPageSize(): int
@@ -105,8 +106,8 @@ readonly class OrderListMessage implements MessageInterface
     }
 
     /**
-      * The orders on this page.
-      *
+     * The orders on this page.
+     *
      * @return Order[]
      */
     public function getResult(): array

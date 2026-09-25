@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of the invoice list.
  *
- * Paged like the order list, but note the envelope is one field shorter: there is no `totalpages`
- * here, so the last page has to be inferred from the total and the page size.
+ * Paged like the order list, but with no `totalpages` field. Work out the last page from the total
+ * and the page size.
  */
 readonly class InvoiceListMessage implements MessageInterface
 {

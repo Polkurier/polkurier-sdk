@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Checks a security PIN without changing anything.
  *
- * Useful for confirming a PIN in a UI before attempting an operation that needs it.
+ * Use it to confirm a PIN in your UI before an operation that needs it.
  */
 readonly class ValidatePinMessage implements MessageInterface
 {

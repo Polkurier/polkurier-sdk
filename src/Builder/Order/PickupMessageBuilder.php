@@ -14,8 +14,8 @@ use Polkurier\Webservice\Request\Order\PickupMessage;
 /**
  * Assembles the collection details of an order.
  *
- * Every field is optional because carriers differ on what they want, and some arrange collection on
- * their own terms and read none of it.
+ * Every field is optional. Carriers differ in what they need, and not every carrier uses these
+ * fields.
  */
 class PickupMessageBuilder extends AbstractBuilder
 {

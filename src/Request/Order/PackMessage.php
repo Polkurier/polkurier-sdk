@@ -15,9 +15,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One parcel on an order being priced or placed.
  *
- * The amount is a multiplier for identical parcels: three boxes of the same size go as one entry
- * with an amount of three rather than three entries. Carriers that price per consignment rather
- * than per parcel still charge once, so the two are not interchangeable.
+ * The amount is a multiplier for identical parcels. Send 3 boxes of the same size as one entry with
+ * an amount of 3. Carriers that price per consignment still charge once for it, so this is not the
+ * same as sending 3 separate entries.
  */
 readonly class PackMessage extends BasePackMessage
 {

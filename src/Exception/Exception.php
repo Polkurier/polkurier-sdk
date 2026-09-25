@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Exception;
 /**
  * Base class for everything this SDK throws.
  *
- * Catch this to handle any SDK failure in one place; catch a subclass to distinguish a bad
- * credential from an unreachable host from a rejected payload.
+ * Catch this to handle any SDK failure in one place. Catch a subclass to tell apart bad
+ * credentials, an unreachable host and a rejected payload.
  *
  * @api
  */

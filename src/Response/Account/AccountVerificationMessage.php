@@ -14,9 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An identity verification attempt and where it has got to.
  *
- * The access token is only present on the response that starts a verification, never when reading
- * one back, and it is what the external verification provider's flow needs — treat it as a
- * one-time secret and hand it straight on rather than storing it.
+ * The access token is present only in the response that starts a verification, never when you read
+ * one back. The external verification provider's flow needs it. Treat it as a one-time secret: pass
+ * it straight on and do not store it.
  */
 readonly class AccountVerificationMessage implements MessageInterface
 {
@@ -33,7 +33,7 @@ readonly class AccountVerificationMessage implements MessageInterface
      * @param string $verificationId
      * @param string $type how the account is being verified, e.g. "online" for a bank-based check
      * @param string $status where the attempt has got to, e.g. NEW
-     * @param string|null $accessToken returned only when registering; null when reading back
+     * @param string|null $accessToken returned only when registering, null when reading back
      */
     public function __construct(
         /**

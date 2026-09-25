@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Sets or changes the account's telephone PIN.
  *
- * This is the short code quoted when contacting support, and the same code that unlocks PIN-guarded
- * operations. Its permitted length is reported by `get_system_info` under `security`.
+ * This is the short code you give when contacting support. It also unlocks PIN-protected
+ * operations. The allowed length is reported by `get_system_info` under `security`.
  */
 readonly class ChangePinMessage implements MessageInterface
 {

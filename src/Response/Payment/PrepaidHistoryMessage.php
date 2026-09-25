@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of prepaid balance movements.
  *
- * Paged like the invoice list, and with the same missing `totalpages`.
+ * Paged like the invoice list, and also without `totalpages`.
  */
 readonly class PrepaidHistoryMessage implements MessageInterface
 {

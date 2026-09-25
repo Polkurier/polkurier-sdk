@@ -13,9 +13,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Per-order outcome of `create_multi_order_pickup`.
  *
- * The call is partial by design: a pickup can be booked for some of the submitted waybills and
- * refused for others, so both lists must be inspected. A response with an empty `success` list is
- * still reported as an API success.
+ * The call can partly succeed: a pickup may be booked for some of the submitted waybills and refused
+ * for others, so check both lists. A response with an empty `success` list still counts as an API
+ * success.
  */
 readonly class MultiPickupResultMessage implements MessageInterface
 {

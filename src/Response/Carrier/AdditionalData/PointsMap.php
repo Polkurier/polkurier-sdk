@@ -19,9 +19,7 @@ readonly class PointsMap implements MessageInterface
     public const string FIELD_AVAILABLE_PROVIDERS = 'available_providers';
     public const string FIELD_SENDER_POINT = 'sender_point';
     public const string FIELD_RECIPIENT_POINT = 'recipient_point';
-    /**
-     * -@#
-     */
+    /**-@#*/
 
     public function __construct(
         /**

@@ -15,10 +15,10 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * One invoice on the account.
  *
- * The unpaid value is what still has to be settled, which is not always the full value — part
- * payments and compensations reduce it. An invoice is paid when it reaches zero.
+ * The unpaid value is what is still to be settled. Part payments and compensations reduce it, so it
+ * can be lower than the full value. The invoice is paid when it reaches zero.
  *
- * Both dates are plain dates with no time component.
+ * Both dates have no time component.
  */
 readonly class InvoiceMessage implements MessageInterface
 {
@@ -35,7 +35,7 @@ readonly class InvoiceMessage implements MessageInterface
     /**
      * @param string $number the invoice number as printed on the document
      * @param float $value gross total, in PLN
-     * @param float $unpaidValue still outstanding, in PLN; zero when settled
+     * @param float $unpaidValue amount outstanding in PLN, zero when settled
      * @param ?\DateTimeInterface $date issue date
      * @param ?\DateTimeInterface $paymentDeadline due date
      */

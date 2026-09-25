@@ -21,27 +21,24 @@ use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
 /**
  * Invoices issued to the account, and the documents behind them.
  *
- * Invoices and their corrections are listed separately, so reconciling what an account owes takes
- * both calls.
+ * Invoices and corrections are listed separately. To reconcile what an account owes, fetch both.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface InvoicesServiceInterface
 {
     /**
      * Lists invoices, one page at a time.
      *
-     * The document kind is mandatory — invoices and corrections are separate lists rather than a
-     * filter on one list.
+     * The document type is required. Invoices and corrections are separate lists.
      *
-     * The paging envelope here is one field shorter than the order list's: there is no
-     * `totalpages`, so the last page has to be worked out from the total and the page size.
+     * Unlike the order list, the paging envelope has no `totalpages`. Work out the last page from
+     * the total and the page size.
      *
-     * The unpaid value is the useful one for reconciliation: it is what remains after part
-     * payments and compensations, and reaches zero when the invoice is settled.
+     * For reconciliation, use `unpaid_value`. It is the amount left after part payments and
+     * compensations, and it drops to zero once the invoice is settled.
      *
      * Endpoint: `get_invoices`
      *
@@ -82,29 +79,27 @@ interface InvoicesServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [type]. Musi zawierać się w zbiorze [INVOICE, INVOICE_CORRECTION]"}
      * ```
-     * Also what a missing `type` gives.
+     * A missing `type` gives the same error.
      *
      * @param GetInvoicesMessage $getInvoicesMessage
      *
      * @return InvoiceListMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceListMessage}
      */
     public function getInvoices(GetInvoicesMessage $getInvoicesMessage): InvoiceListMessage;
 
     /**
      * Downloads one invoice as a PDF.
      *
-     * Addressed by invoice number rather than by an opaque id, so the number from getInvoices() —
-     * slashes included — goes in verbatim.
+     * Pass the invoice number from getInvoices() as returned, slashes included.
      *
-     * The response carries a suggested filename alongside the document, which is safe to use in a
-     * download header as-is.
+     * The response includes a suggested filename, which you can use in a download header as is.
      *
      * Endpoint: `get_invoice_pdf`
      *
@@ -135,28 +130,28 @@ interface InvoicesServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for an unknown number and for one belonging to another account alike.
+     * Thrown both for an unknown number and for one that belongs to another account.
      *
      * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
      *
      * @return InvoiceDocumentMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
      */
     public function getInvoicePdf(GetInvoiceDocumentMessage $getInvoiceDocumentMessage): InvoiceDocumentMessage;
 
     /**
      * Downloads the itemised summary behind one invoice.
      *
-     * Where the PDF is the invoice itself, this is the breakdown of the shipments it covers —
-     * useful for reconciling a monthly invoice against individual orders.
+     * This is the breakdown of the shipments an invoice covers. Use it to reconcile a monthly
+     * invoice against individual orders.
      *
-     * Addressed the same way, by invoice number.
+     * Pass the invoice number, as for getInvoicePdf().
      *
      * Endpoint: `get_invoice_summary_list`
      *
@@ -187,18 +182,18 @@ interface InvoicesServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Nie znaleziono obiektu"}
      * ```
-     * Also what a missing `number` gives, since the lookup simply finds nothing.
+     * A missing `number` gives the same error.
      *
      * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
      *
      * @return InvoiceDocumentMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
      */
     public function getInvoiceSummaryList(
         GetInvoiceDocumentMessage $getInvoiceDocumentMessage

@@ -13,7 +13,7 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * A number above zero.
  *
- * Parcel dimensions, weights and quantities, all of which the API requires to be positive.
+ * Used for parcel dimensions, weights and quantities, which the API requires to be positive.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Positive implements ValueValidatorInterface

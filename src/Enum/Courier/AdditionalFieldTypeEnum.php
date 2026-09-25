@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Enum\Courier;
 /**
  * How a carrier-specific additional field should be presented and validated.
  *
- * Whatever the type, the value is sent back as a string in the order's `additional_fields` map.
+ * Whatever the type, the value is sent as a string in the order's `additional_fields` map.
  */
 enum AdditionalFieldTypeEnum: string
 {
@@ -20,7 +20,7 @@ enum AdditionalFieldTypeEnum: string
     case Text = 'TEXT';
 
     /**
-     * One of a fixed set of options, which the field carries with it.
+     * One of a fixed set of options, listed on the field.
      */
     case Select = 'SELECT';
 }

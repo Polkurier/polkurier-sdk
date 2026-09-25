@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An attachment on a ticket message.
  *
- * The contents are only included when the listing asked for them; otherwise the file is fetched
+ * The contents are included only when the listing asked for them. Otherwise, fetch the file
  * separately by name.
  */
 readonly class TicketFileMessage implements MessageInterface

@@ -14,8 +14,8 @@ use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 /**
  * Assembles a sender or recipient address on an order.
  *
- * Which fields are required depends on the role the address plays and on whether the parcel is
- * going to a pickup point, so it is filled in as those become known.
+ * Which fields are required depends on whether this is the sender or the recipient, and on whether
+ * the parcel is going to a pickup point.
  */
 class OrderAddressMessageBuilder extends AbstractBuilder
 {

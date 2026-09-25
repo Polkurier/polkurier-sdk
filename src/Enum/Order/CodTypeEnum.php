@@ -10,13 +10,13 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * How quickly collected cash-on-delivery funds are paid out.
  *
- * Faster settlement costs more. Which options an account may use depends on its agreement, so
- * check `available_carriers` rather than assuming all four are available.
+ * Faster payout costs more. The options an account can use depend on its agreement, so check
+ * `available_carriers` instead of assuming all 4 are available.
  */
 enum CodTypeEnum: string
 {
     /**
-     * The carrier's ordinary settlement period.
+     * The carrier's standard payout period.
      */
     case Standard = 'S';
 
@@ -26,12 +26,12 @@ enum CodTypeEnum: string
     case OneDay = '1D';
 
     /**
-     * Paid out four days after collection.
+     * Paid out 4 days after collection.
      */
     case FourDays = '4D';
 
     /**
-     * Paid out sixteen days after collection.
+     * Paid out 16 days after collection.
      */
     case SixteenDays = '16D';
 }

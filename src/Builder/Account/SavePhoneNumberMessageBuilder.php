@@ -14,8 +14,7 @@ use Polkurier\Webservice\Request\Account\SavePhoneNumberMessage;
 /**
  * Assembles a telephone number being added to the account.
  *
- * The two-factor fields only come into it when the number is being made the default, so they are
- * usually set on a second pass once that is known.
+ * The two-factor fields are only needed when the number is being made the default.
  */
 class SavePhoneNumberMessageBuilder extends AbstractBuilder
 {

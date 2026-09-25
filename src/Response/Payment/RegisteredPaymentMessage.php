@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A payment that has been registered and is waiting to be completed.
  *
- * The access token is what the payment provider's hosted flow needs; hand it straight on rather than
- * storing it. Keep the transaction id — it is the only way to ask about the payment afterwards.
+ * The payment provider's hosted flow needs the access token. Pass it straight on and do not store
+ * it. Keep the transaction id: it is the only way to look up the payment later.
  */
 readonly class RegisteredPaymentMessage implements MessageInterface
 {

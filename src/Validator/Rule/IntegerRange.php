@@ -13,11 +13,9 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * A whole number within bounds.
  *
- * Mostly paging, where asking for more than the documented maximum is not reported as an error —
- * you simply get fewer results than you asked for, which reads as missing data rather than as a
- * request that was never going to be honoured in full. Catching it here makes it a rejection.
+ * Mostly used for paging, to keep a page size within the documented maximum.
  *
- * Null passes: whether the field is required is {@see NotBlank}'s business.
+ * Null passes. Use {@see NotBlank} to make the field required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class IntegerRange implements ValueValidatorInterface

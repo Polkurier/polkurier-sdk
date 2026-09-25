@@ -14,11 +14,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Removes a telephone number from the account.
  *
- * Both the id and the number are required: the id selects the record and the number is checked
- * against it, so a mismatched pair fails rather than deleting the wrong one.
+ * Both the id and the number are required. The id selects the record and the number must match it,
+ * otherwise the call fails.
  *
- * Removing a number also withdraws any marketing consents recorded against it, for both calls and
- * text messages.
+ * Removing a number also withdraws any marketing consents given for it (calls and text messages).
  */
 readonly class DeletePhoneNumberMessage implements MessageInterface
 {
@@ -31,7 +30,7 @@ readonly class DeletePhoneNumberMessage implements MessageInterface
 
     /**
      * @param string $id identifier from getPhoneNumbers()
-     * @param string $number the number itself; validated before deletion
+     * @param string $number the number itself, checked against the record
      */
     public function __construct(
         /**

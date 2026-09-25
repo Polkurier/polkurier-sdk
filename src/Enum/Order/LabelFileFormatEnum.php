@@ -8,13 +8,12 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * Thermal printer languages `get_label` can emit instead of a PDF.
+ * Thermal printer languages `get_label` can return instead of a PDF.
  *
- * Omitting the format gives a PDF, which is what most integrations want. Ask for one of these only
- * when streaming straight to a label printer, and use the enum rather than a string: a value outside
- * it is not reported as an error, so a typo yields the wrong file type instead.
+ * Without a format you get a PDF, which is what most integrations need. Use one of these only when
+ * sending straight to a label printer. Use a value from this enum.
  *
- * Not every carrier can produce every language, and a PDF is what arrives where one cannot.
+ * Not every carrier supports every language.
  */
 enum LabelFileFormatEnum: string
 {

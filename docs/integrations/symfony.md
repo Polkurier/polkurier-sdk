@@ -1,12 +1,13 @@
 Symfony
 =======
 
-Symfony 6.4 / 7.x. Everything here is plain service configuration — there is no bundle to install.
+For Symfony 6.4 and 7.x. There's no bundle to install: everything below is ordinary service
+configuration.
 
 Configuration
 -------------
 
-Credentials come from the environment. `.env`:
+Read the credentials from the environment. In `.env`:
 
 ```dotenv
 POLKURIER_LOGIN=12345
@@ -14,7 +15,7 @@ POLKURIER_TOKEN=
 POLKURIER_SANDBOX=1
 ```
 
-Keep the real token in `.env.local` or your secrets vault, never in `.env`:
+Put the real token in `.env.local` or your secrets vault. Don't commit it to `.env`.
 
 ```bash
 php bin/console secrets:set POLKURIER_TOKEN
@@ -99,7 +100,8 @@ framework:
                 default_lifetime: 0
 ```
 
-Metadata is keyed by class, not by version, so clear the pool on deploy:
+The metadata is cached per class and the key doesn't include a version, so clear the pool when you
+deploy:
 
 ```bash
 php bin/console cache:pool:clear cache.polkurier
@@ -118,13 +120,13 @@ monolog:
             channels: ['polkurier']
 ```
 
-> Keep that handler at `error` unless you have somewhere safe for it. Setting `methodsToLog` on
-> `Config` logs full request bodies, and those contain the API token.
+> Leave this handler at `error` unless the log goes somewhere safe. If you set `methodsToLog` on
+> `Config`, full request bodies are logged, and they contain the API token.
 
 Autowiring
 ----------
 
-With the above, a service just asks for what it needs:
+With that configuration in place, a service can ask for what it needs:
 
 ```php
 namespace App\Shipping;
@@ -144,14 +146,13 @@ final readonly class ShipmentDispatcher
 }
 ```
 
-This is the shape to aim for: one interface per collaborator, nothing that knows the SDK has a
-facade.
+Aim for this: each class depends on one interface and doesn't know the facade exists.
 
-The facade instead
-------------------
+Using the facade
+----------------
 
-If you would rather have one service than sixteen, register `PolkurierWebservice` and skip the
-per-service aliases:
+If you prefer one service to 16, register `PolkurierWebservice` and leave out the per-service
+aliases:
 
 ```yaml
     Polkurier\Webservice\PolkurierWebservice:
@@ -161,14 +162,14 @@ per-service aliases:
             $serializerProvider: '@Polkurier\Webservice\Serializer\SerializerProviderInterface'
 ```
 
-Everything else it needs is optional and built internally. It is a legitimate choice for an
-application that touches most of the API; it is the wrong one for a module that places orders.
+Its other dependencies are optional and it builds them itself. The facade makes sense for an
+application that uses most of the API. For a module that only places orders, inject the interface.
 
-A bundle-shaped alternative
----------------------------
+Moving the wiring into a bundle
+-------------------------------
 
-For anything reused across projects, put the above in a small bundle extension instead of
-`services.yaml`:
+If you reuse the setup across projects, move it from `services.yaml` into a small bundle
+extension:
 
 ```php
 namespace App\Polkurier\DependencyInjection;
@@ -196,8 +197,8 @@ final class PolkurierExtension extends Extension
 Per-tenant credentials
 ----------------------
 
-Where credentials vary per user, per shop or per request, implement `ConfigProviderInterface` and
-alias it in place of `ConfigProvider`:
+If the credentials depend on the user, the shop or the request, implement
+`ConfigProviderInterface` and alias it instead of `ConfigProvider`:
 
 ```php
 namespace App\Polkurier;
@@ -232,14 +233,15 @@ final readonly class TenantConfigProvider implements ConfigProviderInterface
     Polkurier\Webservice\Api\ConfigProviderInterface: '@App\Polkurier\TenantConfigProvider'
 ```
 
-One caveat from [Configuration](../configuration.md#per-tenant-credentials): services resolve
-configuration once, in their constructors. In a classic request-per-process Symfony application
-that is per request and therefore fine. Under Messenger workers, FrankenPHP or RoadRunner it is
-**not** — the container is reused across messages, and a service built for tenant A will keep
-tenant A's credentials.
+There's a catch, described in [Configuration](../configuration.md#per-tenant-credentials): each
+service reads its configuration once, in the constructor. In a classic Symfony application with
+one process per request, that means once per request, which is fine. Under Messenger workers,
+FrankenPHP or RoadRunner the container is reused between messages, so a service built for tenant A
+**keeps tenant A's credentials**.
 
-Two ways out of that. Make the services lazy and reset them between messages with a
-[service reset](https://symfony.com/doc/current/messenger.html), or build the client per message:
+You can fix this in two ways. Make the services lazy and reset them between messages (see
+[service reset](https://symfony.com/doc/current/messenger.html)), or build the client for each
+message:
 
 ```php
 #[AsMessageHandler]
@@ -262,8 +264,8 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-The serializer is the expensive part and it is stateless, so sharing it while rebuilding the client
-gets you both correctness and speed.
+The serializer is stateless and it's the expensive part, so you can share it and still build a
+fresh client per message.
 
 Messenger: placing orders off the request
 -----------------------------------------
@@ -310,8 +312,8 @@ final readonly class PlaceShipmentHandler
             // The payload or the account is wrong. Retrying will not fix it.
             throw new UnrecoverableMessageHandlingException($e->getMessage(), previous: $e);
         } catch (ConnectionException $e) {
-            // Unknown outcome. Let Messenger retry — but only because the guard above
-            // makes a second attempt safe once the number is stored.
+            // Unknown outcome. Let Messenger retry. The guard above is what makes
+            // a second attempt safe once the number is stored.
             throw $e;
         }
 
@@ -321,14 +323,14 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-Two things that matter here. `UnrecoverableMessageHandlingException` stops Messenger retrying a
-payload that will never be accepted — without it a bad postcode burns three retries and lands in
-the failure transport looking like an outage. And the guard at the top is what makes retrying a
-`ConnectionException` safe; there is no idempotency key, so the only protection is your own record
-of having placed it. A stricter version reconciles against `get_orders` instead — see
-[Errors](../errors.md#retrying-safely).
+Two things to note. `UnrecoverableMessageHandlingException` stops Messenger from retrying a payload
+that will never be accepted. Without it, a bad postcode uses up 3 retries and ends up in the
+failure transport, where it looks like an outage. Second, the guard at the top of `__invoke()`
+makes it safe to retry after a `ConnectionException`. There's no idempotency key, so your own
+record of the placed order is the only protection. For a stricter version, reconcile against
+`get_orders` instead (see [Errors](../errors.md#retrying-safely)).
 
-Configure the retry policy to match:
+Set the retry policy to match:
 
 ```yaml
 framework:
@@ -394,14 +396,14 @@ final readonly class PolkurierHealthCheck
 }
 ```
 
-`heartbeat()` sends no credentials, so it answers whether the API is reachable whatever state the
-token is in.
+`heartbeat()` doesn't send credentials. It tells you whether the API is reachable, whether or not
+the token is valid.
 
 Validation errors in a form
 ---------------------------
 
-`ValidationException` reports against wire field names, which will not match your form's field
-names. Map them once, at the edge:
+`ValidationException` uses the wire field names, which won't match the fields in your form. Map
+them in one place:
 
 ```php
 use Polkurier\Webservice\Exception\ValidationException;
@@ -422,13 +424,13 @@ function applyToForm(ValidationException $e, FormInterface $form, array $fieldMa
 }
 ```
 
-The same function handles an API-side rejection, since
-`WebserviceException::getErrorMessage()->getValidationErrors()` has the same shape.
+`WebserviceException::getErrorMessage()->getValidationErrors()` returns the same shape, so the same
+function works when the API rejects the payload.
 
 Testing
 -------
 
-Override the transport in the test container:
+Replace the transport in the test container:
 
 ```yaml
 # config/services_test.yaml
@@ -438,4 +440,5 @@ services:
         public: true
 ```
 
-Everything above the socket then runs for real. See [Testing](../testing.md) for the double itself.
+Everything except the network call then runs for real. The test double is described in
+[Testing](../testing.md).

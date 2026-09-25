@@ -15,8 +15,7 @@ use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 /**
  * Assembles the filters for the order list.
  *
- * Fifteen filters, every one optional. A listing screen sets whichever the user has actually
- * chosen, which is exactly what named arguments handle badly.
+ * Every filter is optional. Set only the ones you need.
  */
 class GetOrdersMessageBuilder extends AbstractBuilder
 {

@@ -17,12 +17,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Finds pickup points.
  *
- * Three ways to search, and the shape of the reply follows: give an id to fetch one point and a
- * single object comes back; give a search phrase or nothing and a list comes back. At least one
- * carrier must always be named.
+ * With an id, you get a single point object. With a search phrase, or with neither, you get a
+ * list. At least one carrier is always required.
  *
- * Without a search phrase the result is paged; with one, the API returns the first matches and
- * ignores the paging parameters.
+ * Without a search phrase the list is paged. With one, you get the first matches and paging does
+ * not apply.
  */
 readonly class GetPointMessage implements MessageInterface
 {
@@ -45,7 +44,7 @@ readonly class GetPointMessage implements MessageInterface
      * @param int|null $limit
      * @param int|null $page
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException when $couriers or $functions hold the wrong types
      */
     public function __construct(
         /**

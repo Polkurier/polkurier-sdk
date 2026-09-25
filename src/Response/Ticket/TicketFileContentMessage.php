@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A ticket attachment with its contents.
  *
- * The file is base64-encoded; use {@see self::getDecodedFile()} for the raw bytes.
+ * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes.
  */
 readonly class TicketFileContentMessage implements MessageInterface
 {

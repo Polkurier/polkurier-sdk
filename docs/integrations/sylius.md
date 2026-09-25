@@ -1,14 +1,15 @@
 Sylius
 ======
 
-Sylius 1.13 / 2.x. Sylius is Symfony, so start with [the Symfony page](symfony.md) — everything
-there applies unchanged. This page covers what is Sylius-specific: channel-scoped credentials, the
-shipping method and gateway model, the state machine, and shipment export.
+For Sylius 1.13 and 2.x. Sylius is a Symfony application, so start with
+[the Symfony page](symfony.md). Everything there applies as is. This page covers the parts specific
+to Sylius: credentials per channel, shipping methods and gateway configuration, the state machine
+and shipment export.
 
 The plugin skeleton
 -------------------
 
-Sylius plugins are ordinary bundles. Everything below goes into one:
+A Sylius plugin is a regular bundle. All the code below goes into one:
 
 ```
 src/
@@ -20,15 +21,15 @@ src/
 └── Form/Type/         ← the gateway configuration form
 ```
 
-The SDK's own services are wired exactly as in [Symfony](symfony.md#wiring): bind the interfaces,
-share one `SerializerProvider`, register the services you use. Nothing about Sylius changes that.
+Wire the SDK's services the same way as in [Symfony](symfony.md#wiring). Bind the interfaces,
+share one `SerializerProvider` and register the services you use.
 
 Credentials per channel
 -----------------------
 
-A Sylius store with two channels frequently has two Polkurier accounts. Sylius's own idiom for
-this is a **shipping gateway config** — a JSON-ish configuration attached to a shipping method,
-edited in the admin — rather than container parameters.
+A Sylius store with two channels often has two Polkurier accounts. The usual Sylius approach is a
+**shipping gateway config** instead of container parameters: a configuration array attached to a
+shipping method and edited in the admin.
 
 ```php
 <?php
@@ -63,8 +64,8 @@ final readonly class GatewayConfigFactory
 }
 ```
 
-Where credentials are per channel rather than per method, a `ConfigProviderInterface` reading
-`ChannelContextInterface` is the better fit:
+If the credentials belong to the channel and not to the shipping method, implement
+`ConfigProviderInterface` on top of `ChannelContextInterface`:
 
 ```php
 <?php
@@ -105,27 +106,28 @@ final readonly class ChannelConfigProvider implements ConfigProviderInterface
 }
 ```
 
-The `ChannelNotFoundException` branch is not optional. `ChannelContextInterface` throws outside a
-storefront request — in Messenger handlers, in commands, in fixtures — and a provider that lets
-that escape breaks every one of them.
+You need the `ChannelNotFoundException` branch. `ChannelContextInterface` throws outside a
+storefront request (in Messenger handlers, commands and fixtures). If the provider doesn't catch it,
+all of those break.
 
-> As in every Symfony application, a service caches its configuration at construction. Under
-> Messenger workers this means a channel-scoped provider does **not** make a long-lived service
-> switch channels. See [Symfony — per-tenant credentials](symfony.md#per-tenant-credentials); the
-> answer is the same: build the client per message, share the serializer.
+> As in any Symfony application, a service keeps the configuration it was built with. Under
+> Messenger workers, a channel-scoped provider will **not** make a long-lived service switch
+> channels. The fix is the same as in
+> [Symfony: per-tenant credentials](symfony.md#per-tenant-credentials). Build the client per
+> message and share the serializer.
 
 The shipping method
 -------------------
 
-Sylius separates *calculating* a shipping cost from *exporting* a shipment, and the SDK belongs
-almost entirely on the export side.
+Sylius treats *calculating* a shipping cost and *exporting* a shipment as separate steps. You'll
+use the SDK almost only for the export.
 
-**Calculators** run on every cart change. Use Sylius's own — flat rate, per-unit rate, a channel
-price matrix — and not `orderValuation()`. A third-party round trip inside cart recalculation is
-the fastest way to make a storefront feel broken.
+**Calculators** run on every cart change. Use the built-in ones (flat rate, per unit rate, a
+channel price matrix) and don't call `orderValuation()` from them. A request to a third party on
+every cart recalculation makes the storefront feel broken.
 
-If you genuinely need live pricing, write a calculator that reads from a cache your own worker
-fills:
+If you really need live prices, write a calculator that reads from a cache filled by your own
+worker:
 
 ```php
 <?php
@@ -143,7 +145,7 @@ final readonly class CachedPolkurierCalculator implements CalculatorInterface
 
     public function calculate(ShipmentInterface $subject, array $configuration): int
     {
-        // Falls back to the configured flat rate when nothing is cached; never calls the API.
+        // Falls back to the configured flat rate when nothing is cached. Never calls the API.
         return $this->quotes->find($subject, $configuration) ?? (int)$configuration['fallback_amount'];
     }
 
@@ -165,9 +167,9 @@ final readonly class CachedPolkurierCalculator implements CalculatorInterface
 Exporting a shipment
 --------------------
 
-The natural hook is the shipment state machine. Sylius ships `sylius_shipment` with a `ship`
-transition; place the Polkurier order as a callback on it, via a Messenger message rather than
-inline.
+Hook into the shipment state machine. Sylius defines `sylius_shipment` with a `ship` transition.
+Add a callback on it that dispatches a Messenger message, and place the Polkurier order in the
+message handler.
 
 `config/packages/winzou_state_machine.yaml`:
 
@@ -207,8 +209,8 @@ final readonly class ShipmentExporter
 }
 ```
 
-The handler does the real work, and stores the Polkurier order number as the tracking code — which
-gets you Sylius's tracking display for free:
+The handler places the order and saves the Polkurier order number as the tracking code, so Sylius
+shows it wherever it displays tracking:
 
 ```php
 <?php
@@ -248,7 +250,7 @@ final readonly class ExportShipmentHandler
         } catch (ValidationException | WebserviceException $e) {
             throw new UnrecoverableMessageHandlingException($e->getMessage(), previous: $e);
         } catch (ConnectionException $e) {
-            throw $e;   // Retry; the tracking guard above makes that safe.
+            throw $e;   // Retry. The tracking guard above makes that safe.
         }
 
         $shipment->setTracking($created->getOrderNumber());
@@ -257,9 +259,9 @@ final readonly class ExportShipmentHandler
 }
 ```
 
-`UnrecoverableMessageHandlingException` on the permanent failures is the important line. Without
-it, an address Polkurier will never accept burns every retry and lands in the failure transport
-looking like an outage.
+Don't leave out `UnrecoverableMessageHandlingException` for the permanent failures. Without it, an
+address Polkurier will never accept uses up every retry and ends up in the failure transport, where
+it looks like an outage.
 
 Mapping a Sylius shipment
 -------------------------
@@ -328,21 +330,21 @@ final readonly class ShipmentMapper
 }
 ```
 
-Two Sylius-specific frictions.
+There are two problems specific to Sylius.
 
-**Sylius's `AddressInterface` has no house number.** `getStreet()` is one free-text line. Most
-carriers need the number separately, and the API validates for it. Either extend `Address` with a
-`houseNumber` field and add it to the checkout form — the clean answer — or parse it out of the
-street and accept the failure rate. Parsing Polish street lines is not reliable; extend the entity.
+**Sylius's `AddressInterface` has no house number.** `getStreet()` returns one free-text line.
+Most carriers need the number as a separate field, and the API validates it. You can extend
+`Address` with a `houseNumber` field and add it to the checkout form, or parse the number out of the
+street and accept some failures. Parsing Polish street lines isn't reliable, so extend the entity.
 
-**`getPhoneNumber()` is optional in Sylius and effectively required by carriers.** Make it required
-in the shipping address form for the countries you serve, or expect `ValidationException` on
-`phone` to be your most common failure by a wide margin.
+**`getPhoneNumber()` is optional in Sylius, but carriers need it.** Make it required in the
+shipping address form for the countries you ship to. Otherwise a `ValidationException` on `phone`
+will be by far your most common failure.
 
 Pickup points at checkout
 -------------------------
 
-Add a field to the checkout's shipping step, populated from a cached listing or the map widget:
+Add a field to the shipping step of the checkout, filled from a cached list or the map widget:
 
 ```php
 // In a form extension over Sylius\Bundle\CoreBundle\Form\Type\Checkout\SelectShippingType
@@ -352,15 +354,15 @@ $builder->add('pickupPoint', ChoiceType::class, [
 ]);
 ```
 
-Store the chosen id on the shipment (a custom field or a small associated entity) and read it back
-in the mapper with `OrderAddressMessageBuilder::pointId()`.
+Save the selected ID on the shipment (in a custom field or a small related entity). In the mapper,
+read it back and pass it to `OrderAddressMessageBuilder::pointId()`.
 
-Cache the listings. See [Recipes — caching](../recipes.md#caching-what-does-not-change).
+Cache the lists. See [Recipes: caching](../recipes.md#caching-what-does-not-change).
 
 Labels in the admin
 -------------------
 
-Sylius's admin is Symfony plus Twig, so a route and a controller:
+The Sylius admin is built with Symfony and Twig, so you need a route and a controller:
 
 ```php
 #[Route('/admin/polkurier/labels', name: 'app_admin_polkurier_labels', methods: ['POST'])]
@@ -377,14 +379,14 @@ public function labels(Request $request): Response
 }
 ```
 
-Hook it into the shipment index grid as a bulk action through a grid template override.
-`getLabel()` takes a list, so selecting fifty shipments is one API call and one PDF.
+Add it to the shipment index grid as a bulk action by overriding the grid template. `getLabel()`
+accepts a list, so 50 selected shipments take one API call and produce one PDF.
 
 Testing
 -------
 
-Sylius's Behat suite runs against the test container, so the transport override from
-[Symfony](symfony.md#testing) applies:
+The Sylius Behat suite runs against the test container, so you can use the transport override from
+[Symfony](symfony.md#testing):
 
 ```yaml
 # config/services_test.yaml
@@ -392,5 +394,5 @@ services:
     Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
 ```
 
-That lets a Behat scenario assert on what the SDK *sent* — which carrier code, which postcode —
-rather than only on what your code did. See [Testing](../testing.md).
+A Behat scenario can then check what the SDK *sent*, such as the carrier code or the postcode, in
+addition to what your code did. See [Testing](../testing.md).

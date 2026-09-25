@@ -13,10 +13,10 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The dimensions and weight of one parcel, as they are sent to the API.
+ * The dimensions and weight of one parcel.
  *
- * Lengths are whole centimetres and the weight is in kilograms. Carriers round both up to their
- * own increments, so what is quoted back may be based on slightly larger figures than these.
+ * Dimensions are in whole centimetres and the weight in kilograms. Carriers round both up to their
+ * own increments, so a quote may be based on slightly larger figures.
  */
 readonly class BasePackMessage implements MessageInterface
 {

@@ -14,19 +14,19 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * An entry being written to the account's address book.
+ * An address book entry to save.
  *
- * Passing an id updates that entry; leaving it out files a new one. The name is the label the
- * entry is listed under and is required either way. Addresses are filed per role, so the same
- * place kept as both a sender and a recipient is two entries with two ids.
+ * Pass an id to update that entry, or leave it out to create a new one. The name is the label the
+ * entry is listed under and is always required. Each entry has one role, so a place used as both
+ * sender and recipient is 2 entries with 2 ids.
  *
- * The house and flat numbers go in their own fields rather than on the end of the street, which is
- * what lets carriers that validate them do so. Setting `default` makes this the entry preselected
- * for its role, which un-defaults whichever one held that before.
+ * Put the house and flat numbers in their own fields, not at the end of the street. Some carriers
+ * validate them. Setting `default` makes this the preselected entry for its role and removes the
+ * flag from the previous default.
  *
- * Fields the API derives rather than accepts — the parsed street name, the resolved pickup point,
- * whether the entry is shared — are reported on
- * {@see \Polkurier\Webservice\Response\Address} and cannot be set here.
+ * Some fields are read-only and cannot be set here: the parsed street name, the resolved pickup
+ * point and whether the entry is shared. They are reported on
+ * {@see \Polkurier\Webservice\Response\Address}.
  */
 #[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
 readonly class SaveMessage implements MessageInterface
@@ -65,7 +65,7 @@ readonly class SaveMessage implements MessageInterface
      * @param string $city
      * @param string $email
      * @param string $phone
-     * @param string|null $id the entry to update; null files a new one
+     * @param string|null $id the entry to update, or null to create a new one
      * @param AddressTypeEnum $type the role the entry is filed under
      * @param string|null $company
      * @param string|null $flatNumber

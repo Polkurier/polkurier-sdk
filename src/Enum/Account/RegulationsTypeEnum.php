@@ -18,7 +18,7 @@ enum RegulationsTypeEnum: string
     case Regulations = 'regulations';
 
     /**
-     * The privacy policy. Informational — there is no acceptance flow for it.
+     * The privacy policy. For information only, there is nothing to accept.
      */
     case PrivacyPolicy = 'privacy_policy';
 }

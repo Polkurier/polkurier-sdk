@@ -57,10 +57,9 @@ use Psr\Log\NullLogger;
 /**
  * Entry point to the Polkurier web API.
  *
- * The SDK is built from small collaborators — a serializer, request and response factories, an
- * HTTP client factory and one service per functional area — so that a host application can replace
- * any of them. This class exists so that an application which does not want to is not obliged to
- * wire them by hand:
+ * The SDK is made of small parts: a serializer, request and response factories, an HTTP client
+ * factory and one service per API area. You can replace any of them. If you don't need to, this
+ * class wires them up for you:
  *
  * ```php
  * $client = new PolkurierWebservice(new Config(
@@ -72,11 +71,10 @@ use Psr\Log\NullLogger;
  * $carriers = $client->courier()->availableCarriers();   // Carrier[]
  * ```
  *
- * Services are created on first use and reused afterwards, so asking for one repeatedly is cheap.
- * To substitute a collaborator, pass it to the constructor; anything omitted is built from the
- * configuration.
+ * Services are created on first use and then reused. To swap a part, pass it to the constructor.
+ * Anything you leave out is built from the configuration.
  *
- * This class holds no connection state and performs no I/O until a service method is called.
+ * No I/O happens until you call a service method.
  */
 final class PolkurierWebservice
 {
@@ -118,21 +116,20 @@ final class PolkurierWebservice
     private array $services;
 
     /**
-     * Every collaborator is optional. Pass one only to override how the SDK builds it.
+     * Everything except $config is optional. Pass a part only to replace the default one.
      *
      * @param ConfigInterface $config
-     * @param LoggerInterface|null $logger defaults to a logger that discards everything, so the
-     *                                     SDK never writes anywhere the host did not ask for
+     * @param LoggerInterface|null $logger defaults to a logger that discards everything
      * @param SerializerProviderInterface|null $serializerProvider
      * @param ConfigProviderInterface|null $configProvider overrides $config entirely when given
      * @param ClientFactoryInterface|null $clientFactory
      * @param RequestFactoryInterface|null $requestFactory
      * @param ResponseFactoryInterface|null $responseFactory
-     * @param ValidatorInterface|null $validator checks payloads before they are sent; defaults to
-     *        the SDK's own rules. Pass your own to add or replace them, or switch the whole thing
-     *        off through the configuration
+     * @param ValidatorInterface|null $validator checks payloads before they are sent. Defaults to
+     *        the SDK's own rules. Pass your own to add or replace rules. Validation can also be
+     *        turned off in the configuration
      * @param array<class-string, object> $services ready-made services, keyed by the class they
-     *        stand in for. Anything not given here is built on first use
+     *        replace. Services not given here are built on first use
      */
     public function __construct(
         ConfigInterface $config,
@@ -334,8 +331,8 @@ final class PolkurierWebservice
     }
 
     /**
-     * The service of the given class: the one handed in through $services, or one built on first
-     * use and reused afterwards.
+     * Returns the service of the given class. That is the one passed in through $services, or
+     * one built on first use and reused after that.
      *
      * @template T of object
      *

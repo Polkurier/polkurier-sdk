@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Which operations the account has put behind its security PIN.
  *
- * A lock being on means the corresponding call must carry the PIN or the API refuses it. Reading
- * this first is cheaper than discovering the lock from a rejected request.
+ * When a lock is on, the matching call must carry the PIN or the API refuses it. Check here first to
+ * avoid a rejected request.
  */
 readonly class PinLocksMessage implements MessageInterface
 {

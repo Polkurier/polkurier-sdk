@@ -10,9 +10,8 @@ namespace Polkurier\Webservice\Enum\Payment;
 /**
  * What an online payment is settling.
  *
- * The mode decides where the money goes and whether the amount is the customer's to choose. For
- * the modes that settle an existing debt the amount is determined by what is owed and anything
- * sent is ignored.
+ * The mode decides where the money goes and whether the customer chooses the amount. For modes
+ * that pay an existing debt, the amount is what is owed. Send an amount only for PREPAID.
  */
 enum PaymentModeEnum: string
 {
@@ -32,12 +31,12 @@ enum PaymentModeEnum: string
     case Orders = 'ORDERS';
 
     /**
-     * Tops up the prepaid balance. The amount is the customer's to choose.
+     * Tops up the prepaid balance. The customer chooses the amount.
      */
     case Prepaid = 'PREPAID';
 
     /**
-     * The small transfer used to verify the account's identity. Its amount is fixed and reported
+     * The small transfer used to verify the account's identity. The amount is fixed and returned
      * by `get_system_info` as `verification_transfer_amount_pln`.
      */
     case Verification = 'VERIFICATION';

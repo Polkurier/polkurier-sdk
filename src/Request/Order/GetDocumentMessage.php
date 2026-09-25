@@ -14,9 +14,9 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names the orders whose label or protocol is wanted.
+ * Identifies the orders to fetch the label or protocol for.
  *
- * Several may be requested at once; the API answers with one PDF containing all of them.
+ * You can request several at once. The API returns one PDF containing all of them.
  */
 readonly class GetDocumentMessage implements MessageInterface
 {
@@ -56,10 +56,10 @@ readonly class GetDocumentMessage implements MessageInterface
     }
 
     /**
-      * Printer language to render labels in instead of PDF.
-      *
-      * Honoured by `get_label` only; `get_protocol` always returns a PDF.
-      *
+     * Printer language to render labels in instead of PDF.
+     *
+     * Only `get_label` uses this. `get_protocol` always returns a PDF.
+     *
      * @return LabelFileFormatEnum|null
      */
     public function getFileFormat(): ?LabelFileFormatEnum

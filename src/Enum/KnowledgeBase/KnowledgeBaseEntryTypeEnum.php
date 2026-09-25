@@ -13,12 +13,12 @@ namespace Polkurier\Webservice\Enum\KnowledgeBase;
 enum KnowledgeBaseEntryTypeEnum: string
 {
     /**
-     * A readable page; its slug can be passed to the article endpoint.
+     * A page. Its slug can be passed to the article endpoint.
      */
     case Article = 'ARTICLE';
 
     /**
-     * A grouping that holds other entries. Fetching it as an article yields nothing.
+     * A group of other entries. Fetching it as an article returns nothing.
      */
     case Category = 'CATEGORY';
 }

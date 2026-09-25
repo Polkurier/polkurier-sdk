@@ -12,9 +12,9 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A record a ticket refers to — an order, a complaint or an invoice.
+ * A record a ticket refers to: an order, a complaint or an invoice.
  *
- * Only the number is carried; fetch the record itself through its own service if more is needed.
+ * Only the number is included. If you need more, fetch the record through its own service.
  */
 readonly class TicketReferenceMessage implements MessageInterface
 {

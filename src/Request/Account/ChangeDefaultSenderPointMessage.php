@@ -14,12 +14,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Sets, or clears, the default drop-off point for one carrier.
  *
- * Only carriers that actually operate points accept this — parcel lockers, post offices, Paczka w
- * Ruchu, DPD, FedEx, DHL and UPS Access Points. Sub-variants of those carriers are normalised onto
- * the parent, so setting the point for the InPost courier variant sets it for InPost lockers.
+ * Only carriers that operate points accept this: parcel lockers, post offices, Paczka w Ruchu, DPD,
+ * FedEx, DHL and UPS Access Points.
  *
- * The point id is validated against that carrier's network, so a code belonging to a different
- * carrier is rejected rather than stored. Sending an empty point clears the default instead.
+ * The point id must belong to that carrier's network. A point from another carrier is rejected.
+ * Send an empty point to clear the default.
  */
 readonly class ChangeDefaultSenderPointMessage implements MessageInterface
 {
@@ -31,7 +30,7 @@ readonly class ChangeDefaultSenderPointMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $courier carrier code; must be one that operates pickup points
+     * @param string $courier carrier code, must be one that operates pickup points
      * @param string $point point id, or an empty string to clear the default
      */
     public function __construct(

@@ -15,7 +15,7 @@ use Polkurier\Webservice\Request\Common\BasePackMessage;
 /**
  * Assembles the dimensions and weight shared by every parcel payload.
  *
- * Rarely used directly: reach for the builder of whatever carries the parcel instead.
+ * You will rarely need this directly. Use the builder of the message that contains the parcel.
  */
 class BasePackMessageBuilder extends AbstractBuilder
 {

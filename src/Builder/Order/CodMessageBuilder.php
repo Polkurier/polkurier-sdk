@@ -16,8 +16,7 @@ use Polkurier\Webservice\Request\Order\CodMessage;
 /**
  * Assembles the cash-on-delivery block of an order.
  *
- * The bank account is only wanted when the money is going to one, so it is set on the branch that
- * decides that rather than at the top.
+ * Set the bank account only when the money is paid out to one.
  */
 class CodMessageBuilder extends AbstractBuilder
 {

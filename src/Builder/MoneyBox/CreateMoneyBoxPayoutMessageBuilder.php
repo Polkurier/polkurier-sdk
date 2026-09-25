@@ -16,8 +16,8 @@ use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 /**
  * Assembles a request to pay out collected cash-on-delivery money.
  *
- * Thirteen optional fields: the destination defaults to the money box configuration and only needs
- * setting to override it, and the PIN and two-factor fields depend on what the account requires.
+ * All fields are optional. The destination defaults to the one in `get_money_box_config`. Set it
+ * only to use a different one. The PIN and two-factor fields depend on what the account requires.
  */
 class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
 {

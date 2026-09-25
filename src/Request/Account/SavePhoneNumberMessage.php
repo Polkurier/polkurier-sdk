@@ -15,13 +15,13 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Adds a telephone number, optionally making it the account's default.
  *
- * The number is stripped to digits and validated, so formatting is irrelevant but a malformed
- * number is rejected naming the `number` field.
+ * Formatting such as spaces or dashes does not matter. An invalid number is rejected with an error
+ * on the `number` field.
  *
- * Making it the default is the part that is guarded: that requires a confirmed two-factor token
- * registered under CHANGE_DEFAULT_PHONE_NUMBER. Adding a non-default number needs no confirmation.
- * The one exception is the first number on an account created without one, which is made default
- * automatically and skips the check.
+ * Making the number the default requires a confirmed two-factor token registered under
+ * CHANGE_DEFAULT_PHONE_NUMBER. Adding a non-default number needs no confirmation. Exception: on an
+ * account created without a number, the first one added becomes the default automatically and
+ * skips the check.
  */
 #[Validate\RequiredWhen(
     field: 'twoFactorToken',

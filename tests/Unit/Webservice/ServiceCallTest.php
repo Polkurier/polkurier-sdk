@@ -276,6 +276,16 @@ final class ServiceCallTest extends TestCase
         self::assertSame($this->sdk->courier(), $this->sdk->courier());
     }
 
+    /**
+     * An account that has never started verification gets an empty response, reported as null.
+     */
+    public function testAccountVerificationInfoIsNullWhenNothingWasStarted(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        self::assertNull($this->sdk->accountVerification()->getInfo());
+    }
+
     private static function createOrderMessage(): CreateOrderMessage
     {
         $address = new OrderAddressMessage(

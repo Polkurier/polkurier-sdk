@@ -19,25 +19,23 @@ use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
 use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 
 /**
- * The customer-facing help content.
+ * Help articles from the Polkurier knowledge base.
  *
- * All content is Polish, and article bodies are HTML fragments intended to be embedded.
+ * All content is in Polish. Article bodies are HTML fragments you can embed.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface KnowledgeBaseServiceInterface
 {
     /**
-     * The whole knowledge base as a flat index of categories and articles.
+     * Returns all categories and articles as a flat list.
      *
-     * Flat rather than nested: the hierarchy is expressed through each entry's parent id, so
-     * building a tree means grouping on it. A null parent marks a top-level entry.
+     * Each entry's parent id gives the hierarchy. Group on it to build a tree. A null parent means a
+     * top-level entry.
      *
-     * Only entries of type ARTICLE can be fetched with getArticle(); asking for a category's slug
-     * finds nothing.
+     * Only ARTICLE entries can be fetched with getArticle(). A category's slug returns not found.
      *
      * Endpoint: `get_knowledge_base_index`
      *
@@ -76,23 +74,22 @@ interface KnowledgeBaseServiceInterface
      * ```
      *
      * @return KnowledgeBaseEntryMessage[] payload:
+     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      */
     public function getIndex(): array;
 
     /**
      * Searches the knowledge base by free text.
      *
-     * Returns index entries in the same shape as getIndex(), so a hit can be resolved to an
-     * article without a second lookup. No relevance score is reported — the order is the API's
-     * own ranking.
+     * Returns entries in the same shape as getIndex(). There is no relevance score, but results
+     * come back in ranked order.
      *
-     * A search matching nothing is a success with an empty list, not an error.
+     * No matches gives an empty list, not an error.
      *
      * Endpoint: `search_knowledge_base`
      *
@@ -125,21 +122,21 @@ interface KnowledgeBaseServiceInterface
      * @param SearchKnowledgeBaseMessage $searchKnowledgeBaseMessage
      *
      * @return KnowledgeBaseEntryMessage[] payload:
+     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      */
     public function search(SearchKnowledgeBaseMessage $searchKnowledgeBaseMessage): array;
 
     /**
      * Fetches one article with its body and attachments.
      *
-     * Addressed by slug, which is what the index reports as the entry's id. Attachment URLs are
-     * public download links that need no credentials.
+     * Pass the entry's `slug` from the index (not its `id`). It is sent in the request's `id` field.
+     * Attachment URLs are public download links and need no credentials.
      *
      * Endpoint: `get_knowledge_base_article`
      *
@@ -182,19 +179,18 @@ interface KnowledgeBaseServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for an unknown slug, for an unpublished article, and for a category's slug — a
-     * category is not fetchable as an article.
+     * Thrown for an unknown slug, an unpublished article, or a category's slug.
      *
      * @param GetKnowledgeBaseArticleMessage $getKnowledgeBaseArticleMessage
      *
      * @return KnowledgeBaseArticleMessage payload:
+     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
      */
     public function getArticle(
         GetKnowledgeBaseArticleMessage $getKnowledgeBaseArticleMessage

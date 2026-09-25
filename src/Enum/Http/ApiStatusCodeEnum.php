@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Http;
 
 /**
- * Mirrors {@see ApiErrorCodeEnum} case for case. The high-numbered cases reuse HTTP status codes,
- * which the API returns in the JSON body's `status_code` rather than as a transport status.
+ * Has the same cases as {@see ApiErrorCodeEnum}. The high-numbered cases reuse HTTP status codes,
+ * which the API returns in the `status_code` field of the JSON body, not as the HTTP status.
  */
 enum ApiStatusCodeEnum: int
 {

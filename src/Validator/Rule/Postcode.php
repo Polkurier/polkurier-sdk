@@ -11,16 +11,15 @@ use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
- * A postcode, in the only format the API parses.
+ * A postcode.
  *
- * Polish postcodes are NN-NNN. No other country's format is read by the API, so a postcode belonging
- * to one is passed over rather than judged — imposing the Polish shape on a German address would
- * reject something the service accepts perfectly well.
+ * Polish postcodes must be NN-NNN. Postcodes from other countries are not checked, so a German
+ * address is not held to the Polish format.
  *
- * Where the country is a sibling field, name it and the rule reads it from there:
+ * Pass the country code if the postcode is not Polish:
  *
  * ```php
- * #[Postcode]                 // the country the API serves
+ * #[Postcode]                 // Poland
  * #[Postcode(country: 'DE')]   // anywhere else
  * private string $postcode;
  * ```
@@ -31,7 +30,7 @@ class Postcode implements ValueValidatorInterface
     private const string PATTERN = '/^\d{2}-\d{3}$/';
 
     /**
-     * The only country the API serves domestic postcodes for.
+     * The only country whose postcode format is checked.
      */
     public const string SERVED_COUNTRY = 'PL';
 
@@ -52,8 +51,8 @@ class Postcode implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Absence is not this rule's business; that is what NotBlank is for. Saying so here would
-        // make every optional field of this kind mandatory.
+        // Empty values pass. NotBlank handles required fields. Rejecting them here would make
+        // every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }

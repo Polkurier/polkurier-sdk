@@ -12,10 +12,10 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The address fields common to everything that carries an address.
+ * Address fields shared by every message that carries an address.
  *
- * A pickup point is expressed by setting the point id; the street fields then serve as contact
- * details rather than a delivery destination.
+ * To address a pickup point, set the point id. The street fields then act as contact details, not
+ * as the delivery destination.
  */
 class BaseAddress implements MessageInterface
 {
@@ -322,9 +322,7 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * The street without its house number, split out by the API.
-     *
-     * The street with the house number taken off it, as the API parses it.
+     * The street name without the house number.
      *
      * @return string|null
      */
@@ -334,7 +332,7 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * Name of the parcel machine, for carriers that identify one by name rather than by code.
+     * Name of the parcel machine, for carriers that identify machines by name instead of by code.
      *
      * @return string|null
      */
@@ -344,11 +342,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * The pickup point this address resolves to, expanded in full.
+     * The pickup point this address resolves to, in full.
      *
-     * Populated by the API when the address names a point and the point is still known. Null both
-     * when the address is an ordinary street address and when the point could not be resolved, so
-     * a point id without a point here means the point has been withdrawn.
+     * Set when the address names a point that is still known. Null for an ordinary street address,
+     * and also when the point could not be resolved. A point id with no point here means the point
+     * has been withdrawn.
      *
      * @return CourierPoint|null
      */

@@ -17,9 +17,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Starts an online payment.
  *
- * The mode says what is being paid for and is validated against a fixed set. The amount is only
- * meaningful for the modes that let the customer choose one — topping up the prepaid balance, for
- * instance — and is ignored where the sum is already determined by what is owed.
+ * The mode says what is being paid for. Send an amount only when topping up the prepaid balance,
+ * where it is required (the SDK checks this before sending). For other modes the sum is set by
+ * what is owed.
  */
 #[Validate\ValidatedBy(RegisterPaymentMessageValidator::class)]
 readonly class RegisterPaymentMessage implements MessageInterface

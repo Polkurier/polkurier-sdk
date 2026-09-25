@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names a single order.
+ * Identifies a single order.
  */
 readonly class OrderIdMessage implements MessageInterface
 {

@@ -14,8 +14,8 @@ use Polkurier\Webservice\Request\BankAccount\SaveMessage;
 /**
  * Assembles a bank account for cash-on-delivery settlement.
  *
- * Whether the security PIN and the two-factor fields are needed depends on the account, which is
- * known from get_account_info rather than at the call site — so they are set conditionally.
+ * Whether the security PIN and the two-factor fields are needed depends on the account. Check
+ * get_account_info and set them only when required.
  */
 class SaveMessageBuilder extends AbstractBuilder
 {

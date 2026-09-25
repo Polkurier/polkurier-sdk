@@ -12,11 +12,10 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Carries a bare token to the API.
+ * A message whose only parameter is a token.
  *
- * The base for anything whose only parameter is one: a two-factor token being resent or verified,
- * and {@see \Polkurier\Webservice\Http\Request\AuthorizationMessage}, which adds the
- * login to it.
+ * Used to resend or verify a two-factor token, and extended by
+ * {@see \Polkurier\Webservice\Http\Request\AuthorizationMessage}, which adds the login.
  */
 readonly class TokenMessage implements MessageInterface
 {

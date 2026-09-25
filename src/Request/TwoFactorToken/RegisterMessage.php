@@ -12,7 +12,7 @@ use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Starts a two-factor confirmation: which operation, and how to reach the user.
+ * Starts a two-factor confirmation for an operation.
  */
 readonly class RegisterMessage implements MessageInterface
 {

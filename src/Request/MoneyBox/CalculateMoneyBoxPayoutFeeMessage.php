@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Asks what a payout would cost, without requesting one.
  *
- * Sending the same orders and payout type you intend to use gives the fee that will actually apply;
- * omitting the orders quotes for a payout of everything available.
+ * Send the orders and payout type you intend to use to get the fee that will apply. Leave out the
+ * orders to get the fee for paying out everything available.
  */
 readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterface
 {
@@ -29,8 +29,8 @@ readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string[] $orders order numbers to include; empty means everything available
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType the delivery method; defaults to the account's configured one
+     * @param string[] $orders order numbers to include, empty for everything available
+     * @param ?MoneyBoxPayoutTypeEnum $payoutType the delivery method, defaults to the account's configured one
      */
     public function __construct(
         /**

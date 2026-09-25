@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Changes the account password.
  *
- * The current password must be supplied and is checked first: without it, or with the wrong one, the
- * API refuses the change as forbidden rather than as a validation failure.
+ * The current password is required. If it is missing or wrong, the API refuses the change as
+ * forbidden, not as a validation error.
  */
 readonly class ChangePasswordMessage implements MessageInterface
 {

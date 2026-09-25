@@ -10,37 +10,34 @@ namespace Polkurier\Webservice\Builder;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 
 /**
- * What every builder does, so that no builder has to say it.
+ * Base class for the builders.
  *
- * A builder's only irreducible part is its typed setters: one per field, named for it and taking
- * exactly what the message takes. Everything around them — collecting the values, knowing which
- * fields are required, refusing to build without them — is the same for all of them and lives
- * here.
+ * Each builder adds one typed setter per field. This class collects the values, works out which
+ * fields the message requires and refuses to build until they are all set.
  *
- * Values are held by field name and handed to the constructor as named arguments, which is what
- * lets a field never set simply not be passed. That matters more than it sounds: a builder that
- * mirrored each default would go stale the moment a message changed one, and would then quietly
- * send the old value. Here the message's own defaults are the only defaults there are.
+ * Values are stored by field name and passed to the message constructor as named arguments. A field
+ * you never set is not passed at all, so the message's own constructor default applies. The builders
+ * do not keep copies of those defaults.
  */
 abstract class AbstractBuilder
 {
     /**
-     * The constructor parameters each message cannot be built without, once worked out.
+     * Cache of the required constructor parameters, per message class.
      *
      * @var array<class-string, list<string>>
      */
     private static array $required = [];
 
     /**
-     * Fields that have been given, by name.
+     * Values set so far, by field name.
      *
      * @var array<string, mixed>
      */
     protected array $values = [];
 
     /**
-     * Builders are started with create() and filled by their setters, so there is nothing to
-     * construct. Fixed here so that create() can safely build a subclass.
+     * Use create() to start a builder. The constructor is final so that create() can instantiate
+     * any subclass.
      */
     final public function __construct() {}
 
@@ -53,7 +50,7 @@ abstract class AbstractBuilder
     }
 
     /**
-     * Records one field. The typed setters are what callers use; this is what they call.
+     * Stores one field value. The typed setters call this.
      *
      * @param string $field
      * @param mixed $value
@@ -68,10 +65,9 @@ abstract class AbstractBuilder
     }
 
     /**
-     * Builds the message, or says which fields it still needs.
+     * Builds the message.
      *
-     * Every missing field is named at once. Letting the constructor fail instead would report the
-     * first and stop, which for a payload of a dozen fields is a dozen attempts.
+     * If required fields are missing, the exception lists all of them, not just the first one.
      *
      * @template T of object
      *
@@ -96,9 +92,7 @@ abstract class AbstractBuilder
     }
 
     /**
-     * The constructor parameters with no default, read from the message itself.
-     *
-     * Read rather than generated, so it cannot disagree with the constructor it describes.
+     * Returns the constructor parameters that have no default value, read via reflection.
      *
      * @param class-string $message
      *

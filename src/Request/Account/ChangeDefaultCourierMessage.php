@@ -14,8 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Sets the carrier preselected on the order form.
  *
- * The carrier must be one this account may actually use; the API validates against the same list
- * `available_carriers` returns.
+ * The carrier must be one this account can use, i.e. one listed by `available_carriers`.
  */
 readonly class ChangeDefaultCourierMessage implements MessageInterface
 {

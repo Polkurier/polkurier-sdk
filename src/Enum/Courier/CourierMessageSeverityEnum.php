@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Enum\Courier;
 /**
  * How prominently a carrier notice should be shown.
  *
- * Presentation only; it carries no operational meaning beyond the wording of the notice itself.
+ * Only affects how the notice is displayed.
  */
 enum CourierMessageSeverityEnum: string
 {

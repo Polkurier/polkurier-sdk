@@ -17,7 +17,7 @@ use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
 /**
  * Assembles a saved parcel template.
  *
- * Pass an id to update a template rather than create one.
+ * Set an id to update an existing template. Without one, a new template is created.
  */
 class SaveMessageBuilder extends AbstractBuilder
 {

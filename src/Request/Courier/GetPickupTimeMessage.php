@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Asks which days and time windows a carrier can collect on.
  *
- * Worth calling before booking: it avoids offering the user a slot the carrier will refuse.
+ * Call this before booking so you only offer slots the carrier accepts.
  */
 readonly class GetPickupTimeMessage implements MessageInterface
 {

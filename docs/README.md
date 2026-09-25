@@ -1,32 +1,32 @@
 Polkurier SDK documentation
 ===========================
 
-The PHP client for the Polkurier.pl web API. This directory is the long form: what the SDK is
-made of, why it is put together the way it is, and how to use each part. The project
-[README](../README.md) is the short version — read that first if you only need to place an order.
+These pages document the PHP client for the Polkurier.pl web API in detail: what the SDK is made
+of, how it fits together, and how to use each part. The project [README](../README.md) is the short
+version. If you only need to place an order, start there.
 
 Start here
 ----------
 
 | Page | What it covers |
 |------|----------------|
-| [Getting started](getting-started.md) | Installing, credentials, the first call, the shape of every call after it |
+| [Getting started](getting-started.md) | Installation, credentials, the first call, and how every call works |
 | [Configuration](configuration.md) | `Config`, `SerializerConfig`, logging, timeouts, sandbox, per-tenant credentials |
-| [Services](services.md) | All sixteen services and every method on them, with what each one returns |
-| [Messages and models](messages.md) | Requests, responses, enums, wire names, and why the two halves are kept apart |
-| [Builders](builders.md) | Assembling a payload step by step instead of in one constructor call |
-| [Validation](validation.md) | What is checked before a request is sent, how to read a rejection, how to change the rules |
-| [Errors](errors.md) | Every exception the SDK raises, when, and what to do about it |
-| [Serialization](serialization.md) | How PHP objects become the API's JSON and back again |
-| [Architecture](architecture.md) | The request lifecycle, the collaborators, and which classes you may replace |
-| [Recipes](recipes.md) | Worked solutions: placing an order, paging, labels, two-factor, payouts, retries |
-| [Testing](testing.md) | Testing your integration against the SDK, and running the SDK's own suite |
-| [API method index](api-methods.md) | Every `apimethod` the SDK speaks, mapped to the method that sends it |
-| [More than one way](alternatives.md) | Where the SDK offers several routes to the same outcome, and which to pick |
-| [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim — and Magento, PrestaShop, WooCommerce, Shopware, Sylius |
+| [Services](services.md) | All 16 services and their methods, with return types |
+| [Messages and models](messages.md) | Requests, responses, enums, wire names, and why requests and responses are separate classes |
+| [Builders](builders.md) | Building a payload step by step instead of in one constructor call |
+| [Validation](validation.md) | What is checked before a request is sent, reading a rejection, changing the rules |
+| [Errors](errors.md) | Every exception the SDK throws, when, and how to handle it |
+| [Serialization](serialization.md) | How PHP objects are converted to the API's JSON and back |
+| [Architecture](architecture.md) | The request lifecycle, the collaborators, and which classes you can replace |
+| [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |
+| [Testing](testing.md) | Testing your integration against the SDK, and running the SDK's own tests |
+| [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
+| [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
+| [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, Magento, PrestaShop, WooCommerce, Shopware, Sylius |
 
-The ten-second version
-----------------------
+Quick example
+-------------
 
 ```php
 use Polkurier\Webservice\Config;
@@ -42,36 +42,35 @@ $client = new PolkurierWebservice(new Config(
 $carriers = $client->courier()->availableCarriers();   // Carrier[]
 ```
 
-One client, one service per functional area, one method per API endpoint. Methods return the
-thing they are named for. Anything that goes wrong is an exception.
+The client has one service per functional area and one method per API endpoint. Each method
+returns the type it is named for. Errors are thrown as exceptions.
 
-Three facts that explain most of the design
--------------------------------------------
+How the API works
+-----------------
 
-**The API is one endpoint.** Every call is a `POST /` carrying a JSON envelope with three fields:
-`apimethod`, `authorization` and `data`. There are no paths, no verbs, no status semantics. The
-SDK's `ApiMethodEnum` is that first field, and everything under `src/Http` exists to build and
-unwrap that envelope.
+**The API has a single endpoint.** Every call is a `POST /` with a JSON envelope containing
+`apimethod`, `authorization` and `data`. There are no paths, HTTP verbs or status codes to deal
+with. `ApiMethodEnum` holds the values for `apimethod`, and the code under `src/Http` builds and
+unwraps the envelope.
 
-**The API answers HTTP 200 for everything**, including a bad token and a rejected payload. Never
-branch on the transport status; the SDK does not, and neither should anything above it. The real
-outcome is the envelope's `status` field, which the SDK reads for you and turns into either a
-typed return value or an exception.
+**The API returns HTTP 200 for everything**, including a bad token and a rejected payload. Don't
+check the HTTP status. The SDK doesn't either. It reads the envelope's `status` field and either
+returns a typed value or throws an exception.
 
-**The API's field names are not names you want in your code.** `codbankaccount`, `is_cover_address`,
-`shipmenttype`, `value_nett`. Every property in the SDK is named for what it means and carries a
-`#[SerializedName]` saying what the API calls it, resolved in both directions. That decoupling is a
-hard requirement, not a convenience: it is what lets the wire names change without a breaking
-release. See [Serialization](serialization.md).
+**The API's field names are awkward to use in PHP**, e.g. `codbankaccount`, `is_cover_address`,
+`shipmenttype`, `value_nett`. SDK properties are named for what they mean, and a
+`#[SerializedName]` attribute maps each one to the API's name in both directions. This mapping is
+required: it means the wire names can change without a breaking release. See
+[Serialization](serialization.md).
 
 Conventions used in these pages
 -------------------------------
 
-- Class names are given short where the namespace is obvious from context and fully qualified
-  where it is not. Everything lives under `Polkurier\Webservice\`.
-- "Message" means a request payload — a class under `Request` implementing `Api\MessageInterface`.
-  Confusingly, many response classes are also named `…Message`; the namespace is what tells them
-  apart, and [Messages and models](messages.md) explains why.
-- Code that would place an order, move money or delete something is marked as such.
-- Runnable versions of nearly everything here live in [`examples/`](../examples), one file per API
-  method. They are safe to run: anything that writes does nothing without `--confirm`.
+- Class names are written short when the namespace is clear from context, and fully qualified when
+  it isn't. Everything is under `Polkurier\Webservice\`.
+- "Message" means a request payload: a class under `Request` that implements
+  `Api\MessageInterface`. Many response classes are also named `…Message`, which can be confusing.
+  The namespace tells them apart. [Messages and models](messages.md) explains why.
+- Code that places an order, moves money or deletes something is marked.
+- [`examples/`](../examples) has runnable versions of most of this, one file per API method. They
+  are safe to run, because scripts that write do nothing without `--confirm`.

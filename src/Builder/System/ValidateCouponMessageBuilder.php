@@ -17,9 +17,9 @@ use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 /**
  * Assembles a coupon check.
  *
- * The code alone asks whether the coupon is valid at all. Adding the carrier, the shipment type and
- * the parcels — which the message requires together or not at all — also asks whether it applies to
- * that order.
+ * With only the code, the check tells you whether the coupon is valid. If you also set the carrier,
+ * the shipment type and the parcels, it also checks whether the coupon applies to that order. Set
+ * all 3 of them or none.
  */
 class ValidateCouponMessageBuilder extends AbstractBuilder
 {

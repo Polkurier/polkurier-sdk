@@ -22,36 +22,32 @@ use Polkurier\Webservice\Validator\Rule\ValidatedBy;
 /**
  * Runs the rules a message declares as attributes.
  *
- * Keeping the rules on the fields they describe means a field and its constraints are read, changed
- * and reviewed together, and a field added without them is visibly missing them. The wire names in
- * the report come from the serializer attribute already on each property, so a renamed field cannot
- * drift away from the rule that mentions it.
+ * The rules sit on the fields they describe, so a field and its constraints are read and changed
+ * together. Field names in the report are the wire names taken from each property's serializer
+ * attribute, so renaming a field can't leave a rule pointing at the old name.
  *
- * Six kinds of declaration are honoured:
+ * Supported declarations:
  *
- * - A {@see ValueValidatorInterface} on a property: the format rules.
- * - A {@see MessageRuleInterface} on the class: the rules about how fields relate. They go on the
- *   class because that is the only scope that sees both fields — a property attribute naming a
- *   sibling would tie two fields together from a place that can see one of them.
- * - {@see Valid} on a property: descend into a nested object, or into each object in a list.
+ * - A {@see ValueValidatorInterface} on a property: format rules.
+ * - A {@see MessageRuleInterface} on the class: rules about how fields relate. These go on the
+ *   class because only the class can see both fields.
+ * - {@see Valid} on a property: validate a nested object, or each object in a list.
  * - {@see Each} on a property: apply one rule to every entry of a list of plain values.
- * - {@see IgnoredWhen} on the class: skip the lot, because the block does not apply.
- * - {@see ValidatedBy} on the class: run a validator written as a class, for the rules with
- *   enough logic behind them not to fit an attribute.
+ * - {@see IgnoredWhen} on the class: skip all rules when the block does not apply.
+ * - {@see ValidatedBy} on the class: run a validator class, for rules with too much logic for an
+ *   attribute.
  *
- * The two class-level kinds are inherited, so a base message can declare a rule that governs every
- * message built on it.
+ * Class-level declarations are inherited, so a rule on a base message applies to every message
+ * that extends it.
  *
- * What cannot be said declaratively belongs in an {@see AbstractMessageValidator} instead, and the
- * registry runs both. Rules that depend on the role a value is playing are the usual case — an
- * address needs an email as a sender and not as a recipient, which is a fact about the order, not
- * about the address.
+ * Rules that can't be written as attributes go in an {@see AbstractMessageValidator}. The usual
+ * case is a rule that depends on the role a value plays. For example, an address needs an email
+ * when it is the sender but not when it is the recipient.
  *
- * Reflection is done once per class and cached. Nothing here is final or private: to drop a rule
- * the SDK applies and your integration does not want, extend this and filter what
- * {@see static::rulesFor()} returns, then hand the result to the client as its validator. Filter
- * what the parent gives back rather than replacing it — the cache holds the unfiltered reflection,
- * which is what lets two differently configured validators coexist in one process.
+ * Reflection runs once per class and is cached. Nothing here is final or private. To drop a rule
+ * you don't want, extend this class, filter what {@see static::rulesFor()} returns, and pass your
+ * validator to the client. Filter the parent's result instead of replacing it: the cache holds the
+ * unfiltered rules, which lets 2 differently configured validators run in the same process.
  */
 class AttributeValidator implements ValidatorInterface
 {
@@ -91,10 +87,10 @@ class AttributeValidator implements ValidatorInterface
     }
 
     /**
-     * Gathers everything the message's own attributes object to.
+     * Collects the violations found by the message's attributes.
      *
-     * Exposed so that a hand-written validator can apply the declared rules and then add its own,
-     * and so nested structures can be folded into one report.
+     * Public so a hand-written validator can apply the declared rules and then add its own, and so
+     * nested structures end up in one report.
      *
      * @param object $message
      * @param ViolationPool $violations
@@ -151,12 +147,11 @@ class AttributeValidator implements ValidatorInterface
     }
 
     /**
-     * Runs a validator a message named with {@see ValidatedBy}, folding its report into this one.
+     * Runs a validator named with {@see ValidatedBy} and adds its violations to this report.
      *
-     * The validator reports by throwing, which is what it does when used on its own. Here its
-     * findings have to join whatever the attributes already objected to, so the exception is
-     * unpacked rather than allowed to escape — otherwise a payload with a bad postcode and an
-     * incoherent combination would report only the second.
+     * The validator reports by throwing. The exception is caught and its errors added to the pool,
+     * so they are reported together with the attribute violations. Otherwise a payload with a bad
+     * postcode and an invalid field combination would only report the second.
      *
      * @param class-string<MessageValidatorInterface> $validator
      * @param object $message
@@ -184,7 +179,7 @@ class AttributeValidator implements ValidatorInterface
     }
 
     /**
-     * Descends into a nested object, or into every entry of a list.
+     * Validates a nested object, or every object in a list.
      *
      * @param mixed $value
      * @param string $field
@@ -246,7 +241,7 @@ class AttributeValidator implements ValidatorInterface
 
         $reflection = MessageFields::reflect($class);
 
-        // Class-level rules are inherited: a base message declaring one governs its subclasses.
+        // Class-level rules are inherited, so a rule on a base message applies to its subclasses.
         for ($declaring = $reflection; $declaring !== false; $declaring = $declaring->getParentClass()) {
             foreach ($declaring->getAttributes() as $attribute) {
                 $instance = $attribute->newInstance();
@@ -267,8 +262,8 @@ class AttributeValidator implements ValidatorInterface
             foreach ($current->getProperties() as $property) {
                 $name = $property->getName();
 
-                // A property redeclared down the hierarchy is described by the first declaration
-                // reached; the parent's copy is the same field.
+                // For a property redeclared in a subclass, the first declaration found wins. The
+                // parent's copy is the same field.
                 if (isset($seen[$name])) {
                     continue;
                 }

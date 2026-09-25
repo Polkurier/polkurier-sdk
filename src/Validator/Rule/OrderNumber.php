@@ -13,8 +13,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * An order number.
  *
- * Matches the pattern the API applies before it looks anything up, so a number failing here would
- * have been refused as malformed rather than reported as missing.
+ * Uses the same pattern as the API. A number that fails here would be rejected by the API as
+ * malformed.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class OrderNumber implements ValueValidatorInterface
@@ -28,8 +28,8 @@ class OrderNumber implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Absence is not this rule's business; that is what NotBlank is for. Saying so here would
-        // make every optional field of this kind mandatory.
+        // Empty values pass. NotBlank handles required fields. Rejecting them here would make
+        // every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }

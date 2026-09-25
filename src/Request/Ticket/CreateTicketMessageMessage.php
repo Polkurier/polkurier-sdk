@@ -14,8 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Adds a reply to an existing ticket.
  *
- * Subject to the same attachment limits as raising one. A ticket that has been closed cannot be
- * replied to.
+ * The same attachment limits apply as when creating a ticket. You cannot reply to a closed ticket.
  */
 readonly class CreateTicketMessageMessage implements MessageInterface
 {

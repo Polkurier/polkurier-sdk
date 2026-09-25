@@ -13,21 +13,20 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 
 /**
- * Dispatches a message to the validators that understand it.
+ * Passes a message to the validators registered for it.
  *
- * A validator registered for a class also applies to its subclasses and to anything implementing
- * it as an interface, so a rule written once for a base message covers the specialised ones —
- * registering against an order-number message validates every call that carries one.
+ * A validator registered for a class also runs for its subclasses, and for classes implementing it
+ * if it is an interface. For example, a validator registered for an order-number message runs for
+ * every call that carries one.
  *
- * Being a validator itself means the service layer holds one collaborator rather than knowing
- * about a registry, and an application that wants entirely different rules can substitute its own.
+ * The registry is a validator itself, so the services only depend on {@see ValidatorInterface}.
+ * You can pass a completely different implementation instead.
  *
- * Failures are gathered across every validator that applies and reported together. Each one throws
- * on its own, so without this a payload wrong in two layers — a malformed field and an incoherent
- * combination — would report the first and hide the second until it was fixed.
+ * Failures from all matching validators are collected and thrown together in one exception. Each
+ * validator throws on its own, so otherwise a payload with a malformed field and an invalid field
+ * combination would only report the first problem.
  *
- * A message with no validator registered passes. The SDK validates what the API is known to check;
- * silence means "no rule", not "approved".
+ * A message with no registered validator passes. That only means no rule applies to it.
  */
 class ValidatorRegistry implements ValidatorInterface
 {
@@ -52,7 +51,7 @@ class ValidatorRegistry implements ValidatorInterface
     }
 
     /**
-     * Runs every validator that applies, in registration order, and reports what they all found.
+     * Runs every matching validator in registration order and reports all failures together.
      *
      * @param MessageInterface $data
      *

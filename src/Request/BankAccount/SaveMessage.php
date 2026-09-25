@@ -15,14 +15,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Registers or updates a bank account for cash-on-delivery settlement.
  *
- * Passing an id updates that account; leaving it out registers a new one. Setting `default` makes
- * it the account money is settled to, which un-defaults whichever one held that before.
+ * Pass an id to update that account, or leave it out to register a new one. Setting `default`
+ * makes this the account cash on delivery is settled to and removes the flag from the previous one.
  *
- * Carries two-factor fields because the API may refuse the change without a confirmed token, and
- * an access PIN because it may additionally be refused while the account's bank-account lock is
- * engaged: redirecting where money is paid is treated as a sensitive operation. Which of them a
- * given account needs is reported by `get_account_info` and `get_system_info`, so neither is
- * required here.
+ * The API may refuse the change without a confirmed two-factor token. While the account's
+ * bank-account lock is engaged, it also needs the access PIN. `get_account_info` and
+ * `get_system_info` report which of them an account needs, so both are optional here.
  */
 readonly class SaveMessage implements MessageInterface
 {
@@ -41,7 +39,7 @@ readonly class SaveMessage implements MessageInterface
     /**
      * @param string $name the customer's own label for the account
      * @param string $number the account number, as an IBAN or a bare national number
-     * @param string|null $id the account to update; null registers a new one
+     * @param string|null $id the account to update, or null to register a new one
      * @param bool $default settle cash on delivery to this account
      * @param string|null $twoFactorToken
      * @param string|null $twoFactorCode

@@ -14,21 +14,17 @@ use Polkurier\Webservice\Exception\ValidationException;
 /**
  * Base for a validator that checks one whole message.
  *
- * The broad half of validation. Where a {@see \Polkurier\Webservice\Api\Validation\ValueValidatorInterface}
- * judges a single value against a format, a message validator judges a payload against itself: it
- * decides which fields are required, applies the value rules to them, and enforces the rules that
- * only make sense across several fields at once — a bank account required because the money is
- * going to one, a two-factor code required because a number is being made the default, a date
- * range that has to run forwards.
+ * A {@see \Polkurier\Webservice\Api\Validation\ValueValidatorInterface} checks a single value
+ * against a format. A message validator checks the payload as a whole. It decides which fields are
+ * required, applies the value rules to them, and checks rules that span several fields, e.g. a bank
+ * account that is required because the money goes to one, a two-factor code that is required when
+ * a number becomes the default, or a date range that must run forwards.
  *
- * Subclasses collect failures rather than throwing, so every problem with a payload is reported
- * together.
+ * Subclasses add failures to the pool instead of throwing, so all problems are reported together.
  *
- * Which messages a subclass applies to is not its own business and is not declared here: a message
- * names the validators that check it, with
- * {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy}. Stating it on both sides invited
- * them to disagree, and a validator paired with the wrong message then stopped running without
- * saying so.
+ * A subclass doesn't declare which messages it applies to. The message names its validators with
+ * {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy}. Declaring the link in one place
+ * means it can't get out of sync and silently stop a validator from running.
  *
  * @template T of MessageInterface
  */

@@ -15,13 +15,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A support ticket.
  *
- * The timeline is only populated by the call that asks for it; listing tickets returns them without
- * it.
+ * Only the call that asks for the timeline fills it in. Ticket listings leave it out.
  *
- * `is_read` is about the customer's side of the conversation: it is true once there is at least one
- * reply from Polkurier and nothing on the ticket is still unseen. A ticket with no replies yet is
- * therefore reported as unread, which is what makes it usable as an "awaiting your attention"
- * indicator rather than a literal read receipt.
+ * `is_read` describes the customer's side of the conversation. It is true once Polkurier has replied
+ * at least once and nothing on the ticket is still unseen. A ticket with no replies yet is reported
+ * as unread. Treat the flag as "awaiting your attention", not as a read receipt.
  */
 readonly class TicketMessage implements MessageInterface
 {

@@ -1,19 +1,19 @@
 Builders
 ========
 
-Messages are readonly and take named arguments, which reads well when every value is to hand:
+Messages are readonly and take named arguments. That works well when you have every value up
+front:
 
 ```php
 new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], searchQuery: 'Poznań', limit: 5);
 ```
 
-It reads much less well when the values are not: a filter that may or may not apply, a payload
-assembled across a few steps, a form where half the fields are optional. Written with the
-constructor, that becomes a pile of ternaries feeding named arguments, or a `$args` array spread in
-at the end with no types on it.
+It gets awkward when you don't, e.g. with an optional filter, a payload assembled over a few steps,
+or a form where many fields are optional. With the constructor alone you end up with a stack of
+ternaries feeding named arguments, or an untyped `$args` array spread in at the end.
 
-So the larger messages have builders, under `Polkurier\Webservice\Builder`, mirroring the namespace
-of the message they build.
+For these cases the larger messages have builders under `Polkurier\Webservice\Builder`. Each
+builder sits in the same sub-namespace as the message it builds.
 
 ```php
 use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
@@ -31,44 +31,40 @@ if ($limit !== null) {
 $points = $client->courier()->findCourierPoints($search->build());
 ```
 
-Three properties worth knowing
-------------------------------
+How builders behave
+-------------------
 
-**Setters are typed exactly as the constructor is.** `length(int $length)`, not
-`set(string, mixed)`. Static analysis catches a wrong type here just as it would on the
+**Setters have the same types as the constructor.** For example `length(int $length)`, not a
+generic `set(string, mixed)`. Static analysis catches a wrong type the same way it would on the
 constructor.
 
-**A field never set is not passed to the constructor at all.** Values are held by name and spread
-as named arguments, so the message's own defaults are the only defaults there are. A builder that
-mirrored each default would go stale the moment a message changed one, and would then quietly send
-the old value.
+**Fields you never set aren't passed to the constructor.** The builder stores values by name and
+spreads them as named arguments, so the message's own defaults apply. The builder doesn't keep a
+copy of those defaults that could go out of date.
 
-**`build()` names everything that is missing, at once.**
+**`build()` lists every missing field in one go.**
 
 ```php
 Polkurier\Webservice\Request\Order\PackMessage cannot be built without width, height, weight.
 ```
 
-Letting the constructor fail instead would report the first missing argument and stop, which for a
-payload of a dozen fields is a dozen attempts. The exception is
+The constructor on its own would only report the first missing argument. The exception thrown is
 `Exception\InvalidArgumentException`.
 
 What builders do not do
 -----------------------
 
-**They do not validate.** Nothing is checked in the builder; the message's rules run when it is
-sent. Both routes reach the same checks, so a builder cannot be used to sneak a payload past
-validation, and a payload that fails does so at the same point either way. See
+**They don't validate.** The builder checks nothing. The message's rules run when it's sent, and
+the checks are the same whether you used a builder or the constructor. See
 [Validation](validation.md).
 
-**They are not required.** Every message can be constructed directly, and roughly two-thirds have
-no builder at all.
+**They're optional.** You can construct every message directly, and about two-thirds of messages
+have no builder.
 
-The twenty-two
---------------
+Available builders
+------------------
 
-Builders exist for messages with four or more fields. Below that, a builder is three lines to say
-one.
+There are 22 builders. Every message with four or more fields has one.
 
 | Builder | Builds |
 |---------|--------|
@@ -95,10 +91,10 @@ one.
 | `Ticket\CreateTicketMessageBuilder` | `Request\Ticket\CreateTicketMessage` |
 | `Ticket\GetTicketsMessageBuilder` | `Request\Ticket\GetTicketsMessage` |
 
-Nesting them
-------------
+Nesting builders
+----------------
 
-An order is built from several messages, and the builders nest the way the messages do:
+An order is made of several messages, and you nest the builders the same way:
 
 ```php
 use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
@@ -132,9 +128,9 @@ $order = CreateOrderMessageBuilder::create()
     ->build();
 ```
 
-There is no partial-build state: each `build()` produces a finished, immutable message, and the one
-above it takes it as a value. A builder can be passed around before `build()` is called, which is
-the whole point — but what comes out is an ordinary message with no builder attached to it.
+Each `build()` returns a complete, immutable message, and the outer builder takes it as a value.
+You can pass a builder around before calling `build()`, but the result is an ordinary message with
+no link back to the builder.
 
 Reusing a builder
 -----------------
@@ -150,15 +146,15 @@ $firstPage  = $base->page(1)->build();
 $secondPage = $base->page(2)->build();
 ```
 
-Note that this mutates `$base` — the setters return the same instance, not a copy. Where you want
-two genuinely independent builders, create two.
+Note: this mutates `$base`. Setters return the same instance, not a copy. If you need two
+independent builders, create two.
 
 Writing your own
 ----------------
 
-Builders are hand-written, one file each, and they are almost nothing: setters, and a `build()`.
-`AbstractBuilder` holds the rest — collecting values, working out which fields are required,
-refusing to build without them.
+Builders are hand-written, one file each, and contain little more than setters and a `build()`
+method. `AbstractBuilder` does the rest: it collects values, works out which fields are required
+and refuses to build without them.
 
 ```php
 use Polkurier\Webservice\Builder\AbstractBuilder;
@@ -182,24 +178,22 @@ class MyMessageBuilder extends AbstractBuilder
 }
 ```
 
-`set()` records a value under its constructor parameter name — the name has to match, because that
-is what is spread as a named argument. `make()` reads the required parameters off the message's own
-constructor by reflection, so it cannot disagree with the constructor it describes.
+`set()` stores a value under its constructor parameter name. The name must match, since it's
+spread as a named argument. `make()` reads the required parameters from the message constructor
+by reflection, so it always agrees with the constructor.
 
-Builders are not `final`, because their setters return `static`; a subclass adding a setter works
-as expected. `AbstractBuilder::__construct()` **is** final, which is what makes `create()` safe to
-call on a subclass.
+Builders aren't `final`, because their setters return `static` and a subclass can add setters.
+`AbstractBuilder::__construct()` **is** final, so `create()` is safe to call on a subclass.
 
-Keeping them honest
--------------------
+Drift test
+----------
 
-`tests/Unit/Builder/BuilderDriftTest.php` walks every builder against its message's constructor and
-checks three things:
+`tests/Unit/Builder/BuilderDriftTest.php` compares every builder with its message's constructor
+and checks that:
 
-1. Every constructor parameter has a setter, with a matching type.
-2. No setter outlives the parameter it sets.
-3. No message with four or more fields lacks a builder.
+1. Every constructor parameter has a setter with a matching type.
+2. No setter is left over for a parameter that no longer exists.
+3. Every message with four or more fields has a builder.
 
-So adding a field to a message and forgetting its builder is a failing test rather than a payload
-that quietly loses it. If you write your own builders, the same test is worth copying — it is short,
-and it is the only thing standing between a hand-written mirror and drift.
+If you add a field to a message and forget the builder, this test fails. If you write your own
+builders, consider copying it. It's short, and it catches builders that have fallen out of sync.

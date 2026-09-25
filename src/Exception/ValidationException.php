@@ -10,13 +10,13 @@ namespace Polkurier\Webservice\Exception;
 /**
  * A payload was rejected before it was sent.
  *
- * Carries the failures per field, in the same shape the API uses when it rejects a payload itself,
- * so the same code can present both. The distinction that matters to a caller is where it came
- * from: this one means nothing was sent and nothing changed, whereas a
- * {@see WebserviceException} carrying validation errors means the request was made and refused.
+ * Holds the failures per field, in the same shape the API uses when it rejects a payload, so the
+ * same code can display both. The difference is where it came from. This exception means nothing
+ * was sent and nothing changed. A {@see WebserviceException} with validation errors means the
+ * request was sent and refused.
  *
- * Field names are the ones the API uses on the wire, not SDK property names, so they line up with
- * the API's own reports and with the request that would have been sent.
+ * Field names are the API's wire names, not SDK property names, so they match the API's own
+ * reports and the request that would have been sent.
  *
  * @api
  */
@@ -37,7 +37,7 @@ class ValidationException extends InvalidArgumentException
     }
 
     /**
-     * Every failure, keyed by the wire field name it concerns.
+     * All failures, keyed by wire field name.
      *
      * @return array<string, string[]>
      */
@@ -47,7 +47,7 @@ class ValidationException extends InvalidArgumentException
     }
 
     /**
-     * The failures for one field, or an empty list when it has none.
+     * The failures for one field, or an empty list if there are none.
      *
      * @param string $field
      *

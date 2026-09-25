@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The short-lived token the pickup-point map authenticates with.
  *
- * Deliberately not the API token: the map runs in the browser, and this is what is safe to send
- * there. Fetch one per page load rather than caching it.
+ * This is not the API token. The map runs in the browser, and this token is safe to send there.
+ * Fetch a new one on each page load and do not cache it.
  */
 readonly class TokenMessage implements MessageInterface
 {

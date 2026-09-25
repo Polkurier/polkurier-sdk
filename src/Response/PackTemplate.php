@@ -14,13 +14,13 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A saved set of parcel details, as it is stored.
+ * A saved set of parcel details, as stored.
  *
- * Writing one is {@see \Polkurier\Webservice\Request\PackTemplate\SaveMessage} instead.
- * Which template is the account's default is decided by the API rather than set here.
+ * To write one, use {@see \Polkurier\Webservice\Request\PackTemplate\SaveMessage}. Whether a
+ * template is the account's default is read-only.
  *
- * Purely a convenience for the caller: an order cannot reference a template, so read one and copy
- * its values into the payload.
+ * An order cannot reference a template. To use one, read it and copy its values into the order
+ * payload.
  */
 class PackTemplate extends BasePack
 {

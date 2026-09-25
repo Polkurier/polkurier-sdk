@@ -155,7 +155,7 @@ class CourierService extends AbstractService implements CourierServiceInterface
      */
     public function getCourierPoint(string $id, array $couriers): ?CourierPoint
     {
-        // Searching by id answers with a single point; every other query answers with a list.
+        // A search by id returns a single point. Every other query returns a list.
         return $this->requestNullableObject(
             ApiMethodEnum::GetCourierPoint,
             CourierPoint::class,

@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Identifies an address-book entry to delete.
  *
- * The role is part of the identity: an address filed as both sender and recipient is only removed
- * from the role named here.
+ * The role is part of the key. An address saved as both sender and recipient is only removed from
+ * the role given here.
  */
 readonly class DeleteMessage extends GetMessage
 {

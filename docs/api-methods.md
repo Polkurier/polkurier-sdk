@@ -1,24 +1,24 @@
 API method index
 ================
 
-Every endpoint the SDK speaks, as it appears in the `apimethod` field of a request, mapped to the
-client method that sends it and the example that demonstrates it.
+Every endpoint the SDK supports, by its `apimethod` value, with the client method that sends it and
+the example that shows it.
 
-`Enum\Http\ApiMethodEnum` is that field. Its cases are grouped by owning service, so a case can be
-traced to the method that sends it without searching.
+`Enum\Http\ApiMethodEnum` holds these values. Its cases are grouped by service, so you can find
+the method that sends a case without searching.
 
-Two case names are shorter than the value they carry: `OrderValuation` is `order_valuation_v2`
-and `GetSupportedCountries` is `get_supported_countries_v2`. The case is named for what it does;
-the value is what goes on the wire.
+Two case names are shorter than their values: `OrderValuation` is `order_valuation_v2` and
+`GetSupportedCountries` is `get_supported_countries_v2`. The case name describes the call. The
+value is what is sent.
 
-Running an example:
+To run an example:
 
 ```bash
 POLKURIER_API_LOGIN=12345 POLKURIER_API_TOKEN=… php examples/available_carriers.php
 ```
 
-Examples that write anything do nothing without `--confirm`. Examples that need an identifier take
-it as the first argument.
+Examples that change data do nothing unless you pass `--confirm`. Examples that need an identifier
+take it as the first argument.
 
 | Enum case | Wire value | Client method | Example |
 |-----------|-----------|---------------|---------|
@@ -100,9 +100,9 @@ it as the first argument.
 Grouped by service
 ------------------
 
-Eighty-three client methods over eighty-two endpoints — `findCourierPoints()` and
-`getCourierPoint()` both send `get_courier_point`, since searching for points and looking one up by
-id are the same endpoint asked two different questions, and the table above lists both against it.
+There are 75 client methods and 74 endpoints. `findCourierPoints()` and `getCourierPoint()` both
+send `get_courier_point`: one searches for points and the other looks one up by id. The table above
+lists both against that endpoint.
 
 | Service | Client methods |
 |---------|----------------|
@@ -123,6 +123,6 @@ id are the same endpoint asked two different questions, and the table above list
 | `AccountVerificationServiceInterface` | 2 |
 | `UtilsServiceInterface` | 2 |
 
-What each one does, and what it answers with, is in [Services](services.md). The docblock on each
-interface method carries the detail: the payload it sends, the success responses including their
-variants, and the errors most easily hit.
+[Services](services.md) describes what each method does and returns. The docblock on each
+interface method has the details: the payload it sends, the success responses and their variants,
+and the most common errors.

@@ -1,9 +1,9 @@
 Shopware 6
 ==========
 
-Shopware 6.5 / 6.6, as a plugin. Shopware is Symfony underneath, so most of
-[the Symfony page](symfony.md) applies — this covers what is Shopware-specific: plugin
-configuration, sales-channel scoping, the message bus and the flow builder.
+For Shopware 6.5 and 6.6, as a plugin. Shopware runs on Symfony, so most of
+[the Symfony page](symfony.md) applies here too. This page covers the parts specific to Shopware:
+plugin configuration, sales channel scoping, the message bus and the Flow Builder.
 
 The plugin
 ----------
@@ -37,17 +37,17 @@ custom/plugins/PolkurierShipping/
 }
 ```
 
-Shopware merges plugin dependencies into the project's Composer tree, so no prefixing is needed —
-but do check that the project's `symfony/serializer` satisfies `^7.2`. Shopware 6.6 ships Symfony
-6.4, and the SDK requires 7.x components; where they conflict, the resolution is a project-level
-`composer require symfony/serializer:^7.2` if Shopware's own constraints allow it, and otherwise
-running the SDK behind an HTTP service of your own.
+Shopware merges plugin dependencies into the project's Composer tree, so you don't need to prefix
+anything. Do check that the project's `symfony/serializer` satisfies `^7.2`, though. Shopware 6.6
+ships Symfony 6.4, and the SDK requires 7.x components. If they conflict, run
+`composer require symfony/serializer:^7.2` at project level, if Shopware's own constraints allow
+it. If they don't, run the SDK behind an HTTP service of your own.
 
 Configuration
 -------------
 
-`src/Resources/config/config.xml` gives you a settings screen, scoped per sales channel out of the
-box:
+`src/Resources/config/config.xml` creates a settings screen. Its values are scoped per sales
+channel by default:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -77,7 +77,7 @@ box:
 </config>
 ```
 
-Because the values are per sales channel, this is a `ConfigProviderInterface` case rather than a
+The values differ per sales channel, so implement `ConfigProviderInterface` instead of using a
 fixed `Config`:
 
 ```php
@@ -126,8 +126,9 @@ class SalesChannelConfigProvider implements ConfigProviderInterface
 }
 ```
 
-The `forSalesChannel()` clone is what makes this usable from a message handler, where there is no
-ambient sales-channel context — see [below](#sales-channel-scoping).
+A message handler has no current sales channel to fall back on. `forSalesChannel()` returns a copy
+bound to a given channel, so you can use the provider there too. See
+[below](#sales-channel-scoping).
 
 Services
 --------
@@ -194,19 +195,19 @@ Services
 </container>
 ```
 
-Define `polkurier.metadata_cache` as a Symfony cache pool in the plugin's `packages` configuration,
-and `polkurier.logger` as a Monolog channel — both are ordinary Symfony configuration, and Shopware
-loads plugin `Resources/config/packages/*.yaml`.
+Define `polkurier.metadata_cache` as a Symfony cache pool and `polkurier.logger` as a Monolog
+channel in the plugin's `packages` configuration. Both are standard Symfony configuration, and
+Shopware loads the plugin's `Resources/config/packages/*.yaml` files.
 
 Sales-channel scoping
 ---------------------
 
-This is where a Shopware integration goes wrong. `AbstractService` reads its configuration **once,
-in its constructor**, so a service resolved from the container holds whichever sales channel's
-credentials were current at that moment. In a storefront request that is correct. In a
-**message handler or a scheduled task** there is no ambient channel at all.
+Shopware integrations most often go wrong here. `AbstractService` reads its configuration **once,
+in the constructor**. A service taken from the container keeps the credentials of whichever sales
+channel was current when it was built. In a storefront request that's what you want. In a
+**message handler or a scheduled task** there is no current channel at all.
 
-So in those contexts, build the client per message:
+In those cases, build the client for each message:
 
 ```php
 <?php declare(strict_types=1);
@@ -241,13 +242,13 @@ final class PlaceShipmentHandler
 }
 ```
 
-Sharing the serializer while rebuilding the client gets both correctness and speed: the serializer
-is the expensive object and has no per-call state, while the client is cheap and channel-specific.
+The serializer is expensive to build and keeps no state between calls, so share it. The client is
+quick to build and belongs to one channel, so create it per message.
 
 Placing the shipment from the message bus
 -----------------------------------------
 
-Subscribe to the order transaction state change rather than to order placement, and dispatch:
+Subscribe to the order transaction state change, not to order placement, and dispatch a message:
 
 ```php
 <?php declare(strict_types=1);
@@ -277,8 +278,8 @@ final readonly class OrderSubscriber implements EventSubscriberInterface
 }
 ```
 
-In practice the trigger is usually the **Flow Builder** instead, so the merchant decides when a
-shipment is created rather than you. Register a flow action:
+In practice you'll usually trigger it from the **Flow Builder** instead, so the merchant decides
+when a shipment is created. Register a flow action:
 
 ```php
 <?php declare(strict_types=1);
@@ -307,14 +308,14 @@ final class CreateShipmentAction extends FlowAction
 }
 ```
 
-That gives the merchant "when order state becomes *in progress*, create a Polkurier shipment" in the
-administration, without a line of code from them.
+The merchant can then set up a rule like "when order state becomes *in progress*, create a
+Polkurier shipment" in the administration, without writing code.
 
 Idempotency
 -----------
 
-Shopware's message bus is at-least-once and the SDK has no idempotency key, so guard on your own
-record:
+Shopware's message bus delivers at least once, and the SDK has no idempotency key. Check your own
+record first:
 
 ```php
 if ($order->getCustomFields()['polkurier_number'] ?? null) {
@@ -322,9 +323,8 @@ if ($order->getCustomFields()['polkurier_number'] ?? null) {
 }
 ```
 
-Store the number in a custom field or, better, in a plugin entity keyed by order id. Custom fields
-are convenient and unindexed; an entity is the right answer once you have more than one field to
-keep.
+Store the number in a custom field, or preferably in a plugin entity keyed by order ID. Custom
+fields are convenient but not indexed. Once you have more than one field to store, use an entity.
 
 Error handling in a handler
 ---------------------------
@@ -335,25 +335,25 @@ use Shopware\Core\Framework\MessageQueue\Handler\RetryableMessageHandlerInterfac
 try {
     $created = $client->orders()->createOrder($this->mapper->toMessage($order));
 } catch (ValidationException | WebserviceException $e) {
-    // A rejected payload will be rejected again. Record it and stop; do not rethrow.
+    // A rejected payload will be rejected again. Record it and stop. Don't rethrow.
     $this->recordFailure($order, $e->getMessage());
 
     return;
 } catch (ConnectionException $e) {
-    // Unknown outcome. Rethrow so the bus retries — safe because of the guard above.
+    // Unknown outcome. Rethrow so the bus retries. The guard above makes that safe.
     throw $e;
 }
 ```
 
-Shopware's default retry configuration will retry anything that throws. Swallowing the permanent
-failures is what stops a bad postcode from looking like an outage in the dead-letter queue.
+By default, Shopware retries anything that throws. Catch the permanent failures and don't
+rethrow them. Otherwise a bad postcode ends up in the dead-letter queue and looks like an outage.
 
 A shipping method
 -----------------
 
-Register a `shipping_method` on install and price it with a Shopware rule-based price matrix, not
-with a live quote. `orderValuation()` in the cart is a third-party round trip on every line item
-change.
+Register a `shipping_method` on install and price it with a Shopware rule-based price matrix.
+Avoid live quotes: calling `orderValuation()` from the cart means a third-party request on every
+line item change.
 
 ```php
 public function install(InstallContext $context): void
@@ -368,12 +368,12 @@ public function install(InstallContext $context): void
 }
 ```
 
-`technicalName` is required from Shopware 6.6.
+`technicalName` is required from Shopware 6.6 on.
 
 Scheduled tasks
 ---------------
 
-Polling statuses is a scheduled task rather than a webhook, since the API has no callbacks:
+The API has no callbacks, so poll for status changes in a scheduled task:
 
 ```php
 <?php declare(strict_types=1);
@@ -396,14 +396,15 @@ final class SyncStatusesTask extends ScheduledTask
 }
 ```
 
-The handler pages through `getOrders()` filtered on a recent date window, per sales channel,
-building a client for each. Do not call `getStatus()` per order — one paged query covers hundreds.
+For each sales channel, the handler builds a client and pages through `getOrders()` filtered to a
+recent date range. Don't call `getStatus()` for each order. One paged query covers hundreds of
+orders.
 
 Caching
 -------
 
-Pickup point listings, supported countries and system limits belong in Shopware's cache pool, not
-in a live call:
+Keep pickup point lists, supported countries and system limits in Shopware's cache pool instead
+of fetching them live:
 
 ```php
 $item = $this->cache->getItem('polkurier.inpost.lockers');
@@ -415,13 +416,13 @@ if (!$item->isHit()) {
 }
 ```
 
-Tag them so `cache:clear` reaches them, and give the serializer's metadata pool a separate entry
-that your deploy clears — metadata is keyed by class, not by version.
+Tag the entries so `cache:clear` removes them. Give the serializer's metadata its own pool and
+clear it on deploy, because the metadata cache key doesn't include a version.
 
 Administration module
 ---------------------
 
-For label printing, add an administration extension that calls a plugin API controller:
+To print labels, add an administration extension that calls an API controller in your plugin:
 
 ```php
 #[Route(defaults: ['_routeScope' => ['api']])]
@@ -442,4 +443,5 @@ final class LabelController extends AbstractController
 }
 ```
 
-`getLabel()` takes a list, so a bulk selection in the order grid is one call.
+`getLabel()` accepts a list, so printing labels for several orders selected in the grid takes one
+call.

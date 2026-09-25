@@ -1,7 +1,7 @@
 Laravel
 =======
 
-Laravel 10 / 11 / 12. A service provider, a config file, and nothing else.
+For Laravel 10, 11 and 12. You need a service provider and a config file.
 
 Configuration
 -------------
@@ -122,7 +122,7 @@ final class PolkurierServiceProvider extends ServiceProvider
             static fn() => DefaultValidatorRegistryFactory::create(),
         );
 
-        // The services. Register the ones you use; they all take the same six arguments.
+        // The services. Register the ones you use. They all take the same 6 arguments.
         foreach ([
             OrdersServiceInterface::class  => OrdersService::class,
             CourierServiceInterface::class => CourierService::class,
@@ -155,16 +155,16 @@ final class PolkurierServiceProvider extends ServiceProvider
 }
 ```
 
-Register it in `bootstrap/providers.php` (Laravel 11+) or `config/app.php` (Laravel 10).
+Register the provider in `bootstrap/providers.php` (Laravel 11+) or `config/app.php` (Laravel 10).
 
-> `Psr16Adapter` bridges Laravel's PSR-16 cache to the PSR-6 pool `SerializerConfig` expects, and
-> comes from `symfony/cache`. If you would rather not add it, pass `metadataCache: null` — you lose
-> the metadata cache, not correctness.
+> `Psr16Adapter` comes from `symfony/cache`. It wraps Laravel's PSR-16 cache in the PSR-6 pool that
+> `SerializerConfig` expects. If you don't want that dependency, pass `metadataCache: null`.
+> Everything still works, just without the metadata cache.
 
 Using it
 --------
 
-Constructor injection, resolved by the container:
+Inject the interface in the constructor and let the container resolve it:
 
 ```php
 namespace App\Shipping;
@@ -177,14 +177,14 @@ final readonly class ShipmentDispatcher
 }
 ```
 
-Or the facade, if you registered it and prefer it:
+Or use the facade, if you registered it:
 
 ```php
 app(PolkurierWebservice::class)->orders()->createOrder($message);
 ```
 
-A Laravel facade, if you want one
----------------------------------
+Adding a Laravel facade
+-----------------------
 
 ```php
 namespace App\Facades;
@@ -211,8 +211,8 @@ final class Polkurier extends Facade
 Polkurier::orders()->getStatus(new GetStatusMessage(orderNo: 'POL123456789'));
 ```
 
-Convenient, and harder to test than constructor injection. Use it in Artisan commands and
-one-offs; inject the interface in anything with logic worth testing.
+A facade is convenient but harder to test than constructor injection. It's fine in Artisan
+commands and one-off scripts. In classes with logic you want to test, inject the interface.
 
 Jobs: placing orders off the request
 ------------------------------------
@@ -243,7 +243,7 @@ final class PlaceShipment implements ShouldQueue
     public function handle(OrdersServiceInterface $orders, ShipmentMapper $mapper): void
     {
         if ($this->order->polkurier_number !== null) {
-            return;   // Already placed; queue delivery is at-least-once.
+            return;   // Already placed. Queue delivery is at-least-once.
         }
 
         try {
@@ -254,7 +254,7 @@ final class PlaceShipment implements ShouldQueue
 
             return;
         } catch (ConnectionException) {
-            // Unknown outcome — safe to retry only because of the guard above.
+            // Unknown outcome. Retrying is safe only because of the guard above.
             $this->release(30);
 
             return;
@@ -265,8 +265,9 @@ final class PlaceShipment implements ShouldQueue
 }
 ```
 
-`$this->fail()` rather than rethrowing is the important part: a rejected payload will be rejected
-again, and without this it burns every retry and lands in `failed_jobs` looking like an outage.
+Note the `$this->fail()` call in place of a rethrow. A rejected payload will be rejected again.
+If you rethrow, the job uses up all its retries and ends up in `failed_jobs`, where it looks like
+an outage.
 
 Caching stable reads
 --------------------
@@ -281,8 +282,8 @@ $lockers = Cache::remember(
 );
 ```
 
-[Recipes — caching](../recipes.md#caching-what-does-not-change) lists what is worth caching and for
-how long.
+[Recipes: caching](../recipes.md#caching-what-does-not-change) lists what to cache and for how
+long.
 
 Validation errors in a form request
 -----------------------------------
@@ -304,14 +305,14 @@ try {
 }
 ```
 
-`$fieldMap` translates the API's wire names (`sender.postcode`) into your form's
-(`shipping.postal_code`). The same block handles a service-side rejection via
-`WebserviceException::getErrorMessage()->getValidationErrors()`, which has the identical shape.
+`$fieldMap` maps the API's wire names (`sender.postcode`) to your form's field names
+(`shipping.postal_code`). The same code works for a rejection from the API, because
+`WebserviceException::getErrorMessage()->getValidationErrors()` returns the same shape.
 
 Per-tenant credentials
 ----------------------
 
-Bind `ConfigProviderInterface` to something that reads the current tenant:
+Bind `ConfigProviderInterface` to a class that reads the current tenant:
 
 ```php
 $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new class($app) implements ConfigProviderInterface {
@@ -330,11 +331,11 @@ $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new cla
 });
 ```
 
-> **Do not register the services as singletons when you do this.** A service resolves its
-> configuration once, in its constructor; a singleton built for tenant A keeps tenant A's
-> credentials for the life of the process. Use `bind()` instead of `singleton()` for the services,
-> keep `SerializerProviderInterface` a singleton (it is stateless and expensive), and in Octane
-> reset anything tenant-scoped between requests.
+> **In this setup, don't register the services as singletons.** Each service reads its
+> configuration once, in the constructor. A singleton built for tenant A keeps tenant A's
+> credentials until the process ends. Register the services with `bind()` instead of
+> `singleton()`. `SerializerProviderInterface` can stay a singleton, since it is stateless and
+> expensive to build. Under Octane, also reset anything tenant-scoped between requests.
 
 Artisan commands
 ----------------
@@ -383,7 +384,7 @@ final class PolkurierPing extends Command
 Testing
 -------
 
-Swap the transport in the container:
+Replace the transport in the container:
 
 ```php
 use Polkurier\Webservice\Http\ClientFactoryInterface;
@@ -394,7 +395,7 @@ $fake = new RecordingClient('{"status":"success","response":true}');
 $this->app->instance(ClientFactoryInterface::class, $fake);
 ```
 
-Or swap a service outright when you only care about your own code:
+If you only want to test your own code, mock the service instead:
 
 ```php
 $this->mock(OrdersServiceInterface::class)
@@ -403,4 +404,4 @@ $this->mock(OrdersServiceInterface::class)
     ->andReturn($cannedCreatedOrder);
 ```
 
-See [Testing](../testing.md) for which seam suits which test.
+[Testing](../testing.md) explains which approach fits which kind of test.

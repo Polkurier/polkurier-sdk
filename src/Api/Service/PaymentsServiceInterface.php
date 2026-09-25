@@ -23,30 +23,28 @@ use Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage;
 /**
  * Online payments and the prepaid balance.
  *
- * Payment is a two-step flow: register here to obtain a provider token, send the customer through
- * the provider's hosted page with it, then confirm the outcome with getPaymentInfo(). The API is
- * never told about the payment by this SDK — the provider reports it.
+ * Paying takes two steps. Register the payment here to get a provider token and send the customer
+ * to the provider's hosted page with it. Then check the outcome with getPaymentInfo().
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface PaymentsServiceInterface
 {
     /**
      * Registers an online payment and returns the token needed to complete it.
      *
-     * Registering does not move any money; it reserves a transaction with the payment provider.
-     * The customer must then be sent through the provider's flow using the returned access token,
-     * and the payment only settles when they finish there.
+     * Registering doesn't move any money. It reserves a transaction with the payment provider. Send
+     * the customer through the provider's flow with the returned access token. The payment settles
+     * only when they finish there.
      *
-     * The mode decides what is being paid for and whether the amount is the customer's to choose.
-     * For modes that settle an existing debt the sum is determined by what is owed and any amount
-     * sent is ignored; for a prepaid top-up the amount is the point of the call. The verification
-     * mode has a fixed amount, reported by `get_system_info`.
+     * The mode sets what is being paid for and whether the customer chooses the amount. Modes that
+     * settle an existing debt charge what is owed, so send an amount only for a prepaid top-up. There
+     * it is required and must be greater than zero. The SDK checks this before sending. The
+     * verification mode has a fixed amount, which `get_system_info` reports.
      *
-     * Keep the transaction id: it is the only handle on the payment afterwards.
+     * Keep the transaction id. You need it to look the payment up later.
      *
      * Endpoint: `register_payment`
      *
@@ -76,29 +74,29 @@ interface PaymentsServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [mode]. Musi zawierać się w zbiorze [BALANCE, INVOICES, ORDERS, PREPAID, VERIFICATION]"}
      * ```
-     * Also what a missing `mode` gives.
+     * A missing `mode` gives the same error.
      *
      * @param RegisterPaymentMessage $registerPaymentMessage
      *
      * @return RegisteredPaymentMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage}
      */
     public function registerPayment(RegisterPaymentMessage $registerPaymentMessage): RegisteredPaymentMessage;
 
     /**
-     * Reports where a registered payment has got to.
+     * Reports the current state of a registered payment.
      *
-     * The authoritative check after the customer returns from the provider — do not infer success
-     * from the redirect they came back on, since that can be forged or simply reached early.
+     * Use this to check the result after the customer returns from the provider. Don't treat the
+     * return redirect as proof of success: it can be forged or reached too early.
      *
-     * The hash is the provider's signature over the transaction and exists for reconciliation
-     * against a provider-side callback rather than for display.
+     * The hash is the provider's signature over the transaction. Use it to reconcile against a
+     * provider-side callback. It isn't meant for display.
      *
      * Endpoint: `get_payment_info`
      *
@@ -133,18 +131,18 @@ interface PaymentsServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Błędny numer płatności"}
      * ```
-     * Raised for an unknown transaction and for one belonging to another account alike.
+     * Thrown both for an unknown transaction and for one that belongs to another account.
      *
      * @param GetPaymentInfoMessage $getPaymentInfoMessage
      *
      * @return PaymentInfoMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
      */
     public function getPaymentInfo(GetPaymentInfoMessage $getPaymentInfoMessage): PaymentInfoMessage;
 
@@ -152,10 +150,10 @@ interface PaymentsServiceInterface
      * Lists movements on the prepaid balance.
      *
      * Amounts are signed: negative for spending, positive for a top-up. The running balance is not
-     * reported here — read the current one from `get_account_info`.
+     * included. Read the current balance from `get_account_info`.
      *
-     * Paged like the invoice list, and with the same missing `totalpages`, so the last page has to
-     * be worked out from the total and the page size.
+     * Paging works like the invoice list. There is no `totalpages` either, so work out the last page
+     * from the total and the page size.
      *
      * Endpoint: `get_prepaid_history`
      *
@@ -191,13 +189,13 @@ interface PaymentsServiceInterface
      * @param GetPrepaidHistoryMessage|null $getPrepaidHistoryMessage null fetches the first page
      *
      * @return PrepaidHistoryMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage}
      */
     public function getPrepaidHistory(
         ?GetPrepaidHistoryMessage $getPrepaidHistoryMessage = null

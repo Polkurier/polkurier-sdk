@@ -29,37 +29,36 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Builds and holds the serializer the SDK maps requests and responses with.
  *
- * The wire names come from `#[SerializedName]` and are resolved in both directions by the
- * metadata-aware name converter, which is what keeps the PHP side free of the API's own naming.
+ * Wire names come from `#[SerializedName]`. The metadata-aware name converter maps them in both
+ * directions, so PHP names don't have to follow the API's naming.
  *
- * Element types for collections are read from the `@var` docblock on each property — `Pack[]`,
- * `array<string, string>` — rather than from a second set of type declarations. The phpstan
- * extractor does that reading, because the properties here are promoted constructor parameters
- * and it is the one that looks at their docblocks. Anything the docblock does not describe
- * arrives as a plain array.
+ * Collection element types are read from the `@var` docblock on each property (`Pack[]`,
+ * `array<string, string>`). The phpstan extractor reads them, because the properties are promoted
+ * constructor parameters and it is the extractor that reads their docblocks. Anything the
+ * docblock doesn't describe arrives as a plain array.
  *
- * Objects are built through their constructors, so a response is either complete or an error; it
- * is never a half-populated object that throws on the first getter. Dates carry their format per
- * property, since the API uses several.
+ * Objects are built through their constructors, so a response is either complete or an error.
+ * You never get a half-built object that throws on the first getter. Each date property declares
+ * its own format, since the API uses several.
  *
- * Construction is not cheap, so share one instance across the factories; the facade does. What an
- * application can vary — metadata caching, the JSON flags, a timezone to read dates into, whether
- * an unrecognised response field is an error — comes from
- * {@see SerializerConfigInterface}; everything the protocol fixes does not.
+ * Building the serializer is slow, so share one instance across the factories.
+ * {@see \Polkurier\Webservice\PolkurierWebservice} does this. Metadata caching, JSON flags, the
+ * timezone for dates and whether unknown response fields are an error are set through
+ * {@see SerializerConfigInterface}. Everything else is fixed by the API.
  */
-final readonly class SerializerProvider implements SerializerProviderInterface
+readonly class SerializerProvider implements SerializerProviderInterface
 {
     /**
      * @var SerializerInterface&DenormalizerInterface
      */
-    private SerializerInterface&DenormalizerInterface $serializer;
+    protected SerializerInterface&DenormalizerInterface $serializer;
 
     /**
      * @param SerializerConfigInterface $config
      */
     public function __construct(SerializerConfigInterface $config = new SerializerConfig())
     {
-        $metadata = self::metadataFactory($config);
+        $metadata = static::metadataFactory($config);
 
         $extractor = new PropertyInfoExtractor(
             typeExtractors: [new PhpStanExtractor(), new ReflectionExtractor()],
@@ -82,7 +81,7 @@ final readonly class SerializerProvider implements SerializerProviderInterface
         $this->serializer = new Serializer(
             normalizers: [
                 new BackedEnumNormalizer(),
-                // Ahead of the date normalizer, which is what it exists to spare an empty string.
+                // Must come before the date normalizer, so empty strings never reach it.
                 new AbsentDateNormalizer(),
                 new DateTimeNormalizer($dateTimeContext),
                 new ArrayDenormalizer(),
@@ -97,13 +96,13 @@ final readonly class SerializerProvider implements SerializerProviderInterface
     }
 
     /**
-     * Wraps the metadata factory in a cache when the application supplied a pool.
+     * Wraps the metadata factory in a cache if a pool was configured.
      *
      * @param SerializerConfigInterface $config
      *
      * @return ClassMetadataFactoryInterface
      */
-    private static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
+    protected static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
         $cache = $config->getMetadataCache();

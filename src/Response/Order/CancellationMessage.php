@@ -11,7 +11,7 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Outcome of `cancel_order`.
+ * Result of `cancel_order`.
  */
 readonly class CancellationMessage implements MessageInterface
 {

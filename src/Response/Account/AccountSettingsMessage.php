@@ -11,10 +11,10 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Presentation preferences the customer has set in the panel.
+ * Preferences the customer has set in the panel.
  *
- * These are defaults for the order form rather than anything the API enforces, so an integration
- * that builds its own form can honour them or ignore them.
+ * These are defaults for the order form. The API does not enforce them, so your own form can honour
+ * them or ignore them.
  */
 readonly class AccountSettingsMessage implements MessageInterface
 {
@@ -26,7 +26,7 @@ readonly class AccountSettingsMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param bool $deliveryPickupMyself the customer usually hands parcels over rather than
+     * @param bool $deliveryPickupMyself the customer usually hands parcels over instead of
      *                                   booking a collection
      * @param bool $coverAddressSenderChecked the alternative return address is normally enabled
      */

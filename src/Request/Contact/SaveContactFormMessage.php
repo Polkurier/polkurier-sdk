@@ -14,10 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Submits a completed contact form.
  *
- * The form id and nonce come from the matching
- * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactForm()} response and tie the
- * submission to the definition that was rendered, so a form cannot be replayed or submitted against
- * a definition that has since changed.
+ * Take the form id and nonce from the matching
+ * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactForm()} response.
+ * Fetch the form again for each submission.
  */
 readonly class SaveContactFormMessage implements MessageInterface
 {

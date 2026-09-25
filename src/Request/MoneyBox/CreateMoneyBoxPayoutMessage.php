@@ -17,17 +17,16 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Requests a payout from the money box balance.
  *
- * This moves money. It is not idempotent — each accepted call creates a separate payout request — so
- * treat a timeout as unknown and reconcile with
+ * This moves money and is not idempotent: each accepted call creates a separate payout request. If
+ * a call times out, its outcome is unknown. Check
  * {@see \Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface::getPayouts()} before retrying.
  *
- * Which destination fields matter depends on the payout type: a bank transfer needs the account
- * number and ignores the postal address, a money order needs the address and ignores the account
- * number. Omitting them falls back to whatever is on file in `get_money_box_config`.
+ * The destination fields depend on the payout type. A bank transfer needs the account number. A
+ * money order needs the postal address. Fields you leave out default to the values in
+ * `get_money_box_config`.
  *
- * Two guards, and unlike the bank account endpoints they can both apply. The security PIN is
- * required while the account has PIN-locked its money box settings, and a verified two-factor token
- * registered under MONEY_BOX_PAYOUT is required on top of it.
+ * The security PIN is required while the account's money box settings are PIN-locked. A verified
+ * two-factor token registered under MONEY_BOX_PAYOUT is required as well.
  */
 readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 {
@@ -50,9 +49,9 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string[] $orders order numbers whose cash-on-delivery amounts to pay out; empty means everything available
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method; defaults to the account's configured one
-     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to settle the handling fee; must be one the account may use
+     * @param string[] $orders order numbers whose cash-on-delivery amounts to pay out, empty for everything available
+     * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method, defaults to the account's configured one
+     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to pay the handling fee, must be one the account can use
      * @param ?string $bankAccountNumber for a bank transfer
      * @param ?string $company for a postal money order
      * @param ?string $person for a postal money order

@@ -16,17 +16,15 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A saved set of parcel details being written to the account.
+ * A parcel template to save on the account.
  *
- * Passing an id updates that template; leaving it out creates a new one. A template is a
- * convenience for repeat consignments: it holds the dimensions, the shipment type and the extras
- * that would otherwise be filled in on every order, and nothing about it binds an order that uses
- * it — the values are a starting point and can be overridden per order.
+ * Pass an id to update that template, or leave it out to create a new one. A template holds the
+ * dimensions, shipment type and extras for repeat shipments. Its values are only a starting point
+ * and can be overridden on each order.
  *
- * Naming a carrier ties the template to that carrier's services, which is what makes the service
- * list meaningful; leaving it out keeps the template carrier-agnostic. Whether a template is the
- * account's default is reported on
- * {@see \Polkurier\Webservice\Response\PackTemplate} and is not set here.
+ * Setting a carrier ties the template, and its service list, to that carrier. Without one, the
+ * template works with any carrier. Whether a template is the account's default is reported on
+ * {@see \Polkurier\Webservice\Response\PackTemplate} and cannot be set here.
  */
 readonly class SaveMessage extends BasePackMessage
 {
@@ -51,7 +49,7 @@ readonly class SaveMessage extends BasePackMessage
      * @param float $weight in kilograms
      * @param ShipmentTypeEnum $shipmentType
      * @param PackTypeEnum $type the shape the carrier prices it as
-     * @param string|null $id the template to update; null creates a new one
+     * @param string|null $id the template to update, or null to create a new one
      * @param float $cod amount to collect on delivery, in PLN
      * @param float $insurance declared value, in PLN
      * @param string $description

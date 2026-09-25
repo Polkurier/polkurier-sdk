@@ -15,8 +15,7 @@ use Polkurier\Webservice\Request\Address\SaveMessage;
 /**
  * Assembles an address book entry.
  *
- * Seventeen fields, and an address that arrives from a form rarely has all of them to hand at
- * once. Pass an id to update an entry rather than file a new one.
+ * Set an id to update an existing entry. Without one, a new entry is created.
  */
 class SaveMessageBuilder extends AbstractBuilder
 {

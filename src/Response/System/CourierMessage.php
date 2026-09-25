@@ -15,8 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A notice about one carrier: a delay, a suspension, or general information.
  *
- * Worth surfacing before a customer picks a carrier — an alert here usually means orders placed
- * now will be affected. The text is Polish and ready to display.
+ * Show these before a customer picks a carrier. An alert usually means orders placed now will be
+ * affected. The text is in Polish and ready to display.
  */
 readonly class CourierMessage implements MessageInterface
 {
@@ -35,7 +35,7 @@ readonly class CourierMessage implements MessageInterface
      * @param string $message the text to display, in Polish
      * @param CourierMessageTypeEnum $type
      * @param CourierMessageSeverityEnum $severity
-     * @param int $hideTimeout seconds the notice should stay on screen; 0 means leave it up
+     * @param int $hideTimeout seconds the notice should stay on screen, 0 to leave it up
      */
     public function __construct(
         /**

@@ -29,9 +29,9 @@ readonly class TrackingEventMessage implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $statusDate
-     * @param string $statusCode Polkurier's normalised status code, e.g. "WP"
+     * @param string $statusCode Polkurier's status code, e.g. "WP"
      * @param string $status Polkurier's status label
-     * @param string $trackingStatus the carrier's own status name, passed through unchanged
+     * @param string $trackingStatus the carrier's own status name
      * @param string $location where the scan happened
      * @param string $description
      */

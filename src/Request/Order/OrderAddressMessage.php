@@ -15,13 +15,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A sender or recipient address as `create_order` and `order_valuation_v2` accept it.
  *
- * This is deliberately separate from {@see \Polkurier\Webservice\Response\Address}, which
- * models an address-book entry: that carries an id, a label and sharing flags that mean nothing
- * when placing an order, and it omits `machinename`, which only matters here. The two shapes are
- * not interchangeable even though most of their fields coincide.
+ * This is a different shape from {@see \Polkurier\Webservice\Response\Address}, which is an
+ * address book entry. That class has an id, a label and sharing flags that do not apply to orders,
+ * and it has no `machinename`. Most fields overlap, but the two are not interchangeable.
  *
- * For a parcel machine or pickup point, set `pointId` (and `machineName` where the carrier uses
- * it); the street address fields are then only used for contact purposes.
+ * For a parcel machine or pickup point, set `pointId` (and `machineName` if the carrier uses it).
+ * The street address fields are then only used for contact purposes.
  */
 #[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
 readonly class OrderAddressMessage implements MessageInterface
@@ -41,9 +40,7 @@ readonly class OrderAddressMessage implements MessageInterface
     public const string FIELD_PHONE = 'phone';
     public const string FIELD_POINT_ID = 'point_id';
     public const string FIELD_MACHINE_NAME = 'machinename';
-    /**
-     * -@#
-     */
+    /**-@#*/
 
     public const string DEFAULT_COUNTRY = 'PL';
 

@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The alternative return address printed on the label, when the order uses the
  * {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum::CoverAddressSender} service.
  *
- * Note the key spelling: this shape uses `flat_number` with an underscore, whereas sender and
- * recipient addresses use `flatnumber` without one. That inconsistency is in the API, not here.
+ * Note the key spelling: this uses `flat_number` with an underscore, while sender and recipient
+ * addresses use `flatnumber`. The API defines them that way.
  */
 readonly class CoverAddressMessage implements MessageInterface
 {

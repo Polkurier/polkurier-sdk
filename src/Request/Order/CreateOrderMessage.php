@@ -19,22 +19,19 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The payload for `create_order` and `order_valuation_v2`.
  *
- * One message covers both methods, which does not mean both will accept it: a payload that prices
- * successfully can still be rejected when you go on to place the order. Treat a successful quote as
- * a price, not as validation.
+ * Both methods take the same message, but a payload that prices successfully can still be rejected
+ * when you place the order. A successful quote does not mean the order is valid.
  *
- * Requirements this class cannot check on its own, because they vary by carrier or by account:
+ * These requirements vary by carrier or account, so this class does not check them:
  *
- * - `pickup`. Some carriers need a pickup date, some also a time window. `available_carriers`
+ * - `pickup`: some carriers need a pickup date, some also a time window. `available_carriers`
  *   reports which, per carrier.
  * - {@see AdditionalServiceEnum::WeekCollection} is only available for InPost parcel lockers.
- * - The recipient SMS notifications — on dispatch and on going out for delivery — are ordered
- *   independently. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
- *   takes the place of its plain variant rather than adding to it; {@see AdditionalServiceEnum}
- *   describes how the two kinds combine.
- * - `description` has a length limit: {@see self::DESCRIPTION_MAX_LENGTH} in general, and possibly
- *   shorter for a given carrier. A longer value is not reported as an error, so keep it short
- *   rather than relying on it arriving intact.
+ * - The recipient SMS notifications (on dispatch and on going out for delivery) are ordered
+ *   separately. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
+ *   replaces its plain variant. {@see AdditionalServiceEnum} describes how the two kinds combine.
+ * - `description` has a length limit of {@see self::DESCRIPTION_MAX_LENGTH}, and some carriers
+ *   allow less. Keep it short.
  */
 #[Validate\ValidatedBy(CreateOrderMessageValidator::class)]
 readonly class CreateOrderMessage implements MessageInterface
@@ -58,7 +55,7 @@ readonly class CreateOrderMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * Length limit for `description` where the carrier imposes no stricter one.
+     * Maximum length of `description`, unless the carrier sets a lower limit.
      */
     public const int DESCRIPTION_MAX_LENGTH = 30;
 
@@ -68,18 +65,18 @@ readonly class CreateOrderMessage implements MessageInterface
      * @param PackMessage[] $packs at least one
      * @param OrderAddressMessage $sender
      * @param OrderAddressMessage $recipient
-     * @param CodMessage|null $cod cash on delivery; an amount of zero means no
-     *                                      collection and the rest of the block does not apply
-     * @param float|null $insurance declared value in PLN; zero means no insurance
+     * @param CodMessage|null $cod cash on delivery. An amount of zero means no
+     *                                      collection, and the other fields are then not needed
+     * @param float|null $insurance declared value in PLN, zero for no insurance
      * @param CoverAddressMessage|null $coverAddress alternative return address
      * @param PickupMessage|null $pickup
-     * @param AdditionalServiceEnum[] $courierService services to buy; serialized as the flag map
-     *                                                the API expects
+     * @param AdditionalServiceEnum[] $courierService services to order, sent as the flag map the
+     *                                                API expects
      * @param array<string, string> $additionalFields carrier-specific extra fields
      * @param string|null $description
      * @param string|null $couponCode
      *
-     * @throws InvalidArgumentException when $packs or $courierService hold the wrong types
+     * @throws InvalidArgumentException when $packs is empty, or $packs or $courierService hold the wrong types
      */
     public function __construct(
         /**
@@ -150,8 +147,8 @@ readonly class CreateOrderMessage implements MessageInterface
         private ?PickupMessage $pickup = null,
 
         /**
-         * Held as a list for a usable API; serialized as a flag map by
-         * {@see self::getCourierServiceMap()}.
+         * Stored as a list. {@see self::getCourierServiceMap()} turns it into the flag map that is
+         * sent.
          *
          * @var AdditionalServiceEnum[]
          */
@@ -184,10 +181,9 @@ readonly class CreateOrderMessage implements MessageInterface
     }
 
     /**
-     * The services as the API wants them: a flat map of service code to `true`.
+     * The services in the format the API expects: a flat map of service code to `true`.
      *
-     * Only enabled services are sent: omitting a service and sending it as `false` mean the same
-     * thing, so there is nothing to gain by sending the disabled ones.
+     * Only enabled services are included. Leaving a service out means the same as sending `false`.
      *
      * @return array<string, bool>
      */

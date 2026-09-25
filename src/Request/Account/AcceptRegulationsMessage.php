@@ -14,10 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Records the customer's acceptance of the current terms.
  *
- * The id must match the version currently in force — read it from
- * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::getRegulations()} immediately before
- * accepting. The check exists so that a customer cannot accept a version they were shown earlier and
- * which has since been superseded.
+ * The id must match the version currently in force. Read it from
+ * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::getRegulations()} just before
+ * accepting. A version that has since been superseded is rejected.
  */
 readonly class AcceptRegulationsMessage implements MessageInterface
 {

@@ -16,15 +16,14 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * When the courier should collect an order.
  *
- * Every field is optional because which of them a carrier needs varies: some want only a date,
- * some a time window as well, and some arrange collection on their own schedule and ignore what is
- * sent. `available_carriers` reports what each one expects.
+ * Every field is optional because carriers differ: some need only a date, some a time window too,
+ * and not every carrier uses them. `available_carriers` reports what each one expects.
  *
- * The times are wall-clock values, so only the time part of the objects passed in is read; the day
- * comes from the date field alone. Set `noCourierOrder` when the sender will hand the parcel in at
- * a branch or drop-off point and no collection should be booked at all.
+ * The times are wall-clock values. Only the time part of those objects is read, and the day comes
+ * from the date field alone. Set `noCourierOrder` when the sender will drop the parcel off at a
+ * branch or drop-off point and no collection should be booked.
  *
- * The carrier's reference for a booked collection comes back on the order rather than here; see
+ * The carrier's reference for a booked collection is returned on the order, see
  * {@see \Polkurier\Webservice\Response\Order\Pickup}.
  */
 #[Validate\InOrder(
@@ -46,8 +45,8 @@ readonly class PickupMessage implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $pickupDate the day of collection
-     * @param \DateTimeInterface|null $pickupTimeFrom start of the window; time part only
-     * @param \DateTimeInterface|null $pickupTimeTo end of the window; time part only
+     * @param \DateTimeInterface|null $pickupTimeFrom start of the window, time part only
+     * @param \DateTimeInterface|null $pickupTimeTo end of the window, time part only
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
      * @param bool $multiPickup whether this collection covers several orders

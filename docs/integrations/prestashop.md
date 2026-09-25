@@ -1,14 +1,14 @@
 PrestaShop
 ==========
 
-PrestaShop 1.7.8 and 8.x, as a module. PrestaShop 9 follows the same shape with a newer Symfony
-underneath.
+For PrestaShop 1.7.8 and 8.x, as a module. PrestaShop 9 works the same way on a newer Symfony
+version.
 
 Autoloading
 -----------
 
-A module ships its own `vendor/`, because PrestaShop does not merge module dependencies into the
-shop's own:
+PrestaShop doesn't merge module dependencies into the shop's own, so the module ships its own
+`vendor/`:
 
 ```
 modules/polkurier/
@@ -40,17 +40,16 @@ modules/polkurier/
 require_once __DIR__ . '/vendor/autoload.php';
 ```
 
-> `prepend-autoloader: false` matters. PrestaShop and its modules each have their own Composer
-> tree, and prepending yours can shadow a class the core expects. Check for conflicts on the
-> Symfony components in particular — the SDK needs `symfony/serializer` 7.x, which is newer than
-> some PrestaShop 8 builds ship. If the shop's version is older, the safe route is
-> [Mozart](https://github.com/coenjacobs/mozart)-style prefixing of the module's vendor tree at
-> build time.
+> Don't drop `prepend-autoloader: false`. PrestaShop and each module have their own Composer tree,
+> and if yours is prepended it can shadow a class the core expects. Check the Symfony components
+> for conflicts in particular. The SDK needs `symfony/serializer` 7.x, and some PrestaShop 8 builds
+> ship an older version. In that case, prefix the module's vendor tree at build time, as
+> [Mozart](https://github.com/coenjacobs/mozart) does.
 
 Configuration
 -------------
 
-Credentials go through `Configuration`, which is shop-scoped in a multistore setup:
+Store the credentials with `Configuration`. In a multistore setup its values are scoped per shop.
 
 ```php
 <?php
@@ -100,7 +99,7 @@ class Polkurier extends Module
             Configuration::updateValue(self::CFG_TOKEN, Tools::getValue('token'));
             Configuration::updateValue(self::CFG_SANDBOX, (bool)Tools::getValue('sandbox'));
 
-            // Verify immediately rather than at the first order.
+            // Verify now, so a typo doesn't surface at the first order.
             $this->context->controller->confirmations[] = $this->verifyCredentials();
         }
 
@@ -127,18 +126,18 @@ class Polkurier extends Module
 }
 ```
 
-`testAuthApi()` takes explicit credentials rather than the configured ones, which is exactly what a
-settings form needs — verify what the merchant just typed, before relying on it.
+`testAuthApi()` takes the credentials as an argument and ignores the configured ones. In a
+settings form, that lets you check what the merchant just typed before you rely on it.
 
-> PrestaShop stores `Configuration` values in plain text. If the shop's threat model cares, encrypt
-> the token with `PrestaShop\PrestaShop\Core\Crypto\Hashing` or your own key before storing it, and
-> decrypt in the client factory below.
+> PrestaShop stores `Configuration` values in plain text. If that's a concern for the shop, encrypt
+> the token before storing it (e.g. with `sodium_crypto_secretbox()` and a key kept outside the
+> database), and decrypt it in the client factory below. `Hashing` won't do: it's one-way.
 
 Building the client
 -------------------
 
-PrestaShop 1.7+ has a Symfony container in the back office and not in the front office, so a small
-static factory is the portable answer — it works in both, and in CLI.
+PrestaShop 1.7+ has a Symfony container in the back office but not in the front office. A small
+static factory works in both, and from the CLI too.
 
 ```php
 <?php
@@ -190,17 +189,18 @@ final class Client
 }
 ```
 
-One client per shop, one serializer for the process. The per-shop keying is what makes this correct
-under multistore — a single cached client would keep whichever shop's credentials it was first
-built with.
+This keeps one client per shop and one serializer per process. The clients have to be keyed by
+shop for multistore to work. A single cached client would keep the credentials of whichever shop it
+was first built for.
 
-Add `_PS_CACHE_DIR_ . 'polkurier'` to whatever your deploy clears, since serializer metadata is
-keyed by class rather than by version.
+The serializer metadata cache key doesn't include a version, so have your deploy clear
+`_PS_CACHE_DIR_ . 'polkurier'`.
 
-Symfony services, where you have a container
---------------------------------------------
+Symfony services in the back office
+-----------------------------------
 
-For back-office controllers, `config/services.yml` in the module gives you proper injection:
+For back-office controllers, declare services in the module's `config/services.yml` to get
+constructor injection:
 
 ```yaml
 services:
@@ -216,13 +216,14 @@ services:
         factory: ['Polkurier\PrestaShop\Client', 'orders']
 ```
 
-with a matching accessor on the factory. Front-office code keeps using `Client::build()`.
+This needs a matching static `orders()` method on `Client`. Front-office code keeps using
+`Client::build()`.
 
 Placing the shipment
 --------------------
 
-`actionValidateOrder` fires inside the order-placement transaction. **Do not call the API there** —
-a slow or failing third party becomes a failed checkout. Record the intent and act later:
+`actionValidateOrder` runs inside the order placement transaction. **Don't call the API there.** If
+the API is slow or fails, the checkout fails with it. Record the order and process it later:
 
 ```php
 public function hookActionValidateOrder(array $params): void
@@ -238,9 +239,9 @@ public function hookActionValidateOrder(array $params): void
 }
 ```
 
-Then drain the queue from a cron controller, or from the merchant pressing a button in
-`displayAdminOrderMain`. PrestaShop has no general-purpose job queue, so a table plus a cron
-controller is the idiomatic answer:
+Then process the queue from a cron controller, or when the merchant clicks a button in
+`displayAdminOrderMain`. PrestaShop has no general job queue, so a table and a cron controller is
+the usual approach:
 
 ```php
 <?php
@@ -280,7 +281,7 @@ final class ShipmentDispatcher
                 $error->getValidationErrors() ?? ['' => [$error->getResponse()]],
             )];
         } catch (ConnectionException) {
-            // Unknown outcome. Leave it queued; do not send again in this pass.
+            // Unknown outcome. Leave it queued and don't send it again in this pass.
             return [false, 'Polkurier did not answer. The shipment stays queued.'];
         }
 
@@ -305,9 +306,9 @@ final class ShipmentDispatcher
 }
 ```
 
-`formatErrors()` handles both exception types, because `ValidationException::getValidationErrors()`
-and `ErrorMessage::getValidationErrors()` have the same shape — a local rejection and a server-side
-one present identically.
+`formatErrors()` works for both exception types because `ValidationException::getValidationErrors()`
+and `ErrorMessage::getValidationErrors()` return the same shape. The merchant sees local and API
+rejections in the same format.
 
 Mapping a PrestaShop address
 ----------------------------
@@ -332,15 +333,16 @@ if ($address->company) {
 }
 ```
 
-Two traps. PrestaShop does not separate the house number from the street, so `address2` is whatever
-the customer put there — decide on a convention and validate it at checkout, because the API needs
-a number. And both phone fields are optional in PrestaShop but required by most carriers, so make
-one mandatory in the address format for shipping countries you serve.
+Addresses need some care. PrestaShop doesn't keep the house number separate from the street, so
+`address2` contains whatever the customer typed there. The API needs a number, so pick a convention
+and validate it at checkout. Also, both phone fields are optional in PrestaShop, but most carriers
+require a phone number. Make one of them mandatory in the address format for the countries you ship
+to.
 
 A carrier in checkout
 ---------------------
 
-Register a `Carrier` on install and price it from your own rules, not from a live API call:
+Register a `Carrier` on install and price it with your own rules:
 
 ```php
 $carrier = new Carrier();
@@ -352,26 +354,26 @@ $carrier->need_range = true;
 $carrier->add();
 ```
 
-`getOrderShippingCost()` then runs on every cart change. Calling `orderValuation()` from it puts a
-third-party round trip in the cart update, which is the single most common way a shipping module
-gets a bad reputation. Price from a cached table, and reconcile against the real quote when the
-merchant dispatches.
+PrestaShop calls `getOrderShippingCost()` on every cart change. If you call `orderValuation()` from
+there, every cart update waits on a third-party request, and the shop feels slow. Price from a
+cached table instead, and compare with the real quote when the merchant dispatches the order.
 
-If you do quote live, cache aggressively on destination plus weight, and fail to a fixed price
-rather than to an error.
+If you do want live quotes, cache them by destination and weight, and fall back to a fixed price if
+the call fails.
 
 Pickup point selection
 ----------------------
 
-Two routes, as everywhere:
+There are two options:
 
-- The map widget, via `geo()->getMapToken()`, embedded in the carrier's extra content. Best UX.
+- The map widget, using `geo()->getMapToken()`, embedded in the carrier's extra content. This gives
+  the best experience for customers.
 
-Whichever you use, store the chosen point id against the cart and put it on the order address with
+Either way, store the selected point ID against the cart and set it on the order address with
 `OrderAddressMessageBuilder::pointId()`.
 
-Cache the listings. There are tens of thousands of lockers, and fetching them per page load is
-indistinguishable from a broken shop.
+Cache the lists. There are tens of thousands of lockers, and fetching them on every page load makes
+the shop look broken.
 
 Labels in the order screen
 --------------------------
@@ -393,7 +395,7 @@ public function hookDisplayAdminOrderMain(array $params): string
 }
 ```
 
-The controller behind that link fetches and streams the PDF:
+The controller behind that link fetches the PDF and streams it:
 
 ```php
 $document = Client::build()->orders()->getLabel(new GetDocumentMessage(orderNo: [$number]));
@@ -407,14 +409,14 @@ exit;
 Multistore
 ----------
 
-Everything above keys on `id_shop`: `Configuration::get()` takes it, and `Client::build()` caches
-per shop. The mistake to avoid is a single static client built on first use — under multistore that
-silently ships shop B's orders on shop A's account.
+All the code above is keyed by `id_shop`. `Configuration::get()` takes it, and `Client::build()`
+caches one client per shop. Avoid a single static client built on first use. Under multistore it
+quietly sends shop B's orders on shop A's account.
 
 Debug and support
 -----------------
 
-Give the module its own log file and turn on extended logging only while diagnosing:
+Give the module its own log file. Turn on extended logging only while you are debugging a problem:
 
 ```php
 new Config(
@@ -423,5 +425,5 @@ new Config(
 );
 ```
 
-That logs full request bodies, which contain the API token. Turn it off afterwards, and keep the
-file out of the web root.
+This logs full request bodies, which contain the API token. Turn it off when you're done, and keep
+the log file outside the web root.

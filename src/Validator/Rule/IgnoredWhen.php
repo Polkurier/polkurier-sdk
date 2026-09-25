@@ -12,15 +12,14 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 
 /**
- * A block that does not apply once one of its fields says so.
+ * Skips a block's rules when one of its fields has a given value.
  *
- * Some optional blocks are switched off by a value rather than by being left out: cash on delivery
- * with nothing to collect is the clearest case. An amount of zero means there is no collection, so
- * the fields beside it describe something that is not happening — they are not required and not
- * meaningful. Holding them to their usual rules would reject a payload that is perfectly valid.
+ * Some optional blocks are turned off by a value instead of being left out. The main example is
+ * cash on delivery with an amount of zero: there is nothing to collect, so the other fields in the
+ * block are not required. Applying their usual rules would reject a valid payload.
  *
- * Declared on the class, since it governs the whole of it. When the condition holds, every other
- * rule the class declares — its own field rules and its cross-field rules alike — is skipped.
+ * Goes on the class. When the condition is met, all other rules the class declares (field rules
+ * and cross-field rules) are skipped.
  *
  * ```php
  * #[IgnoredWhen(property: 'amount', equals: 0.0)]
@@ -30,8 +29,8 @@ use Polkurier\Webservice\Validator\MessageFields;
 class IgnoredWhen
 {
     /**
-     * @param string $property the property that decides
-     * @param mixed $equals the value of $property that makes the API disregard the block
+     * @param string $property the property to check
+     * @param mixed $equals the value of $property that turns the block off
      */
     public function __construct(
         /**

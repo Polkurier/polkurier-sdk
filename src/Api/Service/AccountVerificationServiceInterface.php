@@ -19,27 +19,25 @@ use Polkurier\Webservice\Response\Account\AccountVerificationMessage;
 /**
  * Identity verification for the account.
  *
- * Some accounts must be verified before they can ship, which `get_account_info` reports as
- * `require_account_verification`. Verification is carried out by an external provider: the API
- * registers an attempt and hands back a token, the customer completes the provider's flow with it,
- * and the outcome is read back here.
+ * Some accounts must be verified before they can ship. `get_account_info` reports this as
+ * `require_account_verification`. An external provider runs the verification: you register an
+ * attempt and get a token back, the customer completes the provider's flow with that token, and you
+ * read the outcome back here.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface AccountVerificationServiceInterface
 {
     /**
      * Starts an identity verification and returns the token needed to complete it.
      *
-     * The access token is only present on this response, never when reading the verification back,
-     * and it is what the provider's flow requires. Treat it as a one-time secret: hand it straight
-     * on rather than storing it.
+     * The provider's flow needs the access token, and only this response contains it. Treat it as a
+     * one-time secret: pass it on and don't store it.
      *
-     * An order number may be supplied to tie the verification to the shipment that prompted it;
-     * without one a general account verification is started.
+     * You can pass an order number to tie the verification to a shipment. Without one, a general
+     * account verification starts.
      *
      * Endpoint: `register_account_verification`
      *
@@ -69,13 +67,13 @@ interface AccountVerificationServiceInterface
      *        starts a general account verification
      *
      * @return AccountVerificationMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage}
      */
     public function register(
         ?RegisterAccountVerificationMessage $registerAccountVerificationMessage = null
@@ -84,13 +82,12 @@ interface AccountVerificationServiceInterface
     /**
      * Reports the most recent verification attempt and its outcome.
      *
-     * Only the latest attempt is reported; earlier ones are not retrievable.
+     * Only the latest attempt is returned. Earlier ones can't be retrieved.
      *
      * An account that has never attempted verification gets an empty response, which the SDK maps
-     * to null rather than to an object with blank fields — so null means "never attempted" and is
-     * distinct from an attempt that failed.
+     * to null. So null means "never attempted", which is different from a failed attempt.
      *
-     * The access token is never included here, only when registering.
+     * The access token is not included here. Only register() returns it.
      *
      * Endpoint: `get_account_verification_info`
      *
@@ -115,18 +112,19 @@ interface AccountVerificationServiceInterface
      * }
      * ```
      *
-     * Response when nothing has ever been attempted — the SDK reports this as null:
+     * Response when nothing has been attempted yet (the SDK reports this as null):
      * ```json
      * {"status": "success", "response": []}
      * ```
      *
-     * @return AccountVerificationMessage payload:
+     * @return AccountVerificationMessage|null payload:
+     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage}, or null when
+     *         nothing has been attempted yet
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage} or null
      */
-    public function getInfo(): AccountVerificationMessage;
+    public function getInfo(): ?AccountVerificationMessage;
 }

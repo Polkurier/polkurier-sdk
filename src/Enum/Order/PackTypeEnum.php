@@ -10,9 +10,8 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * The type of an individual parcel within an order.
  *
- * Carriers differ in which of these they accept and how they price them; `available_carriers`
- * reports the supported set per carrier. Use the enum rather than a string: a value outside it is
- * not reported as an error, and is not honoured as sent.
+ * Carriers differ in which types they accept and how they price them. `available_carriers` lists
+ * the supported types per carrier. Use a value from this enum.
  */
 enum PackTypeEnum: string
 {
@@ -38,7 +37,7 @@ enum PackTypeEnum: string
     case Palette = 'PAL';
 
     /**
-     * A long item, priced on length rather than volume.
+     * A long item, priced by length instead of volume.
      */
     case Long = 'DLU';
 }

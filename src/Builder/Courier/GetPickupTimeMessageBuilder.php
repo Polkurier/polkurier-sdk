@@ -13,10 +13,9 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 
 /**
- * Assembles a question about when a carrier could collect.
+ * Assembles a query for the times a carrier can collect.
  *
- * The destination and the shipment type narrow the answer and are both optional, so they are added
- * only when the order is far enough along to know them.
+ * The destination and the shipment type are optional. Set them to narrow the result.
  */
 class GetPickupTimeMessageBuilder extends AbstractBuilder
 {

@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * Why a cash-on-delivery amount was applied somewhere other than a straight payout.
+ * Why a cash-on-delivery amount was used for something other than a normal payout.
  */
 enum CodReturnReasonEnum: string
 {
@@ -33,7 +33,7 @@ enum CodReturnReasonEnum: string
     case CustomerMoneyBoxFee = 'CUSTOMER_MONEY_BOX_FEE';
 
     /**
-     * Paid out to the customer in the ordinary way.
+     * Paid out to the customer as usual.
      */
     case CustomerPaid = 'CUSTOMER_PAID';
 }

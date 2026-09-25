@@ -28,8 +28,8 @@ readonly class FindCityMessage implements MessageInterface
 
     /**
      * @param string $postcode
-     * @param string $country ISO country code; only Poland is served, and anything else returns
-     *        an empty list rather than an error
+     * @param string $country ISO country code. Only Poland is supported, any other country
+     *        returns an empty list (not an error)
      */
     public function __construct(
         /**
@@ -55,10 +55,10 @@ readonly class FindCityMessage implements MessageInterface
     }
 
     /**
-      * ISO country code the postcode belongs to.
-      *
-      * Only Poland is served; any other country returns an empty list rather than an error.
-      *
+     * ISO country code the postcode belongs to.
+     *
+     * Only Poland is supported. Any other country returns an empty list, not an error.
+     *
      * @return string
      */
     public function getCountry(): string

@@ -14,9 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The order as `create_order` reports it back.
  *
- * This is deliberately not an {@see \Polkurier\Webservice\Response\Order}: the
- * create response is a short receipt, not the full order record that `get_orders` returns. Call
- * `get_orders` with the returned order number to read the order back in full.
+ * This is a short receipt, not the full {@see \Polkurier\Webservice\Response\Order} record
+ * that `get_orders` returns. To read the order back in full, call `get_orders` with the returned
+ * order number.
  */
 readonly class CreatedOrderMessage implements MessageInterface
 {
@@ -43,7 +43,7 @@ readonly class CreatedOrderMessage implements MessageInterface
      * @param float $unpaidAmount amount still to be settled, in PLN
      * @param bool $paid
      * @param string|null $trackingUri public track-and-trace URL
-     * @param string|null $shipmentCode drop-off code; label-less service only
+     * @param string|null $shipmentCode drop-off code, label-less service only
      */
     public function __construct(
         /**

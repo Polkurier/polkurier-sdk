@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\MoneyBox;
 /**
  * How the payout handling fee is settled.
  *
- * Not every account may use every option; `get_money_box_config` reports the permitted set under
- * `fee_payments_types_available`, and sending one outside it is rejected.
+ * Not every account can use every option. `get_money_box_config` returns the allowed ones under
+ * `fee_payments_types_available`, and any other value is rejected.
  */
 enum MoneyBoxFeePaymentTypeEnum: string
 {
@@ -37,7 +37,7 @@ enum MoneyBoxFeePaymentTypeEnum: string
 
     /**
      * No fee, because the account still has free payouts left. `calculate_money_box_payout_fee`
-     * reports how many remain.
+     * returns how many remain.
      */
     case Free = 'FREE';
 }

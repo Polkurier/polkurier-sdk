@@ -13,9 +13,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * A telephone number.
  *
- * Only length is judged, and only after non-digits are stripped, because the API does the same. No
- * numbering plan is enforced: the service accepts foreign numbers, and a stricter rule here would
- * reject recipients it would happily deliver to.
+ * Only the length is checked: at least 9 digits, not counting other characters. No numbering plan
+ * is enforced because foreign numbers are accepted.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class PhoneNumber implements ValueValidatorInterface
@@ -29,8 +28,8 @@ class PhoneNumber implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Absence is not this rule's business; that is what NotBlank is for. Saying so here would
-        // make every optional field of this kind mandatory.
+        // Empty values pass. NotBlank handles required fields. Rejecting them here would make
+        // every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }

@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A successful API response: the envelope status and the decoded payload.
  *
- * The one part of the envelope that is not final, because {@see ErrorMessage} is the same envelope
- * with the error fields on it. Nothing else should extend it.
+ * Not final, because {@see ErrorMessage} extends it with the error fields. Nothing else should
+ * extend it.
  */
 readonly class ResponseMessage implements MessageInterface
 {
@@ -38,9 +38,8 @@ readonly class ResponseMessage implements MessageInterface
         private ResponseStatusEnum $status,
 
         /**
-         * On a success the payload is built by ResponseFactory and never passes through the
-         * serializer at all; only the error case is mapped, and there the API sends a plain
-         * message string.
+         * On success, ResponseFactory builds the payload without the serializer. Only errors are
+         * mapped, and for those the API sends a plain message string.
          *
          * @var mixed
          */
@@ -57,9 +56,9 @@ readonly class ResponseMessage implements MessageInterface
     }
 
     /**
-      * The deserialized `response` payload: an entity, a list of entities, or a bare
-      * boolean for methods that only acknowledge.
-      *
+     * The deserialized `response` payload: an entity, a list of entities, or a boolean for
+     * methods that only acknowledge.
+     *
      * @return mixed
      */
     public function getResponse(): mixed

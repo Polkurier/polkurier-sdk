@@ -13,16 +13,13 @@ use Polkurier\Webservice\Exception\ValidationException;
 /**
  * Collects the reasons a payload was rejected.
  *
- * Validators gather failures rather than throwing at the first one, so a caller fixing a payload
- * sees everything wrong with it at once instead of discovering the problems one round trip at a
- * time. That mirrors how the API reports its own validation, and the field names used here are the
- * wire names, which makes the two reports directly comparable.
+ * Validators collect failures instead of throwing at the first one, so you see every problem with
+ * a payload at once. The API reports its own validation errors the same way, and the field names
+ * here are wire names, so the 2 reports can be compared directly.
  *
- * A pool and nothing more: it knows how to record a failure and how to run a
- * {@see ValueValidatorInterface} against a value, and holds no rules of its own. Validators are
- * handed one and drop their findings into it, which is what lets several of them — the attribute
- * rules, a hand-written message validator, a nested payload's own rules — contribute to a single
- * report.
+ * The pool holds no rules. It records failures and can run a {@see ValueValidatorInterface}
+ * against a value. Several validators (attribute rules, a hand-written message validator, rules of
+ * a nested payload) can write to the same pool and produce one report.
  */
 class ViolationPool
 {
@@ -45,10 +42,9 @@ class ViolationPool
     }
 
     /**
-     * Runs value validators against one field, recording whatever they report.
+     * Runs value validators against one field and records what they report.
      *
-     * Every validator runs, so a value that is wrong in several ways is reported as such rather
-     * than one reason at a time.
+     * All validators run, so a value that is wrong in several ways gets all of its reasons.
      *
      * @param string $field the wire field name
      * @param mixed $value
@@ -68,11 +64,10 @@ class ViolationPool
     }
 
     /**
-     * Runs value validators only when a condition holds.
+     * Runs value validators only if the condition is true.
      *
-     * The shape most cross-field rules take: a field that matters only because another field says
-     * so — a bank account required because the money is going to one, a two-factor code required
-     * because the number is being made the default.
+     * Most cross-field rules look like this, e.g. a bank account that is required because the
+     * money goes to one, or a two-factor code that is required when the number becomes the default.
      *
      * @param bool $condition
      * @param string $field
@@ -111,10 +106,10 @@ class ViolationPool
     }
 
     /**
-     * Merges another set in, prefixing its field names.
+     * Merges another pool into this one, prefixing its field names.
      *
-     * Used when validating a nested structure so the reported field reads `sender.postcode` rather
-     * than a bare `postcode` that could have come from either end of a shipment.
+     * Used for nested structures, so the reported field is `sender.postcode` and not just
+     * `postcode`.
      *
      * @param string $prefix
      * @param self $other

@@ -65,8 +65,8 @@ readonly class Country implements MessageInterface
     ) {}
 
     /**
-      * ISO country code.
-      *
+     * ISO country code.
+     *
      * @return string
      */
     public function getId(): string

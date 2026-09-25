@@ -1,20 +1,20 @@
 Magento 2 / Adobe Commerce
 ==========================
 
-Magento 2.4.x on PHP 8.4+. The SDK goes into a module of your own; nothing here requires patching
+For Magento 2.4.x on PHP 8.4+. You add the SDK to a module of your own. You don't need to patch
 core.
 
 Installing the SDK into a module
 --------------------------------
 
-Magento loads the root `composer.json`'s autoloader, so the dependency goes there rather than into
-the module:
+Magento uses the autoloader from the root `composer.json`, so require the SDK there:
 
 ```bash
 composer require polkurier/polkurier-sdk
 ```
 
-Declare it in your module's own `composer.json` too, so the requirement travels with the module:
+Also declare it in the module's own `composer.json`, so the requirement goes wherever the module
+goes:
 
 ```json
 {
@@ -35,7 +35,7 @@ Declare it in your module's own `composer.json` too, so the requirement travels 
 Configuration
 -------------
 
-Credentials belong in the admin, encrypted, and scoped per website — a merchant with two websites
+Store the credentials in the admin, encrypted and scoped per website. A merchant with two websites
 usually has two Polkurier accounts.
 
 `etc/adminhtml/system.xml`:
@@ -71,7 +71,7 @@ usually has two Polkurier accounts.
 </config>
 ```
 
-`etc/config.xml` for the defaults:
+Defaults go in `etc/config.xml`:
 
 ```xml
 <?xml version="1.0"?>
@@ -88,15 +88,15 @@ usually has two Polkurier accounts.
 </config>
 ```
 
-> `type="obscure"` plus the `Encrypted` backend model is what keeps the token out of plain text in
-> `core_config_data`. Read it back through `EncryptorInterface::decrypt()`, never straight from
-> `ScopeConfigInterface`.
+> With `type="obscure"` and the `Encrypted` backend model, the token isn't stored as plain text in
+> `core_config_data`. Always read it back through `EncryptorInterface::decrypt()`. The raw value
+> from `ScopeConfigInterface` is still encrypted.
 
 The config provider
 -------------------
 
-Because configuration is store-scoped, this is the case for a `ConfigProviderInterface` rather than
-a fixed `Config`:
+The configuration is scoped per store, so implement `ConfigProviderInterface` instead of using a
+fixed `Config`:
 
 ```php
 <?php
@@ -146,11 +146,11 @@ class ConfigProvider implements ConfigProviderInterface
 }
 ```
 
-> Careful with lifetime. Magento's object manager caches shared instances for the request, and
-> `AbstractService` reads its configuration once in its constructor. In a normal storefront or admin
-> request that is correct — one store, one config. In a **cron job or consumer that loops over
-> stores**, it is not: emulate the store *before* resolving the service, or build the client per
-> store. See [the multi-store note](#multi-store-and-cron) below.
+> Watch the object lifetime. Magento's object manager caches shared instances for the request, and
+> `AbstractService` reads its configuration once, in the constructor. A normal storefront or admin
+> request deals with one store, so that's fine. A **cron job or consumer that loops over stores**
+> will keep the first store's config. Emulate the store *before* resolving the service, or build
+> the client per store. See [the multi-store note](#multi-store-and-cron) below.
 
 `etc/di.xml`
 ------------
@@ -178,7 +178,7 @@ class ConfigProvider implements ConfigProviderInterface
     <preference for="Polkurier\Webservice\Api\Service\CourierServiceInterface"
                 type="Polkurier\Webservice\Service\CourierService"/>
 
-    <!-- The services take a PSR-3 logger and a validator; give them their own log file. -->
+    <!-- The services take a PSR-3 logger and a validator. Give them their own log file. -->
     <type name="Polkurier\Webservice\Service\AbstractService">
         <arguments>
             <argument name="logger" xsi:type="object">Vendor\Polkurier\Model\Logger</argument>
@@ -197,8 +197,8 @@ class ConfigProvider implements ConfigProviderInterface
 </config>
 ```
 
-The serializer and validator need small wrappers, because neither has a constructor the object
-manager can satisfy on its own:
+The object manager can't build the serializer or the validator on its own, so wrap each one in a
+small class:
 
 ```php
 <?php
@@ -219,8 +219,8 @@ class SerializerProvider implements SerializerProviderInterface
 
     public function __construct()
     {
-        // Magento's own cache is not PSR-6; a filesystem pool under var/ is the simplest
-        // correct answer, and is cleared by `bin/magento cache:flush` if you point it at var/cache.
+        // Magento's own cache is not PSR-6. A filesystem pool under var/ is the simplest option,
+        // and `bin/magento cache:flush` clears it if you point it at var/cache.
         $this->inner = new SdkSerializerProvider(new SerializerConfig(
             metadataCache: new \Symfony\Component\Cache\Adapter\PhpFilesAdapter(
                 'polkurier', 0, BP . '/var/cache/polkurier',
@@ -261,14 +261,14 @@ class Validator implements ValidatorInterface
 }
 ```
 
-Add the serializer's cache directory to your deployment's clean-up, since metadata is keyed by
-class rather than by version.
+The metadata cache key doesn't include a version, so clear the serializer's cache directory as part
+of each deployment.
 
 Mapping an order
 ----------------
 
-Keep this in its own class. It is the whole integration, and it is the only part that changes when
-either side moves.
+Put the mapping in its own class. Most of your integration code lives here, and it's the part you
+change when either Magento or the API changes.
 
 ```php
 <?php
@@ -317,18 +317,18 @@ class OrderMapper
 }
 ```
 
-Two Magento-specific traps. `getStreetLine(2)` is frequently empty because Magento does not split
-the house number out of the street — decide on a convention and enforce it in checkout, because
-the API needs the number. And `getTelephone()` is required by Magento but not validated, so expect
-`ValidationException` on `phone` more than on anything else.
+Watch out for two Magento quirks. `getStreetLine(2)` is often empty, because Magento doesn't keep
+the house number separate from the street. The API needs the number, so pick a convention and
+enforce it in checkout. Also, Magento requires `getTelephone()` but doesn't validate it. Expect
+more `ValidationException`s on `phone` than on any other field.
 
 Placing the order from a consumer
 ---------------------------------
 
-Never from an observer on `sales_order_place_after`. Queue it.
+Don't call the API from an observer on `sales_order_place_after`. Queue the work instead.
 
-`etc/queue_topology.xml`, `etc/queue_publisher.xml`, `etc/queue_consumer.xml` per Magento's own
-documentation; the consumer itself:
+Set up `etc/queue_topology.xml`, `etc/queue_publisher.xml` and `etc/queue_consumer.xml` as
+described in the Magento documentation. The consumer looks like this:
 
 ```php
 <?php
@@ -374,7 +374,7 @@ class PlaceShipment
         } catch (ConnectionException $e) {
             $this->logger->error('Polkurier unreachable', ['order' => $orderId, 'exception' => $e]);
 
-            throw $e;   // Let the consumer retry; the guard above makes that safe.
+            throw $e;   // Let the consumer retry. The guard above makes that safe.
         }
 
         $order->setData('polkurier_number', $created->getOrderNumber());
@@ -384,19 +384,21 @@ class PlaceShipment
 ```
 
 Add `polkurier_number` and `polkurier_carrier` as extension attributes or as sales order columns in
-`Setup/Patch/Data`; do not stuff them into `additional_information`.
+`Setup/Patch/Data`. Don't put them in `additional_information`.
 
 A shipping carrier
 ------------------
 
-To offer Polkurier rates in checkout, extend `Magento\Shipping\Model\Carrier\AbstractCarrier` and
-implement `CarrierInterface`. `collectRates()` is called on every cart change, so:
+To show Polkurier rates in checkout, extend `Magento\Shipping\Model\Carrier\AbstractCarrier` and
+implement `CarrierInterface`. Magento calls `collectRates()` on every cart change, so:
 
-- **Cache `availableCarriers()`.** It is account-specific but stable for minutes to hours.
-- **Do not call `orderValuation()` per quote unless you must.** It is a real round trip against a
-  third party in the middle of a cart update. If you do, cache the result keyed on the destination
-  and the parcel dimensions, and give it a short timeout.
-- **Fail soft.** `collectRates()` returning `false` hides your method; throwing breaks checkout.
+- **Cache `availableCarriers()`.** The result depends on the account but stays the same for minutes
+  to hours.
+- **Avoid calling `orderValuation()` for every quote.** Each call is a request to a third party in
+  the middle of a cart update. If you need it, cache the result by destination and parcel
+  dimensions, and use a short timeout.
+- **Return `false` on errors.** If `collectRates()` returns `false`, your method is hidden. If it
+  throws, checkout breaks.
 
 ```php
 public function collectRates(RateRequest $request)
@@ -420,8 +422,8 @@ public function collectRates(RateRequest $request)
 Printing labels from the admin grid
 -----------------------------------
 
-`getLabel()` takes a list of order numbers and answers with one PDF, so a mass action over the
-sales grid is one call rather than one per row:
+`getLabel()` accepts a list of order numbers and returns a single PDF. A mass action on the sales
+grid therefore needs only one call:
 
 ```php
 public function execute()
@@ -448,8 +450,8 @@ public function execute()
 Multi-store and cron
 --------------------
 
-The one thing that reliably goes wrong. A cron job iterating stores must re-resolve the client per
-store, because a service caches its configuration at construction:
+This is where most Magento integrations go wrong. A service keeps the configuration it was built
+with, so a cron job that loops over stores must build the client again for each store:
 
 ```php
 foreach ($this->storeManager->getStores() as $store) {
@@ -469,9 +471,9 @@ foreach ($this->storeManager->getStores() as $store) {
 }
 ```
 
-Constructing the facade directly here rather than injecting a service is deliberate: injection gets
-you the object manager's cached instance, which is holding the configuration from whichever store
-was current when it was first built.
+Here the facade is constructed directly instead of injected. An injected service is the object
+manager's cached instance, and it holds the configuration of whichever store was current when it
+was first built.
 
 Testing
 -------
@@ -483,5 +485,5 @@ Override the transport in `di.xml` under `app/code/Vendor/Polkurier/etc/test/`:
             type="Polkurier\Webservice\Testing\RecordingClient"/>
 ```
 
-Integration tests then exercise your mapper, the serializer and the envelope without a network. See
-[Testing](../testing.md).
+Integration tests then run your mapper, the serializer and the envelope handling without network
+access. See [Testing](../testing.md).

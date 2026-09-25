@@ -16,13 +16,10 @@ use Polkurier\Webservice\Validator\ViolationPool;
 /**
  * Checks a postcode against the country field beside it.
  *
- * What a postcode may look like depends on where it is, so the rule needs two fields and belongs
- * where both are visible. A property knows its own value and nothing else; making one name a
- * sibling would tie two fields together from a place that can see only one of them, and leave the
- * pairing to be kept correct by hand.
+ * The postcode format depends on the country, so the rule reads 2 fields and goes on the class.
  *
- * Where there is no country field to read, {@see Postcode} goes on the property on its own and
- * checks against the country the API serves by default.
+ * If there is no country field, put {@see Postcode} on the property instead. It checks against
+ * Poland unless given another country.
  *
  * ```php
  * #[PostcodeForCountry(postcode: 'postcode', country: 'country')]

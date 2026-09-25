@@ -14,12 +14,11 @@ use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
- * Two fields that have to be in order.
+ * Two fields that must be in order.
  *
- * Ranges the API accepts inverted and then satisfies with nothing, which is indistinguishable from
- * there being nothing to find. Works for dates and for numbers.
+ * A reversed range matches nothing, so this rule rejects it. Works for dates and numbers.
  *
- * Either end being absent means there is no range to judge, so the rule passes.
+ * If either end is missing, the rule passes.
  *
  * ```php
  * #[InOrder(earlier: 'dateFrom', later: 'dateTo')]
@@ -29,9 +28,9 @@ use Polkurier\Webservice\Validator\ViolationPool;
 class InOrder implements MessageRuleInterface
 {
     /**
-     * @param string $earlier the property that must not be the greater of the two
+     * @param string $earlier the property that must not be greater than $later
      * @param string $later
-     * @param string|null $because appended to the report in place of the default wording
+     * @param string|null $because appended to the report instead of the default wording
      */
     public function __construct(
         /**

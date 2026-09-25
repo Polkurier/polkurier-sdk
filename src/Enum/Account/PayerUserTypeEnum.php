@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\Account;
 /**
  * Whether the account bills as a business or as an individual.
  *
- * Mandatory on the payer address and meaningless on the other two. A business is expected to carry
- * a tax identification number.
+ * Required on the payer address only. Leave it out on the other 2. A business should have a tax
+ * identification number.
  */
 enum PayerUserTypeEnum: string
 {

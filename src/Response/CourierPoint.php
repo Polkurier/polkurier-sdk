@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A parcel locker or pickup point.
  *
- * The id is what goes in an address's point id field. Check the functions before offering a point
- * for a given use: not every point accepts drop-offs, collections or cash on delivery.
+ * Put the id in an address's point id field. Check the functions before offering a point for a
+ * particular use. Not every point accepts drop-offs, collections or cash on delivery.
  */
 readonly class CourierPoint implements MessageInterface
 {
@@ -70,7 +70,7 @@ readonly class CourierPoint implements MessageInterface
      * @param PointFunctionEnum[] $functions
      * @param string $countryIso
      * @param string $address postcode, city and street on one line
-     * @param int $courierId Polkurier's internal carrier id, not the API carrier code
+     * @param int $courierId Polkurier's numeric carrier id, not the API carrier code
      */
     public function __construct(
         /**
@@ -381,7 +381,7 @@ readonly class CourierPoint implements MessageInterface
     }
 
     /**
-     * The point's postcode, city and street formatted as one line, ready to display.
+     * Postcode, city and street on one line, ready to display.
      *
      * @return string
      */
@@ -391,10 +391,10 @@ readonly class CourierPoint implements MessageInterface
     }
 
     /**
-     * Polkurier's internal numeric id for the carrier operating this point.
+     * Polkurier's numeric id for the carrier operating this point.
      *
-     * Not the API carrier code — use {@see self::getProvider()} for the value the order methods
-     * accept.
+     * This is not the API carrier code. For the value the order methods accept, use
+     * {@see self::getProvider()}.
      *
      * @return int
      */

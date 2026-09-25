@@ -12,11 +12,10 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One bank account registered for cash-on-delivery settlement, as it is stored.
+ * A bank account registered for cash-on-delivery settlement, as stored.
  *
- * Registering or updating one is
- * {@see \Polkurier\Webservice\Request\BankAccount\SaveMessage} instead, which also
- * carries the confirmation the API may require before it will redirect where money is paid.
+ * To register or update one, use {@see \Polkurier\Webservice\Request\BankAccount\SaveMessage}.
+ * It also carries the confirmation the API may require before it changes where money is paid.
  */
 class BankAccount implements MessageInterface
 {

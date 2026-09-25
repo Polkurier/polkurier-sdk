@@ -15,20 +15,19 @@ use Psr\Http\Client\ClientInterface;
 /**
  * Builds a Guzzle client from the SDK configuration.
  *
- * Redirects are disabled deliberately: the API is a single POST endpoint that never legitimately
- * redirects, so a 3xx means something has been misconfigured, and following it would silently
- * forward the credentials to wherever it points.
+ * Redirects are disabled. The API is a single POST endpoint that doesn't redirect, so a 3xx means
+ * something is misconfigured. Following it would send the credentials to wherever it points.
  */
-final readonly class ClientFactory implements ClientFactoryInterface
+readonly class ClientFactory implements ClientFactoryInterface
 {
-    private const string CONFIG_BASE_URI = 'base_uri';
-    private const string CONFIG_HEADERS = 'headers';
-    private const string CONFIG_TIMEOUT = 'timeout';
-    private const string CONFIG_ALLOW_REDIRECTS = 'allow_redirects';
+    protected const string CONFIG_BASE_URI = 'base_uri';
+    protected const string CONFIG_HEADERS = 'headers';
+    protected const string CONFIG_TIMEOUT = 'timeout';
+    protected const string CONFIG_ALLOW_REDIRECTS = 'allow_redirects';
     /**
      * @var ConfigInterface
      */
-    private ConfigInterface $config;
+    protected ConfigInterface $config;
 
     /**
      * @param ConfigProviderInterface $configProvider
@@ -44,10 +43,10 @@ final readonly class ClientFactory implements ClientFactoryInterface
     public function create(): ClientInterface
     {
         return new Client([
-            self::CONFIG_BASE_URI => $this->config->getApiUrl(),
-            self::CONFIG_TIMEOUT => $this->config->getApiTimeout(),
-            self::CONFIG_ALLOW_REDIRECTS => false,
-            self::CONFIG_HEADERS => [
+            static::CONFIG_BASE_URI => $this->config->getApiUrl(),
+            static::CONFIG_TIMEOUT => $this->config->getApiTimeout(),
+            static::CONFIG_ALLOW_REDIRECTS => false,
+            static::CONFIG_HEADERS => [
                 'Content-Type' => 'application/json',
             ],
         ]);

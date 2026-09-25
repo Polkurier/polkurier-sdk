@@ -15,18 +15,17 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Writes one of the account's three addresses: billing, correspondence or contact.
+ * Saves one of the account's 3 addresses: billing, correspondence or contact.
  *
- * Two things gate this before any field is looked at. The whole call is refused once the account
- * has been issued an invoice — at that point the billing details are locked and only support can
- * change them. And the legal form is mandatory on the billing address specifically; on the other
- * two it is ignored.
+ * Once the account has been issued an invoice, the call is refused. The billing details are then
+ * locked and only support can change them. The legal form (`user_type`) is required on the billing
+ * address only. Leave it out on the other two.
  *
- * The correspondence and contact addresses can be declared identical to the billing one instead of
- * being filled in, which is what `same_as_payer` is for.
+ * Set `same_as_payer` to make the correspondence or contact address the same as the billing one
+ * instead of filling it in.
  *
- * The tax number is split into a country prefix and the number itself, so a Polish NIP goes in as
- * prefix "PL" and the digits separately.
+ * The tax number is split into a country prefix and the number. For a Polish NIP, send "PL" as the
+ * prefix and the digits separately.
  */
 #[Validate\RequiredWhen(
     field: 'userType',
@@ -55,9 +54,9 @@ readonly class SavePayerAddressMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param PayerAddressTypeEnum $addressType which of the three addresses to write
-     * @param PayerUserTypeEnum|null $userType required for the billing address, ignored otherwise
-     * @param bool $sameAsPayer declare this address identical to the billing one
+     * @param PayerAddressTypeEnum $addressType which of the 3 addresses to save
+     * @param PayerUserTypeEnum|null $userType required for the billing address only
+     * @param bool $sameAsPayer make this address the same as the billing one
      * @param string $name company or personal name
      * @param string $street
      * @param string $buildingNumber

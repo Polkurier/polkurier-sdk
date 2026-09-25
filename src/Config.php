@@ -14,14 +14,14 @@ use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 /**
  * How the SDK should talk to the API.
  *
- * Only the credentials and the identity of the calling integration are required; everything else
- * has a working default. The platform name and version identify your integration in Polkurier's
- * logs, so give something stable and recognisable.
+ * Only the credentials and the platform name and version are required. Everything else has a
+ * default. The platform name and version identify your integration, e.g. to support, so use
+ * something stable and recognisable.
  *
- * Endpoint selection: an explicit apiUrl wins; failing that, sandbox chooses between the sandbox
- * and production hosts.
+ * Endpoint: if apiUrl is set, it is used. Otherwise the sandbox flag picks the sandbox or the
+ * production host.
  */
-final readonly class Config implements ConfigInterface
+readonly class Config implements ConfigInterface
 {
     public const string SERIALIZATION_FORMAT = 'json';
     public const string API_URL = 'https://api.polkurier.pl';
@@ -42,47 +42,47 @@ final readonly class Config implements ConfigInterface
         /**
          * @var AuthorizationMessage
          */
-        private AuthorizationMessage $authorization,
+        protected AuthorizationMessage $authorization,
 
         /**
          * @var string
          */
-        private string $platform,
+        protected string $platform,
 
         /**
          * @var string
          */
-        private string $platformVersion,
+        protected string $platformVersion,
 
         /**
          * @var string
          */
-        private ?string $apiUrl = null,
+        protected ?string $apiUrl = null,
 
         /**
          * @var int
          */
-        private int $apiTimeout = 30,
+        protected int $apiTimeout = 30,
 
         /**
          * @var bool
          */
-        private bool $sandbox = false,
+        protected bool $sandbox = false,
 
         /**
          * @var bool
          */
-        private bool $loggingEnabled = true,
+        protected bool $loggingEnabled = true,
 
         /**
          * @var ApiMethodInterface[]
          */
-        private array $methodsToLog = [],
+        protected array $methodsToLog = [],
 
         /**
          * @var bool
          */
-        private bool $validatePayloads = true,
+        protected bool $validatePayloads = true,
     ) {}
 
     /**
@@ -114,7 +114,7 @@ final readonly class Config implements ConfigInterface
      */
     public function getApiUrl(): string
     {
-        return $this->apiUrl ?? ($this->isSandbox() ? self::SANDBOX_API_URL : self::API_URL);
+        return $this->apiUrl ?? ($this->isSandbox() ? static::SANDBOX_API_URL : static::API_URL);
     }
 
     /**

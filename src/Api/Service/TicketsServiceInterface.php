@@ -29,28 +29,27 @@ use Polkurier\Webservice\Response\Ticket\TicketMessage;
 /**
  * Support tickets and the contact forms that feed them.
  *
- * A ticket is a conversation about a shipment, an invoice or a complaint. The usual flow is
- * getContactTopics() to find the right topic, then createTicket(), then getTicketMessages() to
- * follow the thread and createTicketMessage() to reply.
+ * A ticket is a conversation about a shipment, an invoice or a complaint. Usually you call
+ * getContactTopics() to find the topic and createTicket() to open the ticket. Then use
+ * getTicketMessages() to read the thread and createTicketMessage() to reply.
  *
- * Attachments travel inline as base64 rather than through a separate upload. `get_system_info`
- * reports the size and count limits under `tickets`.
+ * Attachments are sent inline as base64. There is no separate upload. `get_system_info` reports
+ * the size and count limits under `tickets`.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface TicketsServiceInterface
 {
     /**
-     * The topics a ticket can be raised under.
+     * Lists the topics a ticket can be opened under.
      *
-     * A shallow tree, expressed through each topic's parent id rather than by nesting. Only a
-     * topic whose `has_form` is set can actually carry a ticket; the rest group the others.
+     * The topics form a shallow tree, given by each topic's parent id. Only topics with `has_form`
+     * set can take a ticket. The others just group topics.
      *
-     * Each topic carries suggested help articles and categories, which exist so a client can offer
-     * self-service before a ticket is created rather than after.
+     * Each topic lists suggested help articles and categories. You can show them to the customer
+     * before they open a ticket.
      *
      * Endpoint: `get_contact_topics`
      *
@@ -86,27 +85,26 @@ interface TicketsServiceInterface
      * ```
      *
      * @return ContactTopicMessage[] payload:
+     *         {@see \Polkurier\Webservice\Response\Contact\ContactTopicMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Contact\ContactTopicMessage}[]
      */
     public function getContactTopics(): array;
 
     /**
      * Raises a support ticket.
      *
-     * The topic must be one getContactTopics() reported and must accept a form; anything else is
+     * The topic must come from getContactTopics() and have `has_form` set. Any other topic is
      * rejected.
      *
-     * Attachments go inline as base64, keyed by filename, and are checked against the limits
-     * `get_system_info` reports under `tickets`. Checking them client-side is worth it — the
-     * rejection comes after the whole payload has been uploaded.
+     * Attachments go inline as base64, keyed by filename. They must fit the limits `get_system_info`
+     * reports under `tickets`. Check them before sending.
      *
-     * The origin identifies which channel raised the ticket and defaults to API. A mobile client
-     * should identify itself so the support team can see how the customer reached them.
+     * `origin` says which channel opened the ticket and defaults to API. A mobile client should send
+     * its own origin.
      *
      * Endpoint: `create_ticket`
      *
@@ -135,7 +133,7 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 27, "error_code": "FILE_UPLOAD_FAIL", "response": "…"}
      * ```
-     * Raised when an attachment is too large, too numerous, or of a type that is not accepted.
+     * Thrown when attachments are too large, too many, or of a type that isn't accepted.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"content": ["…"]}}
@@ -144,24 +142,24 @@ interface TicketsServiceInterface
      * @param CreateTicketMessage $createTicketMessage
      *
      * @return TicketMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      */
     public function createTicket(CreateTicketMessage $createTicketMessage): TicketMessage;
 
     /**
      * Lists tickets, one page at a time.
      *
-     * Page size is clamped to between 1 and 250 and defaults to 100 — a wider range than the order
-     * list allows. As with the invoice list there is no `totalpages`.
+     * Page size must be 1–250 and defaults to 100. The SDK checks the range before sending. The order
+     * list allows a narrower range. As with the invoice list, there is no `totalpages`.
      *
-     * Supplying an id narrows the list to that one ticket; the envelope is unchanged, so the
-     * ticket still arrives inside `result`.
+     * Pass an id to get just that ticket. The envelope stays the same, so the ticket is still inside
+     * `result`.
      *
      * Tickets come back without their timeline. Use getTicketMessages() for the conversation.
      *
@@ -208,22 +206,21 @@ interface TicketsServiceInterface
      * @param GetTicketsMessage|null $getTicketsMessage null lists the first page unfiltered
      *
      * @return TicketListMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketListMessage}
      */
     public function getTickets(?GetTicketsMessage $getTicketsMessage = null): TicketListMessage;
 
     /**
      * Fetches one ticket with its full conversation.
      *
-     * The timeline mixes two kinds of entry: messages someone wrote, and actions that happened to
-     * the ticket such as a status change. The type distinguishes them, and for an action the
-     * content describes the event rather than quoting a person.
+     * The timeline has 2 kinds of entry, told apart by `type`: messages someone wrote, and actions
+     * on the ticket such as a status change. For an action, `content` describes the event.
      *
      * Endpoint: `get_ticket_messages`
      *
@@ -277,26 +274,26 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for an unknown ticket and for one belonging to another account alike.
+     * Thrown both for an unknown ticket and for one that belongs to another account.
      *
      * @param TicketIdMessage $ticketIdMessage
      *
      * @return TicketMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}, with its timeline
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}, with its timeline
      */
     public function getTicketMessages(TicketIdMessage $ticketIdMessage): TicketMessage;
 
     /**
      * Adds a reply to an existing ticket.
      *
-     * Subject to the same attachment limits as raising one. A closed ticket cannot be replied to;
-     * raise a new one instead.
+     * The same attachment limits apply as for createTicket(). You can't reply to a closed ticket.
+     * Open a new one instead.
      *
      * Endpoint: `create_ticket_message`
      *
@@ -322,18 +319,18 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
      * ```
-     * Raised when the ticket is closed.
+     * Thrown when the ticket is closed.
      *
      * @param CreateTicketMessageMessage $createTicketMessageMessage
      *
      * @return TicketMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      */
     public function createTicketMessage(
         CreateTicketMessageMessage $createTicketMessageMessage
@@ -342,9 +339,9 @@ interface TicketsServiceInterface
     /**
      * Changes a ticket's status.
      *
-     * Only CLOSED is accepted — a customer may close their own ticket and nothing else. The other
-     * statuses are reported on a ticket but cannot be set here, and sending one is rejected naming
-     * the acceptable set.
+     * Only CLOSED is accepted: a customer can close their own ticket, nothing more. Other statuses
+     * appear on tickets but can't be set here. Sending one gives an error that lists the accepted
+     * values.
      *
      * Endpoint: `set_ticket_status`
      *
@@ -368,22 +365,21 @@ interface TicketsServiceInterface
      * @param SetTicketStatusMessage $setTicketStatusMessage
      *
      * @return TicketMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
      */
     public function setTicketStatus(SetTicketStatusMessage $setTicketStatusMessage): TicketMessage;
 
     /**
      * Downloads one attachment from a ticket conversation.
      *
-     * Attachments are addressed by the timeline entry they belong to plus their filename, so a
-     * filename only has to be unique within its own message. Both come from the timeline that
-     * getTicketMessages() returns.
+     * An attachment is identified by its timeline entry id and its filename. A filename only has to
+     * be unique within its message. Take both values from the timeline getTicketMessages() returns.
      *
      * Endpoint: `get_ticket_message_file`
      *
@@ -413,19 +409,18 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for an unknown message, an unknown filename within it, and a message on someone
-     * else's ticket alike.
+     * Thrown for an unknown message, an unknown filename, or a message on another account's ticket.
      *
      * @param GetTicketMessageFileMessage $getTicketMessageFileMessage
      *
      * @return TicketFileContentMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketFileContentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketFileContentMessage}
      */
     public function getTicketMessageFile(
         GetTicketMessageFileMessage $getTicketMessageFileMessage
@@ -434,9 +429,9 @@ interface TicketsServiceInterface
     /**
      * Fetches the definition of a contact form.
      *
-     * The contact forms are a lighter-weight route than a ticket, used for enquiries that are not
-     * about a specific shipment. The definition describes the fields to render and carries a form
-     * id and a nonce that must be sent back with the submission.
+     * Contact forms are a simpler alternative to tickets, for enquiries that aren't about a specific
+     * shipment. The definition lists the fields to render. It also has a form id and a nonce, which
+     * you must send back with the submission.
      *
      * Endpoint: `get_contact_form`
      *
@@ -449,8 +444,8 @@ interface TicketsServiceInterface
      * }
      * ```
      *
-     * Response: the form definition, whose field set varies per category, so the SDK leaves it as
-     * decoded JSON rather than modelling a shape that would not hold.
+     * Response: the form definition. Its fields vary per category, so the SDK returns it as decoded
+     * JSON.
      *
      * Common errors:
      * ```json
@@ -460,11 +455,11 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for a category that has no form attached.
+     * Thrown for a category that has no form.
      *
      * @param GetContactFormMessage $getContactFormMessage
      *
-     * @return array<array-key, mixed> the form definition; its fields vary per category
+     * @return array<array-key, mixed> the form definition, whose fields vary per category
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -477,14 +472,12 @@ interface TicketsServiceInterface
     /**
      * Submits a completed contact form.
      *
-     * The form id and nonce come from the getContactForm() response and tie the submission to the
-     * definition that was rendered, so a form cannot be replayed and cannot be submitted against a
-     * definition that has since changed. Fetch the form immediately before submitting rather than
-     * caching it.
+     * Take the form id and nonce from the getContactForm() response. Fetch the form just before
+     * submitting. Don't cache it.
      *
      * Endpoint: `save_contact_form`
      *
-     * Request; the field names beyond these three come from the form definition:
+     * Request (any fields besides these 3 come from the form definition):
      * ```json
      * {
      *     "apimethod": "save_contact_form",
@@ -506,7 +499,7 @@ interface TicketsServiceInterface
      * ```json
      * {"status": "error", "status_code": 30, "error_code": "FORM_EXPIRED", "response": "…"}
      * ```
-     * Raised when the nonce is stale — fetch the form again and resubmit.
+     * Thrown when the nonce is stale. Fetch the form again and resubmit.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"email": ["…"]}}

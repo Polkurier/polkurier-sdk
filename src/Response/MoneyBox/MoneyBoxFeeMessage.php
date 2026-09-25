@@ -13,11 +13,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * What a payout would cost, quoted before it is requested.
  *
- * Purely a quote — nothing is reserved and no payout is created. The breakdown itemises the total,
- * which matters because the fee can combine several components.
+ * This is only a quote. Nothing is reserved and no payout is created. The fee can combine several
+ * components, and the breakdown itemises them.
  *
- * The free payout counters are the reason to call this even when the fee looks predictable: an
- * account with free payouts remaining is charged nothing.
+ * Check the free payout counters as well: an account with free payouts left is charged nothing.
  */
 readonly class MoneyBoxFeeMessage implements MessageInterface
 {

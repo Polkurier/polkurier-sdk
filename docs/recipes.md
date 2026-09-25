@@ -1,7 +1,7 @@
 Recipes
 =======
 
-Worked solutions to the things integrations actually do. Runnable versions of most of these live in
+Solutions for common integration tasks. Runnable versions of most of them are in
 [`examples/`](../examples), one file per API method.
 
 - [Placing an order](#placing-an-order)
@@ -23,7 +23,7 @@ Worked solutions to the things integrations actually do. Runnable versions of mo
 Placing an order
 ----------------
 
-Four steps: pick a carrier, describe the shipment, price it, place it.
+Pick a carrier, describe the shipment, get a price, then place the order.
 
 ```php
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
@@ -64,7 +64,7 @@ $order = new CreateOrderMessage(
     description: 'Books',
 );
 
-$quote   = $client->orders()->orderValuation($order);   // array — no stable shape
+$quote   = $client->orders()->orderValuation($order);   // array, no stable shape
 $created = $client->orders()->createOrder($order);      // CreatedOrderMessage
 
 printf(
@@ -75,24 +75,22 @@ printf(
 );
 ```
 
-Three things the SDK cannot check for you:
+The SDK cannot check these for you:
 
-- **`pickup` is carrier-dependent.** Some carriers need a collection date, some also a time window.
-  Read what a carrier requires from `availableCarriers(additionalData: true)` rather than assuming.
-- **`description` has a length limit.** `CreateOrderMessage::DESCRIPTION_MAX_LENGTH` is the general
-  one, and a carrier may impose a shorter. Keep it short, and do not rely on a long value surviving
-  in full.
-- **Some additional services have prerequisites**, which `availableCarriers(additionalData: true)`
-  reports per carrier. Read them from there; they vary by carrier and by account. The recipient
-  SMS notifications are the exception: they are not listed there, and their rules are on
-  `AdditionalServiceEnum`.
+- `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
+  window. Check what a carrier requires with `availableCarriers(additionalData: true)`.
+- `description` has a length limit. `CreateOrderMessage::DESCRIPTION_MAX_LENGTH` is the general
+  one, and a carrier may set a lower one. Keep it short.
+- Some additional services have prerequisites. `availableCarriers(additionalData: true)` lists them
+  per carrier, and they vary by carrier and by account. The recipient SMS notifications are the
+  exception: they are not listed there, and their rules are documented on `AdditionalServiceEnum`.
 
-> A successful `orderValuation()` is a price, not a dry run. The two calls take the same payload,
-> which does not mean a payload that prices cleanly will be accepted for creation.
+> `orderValuation()` only returns a price. It is not a dry run of `createOrder()`. Both take the
+> same payload, but a payload that gets a price can still be rejected when you create the order.
 
 ### The same thing with builders
 
-Better when half the fields are conditional — see [Builders](builders.md):
+Builders are easier when many fields are conditional. See [Builders](builders.md).
 
 ```php
 use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
@@ -120,10 +118,11 @@ $created = $client->orders()->createOrder($builder->build());
 Choosing a carrier
 ------------------
 
-Two approaches, and most integrations want both.
+There are 2 approaches. Most integrations use both.
 
-**Let the customer choose from what is available.** `availableCarriers()` is the source of truth
-for what this account may ship with:
+### Let the customer choose
+
+`availableCarriers()` returns the carriers this account can ship with:
 
 ```php
 use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
@@ -142,12 +141,14 @@ foreach ($carriers as $carrier) {
 }
 ```
 
-With `additionalData: true` each `Carrier` also carries what it supports — shipment types, pack
-limits, pickup requirements, the services it sells (other than the SMS notifications), which
-point map it uses. That is the data the
-SDK deliberately does not validate against, and the data you need to build a sensible form.
+With `additionalData: true`, each `Carrier` also describes what it supports: shipment types, pack
+limits, pickup requirements, the additional services it offers (except the SMS notifications) and
+which point map it uses. The SDK does not validate against this data. Use it to build your
+shipping form.
 
-**Let the price choose.** Quote the same shipment against several carriers and compare:
+### Let the price decide
+
+Get a quote for the same shipment from several carriers and compare:
 
 ```php
 $quotes = [];
@@ -169,8 +170,8 @@ foreach ($candidateCodes as $code) {
 }
 ```
 
-Each quote is an unmapped array; read the price out of it according to what the API returned. Catch
-per carrier — a refusal from one is not a failure of the comparison.
+Each quote is an unmapped array, so read the price from whatever structure the API returned. Catch
+exceptions per carrier, so that one carrier refusing the shipment does not stop the comparison.
 
 ---
 
@@ -189,39 +190,37 @@ $order = CreateOrderMessageBuilder::create()
     ->build();
 ```
 
-Two behaviours to know about.
+**An amount of zero means no cash on delivery.** The SDK expresses this with
+`#[IgnoredWhen(property: 'amount', equals: 0.0)]`, so the rest of a zero-amount block is not
+validated. For example, no bank account is required.
 
-**Zero means off.** An amount of zero is no cash on delivery, and the fields beside it then
-describe a collection that is not happening. The SDK models that with
-`#[IgnoredWhen(property: 'amount', equals: 0.0)]`, so a zero-amount block is not held to rules that
-could not matter — a bank account is not demanded for money that will never be collected.
+**The account number is fully checked.** `Validate\Iban` verifies the ISO 13616 check digits, for
+either a full IBAN or a bare Polish national number. The SDK is strict here because this field
+decides where the money goes.
 
-**The account number is checked properly.** `Validate\Iban` verifies the ISO 13616 check digits, on
-either a full IBAN or a bare Polish national number. This is the one place the SDK is deliberately
-strict, because the field decides where the money goes.
-
-Reading the money back is a different class: `Response\Order\Cod` says what became of it — status,
-payout, return details — where `CodMessage` said what to collect.
+When you read an order back, cash on delivery comes as a different class. `Response\Order\Cod`
+reports what happened to the money (status, payout, return details), while `CodMessage` describes
+what to collect.
 
 ```php
-$cod = $order->getCod();   // ?Cod — null when the order had none
+$cod = $order->getCod();   // ?Cod, null when the order had none
 
 if ($cod !== null) {
     echo $cod->getStatus();
 }
 ```
 
-That null is real and common — an order placed without cash on delivery has none to report. See
-[Serialization — empty values](serialization.md#empty-values-on-the-way-in) for how the SDK
-recognises an absent nested object.
+Expect null often: an order placed without cash on delivery has nothing to report. See
+[Serialization: empty values](serialization.md#empty-values-on-the-way-in) for how the SDK detects
+an absent nested object.
 
 ---
 
 Pickup points
 -------------
 
-Three routes, covered in full in [Services — finding a pickup point](services.md#finding-a-pickup-point--three-ways).
-The short version:
+There are 3 ways to do this. [Services: finding a pickup point](services.md#finding-a-pickup-point)
+covers them in full. In short:
 
 ```php
 // Searching, across carriers
@@ -241,7 +240,7 @@ $all = $client->courier()->findCourierPoints(new GetPointMessage(couriers: ['INP
 $token = $client->geo()->getMapToken();
 ```
 
-Putting the chosen point on an order is a field of the address:
+To send to the chosen point, set it on the recipient address:
 
 ```php
 $recipient = OrderAddressMessageBuilder::create()
@@ -253,9 +252,9 @@ $recipient = OrderAddressMessageBuilder::create()
     ->build();
 ```
 
-A recipient collecting from a point needs no street address for several carriers — the SDK knows
-this, and `OrderAddressValidator` judges a point-bound address on the point and a phone number
-alone.
+For several carriers, a recipient collecting from a point needs no street address.
+`OrderAddressValidator` accounts for this: an address with a point only needs the point and a phone
+number.
 
 ---
 
@@ -268,7 +267,7 @@ For one shipment:
 $pickup = $client->courier()->pickupCourier($pickupMessage);
 ```
 
-For several at once, gated by availability:
+For several at once, if multi-pickup is available:
 
 ```php
 if ($client->orders()->isMultiPickupAvailable()->isAvailable()) {
@@ -282,20 +281,20 @@ To find out when a carrier can come:
 $days = $client->courier()->getCourierPickupTime($whenMessage);   // PickupTimeMessage[]
 ```
 
-Each entry is a day with the windows available on it. Offer those rather than letting the customer
-propose a time the carrier will refuse.
+Each entry is a day with its available time windows. Offer these to the customer, so they cannot
+pick a time the carrier will refuse.
 
-A collection can also be part of the order itself, through `CreateOrderMessage::$pickup`. Which
-route to use depends on the carrier: some require the pickup on the order, some accept a separate
-booking afterwards. `availableCarriers(additionalData: true)` says which.
+You can also book the collection as part of the order, through `CreateOrderMessage::$pickup`. Which
+option to use depends on the carrier. Some require the pickup on the order, others accept a separate
+booking later. `availableCarriers(additionalData: true)` tells you which.
 
 ---
 
 Labels and protocols
 --------------------
 
-`getLabel()` takes a **list** of order numbers and returns one PDF containing all of them — one
-call, not one per order:
+`getLabel()` takes a **list** of order numbers and returns a single PDF with all their labels. You
+do not need one call per order:
 
 ```php
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
@@ -305,14 +304,14 @@ $document = $client->orders()->getLabel(new GetDocumentMessage(
 ));
 ```
 
-Two ways to use the result:
+You can read the result in 2 forms:
 
 ```php
 file_put_contents('labels.pdf', $document->getDecodedFile());   // bytes
 echo $document->getFile();                                      // base64, as it arrived
 ```
 
-Streaming it to a browser:
+To stream it to a browser:
 
 ```php
 return new Response(
@@ -322,7 +321,7 @@ return new Response(
 );
 ```
 
-A printer language other than PDF, where the carrier supports it:
+For a printer format other than PDF, if the carrier supports it:
 
 ```php
 use Polkurier\Webservice\Enum\Order\LabelFileFormatEnum;
@@ -330,15 +329,16 @@ use Polkurier\Webservice\Enum\Order\LabelFileFormatEnum;
 new GetDocumentMessage(orderNo: $numbers, fileFormat: LabelFileFormatEnum::Zpl);
 ```
 
-`getProtocol()` is the same call for the handover list the courier signs. `getOrderFile()` fetches
-a document attached to one order, and `invoices()->getInvoicePdf()` follows the same base64 pattern.
+`getProtocol()` works the same way and returns the handover list the courier signs.
+`getOrderFile()` fetches a document attached to one order. `invoices()->getInvoicePdf()` also
+returns base64 in the same way.
 
 ---
 
 Tracking
 --------
 
-The cheap call, for a single order:
+The basic call, for a single order:
 
 ```php
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
@@ -355,10 +355,10 @@ $status = $client->orders()->getStatus(new GetStatusMessage(
 ));
 ```
 
-> `tracking: true` is materially slower than the plain call, because the scan history comes from
-> the carrier. Leave it off when you only need the current state.
+> `tracking: true` is much slower than the plain call. Leave it off when you only need the current
+> state.
 
-Comparing against known states:
+To compare against known states:
 
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
@@ -366,18 +366,18 @@ use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 if ($status->getStatusCode() === OrderStatusCodeEnum::Delivered->value) { … }
 ```
 
-The status is a string with an enum beside it rather than a typed enum, deliberately: a new status
-from the API should be a comparison that does not match, not a response that fails to map.
+The status is a plain string, with an enum you can compare it to. If the API adds a new status,
+the comparison just does not match, and the response still maps.
 
 ---
 
 Paging through a list
 ---------------------
 
-Two loops, because the paged responses are not all the same shape — see
+The paged responses do not all have the same shape, so there are 2 loops. See
 [Messages](messages.md#lists-maps-and-pages).
 
-**When the response carries a page count** (`OrderListMessage`, `MoneyBoxPayoutListMessage`):
+**When the response has a page count** (`OrderListMessage`, `MoneyBoxPayoutListMessage`):
 
 ```php
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
@@ -399,7 +399,7 @@ do {
 } while ($page <= $list->getTotalPages());
 ```
 
-**When it does not** (`InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage`) — stop
+**When it does not** (`InvoiceListMessage`, `TicketListMessage`, `PrepaidHistoryMessage`), stop
 when a page comes back short:
 
 ```php
@@ -425,7 +425,7 @@ do {
 } while (count($rows) === $size);
 ```
 
-As a generator, which is usually what you want in application code:
+In application code a generator is usually more convenient:
 
 ```php
 /** @return iterable<Order> */
@@ -443,17 +443,16 @@ function allOrders(PolkurierWebservice $client, GetOrdersMessageBuilder $filter)
 }
 ```
 
-Page sizes are capped, and the SDK enforces the cap rather than sending a value that will not be
-honoured in full: `GetOrdersMessage::MAX_PAGE_SIZE` is 100, `GetTicketsMessage::MAX_PAGE_SIZE` is
-250. Asking for more is a `ValidationException`, not a short page you might not notice.
+Page sizes have a maximum, and the SDK checks it before sending: `GetOrdersMessage::MAX_PAGE_SIZE`
+is 100 and `GetTicketsMessage::MAX_PAGE_SIZE` is 250. A larger value throws a `ValidationException`.
 
 ---
 
 Two-factor confirmation
 -----------------------
 
-Some operations are guarded depending on the account's settings — changing a bank account,
-requesting a payout. The flow:
+Depending on the account's settings, some operations need a confirmation code, e.g. changing a
+bank account or requesting a payout. The flow:
 
 ```php
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
@@ -480,7 +479,7 @@ $validity = $client->twoFactorToken()->twoFactorTokenVerify(
 // … or pass the token and code into the guarded call itself.
 ```
 
-Two recovery paths if the code does not arrive:
+If the code does not arrive, you can resend it or switch the delivery method:
 
 ```php
 use Polkurier\Webservice\Request\Common\TokenMessage;
@@ -489,23 +488,23 @@ $client->twoFactorToken()->twoFactorTokenResend(new TokenMessage($token->getId()
 $client->twoFactorToken()->twoFactorTokenChangeTransportMethod($changeMessage);
 ```
 
-Whether a given call needs this at all is an account setting — read
-`account()->getAccountInfo()->getPinLocks()`. The SDK does not guess, because guessing wrong means
-either a refused call or an unnecessary code sent to a customer.
+Whether a call needs this depends on the account settings. Read
+`account()->getAccountInfo()->getPinLocks()`. The SDK does not guess: a wrong guess means either a
+refused call or a code sent to the customer for no reason.
 
 ---
 
 Paying out collected money
 --------------------------
 
-Quote first, then request:
+Check the fee first, then request the payout:
 
 ```php
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
-$fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage — costs nothing
+$fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
 
 $payout = $client->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
     payoutType: MoneyBoxPayoutTypeEnum::Account,
@@ -517,36 +516,36 @@ printf("Payout %s for %.2f PLN is %s\n",
     $payout->getNumber(), $payout->getAmount(), $payout->getStatus());
 ```
 
-> This moves real money, and there is no idempotency key. If `createPayout()` raises a
-> `ConnectionException`, check `getPayouts()` before doing anything else — do not retry blindly.
+> This moves real money, and there is no idempotency key. If `createPayout()` throws a
+> `ConnectionException`, check `getPayouts()` before you do anything else. Do not just retry.
 
-`cancelPayout()` works only while the payout has not been sent. Current balances are on
-`account()->getAccountInfo()`: `getMoneyBoxBalance()`,
-`getMoneyBoxPayoutAvailableBalance()`, `getMoneyBoxToPayoutBalance()`.
+`cancelPayout()` only works while the payout has not been sent. Current balances are on
+`account()->getAccountInfo()`: `getMoneyBoxBalance()`, `getMoneyBoxPayoutAvailableBalance()` and
+`getMoneyBoxToPayoutBalance()`.
 
 ---
 
 Retrying safely
 ---------------
 
-Which failures are worth retrying is in [Errors](errors.md#retrying-safely), along with the
-reconcile-then-retry pattern for `createOrder()`. The short rules:
+[Errors](errors.md#retrying-safely) lists which failures can be retried, and shows the
+reconcile-then-retry pattern for `createOrder()`. In short:
 
 - Reads: retry freely.
 - `ValidationException`, `InvalidArgumentException`, `AuthorizationException`: never.
 - Writes after a `ConnectionException`: reconcile first. There is no idempotency key.
 
-Adding retries to the transport rather than to each call is a job for a
-[custom `ClientFactory`](architecture.md#clientfactoryinterface--your-own-http-client) — but a
-blanket retry policy there will retry writes too, so scope it to idempotent methods or to
-connection-level failures only.
+To retry at the transport level instead of around each call, use a
+[custom `ClientFactory`](architecture.md#clientfactoryinterface-your-own-http-client). A retry
+policy there applies to writes as well, so limit it to idempotent methods or to connection-level
+failures.
 
 ---
 
 Caching what does not change
 ----------------------------
 
-Several responses are stable for hours or days and expensive to fetch:
+Several responses stay the same for hours or days and are slow to fetch:
 
 | Call | Typical lifetime |
 |------|------------------|
@@ -555,9 +554,9 @@ Several responses are stable for hours or days and expensive to fetch:
 | `knowledgeBase()->getIndex()` | Hours |
 | `tickets()->getContactTopics()` | Days |
 | `system()->getSystemInfo()` | Hours |
-| `courier()->availableCarriers()` | Minutes to hours — account-specific |
+| `courier()->availableCarriers()` | Minutes to hours. Account-specific |
 
-Two places to put the cache. Around a call, which is simple:
+You can cache around a single call, which is the simplest option:
 
 ```php
 $lockers = $cache->get('polkurier.inpost.lockers', function (ItemInterface $item) use ($client) {
@@ -567,20 +566,20 @@ $lockers = $cache->get('polkurier.inpost.lockers', function (ItemInterface $item
 });
 ```
 
-Or around a whole service, which keeps the caching out of your call sites — see
-[Architecture — substituting a service](architecture.md#services--substituting-a-service).
+Or around a whole service, which keeps caching out of your call sites. See
+[Architecture: substituting a service](architecture.md#substituting-a-service).
 
-Separately from any of this, set `metadataCache` on `SerializerConfig` in a long-running process.
-That is not about API responses; it is the serializer's own reflection, and it is the SDK's biggest
-start-up cost. See [Configuration](configuration.md#metadatacache).
+Separately, set `metadataCache` on `SerializerConfig` in a long-running process. This caches the
+serializer's reflection data, not API responses, and it is the SDK's biggest start-up cost. See
+[Configuration](configuration.md#metadatacache).
 
 ---
 
 Health checks
 -------------
 
-`heartbeat()` sends no credentials, which makes it the right probe: it answers whether the API is
-reachable whatever state your token is in.
+`heartbeat()` sends no credentials, so it tells you whether the API is reachable regardless of
+your token. Use it as the health probe.
 
 ```php
 try {
@@ -592,7 +591,7 @@ try {
 }
 ```
 
-To check credentials as well — for a settings screen, or a deploy smoke test:
+To check credentials as well, e.g. on a settings screen or in a deploy smoke test:
 
 ```php
 use Polkurier\Webservice\Exception\AuthorizationException;
@@ -607,5 +606,5 @@ try {
 }
 ```
 
-`testAuthApi()` takes explicit credentials rather than the configured ones, so it can verify
-something the user just typed before you save it anywhere.
+`testAuthApi()` takes credentials as an argument instead of using the configured ones, so you can
+check what the user just typed before you save it.

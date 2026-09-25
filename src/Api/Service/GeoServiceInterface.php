@@ -18,11 +18,10 @@ use Polkurier\Webservice\Response\Geo\CityMessage;
 use Polkurier\Webservice\Response\Geo\TokenMessage;
 
 /**
- * Geographic lookups supporting address entry and point selection.
+ * Geographic lookups for address entry and pickup point selection.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -30,20 +29,18 @@ use Polkurier\Webservice\Response\Geo\TokenMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface GeoServiceInterface
 {
     /**
-     * Suggests localities for a postcode, for autocompleting an address form.
+     * Suggests localities for a postcode, e.g. to autocomplete an address form.
      *
-     * Polish postcodes only. A country other than Poland, and a postcode not matching the NN-NNN
-     * pattern, both come back as an empty list rather than as an error. An empty result therefore means
-     * either "no such postcode" or "this input was never going to match", with no way to tell them
-     * apart — validate the pattern yourself if that distinction matters.
+     * Polish postcodes only, so send `PL` as the country. For Poland the SDK checks the NN-NNN
+     * format before sending. An unknown postcode returns an empty list, not an error.
      *
-     * A postcode can cover several localities, hence a list.
+     * One postcode can cover several localities, so the result is a list.
      *
      * Endpoint: `find_city`
      *
@@ -81,9 +78,8 @@ interface GeoServiceInterface
     /**
      * Issues a short-lived token for the pickup point map widget.
      *
-     * A fresh token is minted on every call; nothing is cached or reused. It is meant to be handed to
-     * the map front-end, which authenticates with it directly, so it can be given to a browser where
-     * the API token cannot.
+     * Every call returns a new token. Pass it to the map front-end, which authenticates with it
+     * directly. Unlike the API token, it is safe to expose in a browser.
      *
      * Endpoint: `get_map_token`
      *

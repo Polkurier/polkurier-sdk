@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of payout requests.
  *
- * Unlike the invoice and prepaid listings, this envelope does report `totalpages`.
+ * This envelope includes `totalpages`, unlike the invoice and prepaid listings.
  */
 readonly class MoneyBoxPayoutListMessage implements MessageInterface
 {

@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Account;
 
 /**
- * Which of the account's three addresses is being written.
+ * Which of the account's 3 addresses is being written.
  *
- * The payer address is the one that appears on invoices and is the only one whose legal form must
- * be stated. The other two can be marked as identical to it rather than filled in.
+ * The payer address appears on invoices and is the only one that needs a legal form. The other 2
+ * can be marked as the same as the payer address instead of being filled in.
  */
 enum PayerAddressTypeEnum: string
 {

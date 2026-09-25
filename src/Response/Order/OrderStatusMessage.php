@@ -15,12 +15,12 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * Current delivery state of one order, with its tracking history.
  *
- * Note that `get_status` rejects cancelled orders with an API error rather than reporting a
- * cancelled status, so a successful response always describes a live order.
+ * Note: `get_status` returns an API error for a cancelled order instead of a cancelled status, so a
+ * successful response always describes a live order.
  *
- * Three date formats appear in one response, and they are not the ones `get_orders` uses: the
- * status timestamp has no seconds, the delivery date has no time at all, and the scan timestamps
- * inside the history are full datetimes. The formats are pinned per field for that reason.
+ * The response uses 3 date formats, and they differ from the ones `get_orders` uses. The status
+ * timestamp has no seconds, the delivery date has no time, and the scan timestamps in the history
+ * are full datetimes. Each field has its own format pinned.
  */
 readonly class OrderStatusMessage implements MessageInterface
 {
@@ -41,7 +41,7 @@ readonly class OrderStatusMessage implements MessageInterface
      * @param \DateTimeInterface|null $statusDate
      * @param \DateTimeInterface|null $deliveredDate date only, with no time component
      * @param string $url public track-and-trace URL
-     * @param TrackingEventMessage[] $tracking scan history, oldest first; empty when the carrier
+     * @param TrackingEventMessage[] $tracking scan history, oldest first, empty when the carrier
      *                                         has not reported anything yet
      */
     public function __construct(

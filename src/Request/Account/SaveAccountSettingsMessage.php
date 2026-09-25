@@ -14,9 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Changes the account's order-form defaults.
  *
- * Every field is optional and only the ones present are touched, so this is a partial update
- * rather than a replacement. The whole thing runs in one transaction: if any part fails, none of
- * it is applied.
+ * This is a partial update: every field is optional and only the fields you send are changed. If
+ * any part fails, nothing is changed.
  */
 readonly class SaveAccountSettingsMessage implements MessageInterface
 {
@@ -30,9 +29,9 @@ readonly class SaveAccountSettingsMessage implements MessageInterface
 
     /**
      * @param string|null $defaultSenderAddressId id of an address-book sender entry
-     * @param string|null $defaultCourier carrier code; validated against what the account may use
-     * @param array<string, string>|null $defaultSenderPoint default point per carrier code, as a
-     *        map; carriers not listed are left alone
+     * @param string|null $defaultCourier carrier code, must be one the account can use
+     * @param array<string, string>|null $defaultSenderPoint map of carrier code to default point.
+     *        Carriers not in the map are left unchanged
      */
     public function __construct(
         /**

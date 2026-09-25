@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An individually negotiated quote and its acceptance state.
  *
- * Only present on freight orders, which are priced by offer rather than from a tariff.
+ * Present only on freight orders, which are priced by offer instead of from a tariff.
  */
 class IndividualPricing implements MessageInterface
 {

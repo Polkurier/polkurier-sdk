@@ -12,6 +12,8 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * Identifies a bank account to delete.
+ *
  * @see DeleteBankAccountMessage
  */
 readonly class DeleteBankAccountMessage extends DeleteMessage
@@ -40,8 +42,8 @@ readonly class DeleteBankAccountMessage extends DeleteMessage
     }
 
     /**
-      * The account's security PIN, required only while the bank-account lock is engaged.
-      *
+     * The account's security PIN, required only while the bank-account lock is engaged.
+     *
      * @return string|null
      */
     public function getAccessPin(): ?string

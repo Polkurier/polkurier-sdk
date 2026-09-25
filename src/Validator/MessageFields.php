@@ -11,14 +11,13 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Reflective access to a message's properties and their wire names.
+ * Reads a message's properties and their wire names through reflection.
  *
- * Validation reports use wire field names so they line up with the API's own reports and with the
- * request that would have been sent. Those names are already declared, once, by the serializer
- * attribute on each property — so they are read from there rather than restated, and a renamed
- * field cannot drift out of step with the rule that mentions it.
+ * Validation reports use wire field names, so they match the API's own reports and the request
+ * that would have been sent. The names are read from the serializer attribute on each property,
+ * so a renamed field stays in step with its rules.
  *
- * Reflection is done once per class and reused; a message is cheap to inspect after the first.
+ * Reflection runs once per class and is then reused.
  */
 class MessageFields
 {
@@ -47,11 +46,10 @@ class MessageFields
     ) {}
 
     /**
-     * The value of one property, whatever its visibility and wherever it is declared.
+     * Returns the value of one property, whatever its visibility and wherever it is declared.
      *
-     * The hierarchy is walked rather than asked, because a private property declared on a parent
-     * is invisible to the child's reflection — which silently skipped every inherited field until
-     * it was noticed.
+     * Walks up the class hierarchy, because a private property declared on a parent is not
+     * visible through the child's reflection.
      *
      * @param string $property
      *
@@ -70,10 +68,10 @@ class MessageFields
     }
 
     /**
-     * The wire field name a property is sent under.
+     * Returns the wire field name a property is sent under.
      *
-     * Falls back to the property name when nothing declares otherwise, which only happens for
-     * properties that never cross the wire.
+     * Falls back to the property name if no serializer attribute declares one. That only happens
+     * for properties that are never sent.
      *
      * @param string $property
      *
@@ -156,13 +154,12 @@ class MessageFields
     }
 
     /**
-     * Reflects a class, turning the one failure it has into an SDK exception.
+     * Reflects a class and turns a \ReflectionException into an SDK exception.
      *
-     * A missing class here is a programming error rather than a runtime condition, and letting
-     * \ReflectionException escape would put an exception outside the SDK's own hierarchy into the
-     * contract of every method that validates anything.
+     * A missing class here is a programming error. Wrapping the exception keeps every method that
+     * validates within the SDK's own exception hierarchy.
      *
-     * @param string $class a name that is expected to be a class, but need not be one
+     * @param string $class expected to be a class name, but not guaranteed
      *
      * @return \ReflectionClass<object>
      * @throws InvalidArgumentException when the class does not exist

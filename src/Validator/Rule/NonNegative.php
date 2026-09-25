@@ -13,9 +13,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * A number that may be zero but not below it.
  *
- * Distinct from {@see Positive} because zero carries meaning in several places: an insurance value of
- * zero means no insurance, and a cash-on-delivery amount of zero means the whole block is ignored.
- * Neither is an error.
+ * Unlike {@see Positive}, this allows zero, which has a meaning in some fields: an insurance value
+ * of zero means no insurance, and a cash-on-delivery amount of zero means no collection.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class NonNegative implements ValueValidatorInterface

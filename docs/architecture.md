@@ -4,29 +4,29 @@ Architecture
 The layout
 ----------
 
-The source is organised by role, not by feature:
+The source is organised by role:
 
 | Namespace | Holds |
 |-----------|-------|
-| `Api\Service` | One contract per service — what to type-hint |
-| `Api\Validation` | The three contracts the validation layer is built on |
+| `Api\Service` | One contract per service. Type-hint these |
+| `Api\Validation` | The 3 contracts the validation layer is built on |
 | `Api` | `ConfigInterface`, `ConfigProviderInterface`, `MessageInterface` |
-| `Service` | The sixteen services, and `AbstractService` |
+| `Service` | The 16 services, and `AbstractService` |
 | `Request` | Everything you send |
 | `Response` | Everything you get back |
-| `Builder` | `AbstractBuilder` and the twenty-two hand-written builders |
-| `Http` | The transport: client factory, request and response factories, the JSON envelope |
-| `Serializer` | Serializer wiring, two custom normalizers, one attribute |
+| `Builder` | `AbstractBuilder` and the 22 hand-written builders |
+| `Http` | The transport: client factory, request and response factories, JSON envelope |
+| `Serializer` | Serializer wiring, 2 custom normalizers and 1 attribute |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |
 | `Exception` | Everything the SDK throws |
 
-`Config`, `ConfigProvider` and `PolkurierWebservice` sit at the root, since they are the wiring
-rather than part of any layer.
+`Config`, `ConfigProvider` and `PolkurierWebservice` sit at the root. They wire the layers together
+and do not belong to any one of them.
 
-`Api` is contracts only, and only the ones where supplying your own implementation does something.
-The service interfaces double as the API reference. The three at its root are the cross-cutting
-ones belonging to no single area.
+`Api` holds only contracts, and only those where your own implementation can do something useful.
+The service interfaces also serve as the API reference. The 3 interfaces at the root of `Api` are
+shared across areas.
 
 The lifecycle of a call
 -----------------------
@@ -51,25 +51,24 @@ $client->orders()->createOrder($message)
               └─ h. type-check the payload             ← MalformedResponseException
 ```
 
-Seven collaborators, each behind an interface, each replaceable. Steps (a) through (h) are
-`AbstractService`, which every service extends and which is the only place a request is actually
-made.
+There are 7 collaborators, each behind an interface you can replace. Steps (a) to (h) happen in
+`AbstractService`. Every service extends it, and it is the only place a request is sent.
 
-### The five request helpers
+### The request helpers
 
-A service method's whole job is choosing a method, a response shape and a payload.
-`AbstractService` offers one protected helper per shape:
+A service method picks an API method, a response shape and a payload. `AbstractService` has one
+protected helper per shape:
 
 | Helper | Returns | For |
 |--------|---------|-----|
 | `requestObject()` | `T` | One object, guaranteed |
-| `requestNullableObject()` | `?T` | One object, where `[]` genuinely means absent |
-| `requestList()` | `list<T>` | A list; empty is a valid answer |
+| `requestNullableObject()` | `?T` | One object, where `[]` means absent |
+| `requestList()` | `list<T>` | A list. Empty is a valid answer |
 | `requestStringMap()` | `array<string, string>` | A map of plain strings |
-| `requestRawArray()` | `array` | The two endpoints with no stable shape |
+| `requestRawArray()` | `array` | The 2 endpoints with no stable shape |
 | `requestAcknowledgement()` | `bool` | Endpoints that only acknowledge |
 
-So a service method is usually one line:
+So a service method is usually a single statement:
 
 ```php
 public function createOrder(CreateOrderMessage $createOrderMessage): CreatedOrderMessage
@@ -82,46 +81,37 @@ public function createOrder(CreateOrderMessage $createOrderMessage): CreatedOrde
 }
 ```
 
-`requestNullableObject()` is used sparingly and deliberately: only where "nothing matched" is a
-legitimate answer rather than a failure — a pickup point lookup against an unknown id, a
-verification that has never been started. Everywhere else a missing object is a broken promise, not
-an absence, and should raise.
+`requestNullableObject()` is only used where "nothing matched" is a valid answer, e.g. looking up a
+pickup point by an unknown id, or a verification that was never started. Everywhere else a missing
+object is an error and throws.
 
-`requestAcknowledgement()` exists because an acknowledgement carries no payload worth mapping.
-Casting whatever is in `response` would risk reading an empty value as a failed call, so the
-envelope's success status is the signal: the result is `true` unless the payload explicitly says
-`false`.
+`requestAcknowledgement()` is for calls whose payload has nothing to map. Casting whatever is in
+`response` could read an empty value as a failure, so the envelope's success status is used
+instead. The result is `true` unless the payload explicitly says `false`.
 
 Which classes are final
 -----------------------
 
-One rule decides it.
+**Final:** `PolkurierWebservice`, and the JSON envelope: `RequestMessage`, `ErrorMessage` and
+`ResponseWrapper`. `OmitWhenEmpty` is final as well, being an attribute.
 
-> **Infrastructure is final. Business logic is not.**
+**Open:** everything else. That covers `Config` and `ConfigProvider`, the serializer wiring
+(`SerializerProvider`, `SerializerConfig` and the two normalizers), the three factories
+(`ClientFactory`, `RequestFactory`, `ResponseFactory`), every service, request and response class and
+builder, and the validation layer down to the individual rules. Subclass one to change a single
+step, or implement its interface (where it has one) to replace it outright. A broken change to the
+configuration, the serializer or a factory affects every call and tends to look like an API
+problem, so test such changes well.
 
-Break a piece of infrastructure and no call works at all, and the failure looks like the API
-misbehaving rather than like your own change. So those are closed, and each implements an interface
-instead — which is the sanctioned way to put something else in their place.
+Internals in the open classes are `protected`, so you can override them in a subclass.
 
-**Final:** `PolkurierWebservice`, `Config`, `ConfigProvider`, `ClientFactory`, `RequestFactory`,
-`ResponseFactory`, `RequestMessage`, `ErrorMessage`, `ResponseWrapper`, `SerializerProvider`,
-`SerializerConfig`, `OmitEmptyNormalizer`, `AbsentDateNormalizer`, `OmitWhenEmpty`.
-
-**Open:** every service, every request and response class, every builder, and the whole validation
-layer down to the individual rules. Getting one of those wrong costs you one call rather than all
-of them.
-
-Internals in the open classes are `protected` rather than `private`, so subclassing them is
-actually possible rather than nominally possible.
-
-Two exceptions worth knowing. `ResponseMessage` is not final because `ErrorMessage` extends it —
-nothing else should. `AbstractBuilder::__construct()` is final while the class is not, which is
-what makes `create()` safe to call on a subclass.
+`AbstractBuilder::__construct()` is final even though the class is not, so `create()` is safe to
+call on a subclass.
 
 Extension points
 ----------------
 
-Everything `PolkurierWebservice` uses is optional and constructor-injected:
+Every collaborator of `PolkurierWebservice` is optional and passed through the constructor:
 
 ```php
 new PolkurierWebservice(
@@ -137,12 +127,12 @@ new PolkurierWebservice(
 );
 ```
 
-### `ClientFactoryInterface` — your own HTTP client
+### `ClientFactoryInterface`: your own HTTP client
 
-The most commonly useful one. The default builds Guzzle with the configured base URI, timeout,
-`Content-Type: application/json`, and **redirects disabled** — the API is a single POST endpoint
-that never legitimately redirects, so a 3xx means something is misconfigured and following it would
-forward the credentials to wherever it points. Keep that behaviour in any replacement.
+This is the one you are most likely to need. The default builds a Guzzle client with the configured
+base URI, timeout, `Content-Type: application/json` and **redirects disabled**. The API is a single
+POST endpoint that never redirects, so a 3xx means something is misconfigured, and following it
+would send your credentials to wherever it points. Keep redirects off in your replacement.
 
 ```php
 use Polkurier\Webservice\Http\ClientFactoryInterface;
@@ -159,32 +149,31 @@ final readonly class MyClientFactory implements ClientFactoryInterface
 }
 ```
 
-Any PSR-18 client works. Use this to add retries, circuit breaking, request tracing, a shared
-connection pool, or your framework's own client so that its instrumentation applies.
+Any PSR-18 client works. Use it to add retries, circuit breaking, request tracing or a shared
+connection pool, or to use your framework's client so its instrumentation applies.
 
-### `SerializerProviderInterface` — mapping
+### `SerializerProviderInterface`: mapping
 
-See [Serialization — extending](serialization.md#extending-the-serializer).
+See [Serialization: extending the serializer](serialization.md#extending-the-serializer).
 
-### `ValidatorInterface` — payload rules
+### `ValidatorInterface`: payload rules
 
-See [Validation — changing the rules](validation.md#changing-the-rules).
+See [Validation: changing the rules](validation.md#changing-the-rules).
 
-### `ConfigProviderInterface` — late or per-tenant configuration
+### `ConfigProviderInterface`: late or per-tenant configuration
 
-See [Configuration — per-tenant credentials](configuration.md#per-tenant-credentials).
+See [Configuration: per-tenant credentials](configuration.md#per-tenant-credentials).
 
-### `RequestFactoryInterface` / `ResponseFactoryInterface` — the envelope
+### `RequestFactoryInterface` and `ResponseFactoryInterface`: the envelope
 
-Rarely needed; they exist so the envelope is not hard-coded into the services. A reason to replace
-`RequestFactory`: adding a header to every request. A reason to replace `ResponseFactory`:
-tolerating a status value the SDK does not recognise.
+You will rarely need these. They keep the envelope format out of the services. You might replace
+`RequestFactory` to add a header to every request, or `ResponseFactory` to accept a status value
+the SDK does not recognise.
 
-### `services:` — substituting a service
+### Substituting a service
 
-`PolkurierWebservice` builds its own services by calling the constructor they happen to share. That
-is true of *them*, not of services in general — so it does not insist on it. Construct yours however
-it needs to be constructed and hand it over:
+`PolkurierWebservice` builds its own services through the constructor they share. Your service does
+not need that constructor. Build it however you like and pass it in with `services:`:
 
 ```php
 new PolkurierWebservice(
@@ -193,11 +182,11 @@ new PolkurierWebservice(
 );
 ```
 
-The key is the class the instance stands in for; anything not given is built on first use, as
-before. The value is not type-checked against the key, so you can pass anything satisfying the
-interface the accessor returns.
+The key is the class your instance replaces. Services you do not pass are built on first use as
+usual. The value is not type-checked against the key, so anything that implements the interface
+the accessor returns will do.
 
-This is how you add behaviour around one service without reimplementing the client:
+Use this to add behaviour around one service without reimplementing the client:
 
 ```php
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
@@ -221,7 +210,7 @@ final readonly class CachingOrders implements OrdersServiceInterface
 }
 ```
 
-Or subclass the concrete service, which is shorter when you only want to change one method:
+Or subclass the concrete service. That is shorter when you only want to change one method:
 
 ```php
 final class RetryingOrders extends OrdersService
@@ -233,14 +222,14 @@ final class RetryingOrders extends OrdersService
 }
 ```
 
-Both are supported. The interface route is better when you are composing; the subclass route is
-better when you are adjusting.
+Both are supported. Implementing the interface suits wrapping and composing. Subclassing suits
+small changes.
 
 Not using the facade at all
 ---------------------------
 
-`PolkurierWebservice` is a convenience. Nothing depends on it, and a container-driven application
-usually should not use it — it hides the wiring the container is there to do.
+`PolkurierWebservice` is a convenience and nothing depends on it. In an application with a DI
+container you usually should not use it, because it does the wiring the container should be doing.
 
 Wire a service directly:
 
@@ -268,35 +257,35 @@ $orders = new OrdersService(
 $orders->getOrders($filter);
 ```
 
-Every service takes those same six arguments, in that order. Note the default for `validator` on
-`AbstractService` is `NullValidator` — a service constructed by hand validates nothing unless you
-pass a validator, which is the opposite of the facade's default. Pass
-`DefaultValidatorRegistryFactory::create()` unless you mean not to.
+Every service takes the same 6 arguments in the same order. Note: the default `validator` on
+`AbstractService` is `NullValidator`. A service you build by hand validates nothing unless you pass
+a validator, which is the opposite of the facade's default. Pass
+`DefaultValidatorRegistryFactory::create()` unless you want validation off.
 
-[Integrations](integrations/README.md) shows this wiring in each major framework's own idiom.
+[Integrations](integrations/README.md) shows this wiring for each major framework.
 
 Why there are no interfaces on models
 -------------------------------------
 
-Request and response classes have none, deliberately. Their wire names, formats and dates live in
-serializer attributes on the classes themselves, so a substitute implementation would not
-serialize. An interface there advertises a swap that cannot work.
+Request and response classes have no interfaces. Their wire names, formats and dates are defined
+by serializer attributes on the classes, so another implementation would not serialize. An
+interface would suggest a swap that cannot work.
 
-The same reasoning applies in reverse to `Api`: the interfaces that exist are exactly the ones
-where an alternative implementation does something useful.
+For the same reason, `Api` only has interfaces where another implementation can do something
+useful.
 
 Thread-safety and reuse
 -----------------------
 
-The SDK holds no connection state and performs no I/O until a service method is called.
+The SDK holds no connection state and does no I/O until you call a service method.
 
-- `PolkurierWebservice` caches its services after first use, so asking for one repeatedly is cheap.
+- `PolkurierWebservice` caches each service after first use, so repeated calls to an accessor
+  return the same instance.
 - `AbstractService` and `ClientFactory` each resolve configuration once, in their constructors.
 - `SerializerProvider` holds no per-call state and can be shared across any number of clients.
 - The reflection caches in `AttributeValidator`, `MessageFields`, `OmitEmptyNormalizer` and
-  `AbstractBuilder` are `static` and keyed by class name, so they warm once per process.
+  `AbstractBuilder` are `static` and keyed by class name, so they fill once per process.
 
-`AbstractService::$lastHttpResponse` is the one piece of mutable per-call state, and it exists only
-so the exception factories can report what arrived. In a shared-nothing PHP process this is
-unremarkable; under a long-running worker, do not share one service instance across concurrent
-coroutines.
+`AbstractService::$lastHttpResponse` is the only mutable per-call state. The exception factories use
+it to report what came back. In a normal shared-nothing PHP process this does not matter. In a
+long-running worker, do not share one service instance across concurrent coroutines.

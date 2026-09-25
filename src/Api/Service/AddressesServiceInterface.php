@@ -21,13 +21,11 @@ use Polkurier\Webservice\Response\Address;
 /**
  * The account's address book.
  *
- * Saved addresses are a convenience for the panel and for integrations that reuse the same senders
- * — an order does not have to reference one. Placing an order takes a full address inline, so
- * nothing here is a prerequisite for shipping.
+ * Saved addresses save you re-entering the same senders and recipients. An order doesn't have to
+ * reference one: it takes the full address inline, so you can ship without using this service.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -35,22 +33,20 @@ use Polkurier\Webservice\Response\Address;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface AddressesServiceInterface
 {
     /**
      * Lists saved addresses.
      *
-     * Senders and recipients are stored separately and fetched by separate queries; an unfiltered call
-     * concatenates them into one list, senders first. An address saved under both roles is therefore
-     * returned twice, as two entries with different ids.
+     * Without a `type` filter you get one list with senders first, then recipients. An address saved
+     * under both roles appears twice, with two different ids.
      *
-     * Sender listings include addresses shared with the account by others, not only its own.
+     * Sender listings also include addresses other accounts have shared with this one.
      *
-     * Note that the house and flat numbers come back split out of the street, even though they are sent
-     * joined onto it.
+     * Note: house and flat numbers come back as separate fields.
      *
      * Endpoint: `get_addresses`
      *
@@ -109,22 +105,17 @@ interface AddressesServiceInterface
     /**
      * Creates an address, or updates the one the message's id names.
      *
-     * The role is mandatory and validated. An unknown country ISO code is rejected; an unknown province
-     * code is not reported, and comes back as none — so a typo there is lost rather than flagged, and
-     * is worth checking against the response.
+     * The role is required. An unknown country ISO code is rejected. For the province, use a region
+     * id from getSupportedCountries().
      *
-     * The house and flat numbers do not round-trip as separate fields, so what comes back may be
-     * segmented differently from what went in. Compare the response rather than assuming it echoes the
-     * request.
+     * House and flat numbers don't round-trip as separate fields, so the response may split them
+     * differently from your request. Read the stored values from the response.
      *
-     * A pickup point is only kept for recipient addresses and dropped for senders.
-     *
-     * Marking the address as default is applied after the save, as a second step, so an address can be
-     * created successfully and still not become the default if that step fails.
+     * Set a pickup point on recipient addresses only.
      *
      * Endpoint: `save_address`
      *
-     * Request; omit `id` to create:
+     * Request (omit `id` to create):
      * ```json
      * {
      *     "apimethod": "save_address",
@@ -158,7 +149,7 @@ interface AddressesServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [type]. Musi zawierać się w zbiorze [SENDER, RECIPIENT]"}
      * ```
-     * Also what a missing `type` gives.
+     * A missing `type` gives the same error.
      * ```json
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [country]"}
@@ -167,7 +158,7 @@ interface AddressesServiceInterface
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"housenumber": ["…"]}}
      * ```
-     * Field-level failures; read `validation_errors` for all of them at once.
+     * Field-level failures. `validation_errors` lists all of them.
      *
      * @param SaveMessage $saveMessage
      *
@@ -184,11 +175,10 @@ interface AddressesServiceInterface
     /**
      * Deletes one address-book entry.
      *
-     * The role is part of the identity, not a filter: an address saved under both roles is only removed
-     * from the role named here, and the other copy survives with its own id.
+     * The role is part of the address's identity. If an address is saved under both roles, only the
+     * entry for the role you name is removed. The other entry keeps its own id.
      *
-     * Deletion is immediate and permanent. Orders already placed against the address are unaffected,
-     * since they hold their own copy of it.
+     * Deletion is immediate and permanent. Orders already placed with the address are not affected.
      *
      * Endpoint: `delete_address`
      *
@@ -201,8 +191,7 @@ interface AddressesServiceInterface
      * }
      * ```
      *
-     * Response — note the payload is an empty array rather than `true`; the SDK reports success as a
-     * boolean regardless:
+     * Response (the payload is an empty array, but the SDK still returns `true`):
      * ```json
      * {"status": "success", "response": []}
      * ```
@@ -216,8 +205,8 @@ interface AddressesServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Wskazany adres nie istnieje"}
      * ```
-     * Raised for an unknown id and for one that exists under the other role only. Unlike the bank
-     * account and pack template deletes, this one does report a miss.
+     * Thrown for an unknown id, and for an id that exists only under the other role. Unlike the bank
+     * account and pack template deletes, this one reports a miss.
      *
      * @param DeleteMessage $deleteMessage
      *

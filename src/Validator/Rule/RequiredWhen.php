@@ -14,11 +14,11 @@ use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
- * A field that becomes mandatory because another field says so.
+ * A field that is required when another field has a given value.
  *
- * The commonest cross-field shape: a bank account required because the money is going to one, a
- * two-factor code required because a number is being made the default. Declared on the class,
- * since it is about the relationship rather than about either field alone.
+ * The most common cross-field rule, e.g. a bank account that is required because the money goes to
+ * one, or a two-factor code that is required when a number becomes the default. Goes on the class,
+ * since it involves 2 fields.
  *
  * ```php
  * #[RequiredWhen(field: 'twoFactorCode', property: 'default', equals: true)]
@@ -29,7 +29,7 @@ class RequiredWhen implements MessageRuleInterface
 {
     /**
      * @param string $field the property that becomes mandatory
-     * @param string $property the property that decides
+     * @param string $property the property to check
      * @param mixed $equals the value of $property that makes $field mandatory
      * @param string|null $because appended to the report, to say why it was needed
      */

@@ -19,6 +19,11 @@ require __DIR__ . '/bootstrap.php';
 try {
     $verification = polkurier()->accountVerification()->getInfo();
 
+    if ($verification === null) {
+        echo "No verification has been started.\n";
+        exit(0);
+    }
+
     \printf("%s: %s\n", $verification->getVerificationId(), $verification->getStatus());
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

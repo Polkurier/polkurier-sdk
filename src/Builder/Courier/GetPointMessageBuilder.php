@@ -15,8 +15,7 @@ use Polkurier\Webservice\Request\Courier\GetPointMessage;
 /**
  * Assembles a pickup point search.
  *
- * The carrier list is the only thing required; everything else narrows. A search screen typically
- * applies its filters one at a time, which is the shape this exists for.
+ * Only the carrier list is required. The other fields are optional filters.
  */
 class GetPointMessageBuilder extends AbstractBuilder
 {

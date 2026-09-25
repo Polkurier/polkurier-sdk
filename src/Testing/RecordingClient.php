@@ -14,11 +14,11 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * An HTTP client that answers from a canned body and records what it was asked.
+ * An HTTP client that returns a fixed body and records the requests it receives.
  *
- * Lets the service layer be exercised end to end — request building, serialization, response
- * parsing — without a network. It doubles as its own factory so it can be handed straight to a
- * service constructor.
+ * Use it to test the service layer end to end (request building, serialization, response parsing)
+ * without a network. It is also its own factory, so you can pass it straight to a service
+ * constructor.
  */
 final class RecordingClient implements ClientInterface, ClientFactoryInterface
 {
@@ -28,8 +28,8 @@ final class RecordingClient implements ClientInterface, ClientFactoryInterface
     private array $requests = [];
 
     /**
-     * @param string $body the JSON envelope to answer with
-     * @param int $status the HTTP status to answer with; the real API uses 200 for everything,
+     * @param string $body the JSON envelope to return
+     * @param int $status the HTTP status to return. The real API uses 200 for everything,
      *                    including errors
      */
     public function __construct(

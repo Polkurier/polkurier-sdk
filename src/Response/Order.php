@@ -72,7 +72,7 @@ class Order implements MessageInterface
      * @param BaseAddress $sender
      * @param BaseAddress $recipient
      * @param iterable<Waybill> $waybills
-     * @param iterable<Item> $items absent from the order list; get_orders does not carry them
+     * @param iterable<Item> $items absent from the order list unless it was asked for them
      * @param iterable<Pack> $packs absent from the order list unless it was asked for them
      * @param float $priceNet
      * @param float $priceGross
@@ -576,7 +576,7 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param iterable<Item> $items absent from the order list; get_orders does not carry them
+     * @param iterable<Item> $items absent from the order list unless it was asked for them
      *
      * @return void
      */
@@ -712,8 +712,8 @@ class Order implements MessageInterface
     }
 
     /**
-      * Human-readable names of the additional services bought for this order.
-      *
+     * Human-readable names of the additional services bought for this order.
+     *
      * @return string[]|null
      */
     public function getCourierService(): ?array
@@ -732,8 +732,7 @@ class Order implements MessageInterface
     }
 
     /**
-     * When the courier is due to collect, or null when no collection has been arranged — which
-     * the API reports as an empty block rather than by leaving the field out.
+     * When the courier is due to collect, or null when no collection has been arranged.
      *
      * @return Pickup|null
      */
@@ -789,8 +788,8 @@ class Order implements MessageInterface
     }
 
     /**
-      * Carrier-specific extra fields, keyed by field name. Send-only: get_orders does not echo them.
-      *
+     * Carrier-specific extra fields, keyed by field name. Not returned by getOrders().
+     *
      * @return array<string, scalar>|null
      */
     public function getAdditionalFields(): ?array
@@ -809,8 +808,8 @@ class Order implements MessageInterface
     }
 
     /**
-     * Display name of the carrier, e.g. "UPS Standard". Distinct from getCourier(), which returns
-     * the API's carrier code.
+     * Display name of the carrier, e.g. "UPS Standard". getCourier() returns the API's carrier code
+     * instead.
      *
      * @return string|null
      */
@@ -850,8 +849,8 @@ class Order implements MessageInterface
     }
 
     /**
-     * Waybill numbers as a flat list. The same numbers are available as objects through
-     * getWaybills(), which additionally says which one is the primary waybill.
+     * Waybill numbers as a flat list. getWaybills() returns the same numbers as objects and also
+     * marks the primary waybill.
      *
      * @return string[]|null
      */

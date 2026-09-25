@@ -13,12 +13,12 @@ namespace Polkurier\Webservice\Enum\Courier;
 enum CourierMessageTypeEnum: string
 {
     /**
-     * Something is wrong right now — delays, outages, suspended collections.
+     * Something is wrong right now, e.g. delays, outages or suspended collections.
      */
     case Alert = 'ALERT';
 
     /**
-     * General information with no operational urgency.
+     * General information, not urgent.
      */
     case Message = 'MESSAGE';
 }

@@ -12,27 +12,23 @@ use Polkurier\Webservice\Api\MessageInterface;
 /**
  * Builds the validator the SDK checks payloads with by default.
  *
- * One entry, because every message declares its own rules. The attribute engine reads what each one
- * carries: the field rules, the class-level ones, and any validator it names with
- * {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy} for the logic that does not fit an
- * attribute — an address needing an email because it is the sender, an amount needing to be
- * present because the payment is a top-up.
+ * The registry has a single entry, the {@see AttributeValidator}, because each message declares
+ * its own rules. It runs the field rules, the class-level rules, and any validator the message
+ * names with {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy}. Those validators hold the
+ * logic that doesn't fit an attribute, e.g. an address that needs an email because it is the
+ * sender, or an amount that is required because the payment is a top-up.
  *
- * What is covered, and what is not, follows one rule: a payload the API would have accepted must
- * never be rejected here. Client-side validation stricter than the service blocks legitimate calls
- * and is worse than none.
+ * The rules should never reject a payload the API would accept. They follow what the API is
+ * documented to require, plus a few checks for payloads that are well-formed but can't do what
+ * the caller meant: a date range that runs backwards and so matches nothing, a page size above
+ * the documented maximum, a malformed order number in a batch.
  *
- * So the rules mirror what the service is documented to require, plus a few checks for payloads
- * that are well-formed but cannot produce the result the caller meant — a date range that runs
- * backwards and therefore matches nothing, a page size above the documented maximum, a malformed
- * order number in a batch.
+ * Per-carrier and per-account rules are not checked here. That covers which services a carrier
+ * offers, whether it needs a collection date, an account's PIN locks and the required PIN length.
+ * You can read all of that from `available_carriers`, `get_account_info` and `get_system_info`,
+ * and the API enforces it.
  *
- * Not covered, because the client cannot know it: anything per-carrier or per-account. Which
- * services a carrier sells, whether it needs a collection date, what an account's PIN locks are,
- * how long a PIN must be. All of that is readable from `available_carriers`, `get_account_info`
- * and `get_system_info`, and the service is what enforces it.
- *
- * Add to the registry, or pass your own validator to the client, to enforce rules of your own.
+ * To add your own rules, register them in the registry or pass your own validator to the client.
  */
 class DefaultValidatorRegistryFactory
 {

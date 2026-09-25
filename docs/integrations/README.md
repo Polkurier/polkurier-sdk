@@ -1,7 +1,7 @@
 Integrations
 ============
 
-How to wire this SDK into the frameworks and platforms people actually run shops on.
+How to set up the SDK in the frameworks and shop platforms it is most often used with.
 
 | Frameworks | Platforms |
 |------------|-----------|
@@ -11,59 +11,59 @@ How to wire this SDK into the frameworks and platforms people actually run shops
 | [Slim, PHP-DI and any PSR-11 container](psr-11.md) | [Shopware 6](shopware.md) |
 | [Plain PHP, no container](psr-11.md#no-container-at-all) | [Sylius](sylius.md) |
 
-These are patterns, not packages. There is no `polkurier/polkurier-sdk-bundle` and no Magento
-module in this repository — what follows is the wiring, in each host's own idiom, that you drop
-into your own project or module.
+None of these pages ships a package. This repository has no `polkurier/polkurier-sdk-bundle` and
+no Magento module. Each page shows the wiring in the host's own style, for you to copy into your
+project or module.
 
 ---
 
 What every integration has to do
 --------------------------------
 
-The same five things, in every host. The pages differ in syntax, not in substance.
+Every host needs the same five steps. Only the syntax changes from page to page.
 
 ### 1. Make the configuration a service
 
-`Config` needs credentials, and credentials belong in the host's own configuration mechanism —
-environment variables, a settings table, an admin screen — never in code. Every page below starts
-here, because it is the part that differs most.
+`Config` needs credentials. Keep them in the host's configuration mechanism (environment
+variables, a settings table, an admin screen) and never in code. Each page starts with this step
+because it varies the most between hosts.
 
-Three depths, from [Configuration](../configuration.md):
+[Configuration](../configuration.md) describes three levels:
 
-- a `Config` built from values read at boot;
-- your own `ConfigInterface`, when the values come from somewhere that is not a constructor call;
-- your own `ConfigProviderInterface`, when they are not known until the call is made — per shop,
-  per tenant, per sales channel.
+- a `Config` built from values read at boot
+- your own `ConfigInterface`, when the values don't come from a constructor call
+- your own `ConfigProviderInterface`, when the values are only known at call time (per shop, per
+  tenant or per sales channel)
 
 Multi-store platforms (Magento, Shopware, PrestaShop multistore, Sylius channels) usually need the
-third.
+third one.
 
 ### 2. Share one serializer
 
-`SerializerProvider` is the expensive object. Register it as a singleton and give it a PSR-6 cache
-pool — every framework below has one already.
+`SerializerProvider` is expensive to build. Register it as a singleton and give it a PSR-6 cache
+pool. All the frameworks below already have one.
 
 ```php
 new SerializerProvider(new SerializerConfig(metadataCache: $pool));
 ```
 
-In a long-running worker this matters a great deal; in classic PHP-FPM it still saves the
-reflection pass on every class you touch.
+This matters most in long-running workers. Under classic PHP-FPM it still saves a reflection pass
+on each class the request uses.
 
-### 3. Register the services you actually use
+### 3. Register the services you use
 
-Two approaches, and both are legitimate:
+You can do this in two ways.
 
-**Register the facade.** One service, sixteen accessors, lazy construction. Least wiring; your
-code depends on `PolkurierWebservice`.
+Register the facade. That's one service with 16 accessors, built lazily. It needs the least wiring,
+and your code depends on `PolkurierWebservice`.
 
 ```php
 $client->orders()->createOrder($message);
 ```
 
-**Register the services individually.** Your code depends on
-`Api\Service\OrdersServiceInterface` and nothing else — which is the better shape for testing, and
-what the autowiring in Symfony, Laravel and Sylius makes almost free.
+Or register the services one by one. Your code then depends only on
+`Api\Service\OrdersServiceInterface`, which is easier to test. With autowiring in Symfony, Laravel
+and Sylius this takes very little extra setup.
 
 ```php
 final readonly class ShipmentDispatcher
@@ -72,73 +72,71 @@ final readonly class ShipmentDispatcher
 }
 ```
 
-Most pages below show both, because which is right depends on how much of the API you touch. A
-module that only places orders should inject one interface; an admin panel that touches nine
-services is better off with the facade.
+Most pages show both. Pick based on how much of the API you use: a module that only places orders
+should inject one interface, while an admin panel that uses 9 services is simpler with the facade.
 
 ### 4. Give it the host's logger
 
-Every framework here has a PSR-3 logger. Pass it, and mind the warning: request bodies contain the
-API token. See [Configuration — logging](../configuration.md#logging).
+All the frameworks here provide a PSR-3 logger, so pass it in. Be careful: request bodies contain
+the API token. See [Configuration: logging](../configuration.md#logging).
 
 ```php
 new Config(/* … */, methodsToLog: [ApiMethodEnum::CreateOrder]);
 ```
 
-Leaving `methodsToLog` empty logs errors only, which is the right default for production.
+With `methodsToLog` left empty, only errors are logged. Use that in production.
 
 ### 5. Decide about the HTTP client
 
-The SDK builds its own Guzzle client by default, which is fine. Replace
-`ClientFactoryInterface` when the host has a client you would rather use — for its instrumentation,
-its proxy configuration, or its retry policy. Magento and Shopware both have reasons to; a plain
-Symfony application usually does not.
+By default the SDK builds its own Guzzle client, and that works fine. Replace
+`ClientFactoryInterface` if the host already has a client you want to use, e.g. for its
+instrumentation, proxy settings or retry policy. On Magento and Shopware there are good reasons
+to. A plain Symfony application usually doesn't need to.
 
 ---
 
 Choosing where the SDK runs
 ---------------------------
 
-Applies to every platform below, and gets more wrong than the wiring does.
+This applies to every platform below. People get it wrong more often than the wiring.
 
-**Never call the API from a page render.** Placing an order, fetching a label and booking a
-collection are all seconds-scale calls against a third party. Put them in the platform's queue —
-Symfony Messenger, Laravel queues, Magento's consumers, Shopware's message bus, WordPress's Action
-Scheduler — and have the storefront show a pending state.
+**Don't call the API while rendering a page.** Placing an order, fetching a label and booking a
+collection are calls to a third party that can take seconds. Put them on the platform's queue
+(Symfony Messenger, Laravel queues, Magento consumers, the Shopware message bus, WordPress Action
+Scheduler) and show a pending state in the storefront.
 
-**Cache the stable reads.** Pickup point listings, supported countries, contact topics and system
-limits change on the scale of hours. [Recipes — caching](../recipes.md#caching-what-does-not-change)
-lists them with typical lifetimes. Fetching 30,000 InPost lockers on a checkout page is the single
-most common way to make an integration feel broken.
+**Cache the reads that rarely change.** Pickup point lists, supported countries, contact topics and
+system limits change over hours. [Recipes: caching](../recipes.md#caching-what-does-not-change)
+lists them with typical lifetimes. Loading 30,000 InPost lockers on the checkout page is the most
+common reason an integration feels broken.
 
-**Reconcile rather than retry.** There is no idempotency key on `create_order`. A timed-out create
-must be reconciled against `get_orders` before it is sent again — see
-[Errors — retrying safely](../errors.md#retrying-safely). In a queue-based integration this is a
-job that checks before it acts, not a `retry: 3` in the worker configuration.
+**Reconcile before you retry.** `create_order` has no idempotency key. If a create times out, check
+`get_orders` before sending it again (see
+[Errors: retrying safely](../errors.md#retrying-safely)). In a queue-based integration, write the
+job so it checks first and then acts. Setting `retry: 3` in the worker configuration is not enough.
 
-**Store the order number.** `CreatedOrderMessage::getOrderNumber()` is your handle on everything
-afterwards: labels, protocols, status, cancellation. Persist it against your own order the moment
+**Store the order number.** `CreatedOrderMessage::getOrderNumber()` is what you use for everything
+afterwards: labels, protocols, status and cancellation. Save it against your own order as soon as
 it comes back, in the same transaction if you can.
 
 ---
 
-A shape that works everywhere
------------------------------
+A structure that works everywhere
+---------------------------------
 
-Regardless of host, the integration that ages well has three layers:
+Whatever the host, integrations that stay maintainable have three layers:
 
 ```
-your domain          Shipment, Parcel, Recipient — your own types
+your domain          Shipment, Parcel, Recipient (your own types)
       │
 your adapter         maps your types to CreateOrderMessage, and Order back to yours
       │
 Api\Service\*        the SDK's interfaces
 ```
 
-The adapter is the whole integration. It is a plain class with no framework in it, it can be unit
-tested against a mocked interface, and it is the only thing that has to change when either side
-moves.
+Most of the integration lives in the adapter. It is a plain class with no framework code, you can
+unit test it against a mocked interface, and it is the only part that changes when either side
+does.
 
-What does *not* age well is calling `$client->orders()->createOrder()` from a controller, a
-plugin hook or an observer with the mapping inline. Every page below puts the mapping in its own
-class for that reason.
+Avoid calling `$client->orders()->createOrder()` from a controller, plugin hook or observer with
+the mapping written inline. Every page below keeps the mapping in its own class.

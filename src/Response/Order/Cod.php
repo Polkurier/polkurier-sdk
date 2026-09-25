@@ -17,8 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Cash on delivery: how much to collect from the recipient and where it goes.
  *
- * An amount of zero means no collection, so an order with a COD block present but zeroed ships
- * without one rather than failing.
+ * An amount of zero means no collection.
  */
 class Cod implements MessageInterface
 {
@@ -34,10 +33,8 @@ class Cod implements MessageInterface
     /**-@#*/
 
     /**
-     * Cash on delivery as it is reported on an order. Requesting it is
-     * {@see \Polkurier\Webservice\Request\Order\CodMessage} instead, which is why
-     * nothing here is optional: a COD block that is reported at all is reported whole, including the
-     * fields the caller never sent.
+     * Cash on delivery as reported on an order. To request it, use
+     * {@see \Polkurier\Webservice\Request\Order\CodMessage}. No field here is nullable.
      *
      * @param float $amount amount collected from the recipient, in PLN
      * @param string $bankAccount the account the money is returned to

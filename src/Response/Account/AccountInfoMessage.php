@@ -14,18 +14,17 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The account's profile, balances and outstanding obligations.
  *
- * The single most useful call for deciding what an integration may do next. Three groups of fields
- * are worth treating as preconditions rather than display data:
+ * Use it to decide what an integration may do next. Treat these fields as preconditions:
  *
- * - The acceptance flags. A customer who has not accepted current terms, the price list or the
- *   carriers' terms will have orders refused; `is_new_regulations` specifically means revised
- *   terms are waiting, which is what drives the accept flow.
- * - The verification flags. `require_account_verification` and `require_agreement_verification`
- *   gate shipping on some accounts entirely.
- * - The PIN locks, which say which calls need the security PIN attached.
+ * - Acceptance flags. Orders are refused for a customer who has not accepted the current terms, the
+ *   price list or the carriers' terms. `is_new_regulations` means revised terms are waiting to be
+ *   accepted.
+ * - Verification flags. On some accounts, `require_account_verification` and
+ *   `require_agreement_verification` block shipping entirely.
+ * - PIN locks: which calls need the security PIN attached.
  *
- * Balances are in PLN. The money box has three of them because funds pass through states: the
- * total held, the part currently withdrawable, and the part already committed to a payout.
+ * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw now,
+ * and the part already committed to a payout.
  */
 readonly class AccountInfoMessage implements MessageInterface
 {
@@ -70,8 +69,8 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param int $id the numeric account id, the same value used as the API login
      * @param string $displayName
      * @param string $email
-     * @param string $defaultCourier carrier code preselected on the order form; empty if none
-     * @param bool $active an inactive account cannot authenticate at all
+     * @param string $defaultCourier carrier code preselected on the order form, empty if none
+     * @param bool $active an inactive account cannot authenticate
      * @param bool $regulationsAccepted
      * @param bool $newRegulations revised terms are waiting to be accepted
      * @param bool $pricesListAccepted
@@ -82,8 +81,8 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param bool $verified
      * @param bool $deleteRequested account deletion has been requested
      * @param bool $hasPhoneNumber
-     * @param bool $requireAccountVerification shipping is gated until the account is verified
-     * @param bool $requireAgreementVerification shipping is gated until an agreement is signed
+     * @param bool $requireAccountVerification shipping is blocked until the account is verified
+     * @param bool $requireAgreementVerification shipping is blocked until an agreement is signed
      * @param string $paymentType how the account settles, e.g. INVOICE or PREPAID
      * @param float $moneyBoxBalance total held in the money box, in PLN
      * @param float $moneyBoxPayoutAvailableBalance the part that can be withdrawn now
@@ -91,12 +90,12 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param float $prepaidBalance
      * @param float $invoiceBalance amount currently owed on invoices
      * @param string|null $invoicePaymentAccountNumber account to pay invoices into
-     * @param float|null $invoiceLimit credit limit; null when the account has none
-     * @param float|null $invoiceLimitUsed how much of that limit is consumed
+     * @param float|null $invoiceLimit credit limit, or null when the account has none
+     * @param float|null $invoiceLimitUsed how much of that limit is used
      * @param float $invoiceRebate standing discount, as a percentage
      * @param float $bonusesSavings cumulative saving from bonuses, in PLN
-     * @param array<string, mixed> $defaultSenderPoint default drop-off point per carrier code;
-     *        values are null for carriers with none set
+     * @param array<string, mixed> $defaultSenderPoint default drop-off point per carrier code, null
+     *        for carriers with none set
      * @param PinLocksMessage|null $pinLocks
      * @param AccountSettingsMessage|null $settings
      * @param array<string, mixed>|null $externalApplicationSettings present only when the request
@@ -275,8 +274,8 @@ readonly class AccountInfoMessage implements MessageInterface
         private float $bonusesSavings = 0.0,
 
         /**
-         * Left as a raw map: the keys are carrier codes and the values are null for every carrier
-         * without a default, which a typed map cannot express.
+         * A raw map: the keys are carrier codes, and carriers without a default map to null. A typed
+         * map cannot express that.
          *
          * @var array<string, mixed>
          */

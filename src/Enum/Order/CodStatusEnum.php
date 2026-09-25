@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * Where a cash-on-delivery amount has got to, from collection through to settlement.
+ * The status of a cash-on-delivery amount, from collection to settlement.
  */
 enum CodStatusEnum: string
 {
@@ -18,7 +18,7 @@ enum CodStatusEnum: string
     case Waiting = 'WAITING';
 
     /**
-     * Collected; on its way from the carrier to Polkurier.
+     * Collected and on its way from the carrier to Polkurier.
      */
     case InTransit = 'IN_TRANSIT';
 
@@ -43,7 +43,7 @@ enum CodStatusEnum: string
     case Paid = 'PAID';
 
     /**
-     * Closed; no further movement expected.
+     * Closed. No further changes expected.
      */
     case Settled = 'SETTLED';
 }

@@ -20,25 +20,25 @@ use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * Builds the single request shape the API accepts.
+ * Builds requests in the format the API accepts.
  *
- * Every call is a POST to the root path carrying `apimethod`, `authorization` and `data`; the
- * method is a field of the body rather than a path, so there is only ever one endpoint.
+ * Every call is a POST to the root path with `apimethod`, `authorization` and `data` in the body.
+ * The method is a body field, so there is only one endpoint.
  */
-final readonly class RequestFactory implements RequestFactoryInterface
+readonly class RequestFactory implements RequestFactoryInterface
 {
-    private const string HTTP_METHOD = 'POST';
-    private const string ENDPOINT = '/';
+    protected const string HTTP_METHOD = 'POST';
+    protected const string ENDPOINT = '/';
 
     /**
      * @var SerializerInterface
      */
-    private SerializerInterface $serializer;
+    protected SerializerInterface $serializer;
 
     /**
      * @var ConfigInterface
      */
-    private ConfigInterface $config;
+    protected ConfigInterface $config;
 
     /**
      * @param SerializerProviderInterface $serializerProvider
@@ -55,9 +55,9 @@ final readonly class RequestFactory implements RequestFactoryInterface
     /**
      * @param ApiMethodInterface $apiMethod
      * @param MessageInterface|null $payload
-     * @param AuthorizationMessage|bool|null $authorization credentials to send: null uses
-     *        the configured ones, false sends none (for methods such as `heartbeat` that must work
-     *        unauthenticated), and an explicit message overrides the configuration
+     * @param AuthorizationMessage|bool|null $authorization credentials to send. null uses the
+     *        configured ones, false sends none (for methods such as `heartbeat` that work without
+     *        authentication), and a message overrides the configuration
      *
      * @return RequestInterface
      * @throws InvalidArgumentException when the payload cannot be serialized
@@ -72,8 +72,8 @@ final readonly class RequestFactory implements RequestFactoryInterface
         try {
             $body = $this->serializer->serialize($requestMessage, Config::SERIALIZATION_FORMAT);
         } catch (SerializerException $e) {
-            // A payload the serializer cannot write is a fault in what was handed to it, and the
-            // caller should see one of the SDK's own exceptions rather than the serializer's.
+            // A payload the serializer can't write is a caller error. Rethrow it as an SDK
+            // exception.
             throw new InvalidArgumentException(
                 \sprintf('The payload for %s could not be serialized: %s', $apiMethod->value, $e->getMessage()),
                 0,
@@ -82,24 +82,23 @@ final readonly class RequestFactory implements RequestFactoryInterface
         }
 
         return new Request(
-            method: self::HTTP_METHOD,
-            uri: self::ENDPOINT,
+            method: static::HTTP_METHOD,
+            uri: static::ENDPOINT,
             body: $body,
         );
     }
 
     /**
-     * Turns the three-way authorization argument into what RequestMessage accepts.
+     * Converts the authorization argument into what RequestMessage accepts.
      *
-     * `false` is not the same as `null`: null means "use the configured credentials", false means
-     * "deliberately send none". Passing false straight through raised a TypeError, which broke
-     * every unauthenticated method.
+     * `null` means "use the configured credentials" and `false` means "send none". RequestMessage
+     * takes no bool, so `false` becomes null here.
      *
      * @param AuthorizationMessage|bool|null $authorization
      *
      * @return AuthorizationMessage|null
      */
-    private function resolveAuthorization(
+    protected function resolveAuthorization(
         AuthorizationMessage|bool|null $authorization
     ): ?AuthorizationMessage {
         return match (true) {

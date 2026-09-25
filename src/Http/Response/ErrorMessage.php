@@ -77,11 +77,10 @@ final readonly class ErrorMessage extends ResponseMessage
     }
 
     /**
-     * Field-level validation messages, keyed by the input field they concern.
+     * Field-level validation messages, keyed by input field.
      *
-     * Present only on VALIDATION_ERROR responses, and the single most useful part of one: the main
-     * message names just the first failing field, while this carries every failure at once. The
-     * keys are the API's own field names, so they map onto what was sent rather than onto SDK
+     * Only present on VALIDATION_ERROR responses. The main message names only the first failing
+     * field, while this holds every failure. The keys are the API's field names as sent, not SDK
      * property names.
      *
      * @return array<string, string[]>|null

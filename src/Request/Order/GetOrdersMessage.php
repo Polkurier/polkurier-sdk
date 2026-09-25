@@ -17,8 +17,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * Filters and paging for the order list.
  *
- * Every field is optional; omitting all of them lists the first page unfiltered. The parcel, item
- * and file flags each make the response substantially larger, so leave them off unless needed.
+ * Every field is optional. With none set, you get the first page, unfiltered. The parcel, item and
+ * file flags each make the response much larger, so leave them off unless you need them.
  */
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
 #[Validate\InOrder(earlier: 'codMin', later: 'codMax')]
@@ -42,9 +42,7 @@ readonly class GetOrdersMessage implements MessageInterface
     public const string FIELD_PACKS = 'packs';
     public const string FIELD_ITEMS = 'items';
     public const string FIELD_FILES = 'files';
-    /**
-     * -@#
-     */
+    /**-@#*/
 
     public const int MAX_PAGE_SIZE = 100;
 
@@ -241,8 +239,8 @@ readonly class GetOrdersMessage implements MessageInterface
     }
 
     /**
-      * Capped at 100, which is also what applies when it is not given.
-      *
+     * At most 100. Defaults to 100.
+     *
      * @return int|null
      */
     public function getPageSize(): ?int

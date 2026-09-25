@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * What an order line item is charging for.
+ * What an order line item charges for.
  *
- * Items are only returned when a listing asks for them.
+ * Items are only returned if the listing request asks for them.
  */
 enum OrderItemTypeEnum: string
 {

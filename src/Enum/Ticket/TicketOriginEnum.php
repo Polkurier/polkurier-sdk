@@ -10,9 +10,8 @@ namespace Polkurier\Webservice\Enum\Ticket;
 /**
  * Where a support ticket or message came from.
  *
- * Only the channels an API client can legitimately claim are listed. It defaults to
- * {@see self::Api}, and a mobile app should identify itself with the matching platform so the
- * support team can see how the customer reached them.
+ * Defaults to {@see self::Api}. A mobile app should send its platform so the support team can
+ * see how the customer contacted them.
  */
 enum TicketOriginEnum: string
 {

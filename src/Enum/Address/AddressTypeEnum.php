@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Address;
 
 /**
- * Which role an address-book entry is filed under.
+ * The role an address book entry is saved under.
  *
- * An entry stored for both roles is returned once per role. Note that `get_addresses` accepts an
- * empty type to mean "either", which has no representation here — omit the filter instead.
+ * An entry saved for both roles is returned once per role. `get_addresses` also accepts an empty
+ * type meaning "either". There is no case for that here, so leave the filter out instead.
  */
 enum AddressTypeEnum: string
 {

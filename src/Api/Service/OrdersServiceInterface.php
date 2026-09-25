@@ -33,12 +33,12 @@ use Polkurier\Webservice\Response\Order\OrderStatusMessage;
 /**
  * Placing, pricing, tracking and cancelling orders.
  *
- * Every method returns a {@see ResponseWrapper}; the parsed payload is reached through
- * `getParsedResponse()->getResponse()`. The concrete payload type is named on each method.
+ * Every method returns a {@see ResponseWrapper}. Get the parsed payload with
+ * `getParsedResponse()->getResponse()`. Each method names its payload type.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
+ * status. `status_code` and `error_code` are both optional. An error may have one, both or
+ * neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -46,28 +46,24 @@ use Polkurier\Webservice\Response\Order\OrderStatusMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface OrdersServiceInterface
 {
     /**
      * Prices an order without placing it.
      *
-     * Takes the same payload as createOrder(), which does not make it a rehearsal for one: a quote is a
-     * price, and a payload that prices cleanly can still be rejected on creation — most often for a
-     * pickup the carrier will not accept or an address it cannot route. Do not use this to find out
-     * whether an order is placeable.
-     *
-     * A missing sender is tolerated here and defaulted to Poland, and a missing description is filled
-     * in, neither of which happens when placing an order.
+     * Takes the same payload as createOrder(). A payload that gets a price can still be rejected by
+     * createOrder(), usually because the carrier will not accept the pickup or cannot route the
+     * address. Don't use this to check whether an order can be placed.
      *
      * Endpoint: `order_valuation_v2`
      *
      * Request: the same `data` object as createOrder(), below.
      *
-     * Response: carrier quotes, whose shape varies per carrier, which is why the SDK leaves the payload
-     * as decoded JSON rather than modelling it.
+     * Response: quotes keyed by carrier. Their shape differs between carriers, so the SDK returns the
+     * decoded JSON as is.
      * ```json
      * {
      *     "status": "success",
@@ -79,7 +75,7 @@ interface OrdersServiceInterface
      *
      * @param CreateOrderMessage $createOrderMessage
      *
-     * @return array<array-key, mixed> quotes keyed by carrier; the shape varies per carrier
+     * @return array<array-key, mixed> quotes keyed by carrier, shape differs per carrier
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -92,29 +88,26 @@ interface OrdersServiceInterface
     /**
      * Places an order.
      *
-     * Not idempotent and not reversible by repeating: each accepted call books a separate shipment.
-     * Treat a timeout as unknown rather than failed, and reconcile with getOrders() before retrying.
+     * Not idempotent. Each accepted call books a separate shipment. If the call times out, treat the
+     * result as unknown (not as failed) and check with getOrders() before retrying.
      *
-     * Not every fault in a payload is reported at once, so treat a rejection as "at least this is
-     * wrong" rather than as the complete list — which is part of why the SDK validates locally first.
+     * The API does not always report every fault in a payload at once. A rejection lists at least
+     * one problem, but maybe not all of them.
      *
-     * Three things are not reported as errors at all, and are worth getting right rather than
-     * discovering later: an over-long description does not survive intact, a parcel type outside
-     * {@see PackTypeEnum} is not honoured as sent, and a cash-on-delivery amount of zero means the
-     * order ships with no collection.
+     * Keep the description short. A cash-on-delivery amount of zero means the order ships with no
+     * collection.
      *
-     * Several requirements depend on the carrier rather than the payload — whether a pickup date is
-     * needed, whether a time window is needed, whether a pickup point is required on either address.
-     * `available_carriers` reports them, and {@see CreateOrderMessage} documents the conditional service
-     * rules.
+     * Some requirements depend on the carrier: whether a pickup date or a time window is needed, and
+     * whether either address needs a pickup point. `available_carriers` reports them.
+     * {@see CreateOrderMessage} documents the rules for services that depend on other fields.
      *
-     * The response is a short receipt, not the order: read it back with getOrders() for the full record.
-     * The waybill list can be empty at this point if the carrier has not yet issued one.
+     * The response is a short receipt. Use getOrders() to read the full order. The waybill list can
+     * still be empty if the carrier has not issued one yet.
      *
      * Endpoint: `create_order`
      *
-     * Request, showing every accepted `data` key; only courier, shipmenttype, packs, sender and
-     * recipient are required:
+     * Request with every accepted `data` key. Only courier, shipmenttype, packs, sender and recipient
+     * are required:
      * ```json
      * {
      *     "courier": "UPS",
@@ -178,9 +171,7 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
-     * Common errors. Validation stops at the first problem, so a payload with several faults reports
-     * them one call at a time:
+     * Common errors:
      * ```json
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [sender]"}
@@ -193,49 +184,43 @@ interface OrdersServiceInterface
      * {"status": "error", "status_code": 10, "error_code": "NO_INPUT_OBJECT",
      *  "response": "Brak parametru: [pickupdate]"}
      * ```
-     * Raised when the chosen carrier requires a collection date and none was given — which carriers
-     * those are is reported by `available_carriers`.
+     * The carrier needs a collection date and none was given. `available_carriers` tells you which
+     * carriers need one.
      * ```json
      * {"status": "error", "status_code": 23, "error_code": "ADDITIONAL_SERVICE_UNAVAILABLE",
      *  "response": "…"}
      * ```
-     * Raised for a service the carrier does not offer, including WEEK_COLLECTION on anything other
-     * than an InPost locker.
+     * The carrier does not offer the service. This includes WEEK_COLLECTION on anything other than
+     * an InPost locker.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR", "response": "…"}
      * ```
-     * Field-level validation, most often on an address or a parcel dimension.
+     * A field failed validation, usually an address or a parcel dimension.
+     *
      * @param CreateOrderMessage $createOrderMessage
      *
-     * @return CreatedOrderMessage payload:
+     * @return CreatedOrderMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\CreatedOrderMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\CreatedOrderMessage}
      */
     public function createOrder(CreateOrderMessage $createOrderMessage): CreatedOrderMessage;
 
     /**
      * Lists orders, one page at a time.
      *
-     * Always a paging envelope, even when filtering to a single order number. Page size is capped at
-     * 100 and pages are 1-based; the size actually applied comes back in the envelope, so read it from
-     * there rather than assuming it matches what was asked for. The page size key is `pagesize` —
-     * `limit` is not a parameter of this method.
+     * The response is always a paged envelope, even when you filter by a single order number. Pages
+     * start at 1. The page size must be 1–100, and the SDK checks this before sending. The page size
+     * key is `pagesize`. This method has no `limit` parameter.
      *
-     * The parcel, item and file flags are off by default and each adds to the work of the call, so a
-     * page asking for all three is markedly slower than a plain listing.
+     * The parcel, item and file flags are off by default. Each one makes the call slower.
      *
-     * Filters combine with AND. The date range applies to the order's creation date, and the free-text
+     * Filters combine with AND. The date range applies to the order's creation date. The free-text
      * search matches order numbers, waybills and party names.
-     *
-     * One caveat worth coding against: if the server fails part-way through normalising a page it still
-     * answers `success`, with the orders it managed alongside a total that counts all of them. A short
-     * page that is not the last page should therefore be treated as suspect rather than as the end of
-     * the data.
      *
      * Endpoint: `get_orders`
      *
@@ -315,36 +300,32 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
-     * Filtering to a number that does not exist is not an error — it is an empty page:
+     * Filtering by an order number that does not exist returns an empty page:
      * ```json
      * {"status": "success",
      *  "response": {"totalrows": 0, "totalpages": 0, "currentpage": 1, "pagesize": 100, "result": []}}
      * ```
-     * @param GetOrdersMessage|null $getOrdersMessage null lists the first page unfiltered
      *
-     * @return OrderListMessage payload:
+     * @param GetOrdersMessage|null $getOrdersMessage null lists the first page with no filters
+     *
+     * @return OrderListMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\OrderListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\OrderListMessage}
      */
     public function getOrders(?GetOrdersMessage $getOrdersMessage = null): OrderListMessage;
 
     /**
      * Cancels an order.
      *
-     * The order number is validated for format, then for ownership — an order belonging to another
-     * account is reported as missing rather than forbidden, so the two cases are indistinguishable from
-     * the client.
-     *
-     * Whether cancellation is possible at all depends on how far the shipment has progressed and on the
-     * carrier's own rules; the API raises an error carrying the carrier's reason when it is refused. The
-     * `cancellation` flag in a successful response is therefore always true, and the absence of an
-     * exception is the real signal.
+     * Whether an order can be cancelled depends on how far the shipment has got and on the carrier's
+     * rules. If cancellation is refused, the API returns an error with the carrier's reason. The
+     * `cancellation` flag in a successful response is always true, so rely on the lack of an
+     * exception instead.
      *
      * Endpoint: `cancel_order`
      *
@@ -365,8 +346,7 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
-     * Common errors, none of which carry a code:
+     * Common errors. None of them has a code:
      * ```json
      * {"status": "error", "response": "Parametr [orderno] jest pusty"}
      * ```
@@ -376,38 +356,38 @@ interface OrdersServiceInterface
      * ```json
      * {"status": "error", "response": "Brak zamówienia 99999-1"}
      * ```
-     * The last covers both a non-existent order and one belonging to another account — the two are
-     * deliberately indistinguishable. A cancellation the carrier refuses returns its reason in the
-     * same shape.
+     * The last one is returned both for an order that doesn't exist and for one that belongs to
+     * another account. When the carrier refuses a cancellation, its reason comes back in the same
+     * shape.
+     *
      * @param OrderIdMessage $orderIdMessage
      *
-     * @return CancellationMessage payload:
+     * @return CancellationMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\CancellationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\CancellationMessage}
      */
     public function cancelOrder(OrderIdMessage $orderIdMessage): CancellationMessage;
 
     /**
      * Fetches shipping labels as one document.
      *
-     * Several order numbers can be requested together and come back merged into a single file, which is
-     * what makes this worth batching for a day's dispatch.
+     * You can request several order numbers at once. Their labels come back merged into one file,
+     * which is handy for a day's dispatch.
      *
-     * The filtering is lenient in a way worth knowing: order numbers that are malformed, unknown, owned
-     * by another account or cancelled are dropped without comment, and the call only fails when nothing
-     * is left. A response can therefore contain fewer labels than were asked for, with no way to tell
-     * from the response which were dropped — compare against what you sent if that matters.
+     * The SDK checks the format of each order number before sending. The file holds labels only for
+     * active orders on your account, so it can hold fewer labels than you asked for. The response
+     * doesn't say which are missing. Compare against what you sent if that matters.
      *
-     * Labels come back as base64-encoded PDF unless a printer language is requested, in which case the
-     * API emits that instead. An unrecognised format is ignored rather than rejected, yielding a PDF.
+     * Labels come back as a base64-encoded PDF unless you ask for a printer language, in which case
+     * you get that instead.
      *
-     * Labels are not always available: carriers stop serving them for old shipments, which surfaces as a
-     * generic UNKNOWN_ERROR rather than a specific one.
+     * Carriers stop serving labels for old shipments. When that happens you get a generic
+     * UNKNOWN_ERROR.
      *
      * Endpoint: `get_label`
      *
@@ -431,7 +411,6 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
      * Common errors:
      * ```json
      * {"status": "error", "response": "Parametr [orderno] jest pusty"}
@@ -439,36 +418,36 @@ interface OrdersServiceInterface
      * ```json
      * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
      * ```
-     * Raised only when every number supplied is malformed; a mix of good and bad ones succeeds with
-     * the bad ones dropped.
+     * Returned only when every number is malformed.
      * ```json
      * {"status": "error", "response": "Brak etykiet do pobrania"}
      * ```
-     * Raised when the numbers parse but none of them resolves to a usable label — unknown, owned by
-     * another account, or cancelled.
+     * The numbers are well-formed, but none of them gives a usable label (unknown, owned by another
+     * account, or cancelled).
      * ```json
      * {"status": "error", "status_code": 1, "error_code": "UNKNOWN_ERROR",
      *  "response": "Nieznany błąd. Proszę spróbować ponownie"}
      * ```
-     * Typically what an old shipment gives when the carrier no longer serves its label.
+     * Usually an old shipment whose label the carrier no longer serves.
+     *
      * @param GetDocumentMessage $getDocumentMessage
      *
-     * @return DocumentMessage payload:
+     * @return DocumentMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
      */
     public function getLabel(GetDocumentMessage $getDocumentMessage): DocumentMessage;
 
     /**
-     * Fetches the handover protocol — the list the courier signs on collection.
+     * Fetches the handover protocol (the list the courier signs on collection).
      *
-     * Batches the same way as getLabel() and applies the same silent filtering of unusable order
-     * numbers. Always a base64-encoded PDF; the printer-language option is ignored here.
+     * Takes several order numbers, with the same rules as getLabel(). Always returns a base64-encoded
+     * PDF, so don't set a file format here.
      *
      * Endpoint: `get_protocol`
      *
@@ -491,34 +470,28 @@ interface OrdersServiceInterface
      *
      * @param GetDocumentMessage $getDocumentMessage
      *
-     * @return DocumentMessage payload:
+     * @return DocumentMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
      */
     public function getProtocol(GetDocumentMessage $getDocumentMessage): DocumentMessage;
 
     /**
-     * Current delivery state of one order, optionally with its scan history.
+     * Current delivery status of one order, optionally with its scan history.
      *
-     * The status reflects the primary waybill once one exists and the order record before that, so a
-     * freshly placed order reports its order state rather than a carrier state.
+     * A cancelled order gets an error instead of a status. Use getOrders() to read the state of a
+     * cancelled order.
      *
-     * A cancelled order is refused with an error rather than reported as cancelled — use getOrders() if
-     * you need to read a cancelled order's state.
+     * The scan history is off by default. Asking for it makes the call slower.
      *
-     * The scan history is off by default, and asking for it makes the API query the carrier's tracking
-     * service rather than read stored data, which is both slower and able to fail independently. It
-     * comes back empty for a shipment the carrier has not scanned yet, and also when the tracking lookup
-     * itself failed — the two are indistinguishable.
-     *
-     * Mind the date formats: three appear here, none of them the ones get_orders uses. The status
-     * timestamp has no seconds, the delivery date has no time at all, and the scan timestamps inside the
-     * history are full datetimes.
+     * Watch the date formats. There are 3 here, and get_orders uses none of them. The status
+     * timestamp has no seconds, the delivery date has no time, and the scan timestamps in the history
+     * are full datetimes.
      *
      * Endpoint: `get_status`
      *
@@ -555,8 +528,7 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
-     * Common errors, none of which carry a code:
+     * Common errors. None of them has a code:
      * ```json
      * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
      * ```
@@ -566,26 +538,26 @@ interface OrdersServiceInterface
      * ```json
      * {"status": "error", "response": "Zamówienie anulowane"}
      * ```
-     * The last is what a cancelled order gets instead of a status.
+     * The last one is what you get for a cancelled order.
+     *
      * @param GetStatusMessage $getStatusMessage
      *
-     * @return OrderStatusMessage payload:
+     * @return OrderStatusMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\OrderStatusMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\OrderStatusMessage}
      */
     public function getStatus(GetStatusMessage $getStatusMessage): OrderStatusMessage;
 
     /**
-     * Whether this account may book one collection covering several shipments.
+     * Checks whether this account can book one collection for several shipments.
      *
-     * Availability is decided from the account and from whatever order context is sent with the request,
-     * so this is a precondition check rather than a fixed account capability — the answer can differ
-     * between two sets of orders.
+     * The answer depends on the account and on any order details sent with the request, so it can
+     * differ between two sets of orders. Check it before each booking.
      *
      * Endpoint: `is_multi_pickup_available`
      *
@@ -606,33 +578,30 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * @return MultiPickupAvailabilityMessage payload:
+     * @return MultiPickupAvailabilityMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage}
      */
     public function isMultiPickupAvailable(): MultiPickupAvailabilityMessage;
 
     /**
      * Books one courier collection covering several shipments.
      *
-     * Unlike a per-order pickup, the date and both ends of the time window are all mandatory and are
-     * rejected outright if missing or unparseable — the carrier is not consulted about what it needs.
-     * The date must be YYYY-MM-DD and the times HH:MM.
+     * Unlike a per-order pickup, the date and both ends of the time window are always required,
+     * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM.
      *
-     * Waybill numbers are de-duplicated and blanks dropped before anything happens; an effectively empty
-     * list is an error.
+     * Send each waybill number once. The list must not be empty or hold blank entries, and the SDK
+     * checks this before sending.
      *
-     * Partial success is the normal outcome, not an edge case. Each waybill is processed separately and
-     * can be refused on its own terms — unknown order, ineligible for collective pickup, pickup already
-     * booked — while the others succeed. Both lists must be inspected: a response with an empty success
-     * list is still reported as an API success.
+     * Expect partial success. Each waybill can be refused on its own (e.g. unknown order, not
+     * eligible for a collective pickup, pickup already booked) while the others go through. Check
+     * both lists. The API reports success even when the success list is empty.
      *
-     * Note the asymmetry in the result: successes are listed by order number, failures keyed by the
-     * waybill number that was sent.
+     * Successes are listed by order number, but failures are keyed by the waybill number you sent.
      *
      * Endpoint: `create_multi_order_pickup`
      *
@@ -663,7 +632,6 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     *
      * Common errors:
      * ```json
      * {"status": "error", "status_code": 11, "error_code": "PARAMS_NOT_SET",
@@ -677,17 +645,17 @@ interface OrdersServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [orders]"}
      * ```
-     * The last is also what a list of only blanks gives, since they are stripped before the check.
+     *
      * @param MultiPickupRequestMessage $multiPickupRequestMessage
      *
-     * @return MultiPickupResultMessage payload:
+     * @return MultiPickupResultMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupResultMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupResultMessage}
      */
     public function createMultiOrderPickup(
         MultiPickupRequestMessage $multiPickupRequestMessage
@@ -697,12 +665,12 @@ interface OrdersServiceInterface
     /**
      * Downloads a document attached to an order.
      *
-     * Orders can carry documents beyond the label and protocol — customs paperwork, proof of
-     * delivery, correspondence. The filenames come from the order listing, which reports them when
-     * asked for files.
+     * Besides the label and protocol, an order can have other documents attached, such as customs
+     * paperwork, proof of delivery or correspondence. Get the filenames from getOrders() with the
+     * file flag turned on.
      *
-     * The content hash is stable across downloads, so a client that caches can use it to skip
-     * re-fetching.
+     * The content hash stays the same across downloads, so you can use it to skip fetching a file you
+     * have already cached.
      *
      * Endpoint: `get_order_file`
      *
@@ -734,19 +702,19 @@ interface OrdersServiceInterface
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
      * ```
-     * Raised for an unknown order, an unknown filename on it, and an order belonging to another
-     * account alike.
+     * Returned for an unknown order, an unknown filename, and an order that belongs to another
+     * account.
      *
      * @param GetOrderFileMessage $getOrderFileMessage
      *
-     * @return OrderFileMessage payload:
+     * @return OrderFileMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Order\OrderFileMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Order\OrderFileMessage}
      */
     public function getOrderFile(GetOrderFileMessage $getOrderFileMessage): OrderFileMessage;
 

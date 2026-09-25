@@ -14,9 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One topic a support ticket can be raised under.
  *
- * Topics form a shallow tree through the parent id. Only a topic whose `has_form` is set can be used
- * to raise a ticket; the rest exist to group and to point at help articles, which are attached so a
- * client can offer self-service before a ticket is created.
+ * Topics form a shallow tree through the parent id. You can raise a ticket only under a topic with
+ * `has_form` set. The others group topics and link to help articles, which you can show before the
+ * customer opens a ticket.
  */
 readonly class ContactTopicMessage implements MessageInterface
 {
@@ -34,7 +34,7 @@ readonly class ContactTopicMessage implements MessageInterface
 
     /**
      * @param string $id the id to quote when raising a ticket
-     * @param ?string $parentId parent topic; null at the top level
+     * @param ?string $parentId parent topic, null at the top level
      * @param string $title display title, in Polish
      * @param string $content explanatory text, in Polish
      * @param bool $hasForm whether a ticket can be raised under this topic

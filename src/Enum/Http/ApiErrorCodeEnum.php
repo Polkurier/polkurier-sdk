@@ -10,12 +10,11 @@ namespace Polkurier\Webservice\Enum\Http;
 /**
  * The `error_code` string an API error carries.
  *
- * Case names follow SDK conventions; the backing values are the literal strings the API emits and
- * must match them exactly, including its own spellings — TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD
- * are correct as written. Each case has a numeric counterpart of the same name in
- * {@see ApiStatusCodeEnum}.
+ * Case names follow SDK conventions. The values are the exact strings the API returns, including
+ * its spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. Each case has a
+ * numeric counterpart with the same name in {@see ApiStatusCodeEnum}.
  *
- * Both fields are optional in an error payload, so never assume either is present.
+ * Both fields are optional in an error payload, so don't assume either is present.
  */
 enum ApiErrorCodeEnum: string
 {

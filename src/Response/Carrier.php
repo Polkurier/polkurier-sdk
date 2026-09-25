@@ -15,8 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A carrier this account may ship with.
  *
- * The service code is the identifier to quote when pricing or placing an order. The additional
- * data, populated only when the listing asked for it, describes what the carrier will accept.
+ * Quote the service code when pricing or placing an order. The additional data describes what the
+ * carrier accepts. It is filled in only when the listing asked for it.
  */
 readonly class Carrier implements MessageInterface
 {

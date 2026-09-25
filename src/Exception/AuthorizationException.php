@@ -13,12 +13,12 @@ use Polkurier\Webservice\Enum\Http\ApiStatusCodeEnum;
 /**
  * The API rejected the credentials.
  *
- * Raised for a missing, malformed, unknown or inactive token, and for a token used with an
- * authorization method the account may not use. Retrying will not help; the credentials have to
- * change.
+ * Thrown for a missing, malformed, unknown or inactive token, and for a token used with an
+ * authorization method the account isn't allowed to use. Retrying won't help. The credentials
+ * have to change.
  *
- * Classified from whichever of `status_code` and `error_code` the response carried — either can be
- * absent, so neither can be relied on alone.
+ * Detected from `status_code` or `error_code`, whichever the response has. Either one can be
+ * missing.
  *
  * @api
  */

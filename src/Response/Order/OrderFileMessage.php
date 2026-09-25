@@ -14,8 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A document attached to an order.
  *
- * The file is base64-encoded; use {@see self::getDecodedFile()} for the raw bytes. The hash
- * identifies the content and is stable across downloads, so it can be used to skip re-fetching.
+ * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes. The hash
+ * identifies the content and stays the same across downloads, so you can use it to skip
+ * re-fetching.
  */
 readonly class OrderFileMessage implements MessageInterface
 {

@@ -11,15 +11,14 @@ use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\ConfigInterface;
 
 /**
- * Hands the same {@see ConfigInterface} to every collaborator that needs it.
+ * Returns the same {@see ConfigInterface} to every part of the SDK that asks for it.
  *
- * The services, the HTTP client factory and the request factory each resolve configuration through
- * a provider rather than receiving a Config directly. That indirection exists so a host application
- * can supply configuration lazily — reading it from a container, a database row or a tenant-scoped
- * context at the moment it is first needed, rather than at wiring time. This implementation is the
- * trivial case: configuration that is already known.
+ * The services, the HTTP client factory and the request factory get their configuration from a
+ * provider. With your own provider you can load configuration lazily, e.g. from a container, a
+ * database row or a per-tenant context, when it is first needed. This class covers the simple
+ * case where the configuration is already known.
  */
-final readonly class ConfigProvider implements ConfigProviderInterface
+readonly class ConfigProvider implements ConfigProviderInterface
 {
     /**
      * @param ConfigInterface $config
@@ -28,7 +27,7 @@ final readonly class ConfigProvider implements ConfigProviderInterface
         /**
          * @var ConfigInterface
          */
-        private ConfigInterface $config,
+        protected ConfigInterface $config,
     ) {}
 
     /**

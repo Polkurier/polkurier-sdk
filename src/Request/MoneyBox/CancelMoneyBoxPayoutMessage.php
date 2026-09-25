@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names the payout to cancel.
+ * Identifies the payout to cancel.
  */
 readonly class CancelMoneyBoxPayoutMessage implements MessageInterface
 {

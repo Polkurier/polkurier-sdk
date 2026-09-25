@@ -10,9 +10,9 @@ namespace Polkurier\Webservice\Exception;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Raised when the transport succeeded but the body is not a Polkurier API envelope — a proxy error
- * page, a redirect body, a truncated response. Carries the HTTP response so the caller can inspect
- * the status line and headers.
+ * Thrown when the request went through but the body is not a Polkurier API envelope, e.g. a proxy
+ * error page, a redirect body or a truncated response. The HTTP response is attached so you can
+ * inspect the status line and headers.
  *
  * @api
  */
@@ -21,7 +21,7 @@ class MalformedResponseException extends Exception
     /**
      * @param string $message
      * @param ResponseInterface $response
-     * @param \Throwable|null $previous the underlying failure, where there was one
+     * @param \Throwable|null $previous the underlying failure, if any
      */
     public function __construct(
         string $message,
@@ -80,10 +80,10 @@ class MalformedResponseException extends Exception
     }
 
     /**
-     * The envelope parsed, but the payload inside it was not the shape the endpoint promises.
+     * The envelope parsed, but the payload inside it doesn't have the shape the endpoint promises.
      *
-     * Raised rather than returned so that a typed accessor can keep its type: a method declaring
-     * it answers with an order should not hand back null because the API sent something else.
+     * Thrown so typed methods keep their return type. A method that returns an order won't
+     * return null because the API sent something else.
      *
      * @param ResponseInterface $response
      * @param string $apiMethod
@@ -124,10 +124,10 @@ class MalformedResponseException extends Exception
     }
 
     /**
-     * The envelope parsed, but the payload could not be mapped onto the type the endpoint promises.
+     * The envelope parsed, but the payload could not be mapped to the type the endpoint promises.
      *
-     * Raised in place of the serializer's own exception so that everything leaving the SDK is one
-     * of its own, and so the response that could not be mapped comes with it.
+     * Wraps the serializer's exception, so callers only see SDK exceptions and get the response
+     * that failed to map.
      *
      * @param ResponseInterface $response
      * @param string $expected

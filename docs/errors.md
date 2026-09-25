@@ -1,16 +1,15 @@
 Errors
 ======
 
-The first thing to know
------------------------
+HTTP status is always 200
+-------------------------
 
-**The API answers HTTP 200 for everything.** A bad token is a 200. A rejected payload is a 200. A
-nonexistent order is a 200. Never branch on the transport status; the SDK does not, and nothing
-above it should.
+**The API answers HTTP 200 for everything.** A bad token, a rejected payload and a nonexistent
+order all come back as 200. Don't branch on the transport status. The SDK doesn't, and your code
+shouldn't either.
 
-The real outcome is the envelope's `status` field. The SDK reads it, and turns the failure cases
-into exceptions rather than into return values — because a method that promises an `Order` cannot
-also hand back an error and stay honest about its type.
+The actual outcome is in the envelope's `status` field. The SDK reads it and throws an exception
+for each failure case. A method that returns an `Order` either returns one or throws.
 
 The hierarchy
 -------------
@@ -25,19 +24,19 @@ Polkurier\Webservice\Exception\Exception            (extends \Exception)
     └── AuthorizationException
 ```
 
-Catch `Exception` to handle any SDK failure in one place; catch a subclass to distinguish.
+Catch `Exception` to handle any SDK failure in one place, or catch a subclass to tell them apart.
 
 | Exception | Raised when | Was anything sent? | Retry? |
 |-----------|-------------|--------------------|--------|
 | `ValidationException` | A payload was rejected before sending | No | Not without changing it |
 | `InvalidArgumentException` | A message was constructed with values the SDK rejects | No | No |
-| `ConnectionException` | The request never completed | **Unknown** | Maybe — see below |
+| `ConnectionException` | The request never completed | **Unknown** | Maybe, see below |
 | `MalformedResponseException` | The reply was not an API envelope, or not the promised shape | Yes | Rarely helps |
 | `AuthorizationException` | Credentials missing, wrong, or inactive | Yes | No |
 | `WebserviceException` | Any other error the API reported | Yes | Depends on the error |
 
-Order your catches accordingly — `AuthorizationException` before `WebserviceException`,
-`ValidationException` before `InvalidArgumentException`.
+Put the subclasses first in your catch blocks: `AuthorizationException` before
+`WebserviceException`, and `ValidationException` before `InvalidArgumentException`.
 
 ```php
 use Polkurier\Webservice\Exception\AuthorizationException;
@@ -51,13 +50,13 @@ try {
 } catch (ValidationException $e) {
     // Nothing was sent. Fix the payload.
 } catch (AuthorizationException $e) {
-    // Credentials. Re-authenticate; retrying as-is will not help.
+    // Bad credentials. Retrying as-is won't help.
 } catch (WebserviceException $e) {
-    // The API refused, and said why.
+    // The API refused the request and said why.
 } catch (ConnectionException $e) {
-    // Never got an answer. The order may or may not exist.
+    // No answer. The order may or may not exist.
 } catch (MalformedResponseException $e) {
-    // Something between you and the API is not the API.
+    // The reply didn't come from the API, or wasn't the expected shape.
 }
 ```
 
@@ -74,33 +73,32 @@ $e->getFieldErrors('sender.postcode');  // string[], empty when that field passe
 $e->getMessage();                       // every failure, flattened into one sentence
 ```
 
-Field names are the API's own, and the shape is the same one the API uses for its own rejections,
-so a single presentation path serves both. Full treatment in [Validation](validation.md).
+Field names are the API's own, and the array has the same shape the API uses for its own
+validation errors, so you can display both the same way. See [Validation](validation.md) for
+details.
 
 `InvalidArgumentException`
 --------------------------
 
-A message was constructed with values the SDK rejects outright — a list holding the wrong type, a
-`ValidatedBy` naming something that is not a validator, a builder asked to `build()` without a
-required field. These are programming errors, not runtime conditions: they indicate the code is
-wrong, not the data.
+A message was constructed with values the SDK rejects outright. Examples: a list holding the wrong
+type, a `ValidatedBy` that names something that isn't a validator, or a builder's `build()` called
+without a required field. These are programming errors. They mean the code is wrong, not the data.
 
 `ConnectionException`
 ---------------------
 
-The request never completed: DNS failure, connection refused, TLS failure, timeout. Wraps the
-underlying PSR-18 `ClientExceptionInterface` as `$e->getPrevious()`, so the specific cause is still
-available.
+The request never completed because of a DNS failure, refused connection, TLS failure or timeout.
+The underlying PSR-18 `ClientExceptionInterface` is available through `$e->getPrevious()`.
 
-> **You do not know whether the request was processed.** A timeout thirty seconds into
-> `create_order` may mean the order was never created, or that it was created and the answer was
-> lost. See [retrying safely](#retrying-safely).
+> **You don't know whether the request was processed.** A timeout 30 seconds into `create_order`
+> may mean the order was never created, or that it was created and the response was lost. See
+> [retrying safely](#retrying-safely).
 
 `MalformedResponseException`
 ----------------------------
 
-The transport succeeded but the body was not a Polkurier envelope, or not the shape the endpoint
-promises. Four distinct causes, each with its own message:
+The transport succeeded, but the body wasn't a Polkurier envelope or didn't have the shape the
+endpoint returns. There are four causes, each with its own message:
 
 | Cause | Message reads |
 |-------|---------------|
@@ -109,47 +107,47 @@ promises. Four distinct causes, each with its own message:
 | Unrecognised status | `Unknown Polkurier API response status: "…"` |
 | Payload was the wrong shape | `create_order answered with array where …\CreatedOrderMessage was expected.` |
 
-The first two usually mean something between you and the API answered instead of it: a proxy error
-page, a captive portal, a WAF. The raw body is quoted, truncated to 512 characters so an HTML error
-page does not land whole in your logs.
+The first two usually mean something else answered in place of the API, such as a proxy error page,
+a captive portal or a WAF. The message quotes the raw body, truncated to 512 characters so a full
+HTML error page doesn't end up in your logs.
 
-The fourth means the API answered, in its own envelope, with a payload that is not what the method
-promised. That is a real incompatibility — raised rather than returned so that a typed accessor
-keeps its type.
+The fourth means the API replied in its normal envelope, but the payload doesn't match what the
+method returns. This is a real incompatibility. The SDK throws so that typed methods never return
+the wrong type.
 
 ```php
-$e->getResponse();   // Psr\Http\Message\ResponseInterface — status line, headers, body
+$e->getResponse();   // Psr\Http\Message\ResponseInterface: status line, headers, body
 ```
 
 `WebserviceException`
 ---------------------
 
-The API processed the request and refused it. Carries everything about the exchange:
+The API processed the request and refused it. The exception gives you the full exchange:
 
 ```php
-$e->getErrorMessage();   // ErrorMessage — the parsed error
+$e->getErrorMessage();   // ErrorMessage: the parsed error
 $e->getRequest();        // Psr\Http\Message\RequestInterface  (body contains the token)
 $e->getResponse();       // Psr\Http\Message\ResponseInterface
 ```
 
-`ErrorMessage` is the envelope's error form:
+`ErrorMessage` is the error form of the envelope:
 
 ```php
 $error = $e->getErrorMessage();
 
-$error->getResponse();          // string — the human-readable message
+$error->getResponse();          // string: the human-readable message
 $error->getStatusCode();        // ?int
 $error->getErrorCode();         // ?string
 $error->getValidationErrors();  // ?array<string, string[]>
 ```
 
-> **Both codes are nullable, and you must treat them that way.** Either can be absent from an
-> error response, so `$error->getStatusCode()` dereferenced unconditionally will fatal. Check for
-> null, or compare with `?->`.
+> **Both codes are nullable, so treat them that way.** Either one can be missing from an error
+> response. Calling a method on the result of `$error->getStatusCode()` without a null check is a
+> fatal error. Check for null, or use `?->`.
 
-`getValidationErrors()` is present only on validation failures from the service, and it is the most
-useful part of one: the main message names just the first failing field, while this carries every
-failure at once — in exactly the shape `ValidationException` uses, so:
+`getValidationErrors()` is only set when the API rejects a payload during validation. The main
+message only names the first failing field, but this array has every failure. It uses the same
+shape as `ValidationException`, so you can handle both together:
 
 ```php
 function fieldErrors(\Throwable $e): array
@@ -165,8 +163,8 @@ function fieldErrors(\Throwable $e): array
 ### The code enums
 
 `Enum\Http\ApiStatusCodeEnum` and `Enum\Http\ApiErrorCodeEnum` hold the values the API is known to
-send — 35 each, the same conditions expressed numerically and as strings. Compare against them
-rather than against literals:
+send. There are 35 of each, covering the same conditions as numbers and as strings. Compare
+against them instead of literals:
 
 ```php
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
@@ -174,19 +172,18 @@ use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
 if ($e->getErrorMessage()->getErrorCode() === ApiErrorCodeEnum::TokenNotActive->value) { … }
 ```
 
-They are compared by `->value` rather than being typed onto the property for the same reason order
-status is a string: an unrecognised code should be a comparison that does not match, not a response
-that fails to map.
+You compare against `->value` because the properties are plain strings and ints, not enums, just
+like the order status. An unknown code simply won't match, and the response still maps.
 
 `AuthorizationException`
 ------------------------
 
-A `WebserviceException` whose error code or status code says the credentials are the problem:
-missing, malformed, unknown, inactive, or used with an authorization method the account may not
-use.
+A `WebserviceException` whose error code or status code says the credentials are the problem. They
+may be missing, malformed, unknown or inactive, or used with an authorization method the account
+isn't allowed to use.
 
-Classified from whichever of the two codes the response carried, since either may be absent. The
-sets are public:
+The SDK classifies it from whichever of the two codes the response has, since either can be
+missing. The code sets are public:
 
 ```php
 AuthorizationException::ERROR_STATUSES;   // int[]
@@ -195,35 +192,35 @@ AuthorizationException::isAuthorizationErrorStatus($status);
 AuthorizationException::isAuthorizationErrorCode($code);
 ```
 
-Retrying will not help; the credentials have to change. Treat it as a configuration alarm, not as a
-transient fault.
+Retrying won't help until the credentials change. Treat it as a configuration problem that needs
+an alert, not as a transient fault.
 
 ---
 
 Retrying safely
 ---------------
 
-Which failures are worth retrying, and which are not:
+Which failures to retry:
 
 | Exception | Retry |
 |-----------|-------|
 | `ValidationException`, `InvalidArgumentException` | No. The payload is wrong. |
-| `AuthorizationException` | No. Alarm instead. |
-| `MalformedResponseException` | Rarely. A proxy hiccup, maybe; an unexpected payload, no. |
+| `AuthorizationException` | No. Raise an alert instead. |
+| `MalformedResponseException` | Rarely. Maybe after a proxy glitch, never for an unexpected payload. |
 | `ConnectionException` | **Only for reads, unless you can check first.** |
-| `WebserviceException` | Depends entirely on the error code. |
+| `WebserviceException` | Depends on the error code. |
 
-The dangerous case is a `ConnectionException` on a write. A read can be retried freely. A write —
-`createOrder()`, `createPayout()`, `saveAddress()` without an id — may already have happened, and
-the SDK cannot tell you which.
+The risky case is a `ConnectionException` on a write. You can retry reads freely. A write such as
+`createOrder()`, `createPayout()` or `saveAddress()` without an id may already have gone through,
+and the SDK can't tell you whether it did.
 
-**There is no idempotency key.** `CreateOrderMessage` has no field for one. `GetOrdersMessage`
-can *filter* on `externalApplicationId` and `externalOrderId`, and `Order` carries them back, but
-`createOrder()` has nowhere to set them. So a blind retry risks a second shipment, and nothing
-stops it.
+**There is no idempotency key.** `CreateOrderMessage` has no field for one. `GetOrdersMessage` can
+*filter* on `externalApplicationId` and `externalOrderId`, and `Order` returns them, but
+`createOrder()` has no way to set them. A blind retry can create a second shipment, and nothing
+will stop it.
 
-What you can do instead is reconcile before retrying — query for an order that matches what you
-were about to place, and only send again if there is none:
+Instead, reconcile before retrying. Look for an order that matches the one you tried to place, and
+only send it again if you don't find one:
 
 ```php
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -244,12 +241,11 @@ try {
 }
 ```
 
-The comparison is yours to write, because only you know what makes two of your orders the same —
-recipient and weight and value, usually. Make it strict: a false match loses a shipment, a missed
-match duplicates one, and of the two the second is at least visible.
+You have to write the comparison yourself, since only you know what makes two of your orders the
+same. Usually that's the recipient, weight and value. Keep it strict. A false match means a
+shipment is never sent. A missed match means a duplicate, which at least you'll notice.
 
-Where those external identifiers are present on your orders, the reconciliation becomes exact
-rather than heuristic:
+If your orders have those external identifiers, you can look the order up directly:
 
 ```php
 $existing = $client->orders()->getOrders(new GetOrdersMessage(
@@ -258,20 +254,20 @@ $existing = $client->orders()->getOrders(new GetOrdersMessage(
 ));
 ```
 
-For payouts, there is no equivalent at all — check `moneyBox()->getPayouts()` before retrying, and
-prefer letting a human decide.
+Payouts have nothing similar. Check `moneyBox()->getPayouts()` before retrying, and preferably
+have a person make the call.
 
 Logging a failure
 -----------------
 
-The SDK logs errors itself when `loggingEnabled` is on and a PSR-3 logger was given: the failing
-request, its body, and what came back, at `error` level with structured context. See
-[Configuration — logging](configuration.md#logging), including the warning about tokens in request
+When `loggingEnabled` is on and you've passed a PSR-3 logger, the SDK logs errors itself: the
+failing request, its body and the response, at `error` level with structured context. See
+[Configuration: logging](configuration.md#logging), including the warning about tokens in request
 bodies.
 
-If you log the exception yourself, `WebserviceException::getRequest()` returns a request whose body
-contains the API token. Log `$e->getErrorMessage()` rather than the request unless you specifically
-need the payload.
+If you log the exception yourself, note that `WebserviceException::getRequest()` returns a request
+whose body contains the API token. Log `$e->getErrorMessage()` instead, unless you need the
+payload.
 
 A complete handler
 ------------------
@@ -282,25 +278,25 @@ use Polkurier\Webservice\Exception as Polkurier;
 try {
     $created = $client->orders()->createOrder($order);
 } catch (Polkurier\ValidationException $e) {
-    // Ours. Show the fields to whoever filled the form in.
+    // Rejected locally. Show the field errors to whoever filled in the form.
     return $this->rejectWithFieldErrors($e->getValidationErrors());
 } catch (Polkurier\AuthorizationException $e) {
-    // Configuration. Page someone; do not retry.
+    // Configuration problem. Alert someone, don't retry.
     $this->alerts->credentialsRejected($e->getErrorMessage()->getResponse());
     throw $e;
 } catch (Polkurier\WebserviceException $e) {
     $error = $e->getErrorMessage();
 
-    // Theirs, and they said why. Field errors if it was a validation failure.
+    // Rejected by the API. Use the field errors if it was a validation failure.
     return $this->rejectWithFieldErrors(
         $error->getValidationErrors() ?? ['_' => [$error->getResponse()]],
     );
 } catch (Polkurier\ConnectionException $e) {
-    // Unknown outcome. Reconcile rather than guess.
+    // Unknown outcome. Reconcile later instead of guessing.
     $this->queue->reconcileLater($myOrderId);
     throw $e;
 } catch (Polkurier\MalformedResponseException $e) {
-    // Not the API. Capture the body; it usually names the thing that answered.
+    // Not an API reply. The body usually shows what answered.
     $this->logger->error('Unexpected reply', ['status' => $e->getResponse()->getStatusCode()]);
     throw $e;
 }

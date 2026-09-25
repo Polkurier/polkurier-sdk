@@ -13,16 +13,16 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * When the courier is due to collect an order, as reported on it. Booking a collection is
- * {@see \Polkurier\Webservice\Request\Order\PickupMessage} instead.
+ * When the courier is due to collect an order, as reported on the order. To book a collection, use
+ * {@see \Polkurier\Webservice\Request\Order\PickupMessage}.
  *
- * Every field is optional because an order with no collection arranged carries an empty block, and
- * a carrier that schedules collections on its own terms fills in only what it has settled — some
- * report a date alone, some a time window with it. The reference number is absent until the
- * carrier has accepted the booking.
+ * Every field is optional. A carrier that schedules collections on its own terms fills in only what
+ * it has settled: some report just a date, others a date and a time window. The reference number is
+ * missing until the carrier has accepted the booking. An order with no collection arranged has no
+ * pickup at all ({@see \Polkurier\Webservice\Response\Order::getPickup()} returns null).
  *
- * The date and the two times arrive as separate values: the times are wall-clock only, so the date
- * part of the objects returned by the time accessors is meaningless — read the day from
+ * The date and the 2 times arrive as separate values. The times are wall-clock only, so ignore the
+ * date part of the objects the time accessors return, and read the day from
  * {@see self::getPickupDate()}.
  */
 class Pickup implements MessageInterface
@@ -40,8 +40,8 @@ class Pickup implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $pickupDate the day of collection
-     * @param \DateTimeInterface|null $pickupTimeFrom start of the window; time part only
-     * @param \DateTimeInterface|null $pickupTimeTo end of the window; time part only
+     * @param \DateTimeInterface|null $pickupTimeFrom start of the window (time part only)
+     * @param \DateTimeInterface|null $pickupTimeTo end of the window (time part only)
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
      * @param bool $multiPickup whether this collection covers several orders
@@ -111,8 +111,8 @@ class Pickup implements MessageInterface
     }
 
     /**
-      * Start of the collection window; time part only.
-      *
+     * Start of the collection window (time part only).
+     *
      * @return \DateTimeInterface|null
      */
     public function getPickupTimeFrom(): ?\DateTimeInterface
@@ -131,8 +131,8 @@ class Pickup implements MessageInterface
     }
 
     /**
-      * End of the collection window; time part only.
-      *
+     * End of the collection window (time part only).
+     *
      * @return \DateTimeInterface|null
      */
     public function getPickupTimeTo(): ?\DateTimeInterface
@@ -151,8 +151,8 @@ class Pickup implements MessageInterface
     }
 
     /**
-      * True when the sender hands the parcel over themselves and no collection should be booked.
-      *
+     * True when the sender hands the parcel over themselves and no collection should be booked.
+     *
      * @return bool
      */
     public function isNoCourierOrder(): bool
@@ -171,8 +171,8 @@ class Pickup implements MessageInterface
     }
 
     /**
-      * Whether this collection covers several orders at once.
-      *
+     * Whether this collection covers several orders at once.
+     *
      * @return bool
      */
     public function isMultiPickup(): bool
@@ -181,8 +181,8 @@ class Pickup implements MessageInterface
     }
 
     /**
-      * The carrier's reference for the booked collection, once it has issued one.
-      *
+     * The carrier's reference for the booked collection, once it has issued one.
+     *
      * @return string|null
      */
     public function getPickupNumber(): ?string

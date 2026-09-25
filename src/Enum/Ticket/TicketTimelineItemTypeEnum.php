@@ -18,8 +18,8 @@ enum TicketTimelineItemTypeEnum: string
     case Message = 'MESSAGE';
 
     /**
-     * Something that happened to the ticket rather than something said — a status change, a
-     * reassignment. Its content is a description of the event.
+     * An event on the ticket, e.g. a status change or a reassignment. Its content describes the
+     * event.
      */
     case Action = 'ACTION';
 }

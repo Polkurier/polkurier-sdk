@@ -12,14 +12,13 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A legal document — the terms of service or the privacy policy.
+ * A legal document: the terms of service or the privacy policy.
  *
- * The content is a ready-to-render HTML fragment in Polish, not plain text and not a full
- * document, so it is meant to be embedded rather than displayed raw.
+ * The content is an HTML fragment in Polish (not plain text, and not a full document). Embed it in a
+ * page instead of showing it as text.
  *
- * The id matters for the terms: it is what {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::acceptRegulations()}
- * must quote, and the API checks it against the currently active version to make sure a customer
- * is not accepting something they were shown earlier.
+ * For the terms, pass the id to {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::acceptRegulations()}.
+ * Only the version currently in force can be accepted. An id from an earlier version is rejected.
  */
 readonly class RegulationsMessage implements MessageInterface
 {

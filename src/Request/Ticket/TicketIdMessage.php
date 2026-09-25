@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names one ticket by its UUID.
+ * Identifies one ticket by its UUID.
  */
 readonly class TicketIdMessage implements MessageInterface
 {

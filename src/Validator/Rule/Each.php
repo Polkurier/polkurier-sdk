@@ -11,14 +11,12 @@ use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
- * Apply a rule to every entry of a list rather than to the list itself.
+ * Applies a rule to every entry of a list.
  *
- * For lists of plain values — order numbers, waybill numbers — where each entry has a format of
- * its own. Lists of objects are handled by {@see Valid}, which lets each object declare its own
- * rules.
+ * Use it for lists of plain values, such as order numbers or waybill numbers, where each entry has
+ * its own format. For lists of objects use {@see Valid}, so each object applies its own rules.
  *
- * Failures are reported against the index, so a bad entry reads as `orderno[1]` and can be found
- * without counting through the request.
+ * Failures are reported with the index, e.g. `orderno[1]`.
  *
  * ```php
  * #[NotEmptyList]
@@ -26,8 +24,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  * private array $orderNo;
  * ```
  *
- * The rule is named by class and built with no arguments, which is all PHP attributes allow. A
- * parameterised rule, or one depending on a sibling field, needs a message validator instead.
+ * The rule is given as a class name and built without arguments. A rule that needs arguments, or
+ * depends on another field, has to go in a message validator.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Each

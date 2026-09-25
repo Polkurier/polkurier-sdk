@@ -11,22 +11,22 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Supplies the serializer the request and response factories map with.
+ * Supplies the serializer used by the request and response factories.
  *
- * {@see SerializerProvider} is the implementation, and is final: the mapping is what every call
- * depends on, and a half-changed one fails in ways that look like the API misbehaving. Most of
- * what an application wants to vary is reachable through {@see SerializerConfigInterface} without
- * going near it.
+ * {@see SerializerProvider} is the default. Most settings you may want to change are in
+ * {@see SerializerConfigInterface}. To change how the serializer is built, subclass
+ * SerializerProvider. Every call depends on the mapping, and a broken one fails in ways that look
+ * like API errors, so test such a change well.
  *
- * This exists for the cases that are not — a different normalizer stack, a metadata source that is
- * not attributes, an instance shared with the rest of an application's serialization. Implement
- * it and pass the result to the client.
+ * Implement this interface if you need something else entirely, e.g. metadata from somewhere other
+ * than attributes, or a serializer shared with the rest of your application. Then pass it to the
+ * client.
  */
 interface SerializerProviderInterface
 {
     /**
-     * The request side serializes to JSON; the response side denormalizes an already-decoded body,
-     * so both contracts are promised.
+     * Requests are serialized to JSON and responses are denormalized from a decoded body, so the
+     * serializer has to implement both interfaces.
      *
      * @return SerializerInterface&DenormalizerInterface
      */

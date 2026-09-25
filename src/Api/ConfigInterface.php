@@ -50,14 +50,14 @@ interface ConfigInterface
     public function isSandbox(): bool;
 
     /**
-     * Is base logging enabled (used for error logging)
+     * Whether basic logging is enabled (used for error logging).
      *
      * @return bool
      */
     public function isLoggingEnabled(): bool;
 
     /**
-     * Checks if extended logging of API requests is enabled for given method
+     * Whether extended logging of API requests is enabled for the given method.
      * The method is checked against @see self::getMethodsToLog()
      *
      * @param ApiMethodInterface $apiMethod
@@ -67,7 +67,7 @@ interface ConfigInterface
     public function isExtendedLoggingEnabled(ApiMethodInterface $apiMethod): bool;
 
     /**
-     * Returns API methods which will be logged. The default is empty list
+     * API methods to log. Empty by default.
      *
      * @return ApiMethodInterface[]
      */
@@ -76,9 +76,9 @@ interface ConfigInterface
     /**
      * Whether outgoing payloads are checked before they are sent.
      *
-     * On by default. Turning it off skips the client-side rules entirely and lets the API be the
-     * only judge — worth doing if the SDK's rules ever disagree with the service, which should be
-     * reported as a bug rather than worked around permanently.
+     * On by default. When off, the client-side rules are skipped and only the API checks the
+     * payload. Use this if the SDK's rules ever disagree with the API, and please report it as a
+     * bug.
      *
      * @return bool
      */

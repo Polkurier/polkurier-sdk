@@ -116,8 +116,8 @@ class ReturnDetails implements MessageInterface
     }
 
     /**
-      * Reference of the document the amount was applied to, where one exists.
-      *
+     * Reference of the document the amount was applied to, where one exists.
+     *
      * @return string|null
      */
     public function getDocumentNumber(): ?string
@@ -154,8 +154,8 @@ class ReturnDetails implements MessageInterface
     }
 
     /**
-      * When the amount was applied. Null while a settlement is recorded but not yet dated.
-      *
+     * When the amount was applied. Null until the settlement has a date.
+     *
      * @return \DateTimeInterface|null
      */
     public function getDate(): ?\DateTimeInterface

@@ -10,13 +10,12 @@ namespace Polkurier\Webservice\Serializer;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * The serializer settings an integration is likely to want different from the next one's.
+ * Serializer settings that vary between applications.
  *
- * Everything the SDK maps — which field is called what, which format a date is in, which fields
- * disappear when empty — is fixed by the API and lives in attributes on the classes. None of that
- * is here. What is here is the handful of decisions that belong to the application rather than to
- * the protocol, and that tend to differ between a long-running worker and a CLI script, or
- * between a CI run and production.
+ * The mapping itself (field names, date formats, which fields are dropped when empty) is fixed by
+ * the API and declared in attributes on the classes. This interface covers the settings that
+ * depend on your application, and that often differ between a long-running worker and a CLI
+ * script, or between CI and production.
  *
  * Implement it, or construct {@see SerializerConfig} with the arguments you want, and pass the
  * result to {@see SerializerProvider}.
@@ -24,13 +23,12 @@ use Psr\Cache\CacheItemPoolInterface;
 interface SerializerConfigInterface
 {
     /**
-     * A PSR-6 pool to keep the mapping metadata in, or null to rebuild it each time.
+     * A PSR-6 pool to cache the mapping metadata in, or null to rebuild it each time.
      *
-     * Reading the attributes off around a hundred and fifty classes is the most expensive thing
-     * the SDK does at start-up, and the result never changes between deployments of the same
-     * code. A long-running worker or a warmed web process should hand over a pool and pay that
-     * cost once; a short CLI script that makes one call will not get the cost back, and a
-     * developer editing the classes wants the metadata rebuilt every time.
+     * Reading the attributes of around 150 classes is the slowest part of start-up, and the result
+     * doesn't change until the code does. Pass a pool for a long-running worker or a warmed web
+     * process. A short CLI script that makes one call gains nothing from it, and while editing the
+     * classes you want the metadata rebuilt every time.
      *
      * @return CacheItemPoolInterface|null
      */
@@ -39,40 +37,37 @@ interface SerializerConfigInterface
     /**
      * Flags for `json_encode` when a request body is written.
      *
-     * The default leaves UTF-8 alone rather than escaping it, which matters here because most
-     * payloads carry Polish place names: `Poznań` stays itself instead of becoming `Poznań`,
-     * which is shorter on the wire and legible in a log. Both forms are valid JSON and the API
-     * reads either.
+     * The default doesn't escape UTF-8. Most payloads contain Polish place names, so `Poznań` stays
+     * as it is instead of becoming `Pozna\u0144`. That is shorter and readable in a log. Both forms
+     * are valid JSON and the API accepts either.
      *
-     * Add `JSON_PRETTY_PRINT` while debugging. Build on
-     * {@see SerializerConfig::DEFAULT_JSON_OPTIONS} rather than replacing it: it carries
-     * `JSON_PRESERVE_ZERO_FRACTION`, without which an amount of 250.0 is written as `250`. And do
-     * not add `JSON_NUMERIC_CHECK`, which would turn a postcode into a number.
+     * Add `JSON_PRETTY_PRINT` while debugging. Add flags to
+     * {@see SerializerConfig::DEFAULT_JSON_OPTIONS} instead of replacing it. It includes
+     * `JSON_PRESERVE_ZERO_FRACTION`, without which an amount of 250.0 is written as `250`. Don't
+     * add `JSON_NUMERIC_CHECK`, which would turn a postcode into a number.
      *
      * @return int
      */
     public function getJsonEncodeOptions(): int;
 
     /**
-     * The timezone dates are read into, or null to keep whatever the API sent.
+     * The timezone to convert dates into, or null to keep the timezone the API sent.
      *
-     * The API answers in Europe/Warsaw. An application that works in UTC internally, or that
-     * shows times to customers elsewhere, can have every date converted on the way in rather than
-     * remembering to do it at each use.
+     * The API answers in Europe/Warsaw. If your application works in UTC, or shows times to
+     * customers in other zones, set this to convert every date as it is read.
      *
      * @return \DateTimeZone|null
      */
     public function getTimezone(): ?\DateTimeZone;
 
     /**
-     * Whether a field in the response that the SDK does not know about is an error.
+     * Whether an unknown field in the response is an error.
      *
-     * Off by default, and that is the right setting in production: the API gains fields without
-     * warning, and a new one arriving should not break a working integration.
+     * Off by default. Keep it off in production: the API can add fields at any time, and a new
+     * field shouldn't break a working integration.
      *
-     * On is useful in CI against a staging API, where the point is to be told that the response
-     * has grown a field so the SDK can be updated deliberately, rather than finding out when
-     * someone notices the data was never being read.
+     * Turn it on in CI against a staging API to find out when the response gets a new field, so
+     * the SDK can be updated.
      *
      * @return bool
      */

@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Rules governing PINs and two-factor codes.
  *
- * Worth reading rather than hard-coding: these are policy rather than contract and can change
- * without a new API version, so a client that bakes the numbers in will drift.
+ * Read these instead of hard-coding them. They are policy and can change without a new API
+ * version.
  */
 readonly class SecurityLimitsMessage implements MessageInterface
 {
@@ -31,8 +31,8 @@ readonly class SecurityLimitsMessage implements MessageInterface
      * @param int $userPinMinLength
      * @param int $userPinMaxLength
      * @param int $twoFactorCodeLength exact length of a two-factor code
-     * @param int $twoFactorResendThrottle seconds that must pass before a code may be resent;
-     *                                     asking sooner is refused with TWO_FACTOR_ALREADY_SENT
+     * @param int $twoFactorResendThrottle seconds that must pass before a code may be resent.
+     *                                     Asking sooner is refused with TWO_FACTOR_ALREADY_SENT
      */
     public function __construct(
         /**

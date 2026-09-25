@@ -14,15 +14,14 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Raises a support ticket.
+ * Creates a support ticket.
  *
- * The topic decides where the ticket is routed and comes from
- * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()}; only topics from
- * that list are accepted.
+ * Only topics returned by
+ * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()} are accepted.
  *
- * Attachments are sent inline as base64, not uploaded separately. `get_system_info` reports the
- * limits under `tickets` — maximum file size, maximum image size and how many may be attached at
- * once — and they are worth checking before sending rather than after being rejected.
+ * Attachments are sent inline as base64. `get_system_info` reports the limits under `tickets`:
+ * maximum file size, maximum image size and how many files can be attached at once. Check them
+ * before sending.
  */
 readonly class CreateTicketMessage implements MessageInterface
 {
@@ -40,7 +39,7 @@ readonly class CreateTicketMessage implements MessageInterface
      * @param string $topicId a topic id from getContactTopics()
      * @param string $content the message body
      * @param string $name the sender's name, where it differs from the account holder
-     * @param ?TicketOriginEnum $origin which channel raised it; defaults to API
+     * @param ?TicketOriginEnum $origin which channel created it, defaults to API
      * @param array<string, string> $files attachments, base64-encoded and keyed by filename
      */
     public function __construct(

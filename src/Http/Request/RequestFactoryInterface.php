@@ -12,7 +12,7 @@ use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * Turns a method, a payload and a choice of credentials into a PSR-7 request.
+ * Builds a PSR-7 request from an API method, a payload and the credentials to use.
  */
 interface RequestFactoryInterface
 {

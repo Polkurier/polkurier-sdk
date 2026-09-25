@@ -8,13 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * Stable status codes for an order, suitable for branching on.
+ * Stable order status codes you can branch on.
  *
- * The accompanying human-readable status is localised and may be reworded, so switch on these
- * codes rather than on the label beside them. The same codes double as the `status` filter of
- * `get_orders`.
- *
- * The code reflects the primary waybill once one exists, and the order record before that.
+ * The human-readable status next to the code is localised and may change, so switch on the code.
+ * The same codes are used for the `status` filter of `get_orders`.
  */
 enum OrderStatusCodeEnum: string
 {
@@ -24,7 +21,7 @@ enum OrderStatusCodeEnum: string
     case Pending = 'O';
 
     /**
-     * Confirmed; no carrier scan yet.
+     * Confirmed, no carrier scan yet.
      */
     case Confirmed = 'P';
 
@@ -45,7 +42,7 @@ enum OrderStatusCodeEnum: string
 
     /**
      * Confirmed and waiting for the courier to collect it.
-     * The most common state between placing an order and the first scan.
+     * The usual state between placing an order and the first scan.
      */
     case AwaitingPickup = 'OC';
 
@@ -61,7 +58,7 @@ enum OrderStatusCodeEnum: string
 
     /**
      * Part of a collective consignment.
-     * Only meaningful as a `get_orders` filter; no order is reported with it.
+     * Only used as a `get_orders` filter. No order is returned with this status.
      */
     case Collective = 'PZ';
 }

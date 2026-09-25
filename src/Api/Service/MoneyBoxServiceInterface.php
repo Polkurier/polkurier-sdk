@@ -25,30 +25,28 @@ use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
 /**
  * The money box: cash-on-delivery funds held on the account, and withdrawing them.
  *
- * Collected cash-on-delivery money accumulates here rather than being transferred per shipment,
- * and the customer withdraws it in batches. `get_account_info` reports the three balances — held,
- * withdrawable now, and already committed to a payout.
+ * Collected cash-on-delivery money builds up here instead of being transferred per shipment. The
+ * customer withdraws it in batches. `get_account_info` reports 3 balances: held, available to
+ * withdraw now, and already committed to a payout.
  *
- * The whole feature can be switched off per account; every method here answers forbidden when it
- * is. The natural order is getConfig() to see how the account is set up, calculatePayoutFee() to
- * quote, then createPayout().
+ * The money box can be switched off per account. When it is, every method here fails with
+ * forbidden. The usual order is getConfig() to see how the account is set up, calculatePayoutFee()
+ * for a quote, then createPayout().
  *
- * createPayout() moves money and is not idempotent — read its notes before wiring a retry.
+ * createPayout() moves money and is not idempotent. Read its notes before you add a retry.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither. With the default configuration the SDK raises these rather than
- * returning them.
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
+ * the default configuration the SDK throws these as exceptions.
  */
 interface MoneyBoxServiceInterface
 {
     /**
-     * The account's standing payout arrangement.
+     * Returns the account's payout settings.
      *
-     * Worth reading before offering a payout: it gives the delivery method the account is set up
-     * for, the fee settlement options it may choose from, and the destination details already on
-     * file. The destination fields are filled in for whichever payout type applies and blank for
-     * the other.
+     * Read this before offering a payout. It gives the account's payout method, the fee payment
+     * options it can choose from, and the destination details on file. Only the destination fields
+     * for the account's payout type are filled in. The others are blank.
      *
      * Endpoint: `get_money_box_config`
      *
@@ -79,29 +77,28 @@ interface MoneyBoxServiceInterface
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "Brak uprawnień"}
      * ```
-     * Raised when the money box is not enabled for this account.
+     * Thrown when the money box is not enabled for this account.
      *
      * @return MoneyBoxConfigMessage payload:
+     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage}
      */
     public function getConfig(): MoneyBoxConfigMessage;
 
     /**
      * Quotes what a payout would cost, without requesting one.
      *
-     * Nothing is created or reserved. Send the same orders and payout type you intend to use and
-     * the quote is the fee that will actually apply.
+     * Nothing is created or reserved. If you send the same orders and payout type you plan to use,
+     * the quote is the fee that will apply.
      *
-     * Worth calling even when the fee looks predictable, because of the free payout allowance: an
-     * account with free payouts remaining is charged nothing, and the counters here are the only
-     * place that is reported.
+     * Call it even when the fee looks predictable. An account with free payouts left pays nothing,
+     * and only this response reports the free payout counters.
      *
-     * The fee can combine several components, so the breakdown is itemised.
+     * The fee can have several components. `fees` lists them.
      *
      * Endpoint: `calculate_money_box_payout_fee`
      *
@@ -113,7 +110,7 @@ interface MoneyBoxServiceInterface
      *     "data": {"orders": ["12345-678"], "payout_type": "ACCOUNT"}
      * }
      * ```
-     * Omitting `orders` quotes for a payout of everything available.
+     * Leave out `orders` to quote a payout of everything available.
      *
      * Response:
      * ```json
@@ -143,13 +140,13 @@ interface MoneyBoxServiceInterface
      *        for everything available, using the account's configured payout type
      *
      * @return MoneyBoxFeeMessage payload:
+     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage}
      */
     public function calculatePayoutFee(
         ?CalculateMoneyBoxPayoutFeeMessage $calculateMoneyBoxPayoutFeeMessage = null
@@ -158,22 +155,20 @@ interface MoneyBoxServiceInterface
     /**
      * Requests a payout from the money box balance.
      *
-     * This moves money. It is not idempotent — each accepted call creates a separate payout
-     * request — so treat a timeout as unknown rather than failed and reconcile with getPayouts()
-     * before retrying.
+     * This moves money. It is not idempotent: each accepted call creates a separate payout request.
+     * Treat a timeout as an unknown outcome, not a failure, and check getPayouts() before retrying.
      *
-     * Three gates fire before anything is created: the money box must be enabled for the account,
-     * the account must not be behind on invoice payments, and the two confirmations below must be
-     * satisfied. Unlike the bank account endpoints, where the PIN and two-factor are alternatives,
-     * here they can both apply:
+     * The call fails unless the money box is enabled for the account, the account has no overdue
+     * invoices, and the confirmations below are provided. Unlike the bank account endpoints, where
+     * you send either the PIN or two-factor, here both can apply:
      *
-     * - The security PIN is required while the account has PIN-locked its money box settings,
-     *   which `get_account_info` reports as `pin_locks.COD_MONEY_BOX`.
-     * - A verified two-factor token registered under MONEY_BOX_PAYOUT is required as well.
+     * - The security PIN is required while the money box settings are PIN-locked.
+     *   `get_account_info` reports this as `pin_locks.COD_MONEY_BOX`.
+     * - A verified two-factor token registered under MONEY_BOX_PAYOUT is also required.
      *
-     * Which destination fields matter depends on the payout type: a bank transfer uses the account
-     * number and ignores the postal address, a money order the reverse. Omitting them falls back
-     * to what is on file.
+     * The payout type decides which destination fields apply. A bank transfer needs the account
+     * number. A money order needs the postal address. Fields you leave out default to the values
+     * getConfig() returns.
      *
      * Endpoint: `create_money_box_payout`
      *
@@ -215,24 +210,23 @@ interface MoneyBoxServiceInterface
      * @param CreateMoneyBoxPayoutMessage $createMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
+     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
      */
     public function createPayout(CreateMoneyBoxPayoutMessage $createMoneyBoxPayoutMessage): MoneyBoxPayoutMessage;
 
     /**
      * Cancels a payout that has not yet been sent.
      *
-     * Only possible while the payout is still cancellable, which its `is_cancellable` flag
-     * reports — once it is in flight it cannot be recalled, and attempting it is refused with the
-     * reason. Check the flag rather than attempting and handling the failure.
+     * You can only cancel while the payout's `is_cancellable` flag is true. Once it is in progress it
+     * can't be recalled, and a cancel attempt fails with the reason. Check the flag first.
      *
-     * A payout belonging to another account is reported as not found rather than forbidden.
+     * A payout that belongs to another account gives not found, not forbidden.
      *
      * Endpoint: `cancel_money_box_payout`
      *
@@ -245,7 +239,7 @@ interface MoneyBoxServiceInterface
      * }
      * ```
      *
-     * Response: the payout as it now stands, with its status updated.
+     * Response: the payout with its updated status.
      *
      * Common errors:
      * ```json
@@ -254,29 +248,29 @@ interface MoneyBoxServiceInterface
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
      * ```
-     * Raised when the payout has progressed too far to cancel; the message carries the reason.
+     * Thrown when the payout is too far along to cancel. The message gives the reason.
      *
      * @param CancelMoneyBoxPayoutMessage $cancelMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
+     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
      */
     public function cancelPayout(CancelMoneyBoxPayoutMessage $cancelMoneyBoxPayoutMessage): MoneyBoxPayoutMessage;
 
     /**
      * Lists payout requests, one page at a time.
      *
-     * This envelope does report `totalpages`, unlike the invoice and prepaid listings.
+     * Unlike the invoice and prepaid listings, this envelope includes `totalpages`.
      *
-     * Each payout separates what was requested from what has moved: the total, the part still to
-     * pay, the part paid, and anything withheld as compensation against outstanding debts — so a
-     * payout can complete having paid out less than it was for.
+     * Each payout splits the requested amount into the part still to pay, the part paid, and any
+     * amount withheld as compensation against outstanding debts. A payout can therefore complete
+     * with less paid out than its `amount`.
      *
      * Endpoint: `get_money_box_payouts`
      *
@@ -325,13 +319,13 @@ interface MoneyBoxServiceInterface
      * @param GetMoneyBoxPayoutsMessage|null $getMoneyBoxPayoutsMessage null lists the first page
      *
      * @return MoneyBoxPayoutListMessage payload:
+     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage}
      */
     public function getPayouts(?GetMoneyBoxPayoutsMessage $getMoneyBoxPayoutsMessage = null): MoneyBoxPayoutListMessage;
 }

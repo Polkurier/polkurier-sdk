@@ -12,14 +12,13 @@ use Psr\Cache\CacheItemPoolInterface;
 /**
  * {@inheritDoc}
  */
-final readonly class SerializerConfig implements SerializerConfigInterface
+readonly class SerializerConfig implements SerializerConfigInterface
 {
     /**
-     * Leaves UTF-8 as it is, does not escape forward slashes, and keeps a float a float.
+     * Doesn't escape UTF-8 or forward slashes, and keeps floats as floats.
      *
-     * The first two are about what the payload looks like to someone reading a log. The third is
-     * not cosmetic: without JSON_PRESERVE_ZERO_FRACTION a cash-on-delivery amount of 250.0 is
-     * written as `250`, and any override that drops it changes what goes on the wire.
+     * The first 2 only make the payload easier to read in logs. The third changes the payload:
+     * without JSON_PRESERVE_ZERO_FRACTION a cash-on-delivery amount of 250.0 is written as `250`.
      */
     public const int DEFAULT_JSON_OPTIONS = \JSON_UNESCAPED_UNICODE
         | \JSON_UNESCAPED_SLASHES
@@ -29,28 +28,28 @@ final readonly class SerializerConfig implements SerializerConfigInterface
      * @param CacheItemPoolInterface|null $metadataCache a pool to keep mapping metadata in
      * @param int $jsonEncodeOptions flags for `json_encode` on the request body
      * @param \DateTimeZone|null $timezone the zone dates are read into
-     * @param bool $rejectUnknownFields whether an unrecognised response field is an error
+     * @param bool $rejectUnknownFields whether an unknown response field is an error
      */
     public function __construct(
         /**
          * @var CacheItemPoolInterface|null
          */
-        private ?CacheItemPoolInterface $metadataCache = null,
+        protected ?CacheItemPoolInterface $metadataCache = null,
 
         /**
          * @var int
          */
-        private int $jsonEncodeOptions = self::DEFAULT_JSON_OPTIONS,
+        protected int $jsonEncodeOptions = self::DEFAULT_JSON_OPTIONS,
 
         /**
          * @var \DateTimeZone|null
          */
-        private ?\DateTimeZone $timezone = null,
+        protected ?\DateTimeZone $timezone = null,
 
         /**
          * @var bool
          */
-        private bool $rejectUnknownFields = false,
+        protected bool $rejectUnknownFields = false,
     ) {}
 
     /**

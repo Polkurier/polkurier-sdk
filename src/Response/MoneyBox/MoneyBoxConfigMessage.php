@@ -15,9 +15,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The account's standing money box payout arrangement.
  *
- * Read this before offering a payout: it says which payout method the account is set up for, which
- * fee settlement options it may use, and what destination details are already on file. The
- * destination fields are populated for whichever payout type applies and blank for the other.
+ * Read this before offering a payout. It gives the account's payout method, the fee settlement
+ * options it may use and the destination details on file. Only the destination fields for the
+ * current payout type are filled in. The others are blank.
  */
 readonly class MoneyBoxConfigMessage implements MessageInterface
 {

@@ -10,14 +10,13 @@ namespace Polkurier\Webservice\Enum\Ticket;
 /**
  * The state of a support ticket.
  *
- * Reported on every ticket, but only {@see self::Closed} can be set through the API — a customer
- * may close their own ticket and nothing else. The remaining states are set as the ticket is
- * handled.
+ * Returned on every ticket, but only {@see self::Closed} can be set through the API. A customer
+ * can close their own ticket and nothing else. The other states change as the ticket is handled.
  */
 enum TicketStatusEnum: string
 {
     /**
-     * Raised and waiting to be picked up.
+     * Created and waiting to be picked up.
      */
     case Opened = 'OPENED';
 
@@ -32,7 +31,7 @@ enum TicketStatusEnum: string
     case Postponed = 'POSTPONED';
 
     /**
-     * Finished. The one state a customer can set.
+     * Finished. The only state a customer can set.
      */
     case Closed = 'CLOSED';
 }

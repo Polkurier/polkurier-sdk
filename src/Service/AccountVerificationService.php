@@ -45,16 +45,16 @@ class AccountVerificationService extends AbstractService implements AccountVerif
     }
 
     /**
-     * @return AccountVerificationMessage
+     * @return AccountVerificationMessage|null
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
      */
-    public function getInfo(): AccountVerificationMessage
+    public function getInfo(): ?AccountVerificationMessage
     {
-        return $this->requestObject(
+        return $this->requestNullableObject(
             ApiMethodEnum::GetAccountVerificationInfo,
             AccountVerificationMessage::class,
         );

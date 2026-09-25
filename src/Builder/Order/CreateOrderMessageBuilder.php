@@ -21,9 +21,8 @@ use Polkurier\Webservice\Request\Order\PickupMessage;
 /**
  * Assembles an order, for pricing or for placing.
  *
- * The largest payload in the SDK and the one most often built up rather than written out: the
- * parcels come from one place, the addresses from another, and the extras from whatever the
- * customer chose.
+ * This is the largest payload in the SDK. The builder lets you set the parcels, addresses and
+ * extras separately as you collect them.
  */
 class CreateOrderMessageBuilder extends AbstractBuilder
 {

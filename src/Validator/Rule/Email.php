@@ -13,12 +13,11 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * An email address.
  *
- * Deliberately permissive. The address is used for delivery notifications rather than for anything
- * the SDK sends itself, so the only failure worth catching is something that plainly is not an
- * address — a name, a phone number, a value with a space in it. Anything stricter starts rejecting
- * addresses that work, and the cost of a false rejection is an order that cannot be placed.
+ * The check is loose. The address is used for delivery notifications, so it only catches values
+ * that are clearly not an address, like a name, a phone number or a value with a space in it. A
+ * stricter check would reject working addresses and block the order.
  *
- * Absence is {@see NotBlank}'s business, as with the other format rules.
+ * Empty values pass. Use {@see NotBlank} to make the field required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Email implements ValueValidatorInterface

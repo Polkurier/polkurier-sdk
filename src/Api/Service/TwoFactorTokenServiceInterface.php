@@ -21,15 +21,14 @@ use Polkurier\Webservice\Response\TwoFactorToken;
 use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
 
 /**
- * Two-factor confirmation for operations the API will not accept on a token alone.
+ * Two-factor confirmation for operations that need more than the API token.
  *
- * The flow is: register a token for the operation, have the user enter the code that is sent to
- * them, verify it, then repeat the original call carrying the token and code. Changing where
- * cash-on-delivery funds are paid is the main operation that requires this.
+ * Register a token for the operation, have the user enter the code sent to them, and verify it.
+ * Then repeat the original call with the token and code. The main operation that needs this is
+ * changing where cash-on-delivery funds are paid.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -37,22 +36,23 @@ use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface TwoFactorTokenServiceInterface
 {
     /**
      * Starts a confirmation and sends a code to the customer.
      *
-     * The token is bound to the namespace it is registered under and is only accepted by that operation,
-     * so one minted for a bank-account change cannot be spent elsewhere.
+     * The token is bound to the namespace you register it under, and only that operation accepts
+     * it. A token for a bank account change can't be used for anything else.
      *
-     * Sending is part of the call: a message that cannot be delivered is an error rather than a token,
-     * so a successful response means the code really went out.
+     * The code is sent as part of this call. If it can't be delivered, you get an error, so a
+     * successful response means the code was sent.
      *
-     * The response carries the token id to quote when verifying, when it expires, and the delivery
-     * channels available to this customer — which is what the transport-method change works from.
+     * The response has the token id (pass it when verifying), the expiry time, and the delivery
+     * channels available to this customer. twoFactorTokenChangeTransportMethod() picks from those
+     * channels.
      *
      * Endpoint: `two_factor_token_register`
      *
@@ -93,7 +93,7 @@ interface TwoFactorTokenServiceInterface
      * ```json
      * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
      * ```
-     * Raised when a code was sent too recently; `get_system_info` reports the window.
+     * Thrown when a code was sent too recently. `get_system_info` reports the resend window.
      *
      * @param RegisterMessage $registerMessage
      *
@@ -110,10 +110,9 @@ interface TwoFactorTokenServiceInterface
     /**
      * Sends the code again for a token already registered.
      *
-     * Throttled: asking again inside the resend window is refused with TWO_FACTOR_ALREADY_SENT rather
-     * than silently ignored. `get_system_info` reports the window in seconds under
-     * `security.two_factor_resend_throttle`, so a client can disable its resend button for exactly that
-     * long instead of guessing.
+     * Resending is throttled. A request inside the resend window fails with TWO_FACTOR_ALREADY_SENT.
+     * `get_system_info` reports the window in seconds under `security.two_factor_resend_throttle`,
+     * so you can disable a resend button for that long.
      *
      * Endpoint: `two_factor_token_resend`
      *
@@ -126,7 +125,7 @@ interface TwoFactorTokenServiceInterface
      * }
      * ```
      *
-     * Response: the same token object registration returned, with a new `sent_at`.
+     * Response: the same token object that registration returned, with a new `sent_at`.
      *
      * Common errors:
      * ```json
@@ -148,13 +147,12 @@ interface TwoFactorTokenServiceInterface
     /**
      * Checks the code the customer entered.
      *
-     * Returns a verdict rather than raising: a wrong code, and an unknown or expired token, both come
-     * back as a successful response with the flag cleared. Do not treat the absence of an exception as
-     * success — read the flag.
+     * A wrong code, or an unknown or expired token, does not throw. It comes back as a successful
+     * response with `valid` set to false. Always check the flag.
      *
-     * Verifying does not consume the token. The operation being confirmed does that, which is why the
-     * token and code are passed on to it afterwards, and why verifying twice is harmless. Codes are a
-     * fixed length, reported by `get_system_info`.
+     * Verifying doesn't use up the token. The confirmed operation does, so you pass the token and
+     * code to it afterwards. Verifying twice does no harm. Codes have a fixed length, which
+     * `get_system_info` reports.
      *
      * Endpoint: `two_factor_token_verify`
      *
@@ -167,12 +165,12 @@ interface TwoFactorTokenServiceInterface
      * }
      * ```
      *
-     * Response, on a correct code:
+     * Response for a correct code:
      * ```json
      * {"status": "success", "response": {"valid": true}}
      * ```
      *
-     * Response, on a wrong code or an unknown or expired token — still a success envelope:
+     * Response for a wrong code or an unknown or expired token (still a success envelope):
      * ```json
      * {"status": "success", "response": {"valid": false}}
      * ```
@@ -182,8 +180,8 @@ interface TwoFactorTokenServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
-     * An empty `code` is reported the same way. Only a missing parameter is an error here; a wrong one
-     * is a verdict.
+     * An empty `code` gives the same error. Only a missing parameter is an error here. A wrong value
+     * gives `valid: false`.
      *
      * @param VerifyMessage $verifyMessage
      *
@@ -200,11 +198,11 @@ interface TwoFactorTokenServiceInterface
     /**
      * Switches a pending confirmation to a different delivery channel.
      *
-     * For when the customer cannot receive the code the way it was first sent. The channels open
-     * to them are listed on the token that registration returned, under `available_methods`.
+     * Use this when the customer can't receive the code on the first channel. The token returned by
+     * registration lists their channels under `available_methods`.
      *
-     * Switching re-sends the code down the new channel, so it is subject to the same throttle as
-     * twoFactorTokenResend().
+     * Switching resends the code on the new channel, so the same throttle as twoFactorTokenResend()
+     * applies.
      *
      * Endpoint: `two_factor_token_change_transport_method`
      *
@@ -217,7 +215,7 @@ interface TwoFactorTokenServiceInterface
      * }
      * ```
      *
-     * Response: the token as it now stands, with the new channel and a fresh `sent_at`.
+     * Response: the updated token, with the new channel and a new `sent_at`.
      *
      * Common errors:
      * ```json

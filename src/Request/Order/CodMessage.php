@@ -14,14 +14,14 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Cash on delivery, as it is requested on an order.
+ * The cash-on-delivery block of an order.
  *
- * The amount is what the courier collects from the recipient, in PLN. At zero there is no
- * collection and the rest of the block does not apply. The settlement type decides how quickly
- * the money is passed on, and the return type where it goes — to a bank account, which then needs
- * one supplying, or into the account's money box.
+ * The amount is what the courier collects from the recipient, in PLN. Zero means no collection,
+ * and the other fields are then not needed. The settlement type sets how quickly the money is paid
+ * out. The return type sets where it goes: to a bank account (then `$bankAccount` is required) or to
+ * the account's money box.
  *
- * What became of the money afterwards is reported on the order, not here; see
+ * What happens to the money after that is reported on the order, see
  * {@see \Polkurier\Webservice\Response\Order\Cod}.
  */
 #[Validate\IgnoredWhen(property: 'amount', equals: 0.0)]
@@ -43,9 +43,9 @@ readonly class CodMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param float $amount amount to collect, in PLN; zero means no collection and the rest of the
-     *                       block does not apply
-     * @param string $bankAccount destination account; required when returning to a bank account
+     * @param float $amount amount to collect, in PLN. Zero means no collection, and the other
+     *                       fields are then not needed
+     * @param string $bankAccount destination account, required when the return type is a bank account
      * @param CodTypeEnum $type how quickly the collected money is settled
      * @param CodReturnTypeEnum $returnType where it is sent
      */

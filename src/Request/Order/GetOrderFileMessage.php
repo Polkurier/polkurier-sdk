@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names one document attached to an order.
+ * Identifies one document attached to an order.
  */
 readonly class GetOrderFileMessage implements MessageInterface
 {

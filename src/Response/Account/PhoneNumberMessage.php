@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One telephone number on the account.
  *
- * Archived numbers are not listed, so everything here is live. Exactly one number is the default,
- * and it is the one used for two-factor codes and carrier notifications.
+ * Removed numbers are not listed. Exactly one number is the default. It receives two-factor codes
+ * and carrier notifications.
  */
 readonly class PhoneNumberMessage implements MessageInterface
 {
@@ -30,7 +30,7 @@ readonly class PhoneNumberMessage implements MessageInterface
     /**
      * @param string $id opaque identifier, used when deleting
      * @param string $number digits only
-     * @param string $name the customer's own label for the number; often empty
+     * @param string $name the customer's own label for the number, often empty
      * @param bool $default whether this is the account's primary number
      */
     public function __construct(

@@ -11,6 +11,8 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * A document for one or more orders (e.g. waybill labels), as a single PDF.
+ *
  * @see DocumentMessage
  */
 readonly class DocumentMessage implements MessageInterface
@@ -33,9 +35,9 @@ readonly class DocumentMessage implements MessageInterface
     ) {}
 
     /**
-      * The document as the API sent it: base64-encoded PDF. Use {@see self::getDecodedFile()} to get
-      * the raw bytes.
-      *
+     * The document as the API sent it, a base64-encoded PDF. {@see self::getDecodedFile()} returns
+     * the raw bytes.
+     *
      * @return string
      */
     public function getFile(): string
@@ -44,8 +46,8 @@ readonly class DocumentMessage implements MessageInterface
     }
 
     /**
-      * The document's raw bytes, ready to write to disk or stream to a browser.
-      *
+     * The document's raw bytes, ready to write to disk or stream to a browser.
+     *
      * @return string
      */
     public function getDecodedFile(): string

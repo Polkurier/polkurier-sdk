@@ -27,13 +27,13 @@ use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
 /**
  * Carriers, pickups, pickup points and supported countries.
  *
- * Start with availableCarriers(): the carrier codes it returns are what the order methods expect,
- * and its additional data describes which services, pack types and pickup rules each carrier
- * supports — the constraints the API will enforce when an order is placed.
+ * Start with availableCarriers(). The order methods expect the carrier codes it returns. Its
+ * additional data lists the services, pack types and pickup rules each carrier supports, which the
+ * API enforces when an order is placed.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
+ * status. `status_code` and `error_code` are both optional. An error may have one, both or
+ * neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -41,28 +41,26 @@ use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface CourierServiceInterface
 {
     /**
      * Lists the carriers this account may ship with.
      *
-     * The list is per account, not global: it reflects the contracts and integrations enabled for the
-     * caller, so a carrier the service supports in general can be absent. A handful of carriers are
-     * excluded from the API surface altogether regardless of account.
+     * The list depends on the contracts and integrations enabled for your account, so a carrier the
+     * service supports in general may be missing.
      *
-     * The `servicecode` of each entry is the value to pass as `courier` everywhere else.
+     * Pass an entry's `servicecode` as `courier` in the other methods.
      *
-     * Requesting the additional data attaches, per carrier, the services it sells, the pack and shipment
-     * types it accepts, its pickup rules, its points map and its carrier-specific additional fields — in
-     * other words the constraints the API will enforce when an order is placed. It makes the response
-     * several times larger, so fetch it when building a shipping form rather than on every request. One
-     * detail appears only with it: whether the carrier requires insurance alongside cash on delivery.
+     * With the additional data, each carrier also lists the services it sells, the pack and shipment
+     * types it accepts, its pickup rules, its points map and its own additional fields. The API
+     * enforces these when an order is placed. The response gets several times larger, so fetch it
+     * when you build a shipping form, not on every request. Only the additional data tells you
+     * whether the carrier requires insurance with cash on delivery.
      *
-     * Filtering by carrier is applied after the list is assembled, so an unknown code yields an empty
-     * list rather than an error.
+     * An unknown code in the carrier filter gives an empty list, not an error.
      *
      * Endpoint: `available_carriers`
      *
@@ -85,8 +83,8 @@ interface CourierServiceInterface
      * }
      * ```
      *
-     * With `additional_data: true`, each entry additionally carries an `additional_data` object holding
-     * `COD`, `pickup`, `shipment_type`, `options`, `points_map` and `additional_fields`.
+     * With `additional_data: true`, each entry also has an `additional_data` object with `COD`,
+     * `pickup`, `shipment_type`, `options`, `points_map` and `additional_fields`.
      *
      * @param AvailableCarriersMessage|null $availableCarriersMessage null lists every carrier
      *        without the additional data
@@ -106,16 +104,14 @@ interface CourierServiceInterface
     /**
      * Books a courier collection.
      *
-     * The carrier is contacted synchronously, so this is a real booking rather than a queued request,
-     * and how long it takes depends on the carrier. Omitting the date books for today.
+     * This is a real booking. Without a date, the pickup is booked for today.
      *
-     * The reply describes the day, not the booking: `pickupdate` reports whether the carrier accepted
-     * collection on that date, and `time` lists the windows it offered. Carriers that do not work in
-     * windows accept the date and return an empty list, so an empty list is not a refusal — read the
-     * flag.
+     * The reply describes the day. `pickupdate` says whether the carrier accepted a collection on
+     * that date, and `time` lists the windows it offered. Carriers that don't use windows accept the
+     * date and return an empty list, so an empty list doesn't mean a refusal. Check the flag.
      *
-     * Call getCourierPickupTime() first if you need to offer the customer a choice of day; this method
-     * commits to one.
+     * To let the customer choose a day, call getCourierPickupTime() first. This method books the
+     * date you give it.
      *
      * Endpoint: `pickup_courier`
      *
@@ -148,8 +144,7 @@ interface CourierServiceInterface
      * }
      * ```
      *
-     *
-     * A carrier that refuses the requested day answers successfully with the flag cleared:
+     * If the carrier refuses the day, the call still succeeds, with the flag set to false:
      * ```json
      * {"status": "success", "response": {"pickupdate": false, "time": []}}
      * ```
@@ -159,30 +154,28 @@ interface CourierServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [courier]"}
      * ```
-     * Carrier-side refusals surface as the carrier's own message with no code attached.
+     * Errors from the carrier come back as the carrier's own message, with no code.
+     *
      * @param PickupMessage $pickupMessage
      *
-     * @return PickupResponseMessage payload:
+     * @return PickupResponseMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Courier\PickupResponseMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Courier\PickupResponseMessage}
      */
     public function pickupCourier(PickupMessage $pickupMessage): PickupResponseMessage;
 
     /**
      * Lists the days a carrier can collect on, with the windows available each day.
      *
-     * The API finds these by probing the carrier day by day from today until it has enough acceptable
-     * dates or runs out of attempts, so days the carrier refuses are simply absent rather than reported
-     * as unavailable. Results are cached per carrier, parcel type and postcode pair, which makes repeat
-     * calls cheap but means a booking made elsewhere may not be reflected immediately.
+     * The list starts from today. Days the carrier refuses are left out.
      *
-     * If every probe fails the API raises the carrier's own error rather than returning an empty list,
-     * so an empty list means the carrier answered but offered nothing.
+     * Errors from the carrier come back as the carrier's own message. An empty list means the carrier
+     * offered no days.
      *
      * Endpoint: `get_courier_pickup_time`
      *
@@ -212,36 +205,35 @@ interface CourierServiceInterface
      * }
      * ```
      *
-     *
      * Common errors:
      * ```json
      * {"status": "error", "response": "Brak kodu pocztowego nadawcy"}
      * ```
-     * Raised when `shipfrom` is missing. If every probed day fails, the carrier's own error is
-     * returned rather than an empty list.
+     * `shipfrom` is missing.
+     *
      * @param GetPickupTimeMessage $getPickupTimeMessage
      *
-     * @return PickupTimeMessage[] payload:
+     * @return PickupTimeMessage[] a list of
+     *         {@see \Polkurier\Webservice\Response\Courier\PickupTimeMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Courier\PickupTimeMessage}[]
      */
     public function getCourierPickupTime(GetPickupTimeMessage $getPickupTimeMessage): array;
 
     /**
      * Lists the countries one international carrier delivers to.
      *
-     * International carriers only. A domestic carrier code is rejected with the acceptable set named in
-     * the message — currently UPS_EX, DPDEXP, GLS_FOREIGN and INPOST_INTERNATIONAL. Use
+     * International carriers only. A domestic carrier code is rejected, and the error message lists
+     * the accepted codes (currently UPS_EX, DPDEXP, GLS_FOREIGN and INPOST_INTERNATIONAL). Use
      * getSupportedCountries() for the full country list.
      *
-     * The payload is a map of ISO country code to Polish country name, not a list of objects, and a
-     * country known under several names has them joined with ", " into one string. It carries no
-     * regions; getSupportedCountries() does.
+     * The payload maps ISO country codes to Polish country names. If a country has several names,
+     * they are joined with ", " into one string. There are no regions here. getSupportedCountries()
+     * has them.
      *
      * Endpoint: `get_countries`
      *
@@ -267,7 +259,6 @@ interface CourierServiceInterface
      * }
      * ```
      *
-     *
      * Common errors:
      * ```json
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
@@ -277,10 +268,11 @@ interface CourierServiceInterface
      * {"status": "error",
      *  "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS_EX, DPDEXP, GLS_FOREIGN, INPOST_INTERNATIONAL]"}
      * ```
-     * The second is what a domestic carrier code gets, and it arrives without either code field.
+     * You get the second one for a domestic carrier code. It has neither code field.
+     *
      * @param GetCountriesMessage $getCountriesMessage
      *
-     * @return array<string, string> <string, string>, ISO code to name
+     * @return array<string, string> country names keyed by ISO code
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -293,12 +285,12 @@ interface CourierServiceInterface
     /**
      * Lists every country the service supports, with its regions.
      *
-     * Not carrier-specific and not a delivery guarantee — it is the reference list an address form
-     * should offer. For where a particular carrier actually delivers, use getCountries().
+     * This is the reference list for an address form. It doesn't depend on the carrier and doesn't
+     * mean every carrier delivers there. Use getCountries() to see where a given carrier delivers.
      *
-     * Cheap to call, and stable enough to be worth caching locally. As with getCountries(), a country
-     * known under several names has them joined into one string. The region ids are what an address's
-     * province field accepts.
+     * The call is light and the list rarely changes, so you can cache it locally. As with
+     * getCountries(), several names for one country are joined into one string. Use the region ids
+     * in an address's province field.
      *
      * Endpoint: `get_supported_countries_v2`
      *
@@ -341,19 +333,19 @@ interface CourierServiceInterface
     /**
      * Finds pickup points across one or more carriers.
      *
-     * At least one carrier must be named; the API rejects an empty list. Three search modes, and the
-     * shape of the reply follows from which you use:
+     * Name at least one carrier. The SDK checks this before sending. There are 3 search modes, and
+     * the reply's shape depends on which one you use:
      *
-     * - By id — returns that one point as a single object, or an empty result if no carrier in the list
-     *   knows the code. The SDK asks for a single object in this case and a list otherwise.
-     * - By search phrase — matches against the point details and returns up to the first thousand
-     *   matches. Paging is ignored in this mode.
-     * - Neither — walks the whole filtered set with `page` and `limit`.
+     * - By id: the API returns one point as a single object, not a list, so use getCourierPoint()
+     *   for this. The message passed here must not have an id set.
+     * - By search phrase: matches the point details and returns up to the first 1000 matches.
+     *   Leave `page` and `limit` unset in this mode.
+     * - Neither: pages through the whole filtered set with `page` and `limit`.
      *
-     * Filtering by function narrows to points supporting all of the functions given, not any.
+     * The function filter keeps only points that support all of the functions given.
      *
-     * This is the right call for lookups and searches. The per-carrier bulk listings exist for mirroring
-     * a whole network locally.
+     * Use this for lookups and searches. The per-carrier bulk listings are for copying a whole
+     * network locally.
      *
      * Endpoint: `get_courier_point`
      *
@@ -406,24 +398,22 @@ interface CourierServiceInterface
      * }
      * ```
      *
-     * Searching by id returns the same object unwrapped, not inside a list.
-     *
-     *
-     * Searching by id returns the object unwrapped rather than inside a list. A miss is reported as
-     * an empty array, which the SDK maps to null:
+     * A search by id returns the object on its own, not inside a list. A miss comes back as an empty
+     * array, which getCourierPoint() turns into null:
      * ```json
      * {"status": "success", "response": []}
      * ```
      *
-     * An unknown carrier code is likewise not an error — it simply matches nothing.
+     * An unknown carrier code is not an error either. It just matches nothing.
      *
      * Common errors:
      * ```json
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
      * ```
-     * Raised when `couriers` is missing or empty; at least one carrier must always be named.
-     * @param GetPointMessage $getPointMessage the search; its id must not be set
+     * `couriers` is missing or empty.
+     *
+     * @param GetPointMessage $getPointMessage the search, with no id set
      *
      * @return CourierPoint[]
      * @throws AuthorizationException
@@ -436,14 +426,14 @@ interface CourierServiceInterface
     public function findCourierPoints(GetPointMessage $getPointMessage): array;
 
     /**
-     * One pickup point by its identifier.
+     * Fetches one pickup point by its id.
      *
-     * The same endpoint as {@see self::findCourierPoints()}, which answers with a single point
-     * rather than a list when an id is given. An id that matches nothing is not an error: the API
-     * answers with an empty payload and this returns null.
+     * Uses the same endpoint as {@see self::findCourierPoints()}. Given an id, the endpoint returns
+     * a single point instead of a list. An id that matches nothing is not an error. The API returns
+     * an empty payload and this method returns null.
      *
-     * The carrier list is required even here, and an empty one is rejected outright — the id is
-     * looked up within the carriers named, not across all of them.
+     * The carrier list is still required, and an empty one is rejected. The id is looked up only
+     * within the carriers you name.
      *
      * Endpoint: `get_courier_point`
      *
@@ -459,7 +449,7 @@ interface CourierServiceInterface
      * Response: a single point, in the same shape the list form returns its entries.
      *
      * @param string $id the point's identifier, as `findCourierPoints()` reports it
-     * @param string[] $couriers the carriers to look it up in; must not be empty
+     * @param string[] $couriers the carriers to look it up in, must not be empty
      *
      * @return CourierPoint|null null when no point carries that id
      * @throws AuthorizationException

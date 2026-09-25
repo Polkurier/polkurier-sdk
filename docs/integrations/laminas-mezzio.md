@@ -1,15 +1,15 @@
 Laminas MVC and Mezzio
 ======================
 
-Both use `laminas/laminas-servicemanager`, so the wiring is the same; only where the configuration
-lives differs. Factory classes rather than closures, because ServiceManager can cache them and
-because they are easier to test.
+Both are built on `laminas/laminas-servicemanager`, so the wiring is the same. Only the location
+of the configuration files differs. The examples use factory classes for the main services:
+ServiceManager can cache them, and they are easier to test than closures.
 
 Configuration
 -------------
 
-Mezzio: `config/autoload/polkurier.global.php` for the safe parts, and
-`polkurier.local.php` (git-ignored) for the credentials.
+In Mezzio, put the non-secret settings in `config/autoload/polkurier.global.php` and the
+credentials in `polkurier.local.php`, which is git-ignored.
 
 ```php
 <?php
@@ -28,7 +28,7 @@ return [
 
 ```php
 <?php
-// config/autoload/polkurier.local.php   — not in version control
+// config/autoload/polkurier.local.php   (not in version control)
 
 return [
     'polkurier' => [
@@ -38,8 +38,8 @@ return [
 ];
 ```
 
-Laminas MVC puts the same arrays in `module/Application/config/module.config.php` and
-`config/autoload/`, respectively.
+In Laminas MVC the same arrays go in `module/Application/config/module.config.php` and
+`config/autoload/`.
 
 Factories
 ---------
@@ -101,7 +101,7 @@ final class SerializerProviderFactory
 }
 ```
 
-One factory serves every service, since they all take the same six arguments:
+All the services take the same 6 arguments, so one factory can build any of them:
 
 ```php
 <?php
@@ -162,8 +162,8 @@ final class ServiceMap
 Dependency configuration
 ------------------------
 
-Mezzio: `config/autoload/dependencies.global.php`. Laminas MVC: the `service_manager` key of
-`module.config.php`.
+In Mezzio this goes in `config/autoload/dependencies.global.php`. In Laminas MVC, use the
+`service_manager` key of `module.config.php`.
 
 ```php
 <?php
@@ -209,8 +209,8 @@ return [
 ];
 ```
 
-ServiceManager passes the requested name to the factory as its second argument, which is what lets
-one factory class serve every service.
+ServiceManager passes the requested service name to the factory as the second argument. That's
+how a single factory class can build every service.
 
 Using it
 --------
@@ -241,12 +241,12 @@ final readonly class TrackHandler implements RequestHandlerInterface
 }
 ```
 
-Its factory is one line of `ConfigAbstractFactory`, or a small class of your own.
+For its factory, use a one-line `ConfigAbstractFactory` entry or write a small class.
 
 Error handling middleware
 -------------------------
 
-Mezzio's pipeline is the right place to turn SDK exceptions into responses:
+In Mezzio, convert SDK exceptions into responses in the middleware pipeline:
 
 ```php
 namespace App\Middleware;
@@ -283,8 +283,8 @@ final class PolkurierErrorMiddleware implements MiddlewareInterface
 }
 ```
 
-Pipe it in front of the routes that touch the SDK, not globally — a 502 is the right answer for a
-shipping endpoint and the wrong one for everything else.
+Pipe it only in front of the routes that call the SDK. A 502 makes sense for a shipping endpoint,
+but you don't want it on every other route.
 
 Laminas MVC specifics
 ---------------------
@@ -299,8 +299,8 @@ return [
 ];
 ```
 
-Controllers get theirs through `controllers.factories`, and a delegator is the cleanest way to add
-cross-cutting behaviour to a service — logging every call, timing it — without wrapping it by hand:
+Controllers get their dependencies through `controllers.factories`. To add behaviour around a
+service (e.g. logging or timing every call) without wrapping it by hand, use a delegator:
 
 ```php
 'delegators' => [
@@ -311,7 +311,7 @@ cross-cutting behaviour to a service — logging every call, timing it — witho
 `laminas-cli` commands
 ----------------------
 
-A reachability check, for deploy verification:
+A reachability check you can run after a deploy:
 
 ```php
 namespace App\Command;
@@ -353,5 +353,5 @@ Override one entry in the test container:
 $container->setService(ClientFactoryInterface::class, new RecordingClient($cannedBody));
 ```
 
-ServiceManager is not immutable by default, so this works in place. If yours is configured
-otherwise, build a second container from the same config with the one key replaced.
+ServiceManager allows overrides by default, so this works on the existing container. If yours
+doesn't, build a second container from the same config with that one key replaced.

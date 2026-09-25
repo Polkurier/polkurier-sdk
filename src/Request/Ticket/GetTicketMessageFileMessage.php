@@ -12,10 +12,10 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names one attachment to download.
+ * Identifies one attachment to download.
  *
- * Attachments are addressed by the message they belong to plus their filename, so a filename is only
- * unique within its message.
+ * An attachment is identified by its message and its filename. Filenames are only unique within a
+ * message.
  */
 readonly class GetTicketMessageFileMessage implements MessageInterface
 {

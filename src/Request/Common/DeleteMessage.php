@@ -12,10 +12,10 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Identifies a record to delete, for the resources keyed by id alone.
+ * Identifies a record to delete by its id.
  *
- * Addresses are the exception: they are filed per role, so deleting one needs
- * {@see \Polkurier\Webservice\Request\Address\DeleteMessage} instead.
+ * Address-book entries are identified by their role too, so use
+ * {@see \Polkurier\Webservice\Request\Address\DeleteMessage} for those.
  */
 readonly class DeleteMessage implements MessageInterface
 {

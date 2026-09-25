@@ -19,13 +19,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Checks whether a discount coupon applies.
  *
- * Two levels of answer, and which you get depends on what you send. With only the code, the API
- * says whether the coupon is valid for the account at all. Supply the carrier, shipment type and
- * parcels as well and it additionally says whether it applies to that particular order — coupons
- * can be restricted by carrier, by value, or by sender region.
+ * With only the code, the API says whether the coupon is valid for the account. If you also send
+ * the carrier, shipment type and parcels, it also says whether the coupon applies to that order.
+ * Coupons can be restricted by carrier, by value or by sender region.
  *
- * The API requires all three order fields together or none: sending a carrier without parcels is
- * an error rather than a partial check.
+ * Send all 3 order fields or none. A carrier without parcels, for example, is an error.
  */
 #[Validate\ValidatedBy(ValidateCouponMessageValidator::class)]
 readonly class ValidateCouponMessage implements MessageInterface

@@ -1,26 +1,24 @@
 Configuration
 =============
 
-There are two configuration objects, and they are separate on purpose.
+The SDK has two configuration objects.
 
-`Config` is about the API: where it is, who you are, how long to wait, what to log.
-`SerializerConfig` is about your application: how it caches, what timezone it thinks in, how strict
-it wants to be about fields it does not recognise. Nothing in the second one depends on the first,
-and an application that runs two clients against two accounts will usually share one serializer
-between them.
+`Config` covers the API: the endpoint, your credentials, the timeout and logging.
+`SerializerConfig` covers your application: caching, the timezone dates are read into, and whether
+unknown response fields are an error. The two are independent. If your application runs two
+clients against two accounts, they will usually share one serializer.
 
-There are three ways to give the SDK its configuration, and they are not alternatives to each
-other so much as three levels of lateness:
+You can supply the configuration in three ways, depending on when the values are known:
 
-1. **A `Config` object**, built once and passed to the client. The ordinary case, covered
-   immediately below.
-2. **Your own `ConfigInterface` implementation**, when the values come from somewhere that is not
-   a constructor call — a settings table, a framework's parameter bag, a feature flag. `Config` is
-   `final`, so this means implementing the interface rather than extending the class.
-3. **Your own `ConfigProviderInterface`**, when the configuration is not known until the moment it
-   is used — per tenant, per shop, per job. See [per-tenant credentials](#per-tenant-credentials).
+1. A `Config` object, built once and passed to the client. This is the usual case, described
+   below.
+2. Your own `ConfigInterface` implementation, when the values come from somewhere else, e.g. a
+   settings table, a framework's parameter bag or a feature flag. You can also extend `Config` and
+   override the getters you need.
+3. Your own `ConfigProviderInterface`, when the configuration isn't known until it is used, e.g.
+   per tenant, per shop or per job. See [per-tenant credentials](#per-tenant-credentials).
 
-They compose: a provider hands back a `ConfigInterface`, which may well be a plain `Config`.
+These can be combined. A provider returns a `ConfigInterface`, which can be a plain `Config`.
 
 `Config`
 --------
@@ -36,13 +34,13 @@ $config = new Config(
 );
 ```
 
-Three arguments are required; the rest have working defaults.
+Three arguments are required. The others have defaults.
 
 | Argument | Type | Default | Meaning |
 |----------|------|---------|---------|
-| `authorization` | `AuthorizationMessage` | — | Customer id and API token |
-| `platform` | `string` | — | Name identifying your integration |
-| `platformVersion` | `string` | — | Its version |
+| `authorization` | `AuthorizationMessage` | required | Customer id and API token |
+| `platform` | `string` | required | Name identifying your integration |
+| `platformVersion` | `string` | required | Its version |
 | `apiUrl` | `?string` | `null` | Overrides the endpoint entirely |
 | `apiTimeout` | `int` | `30` | Request timeout, in seconds |
 | `sandbox` | `bool` | `false` | Targets the sandbox host |
@@ -50,20 +48,20 @@ Three arguments are required; the rest have working defaults.
 | `methodsToLog` | `ApiMethodEnum[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
 
-`Config` is `final readonly` and implements `Api\ConfigInterface`. To vary configuration at
-runtime, implement the interface or supply a different provider rather than mutating this.
+`Config` is `readonly` and implements `Api\ConfigInterface`. If the configuration needs to change
+at runtime, implement the interface or use a different provider.
 
 ### Choosing an endpoint
 
-An explicit `apiUrl` wins. Failing that, `sandbox` chooses between the two constants on `Config`:
+If you set `apiUrl`, it is used. Otherwise `sandbox` picks one of the two constants on `Config`:
 
 ```php
 Config::API_URL         // https://api.polkurier.pl
 Config::SANDBOX_API_URL // https://api-sandbox.polkurier.pl
 ```
 
-So `sandbox: true` is the ordinary way to develop, and `apiUrl` is for a local mirror or a staging
-host that is neither.
+For development, use `sandbox: true`. Use `apiUrl` for any other host, such as a local mirror or
+a staging server.
 
 ```php
 new Config(
@@ -75,37 +73,36 @@ new Config(
 );
 ```
 
-Note that `sandbox` is also reported in every log record the SDK writes, so a misdirected request
-is visible in the log rather than only in a packet capture.
+Note: every log record the SDK writes includes `sandbox`, so you can see in the log which
+endpoint a request went to.
 
 ### Timeouts
 
-`apiTimeout` is passed straight to Guzzle as its `timeout` option and covers the whole request.
-Thirty seconds is generous for most calls and not generous for a few: `get_label` with a dozen
-order numbers renders a dozen labels into one PDF, and `get_orders` with `packs`, `items` and
-`files` all requested is a large response. If you are batching, raise it.
+`apiTimeout` is passed to Guzzle as its `timeout` option and covers the whole request. 30 seconds
+is enough for most calls, but a few can take longer. `get_label` with 12 order numbers renders 12
+labels into one PDF, and `get_orders` with `packs`, `items` and `files` requested returns a large
+response. Raise the timeout if you send batches like these.
 
-A request that runs out of time surfaces as a `ConnectionException`, which is the same class you
-get for DNS and TLS failures — the SDK cannot tell you whether the order was placed before the
-timeout, only that the answer never arrived. See
+A timeout throws a `ConnectionException`, the same class as DNS and TLS failures. The SDK can't
+tell whether the order was placed before the timeout, only that no answer arrived. See
 [Recipes: retrying safely](recipes.md#retrying-safely).
 
 ### Logging
 
-The SDK logs nothing unless you hand it a PSR-3 logger:
+Nothing is logged unless you pass a PSR-3 logger:
 
 ```php
 $client = new PolkurierWebservice($config, $logger);
 ```
 
-There are then two levels, and they are controlled separately.
+There are two levels of logging, each with its own setting.
 
-**Error logging** follows `loggingEnabled`. It covers API errors and transport failures: the
-request that failed, its body, and whatever came back. This is on by default, which costs nothing
-while no logger is attached.
+Error logging is controlled by `loggingEnabled`. It logs API errors and transport failures: the
+failed request, its body, and the response, if any. It is on by default, which has no effect until
+you attach a logger.
 
-**Extended logging** covers successful traffic too — the full request and response of every call —
-and is opt-in per method:
+Extended logging also logs successful calls, with the full request and response. You turn it on
+per method:
 
 ```php
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
@@ -116,28 +113,25 @@ new Config(
 );
 ```
 
-Both flags are read through `isExtendedLoggingEnabled()`, which requires `loggingEnabled` as well —
-turning base logging off silences everything, whatever `methodsToLog` says.
+`isExtendedLoggingEnabled()` checks both settings. If `loggingEnabled` is off, nothing is logged,
+whatever `methodsToLog` contains.
 
-> **Request bodies contain the API token.** `AuthorizationMessage` is serialized into every
-> authenticated request, and the logger is handed the body verbatim. Direct that logger somewhere
-> you are willing to keep credentials, or filter the record before it lands. Nothing in the SDK
-> redacts it, because a redacting logger that silently also redacted something you needed would be
-> worse than an obvious rule.
+> **Request bodies contain the API token.** `AuthorizationMessage` is included in every
+> authenticated request, and the logger receives the body unchanged. Send the logs somewhere you are
+> OK with storing credentials, or filter the record first. The SDK does not redact anything.
 
-Each record also carries structured context — `method`, `sandbox`, `payload`, `request`,
-`parsed_response`, `response` — so a processor can pick out what it wants rather than parsing the
-message string.
+Each record also has structured context (`method`, `sandbox`, `payload`, `request`,
+`parsed_response`, `response`), so a processor can read those fields directly without parsing the
+message.
 
 ### Payload validation
 
-`validatePayloads` decides whether the SDK checks a message before spending a request on it. On by
-default. Turning it off replaces the validator with one that accepts everything, so the code path
-is the same either way.
+`validatePayloads` controls whether the SDK checks a message before sending it. It is on by
+default. When it is off, the validator is replaced with one that accepts everything, so the same
+code runs in both cases.
 
-The one reason to turn it off is that the SDK disagrees with the service — a payload the API would
-have accepted, rejected here. That is a bug worth reporting, and this is the escape hatch while it
-is open. To drop one rule rather than all of them, see
+Only turn it off if the SDK rejects a payload that the API would accept. Please report that as a
+bug. To drop a single rule instead of all of them, see
 [Validation: changing the rules](validation.md#changing-the-rules).
 
 `SerializerConfig`
@@ -166,10 +160,9 @@ $client = new PolkurierWebservice(
 
 ### metadataCache
 
-Reading the serializer attributes off around a hundred and fifty classes is the SDK's single
-biggest start-up cost, and the result never changes between deployments of the same code. A
-long-running process — a worker, a daemon, anything under FrankenPHP or RoadRunner — should hand
-over a PSR-6 pool:
+Reading the serializer attributes of around 150 classes is the SDK's biggest start-up cost, and
+the result doesn't change between deployments of the same code. In a long-running process (a
+worker, a daemon, or anything under FrankenPHP or RoadRunner), pass a PSR-6 pool:
 
 ```php
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
@@ -177,10 +170,10 @@ use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 new SerializerConfig(metadataCache: new PhpFilesAdapter('polkurier', 0, $cacheDir));
 ```
 
-Remember to clear it on deploy; the metadata is keyed by class, not by version.
+Clear the cache on deploy. The metadata is keyed by class, not by version.
 
-A short-lived request does not benefit from a shared pool nearly as much, because the cost is paid
-lazily per class actually touched. Measure before adding one to a classic PHP-FPM setup.
+Short-lived requests benefit much less, because metadata is only loaded for the classes a request
+uses. Measure before adding a cache to a classic PHP-FPM setup.
 
 ### jsonEncodeOptions
 
@@ -190,11 +183,10 @@ The default is `SerializerConfig::DEFAULT_JSON_OPTIONS`:
 \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES | \JSON_PRESERVE_ZERO_FRACTION
 ```
 
-> **These options replace the default; they do not merge with it.** The first two are cosmetic —
-> they are what makes a logged payload readable. The third is not: without
-> `JSON_PRESERVE_ZERO_FRACTION`, a cash-on-delivery amount of `250.0` is written as `250`, and the
-> API reads an integer where it expected a decimal. If you override this, OR your flags onto the
-> constant rather than replacing it:
+> **Your options replace the default. They are not merged with it.** The first two flags only make
+> logged payloads easier to read. The third one matters: without `JSON_PRESERVE_ZERO_FRACTION`, a
+> cash-on-delivery amount of `250.0` is written as `250`. Floats must stay floats on the wire, so
+> keep this flag. To add flags, OR them onto the constant:
 >
 > ```php
 > new SerializerConfig(
@@ -204,27 +196,26 @@ The default is `SerializerConfig::DEFAULT_JSON_OPTIONS`:
 
 ### timezone
 
-Left unset, dates arrive in whatever zone the API sent them with. Set it, and every
-`DateTimeInterface` the SDK builds is converted into that zone as it is read:
+If this is not set, dates keep the timezone the API sent. If it is set, every `DateTimeInterface`
+the SDK creates is converted to that zone:
 
 ```php
 new SerializerConfig(timezone: new DateTimeZone('Europe/Warsaw'));
 ```
 
-Worth doing in an application whose own clock is UTC, so that comparing a delivery date against a
-local business day does not quietly go through a conversion nobody wrote.
+This is useful if your application runs in UTC and you compare delivery dates against local
+business days.
 
-This affects reading only. Dates you send are formatted by the per-property format declared on the
-message, which is fixed by the protocol.
+It only affects dates you read. Dates you send use the format declared on each message property,
+which is fixed by the protocol.
 
 ### rejectUnknownFields
 
-By default an unrecognised field in a response is ignored, which is what you want in production: a
-new field appearing on the other side should not break a working integration.
+By default, unknown fields in a response are ignored. That is the right setting for production,
+where a new field in the API shouldn't break your integration.
 
-Turned on, it becomes an exception. That is worth doing in CI against a staging API, where it tells
-you the response has grown a field — instead of that field going quietly unread until someone
-notices the data is missing.
+When this option is on, an unknown field throws an exception. Turn it on in CI against a staging
+API to find out when a response gains a field the SDK doesn't read.
 
 ```php
 new SerializerConfig(rejectUnknownFields: (bool)getenv('CI'));
@@ -233,12 +224,12 @@ new SerializerConfig(rejectUnknownFields: (bool)getenv('CI'));
 Per-tenant credentials
 ----------------------
 
-The services, the client factory and the request factory all resolve configuration through a
-`ConfigProviderInterface` rather than holding a `Config` directly. The default implementation,
-`ConfigProvider`, is the trivial case: configuration that is already known.
+The services, the client factory and the request factory get their configuration from a
+`ConfigProviderInterface` instead of holding a `Config` directly. The default implementation,
+`ConfigProvider`, just returns a configuration that is already known.
 
-The indirection exists so credentials can be resolved at the moment they are needed — from a
-container, a database row, or a tenant-scoped context:
+With your own provider, you can look up credentials when they are needed, e.g. from a container, a
+database row or a tenant context:
 
 ```php
 use Polkurier\Webservice\Api\ConfigInterface;
@@ -269,13 +260,13 @@ $client = new PolkurierWebservice(
 );
 ```
 
-When a provider is given, it overrides the `config` argument entirely.
+If you pass a provider, the `config` argument is ignored.
 
-One caveat: `AbstractService` and `ClientFactory` each call `getConfig()` once, in their
-constructors, and hold the result. Services are created lazily on first use and then reused, so a
-provider is consulted once per service per client instance — not once per call. For genuinely
-per-request tenancy, build a client per tenant (they are cheap; the serializer is the expensive
-part, and you can share one across clients).
+Note: `AbstractService` and `ClientFactory` each call `getConfig()` once, in their constructors,
+and keep the result. Services are created on first use and then reused, so the provider is called
+once per service per client instance, not once per call. If the tenant can change between
+requests, create one client per tenant. Clients are inexpensive to create. The serializer is the
+costly part, and you can share it between clients.
 
 Sharing a serializer across clients
 -----------------------------------
@@ -292,27 +283,27 @@ foreach ($tenants as $tenant) {
 }
 ```
 
-`SerializerProvider` holds no per-call state, so one instance serves any number of clients. This is
-the recommended shape for a multi-tenant application: one serializer, one client per tenant.
+`SerializerProvider` has no per-call state, so one instance can serve any number of clients. For
+a multi-tenant application, we recommend one serializer and one client per tenant.
 
 Full wiring reference
 ---------------------
 
-Every collaborator `PolkurierWebservice` uses is optional and constructor-injected:
+All of `PolkurierWebservice`'s collaborators are optional constructor arguments:
 
 ```php
 new PolkurierWebservice(
     config: $config,                       // ConfigInterface, required
-    logger: $logger,                       // ?LoggerInterface — defaults to NullLogger
+    logger: $logger,                       // ?LoggerInterface, defaults to NullLogger
     serializerProvider: $serializer,       // ?SerializerProviderInterface
-    configProvider: $provider,             // ?ConfigProviderInterface — overrides $config
-    clientFactory: $clientFactory,         // ?ClientFactoryInterface — your own PSR-18 client
+    configProvider: $provider,             // ?ConfigProviderInterface, overrides $config
+    clientFactory: $clientFactory,         // ?ClientFactoryInterface, for your own PSR-18 client
     requestFactory: $requestFactory,       // ?RequestFactoryInterface
     responseFactory: $responseFactory,     // ?ResponseFactoryInterface
     validator: $validator,                 // ?ValidatorInterface
-    services: [],                          // array<class-string, object> — ready-made services
+    services: [],                          // array<class-string, object>: ready-made services
 );
 ```
 
-What each of these is for, and when replacing one is a good idea, is in
-[Architecture](architecture.md#extension-points).
+See [Architecture](architecture.md#extension-points) for what each one does and when to replace
+it.

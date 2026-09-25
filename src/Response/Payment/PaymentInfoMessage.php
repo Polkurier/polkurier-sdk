@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The state of a payment.
  *
- * The hash is the provider's own signature over the transaction and is there for reconciliation
- * against a provider-side callback, not for display.
+ * The hash is the provider's signature over the transaction. Use it to reconcile against the
+ * provider's callback. It is not meant for display.
  */
 readonly class PaymentInfoMessage implements MessageInterface
 {

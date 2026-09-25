@@ -11,24 +11,22 @@ use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
- * An international bank account number, checked properly.
+ * An international bank account number (IBAN).
  *
- * Verifies the ISO 13616 check digits rather than just counting characters, so a transposed pair
- * is caught here instead of failing somewhere downstream — which matters more than usual, because
- * the field decides where collected money is sent and a wrong-but-plausible number is a payment
- * to a stranger.
+ * Verifies the ISO 13616 check digits as well as the length, so swapped digits are caught. This
+ * field decides where collected money is sent, so a wrong but plausible number means paying the
+ * wrong person.
  *
- * Two forms are accepted. A full IBAN carries its own country code. A bare national number does
- * not, so the configured country is prefixed before checking — which is the common case here,
- * since Polish accounts are normally written as the 26-digit national number with the "PL" left
- * off. Nothing is recalculated in the process: a national number already carries its check digits,
- * and Poland's leading pair is exactly the IBAN pair.
+ * Two forms are accepted. A full IBAN includes its country code. A national number doesn't, so the
+ * configured country code is prefixed before checking. That is the usual case for Polish accounts,
+ * which are normally written as the 26-digit national number without "PL". Nothing is
+ * recalculated: the national number already contains the check digits, and for Poland its first
+ * 2 digits are the IBAN check digits.
  *
- * Formatting is ignored entirely: spaces and grouping are stripped first, as the API does.
+ * Spaces and grouping don't matter.
  *
- * A country outside the registry is passed over rather than rejected. The list below is current as
- * of writing and countries do join it, and refusing an account the bank itself accepts would be
- * the worse failure.
+ * Countries missing from the registry below pass. New countries get added over time, and rejecting
+ * an account the bank accepts would be worse.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Iban implements ValueValidatorInterface
@@ -52,7 +50,7 @@ class Iban implements ValueValidatorInterface
     ];
 
     /**
-     * @param string $country ISO country code assumed when the value carries no prefix of its own
+     * @param string $country ISO country code used when the value has no country prefix
      */
     public function __construct(
         /**
@@ -68,8 +66,8 @@ class Iban implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Absence is not this rule's business; that is what NotBlank is for. Saying so here would
-        // make every optional field of this kind mandatory.
+        // Empty values pass. NotBlank handles required fields. Rejecting them here would make
+        // every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }
@@ -87,8 +85,8 @@ class Iban implements ValueValidatorInterface
             return ['must contain only letters and digits'];
         }
 
-        // A national number already carries its check digits — Poland's leading pair is exactly
-        // the IBAN pair — so the country code is prefixed and nothing is recalculated.
+        // A national number already contains its check digits (for Poland the first 2 digits
+        // are the IBAN pair), so the country code is prefixed and nothing is recalculated.
         $iban = \preg_match('/^[A-Z]{2}\d{2}/', $normalised) === 1
             ? $normalised
             : \strtoupper($this->country) . $normalised;
@@ -117,7 +115,7 @@ class Iban implements ValueValidatorInterface
     }
 
     /**
-     * Letters become their position in the alphabet plus nine, as ISO 13616 requires.
+     * Replaces each letter with its position in the alphabet plus 9, as ISO 13616 requires.
      *
      * @param string $value
      *
@@ -137,7 +135,7 @@ class Iban implements ValueValidatorInterface
     }
 
     /**
-     * Modulo 97 over a number too long for an integer, taken in chunks.
+     * Computes modulo 97 in chunks, for a number too long for an integer.
      *
      * @param string $digits
      *

@@ -13,9 +13,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 /**
  * The field must be present and not just whitespace.
  *
- * Deliberately separate from the format rules: whether a field is required is a property of the
- * message, not of the value, and keeping the two apart is what lets the same format rule be optional
- * in one message and mandatory in another.
+ * Kept apart from the format rules. Whether a field is required depends on the message, so the same
+ * format rule can be used on an optional field in one message and a required one in another.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class NotBlank implements ValueValidatorInterface

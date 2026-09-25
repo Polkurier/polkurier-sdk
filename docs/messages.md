@@ -1,22 +1,21 @@
 Messages and models
 ===================
 
-Everything that crosses the wire lives in one of two namespaces, split by the direction it travels:
+Everything sent to or received from the API lives in one of two namespaces:
 
 ```
-Request/    65 classes — everything you send
-Response/   81 classes — everything you get back
+Request/    65 classes: everything you send
+Response/   81 classes: everything you get back
 ```
 
-They sit at the root of `Polkurier\Webservice` rather than under a shared `Model`, because the
-direction is the distinction worth having in the namespace. Nothing else belongs in either one: not
-the validator, not the serializer, not the HTTP envelope.
+Both sit at the root of `Polkurier\Webservice`, not under a shared `Model` namespace. They hold
+payload classes only. The validator, the serializer and the HTTP envelope live elsewhere.
 
 Requests
 --------
 
-A request payload — a **message** — is a readonly class implementing `Api\MessageInterface`,
-constructed with named arguments:
+A request payload (a **message**) is a readonly class that implements `Api\MessageInterface`. You
+construct it with named arguments:
 
 ```php
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
@@ -28,16 +27,16 @@ $search = new GetPointMessage(
 );
 ```
 
-Properties are private with getters. Readonly is not decoration: a message is validated and then
-serialized, and there is no window between those two in which it could change.
+Properties are private and have getters. Because the class is readonly, a message can't change
+between being validated and being serialized.
 
 ### Three ways to build one
 
-**1. The constructor, with named arguments.** The default, and the clearest when every value is to
-hand. Optional parameters can be skipped in any order.
+**1. The constructor, with named arguments.** This is the default and works best when you have
+every value up front. You can skip optional parameters in any order.
 
-**2. A [builder](builders.md).** For the twenty-two larger messages, when the payload is assembled
-across several steps or half its fields are conditional:
+**2. A [builder](builders.md).** The 22 larger messages have one. Use it when the payload is put
+together over several steps or many of its fields are conditional:
 
 ```php
 use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
@@ -51,22 +50,22 @@ if ($query !== null) {
 $points = $client->courier()->findCourierPoints($search->build());
 ```
 
-**3. Named-argument spreading**, when your input is already an associative array — a form
-submission, a queue payload:
+**3. Spreading an array into named arguments.** Useful when your input is already an associative
+array, e.g. a form submission or a queue payload:
 
 ```php
 $message = new GetPointMessage(...$validatedInput);
 ```
 
-PHP matches string keys to parameter names, so a key that does not correspond to a parameter is an
-`Error` rather than a silently ignored field. That makes it safe enough for input you have already
-validated, and a poor idea for input you have not. There is no `fromArray()` on messages, and no
-deserialization path into them — the serializer maps responses into objects, not requests.
+PHP matches string keys to parameter names, and a key with no matching parameter throws an
+`Error` instead of being ignored. That's fine for input you have already validated. Don't do it
+with raw input. Messages have no `fromArray()`, and the serializer only maps responses into
+objects, never requests.
 
 ### Extending a message
 
-Messages are not `final`. A subclass adding a field the API has grown but the SDK has not yet
-caught up with will serialize correctly, provided the new property carries its own
+Messages are not `final`. If the API has a field the SDK doesn't support yet, you can add it in a
+subclass. It will serialize correctly as long as the new property has its own
 `#[SerializedName]`:
 
 ```php
@@ -84,25 +83,24 @@ class ExtendedOrderMessage extends CreateOrderMessage
 }
 ```
 
-Class-level validation rules are inherited, so the parent's cross-field rules still apply. This is
-an escape hatch, not a migration path: report the missing field so it can be added properly.
+Class-level validation rules are inherited, so the parent's cross-field rules still apply. Treat
+this as a stopgap and report the missing field so it can be added to the SDK.
 
 Responses
 ---------
 
-Response classes are built through their constructors. A response either arrives whole or fails
-immediately, naming the field that was missing. There is no third state where an object exists but
-a getter on it raises — which matters, because a method promising an `Order` is only as good as
-that guarantee.
+Response classes are built through their constructors. If a required field is missing from the
+reply, mapping fails straight away and the error names the field. You never get an object whose
+getters throw, so a method that returns an `Order` always returns a complete one.
 
-Most are readonly. Twelve are not — `Order`, `Address`, `BankAccount`, `Pack`, `PackTemplate`,
-`Cod`, `Pickup`, `Waybill`, `Item`, `IndividualPricing`, `BaseAddress`, `BasePack` — and some of
-those carry setters. They are the entity-shaped ones, the things an application tends to hold onto
-and adjust locally before storing. Nothing in the SDK reads a setter; they exist for you.
+Most response classes are readonly. These 13 are not: `Order`, `Address`, `BankAccount`, `Pack`,
+`PackTemplate`, `Cod`, `Cod\ReturnDetails`, `Pickup`, `Waybill`, `Item`, `IndividualPricing`,
+`BaseAddress` and `BasePack`. Some of them have setters. They are the entity-like classes an
+application often keeps and edits locally before saving. The SDK itself never calls those setters.
 
 ### Lists, maps and pages
 
-Four shapes come back, and knowing which is which saves a lot of guessing:
+Responses come in four shapes:
 
 | Shape | Example | What you get |
 |-------|---------|--------------|
@@ -111,7 +109,7 @@ Four shapes come back, and knowing which is which saves a lot of guessing:
 | A map of strings | `getCountries()` | `array<string, string>` |
 | A page | `getOrders()` | `OrderListMessage` wrapping `Order[]` |
 
-A page carries its own navigation:
+A page has its own navigation getters:
 
 ```php
 $list->getResult();       // Order[]
@@ -121,8 +119,8 @@ $list->getCurrentPage();
 $list->getPageSize();
 ```
 
-Five endpoints page, and they do **not** all carry the same fields — worth knowing before you
-write a loop against `getTotalPages()`:
+Five endpoints return pages, and they do **not** all have the same fields. Check this table before
+you write a loop around `getTotalPages()`:
 
 | Class | `getResult()` | Rows | Pages | Current page | Page size |
 |-------|---------------|------|-------|--------------|-----------|
@@ -132,28 +130,27 @@ write a loop against `getTotalPages()`:
 | `Ticket\TicketListMessage` | `TicketMessage[]` | yes | no | yes | yes |
 | `Payment\PrepaidHistoryMessage` | `PrepaidEntryMessage[]` | yes | no | yes | yes |
 
-For the three without a page count, derive it from the row count and the page size, or stop when a
-page comes back short. [Recipes — paging](recipes.md#paging-through-a-list) has both loops.
+For the three without a page count, work it out from the row count and page size, or stop when a
+page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows both loops.
 
 ### The two unmapped responses
 
-`orders()->orderValuation()` and `tickets()->getContactForm()` return
-`array<array-key, mixed>` — decoded JSON and nothing more. Their shape varies with what was asked
-for, and there is no stable structure to map onto. Everything else in the SDK is a typed object;
-these two are honest about not being one.
+`orders()->orderValuation()` and `tickets()->getContactForm()` return `array<array-key, mixed>`,
+which is just the decoded JSON. Their shape depends on the request, so there's no fixed structure
+to map. Every other method returns a typed object.
 
 Why requests and responses are split
 ------------------------------------
 
-The two halves are kept apart even where they describe the same thing, because they are not the
-same shape.
+Request and response classes stay separate even when they describe the same thing, because the
+shapes differ.
 
-`Request\Order\PackMessage` carries the dimensions you choose. `Response\Order\Pack` carries those
-*and* what the carrier charged for them. `Request\Order\CodMessage` says what to collect;
-`Response\Order\Cod` says what became of the money — when it was paid out, whether it was returned,
-and why.
+`Request\Order\PackMessage` has the dimensions you choose. `Response\Order\Pack` has those plus
+what the carrier charged for them. `Request\Order\CodMessage` says what to collect.
+`Response\Order\Cod` says what happened to the money: when it was paid out, whether it was
+returned, and why.
 
-The pairs, and where each one is written:
+The pairs:
 
 | You send | You receive |
 |----------|-------------|
@@ -165,31 +162,26 @@ The pairs, and where each one is written:
 | `Request\Order\PickupMessage` | `Response\Order\Pickup` |
 | `Request\Order\CreateOrderMessage` | `Response\Order` |
 
-Each response class's docblock names the request that writes it, so the pairing is discoverable
-from either end.
+The docblock of each response class names the request that writes it, so you can find the pair
+from either side.
 
-The practical gain is nullability. A response field can be non-nullable when the API always sends
-it, rather than nullable because the request had nothing to put there. Merged into one class,
-every field that is optional on either side would be optional on both, and every getter would
-return a maybe.
+The main benefit is nullability. A response field can be non-nullable when the API always sends
+it. With a single shared class, any field that is optional on one side would have to be optional
+on both, and most getters would return a nullable type.
 
 Naming
 ------
 
-Two conventions collide here, and it is worth stating plainly.
+Under `Request`, every class ends in `Message`: `CreateOrderMessage`, `SaveMessage`,
+`GetOrdersMessage`. The suffix means "a payload".
 
-Under `Request`, everything ends in `Message`: `CreateOrderMessage`, `SaveMessage`,
-`GetOrdersMessage`. That suffix means "a payload".
+Under `Response`, it depends. Entity-like classes that exist independently of any call are named
+after the thing itself: `Order`, `Address`, `Carrier`, `CourierPoint`, `Country`, `BankAccount`,
+`PackTemplate`. Classes that only exist as the answer from one endpoint keep the suffix:
+`OrderListMessage`, `AccountInfoMessage`, `HeartbeatMessage`.
 
-Under `Response`, the suffix is inconsistent, and deliberately so. The entity-shaped
-things — the ones that exist independently of any call — are named for themselves: `Order`,
-`Address`, `Carrier`, `CourierPoint`, `Country`, `BankAccount`, `PackTemplate`. The ones that only
-exist as one endpoint's answer keep the suffix: `OrderListMessage`, `AccountInfoMessage`,
-`HeartbeatMessage`.
-
-So `Order` is a thing and `OrderListMessage` is an answer. When both a request and a response class
-share a short name — `Request\Order\PickupMessage` and `Response\Order\Pickup` — import one and
-qualify the other, or alias:
+When a request and a response class share a short name, like `Request\Order\PickupMessage` and
+`Response\Order\Pickup`, import one and use the fully qualified name for the other, or alias it:
 
 ```php
 use Polkurier\Webservice\Request\Order\PickupMessage;
@@ -199,34 +191,33 @@ use Polkurier\Webservice\Response\Order\Pickup as PickupResult;
 Wire names
 ----------
 
-No property is named after the API's own field. Each one carries a `#[SerializedName]` instead:
+No property is named after the API field it maps to. Each one has a `#[SerializedName]` instead:
 
 ```php
 #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
 private ShipmentTypeEnum $shipmentType,
 ```
 
-`codbankaccount`, `is_cover_address`, `shipmenttype`, `value_nett` never reach your code. This is a
-hard requirement of the SDK, not a stylistic preference — the wire names are inconsistent enough
-that inheriting them would be a permanent tax, and keeping them behind an attribute is what lets
-them change without a breaking release. [Serialization](serialization.md) covers the mechanism.
+Names like `codbankaccount`, `is_cover_address`, `shipmenttype` and `value_nett` never show up in
+your code. This is a firm rule in the SDK. The wire names are inconsistent, and keeping them in an
+attribute means they can change without a breaking release. [Serialization](serialization.md)
+explains how it works.
 
-The names are also declared as class constants:
+Each wire name is also a class constant:
 
 ```php
 CreateOrderMessage::FIELD_SHIPMENT_TYPE;   // 'shipmenttype'
 ```
 
-Those constants are what the attribute references, so there is exactly one place each wire name is
-written. They are useful when you need to speak the API's language directly — reading a
-`ValidationException`, matching a field in an error from the service, or building a raw request for
-debugging.
+The attribute references the constant, so each wire name is written in one place only. Use the
+constants when you need the API's own field names, e.g. when reading a `ValidationException`,
+matching a field in an error from the API, or building a raw request for debugging.
 
 Enums
 -----
 
 Values the API accepts and returns are backed enums under `Polkurier\Webservice\Enum`, grouped by
-area. The ones you will actually touch:
+area. The ones you're most likely to use:
 
 | Enum | Used for |
 |------|----------|
@@ -250,15 +241,15 @@ area. The ones you will actually touch:
 | `KnowledgeBase\KnowledgeBaseEntryTypeEnum` | Category or article |
 | `TwoFactorToken\TwoFactorNamespaceEnum` | Which operation a code authorises |
 
-And four under `Enum\Http` that describe the protocol rather than the domain: `ApiMethodEnum`
-(every endpoint — see the [API method index](api-methods.md)), `ApiStatusCodeEnum`,
-`ApiErrorCodeEnum` and `ResponseStatusEnum`.
+There are also four protocol-level enums under `Enum\Http`: `ApiMethodEnum` (every endpoint, see
+the [API method index](api-methods.md)), `ApiStatusCodeEnum`, `ApiErrorCodeEnum` and
+`ResponseStatusEnum`.
 
 ### Enums on responses, strings on some fields
 
-Where the API's value set is closed and known, the property is typed as the enum and the serializer
-maps it both ways. Where it is not — a carrier code, an order status string — the property stays a
-string and the enum exists alongside it as a set of known values:
+When the set of values is closed and known, the property is typed as the enum and the serializer
+maps it in both directions. When it isn't (a carrier code, an order status string), the property
+is a string and the enum lists the known values next to it:
 
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
@@ -266,24 +257,23 @@ use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 $order->getStatusCode() === OrderStatusCodeEnum::Delivered->value
 ```
 
-That is deliberate. A closed enum on a field the API can extend turns a new value into a hard
-failure of the whole response; a string with an enum beside it turns it into a comparison that
-does not match. The second is recoverable and the first is not.
+If the API adds a new value to a field typed as an enum, the whole response fails to map. On a
+string field, the new value just doesn't match any enum case, and your code can handle that.
 
 ### Handling an unknown enum value
 
-If the API does send a value outside an enum the SDK types strictly, denormalization fails and you
-get the error at the point of mapping. That is the intended behaviour — it is a real
-incompatibility — but if you need to survive it while a fix is released, the escape hatch is a
-custom normalizer registered ahead of `BackedEnumNormalizer`. See
+If the API sends a value that isn't in an enum the SDK uses as a property type, denormalization
+fails and you get the error during mapping. This is intended, since it is a real incompatibility.
+If you need to keep working until a fix is released, register a custom normalizer ahead of
+`BackedEnumNormalizer`. See
 [Serialization: replacing a normalizer](serialization.md#2-replace-or-add-a-normalizer).
 
-No interfaces on models — on purpose
-------------------------------------
+No interfaces on models
+-----------------------
 
-There are no interfaces for request or response classes, and there will not be. Their wire names,
-formats and dates live in serializer attributes on the classes themselves, so a substitute
-implementation would not serialize. An interface there advertises a swap that cannot work.
+Request and response classes have no interfaces, and won't get any. Wire names, formats and dates
+are defined in serializer attributes on the classes themselves, so a different implementation of
+an interface wouldn't serialize.
 
-Type-hint the classes. The interfaces that do exist — under `Api` — are the ones where supplying
-your own implementation genuinely does something.
+Type-hint the classes directly. The interfaces under `Api` are the ones where your own
+implementation actually changes something.

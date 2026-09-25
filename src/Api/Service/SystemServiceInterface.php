@@ -21,12 +21,10 @@ use Polkurier\Webservice\Response\System\SystemInfoMessage;
 /**
  * Service-wide configuration, carrier notices and coupon checks.
  *
- * None of this is specific to one order or one resource; it is the context a client needs in order
- * to present the service correctly.
+ * None of this is tied to a particular order or resource.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -34,20 +32,20 @@ use Polkurier\Webservice\Response\System\SystemInfoMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface SystemServiceInterface
 {
     /**
-     * Service limits a client should validate against.
+     * Returns the service limits to validate input against.
      *
-     * Everything here is policy rather than contract — PIN lengths, two-factor code length and resend
-     * window, attachment size caps, the minimum coupon length, the amount of the bank verification
-     * transfer, and how long a customer has to accept revised terms. It can change without an API
-     * version bump, so read it at start-up rather than hard-coding the numbers.
+     * This covers PIN lengths, the two-factor code length and resend window, attachment size limits,
+     * the minimum coupon length, the bank verification transfer amount, and how long a customer has
+     * to accept revised terms. These values can change without an API version bump. Read them at
+     * start-up instead of hard-coding them.
      *
-     * Carries no account data, so it is safe to cache and share across a process.
+     * The response has no account data, so you can cache it and share it across a process.
      *
      * Endpoint: `get_system_info`
      *
@@ -80,23 +78,23 @@ interface SystemServiceInterface
      * ```
      *
      * @return SystemInfoMessage payload:
+     *         {@see \Polkurier\Webservice\Response\System\SystemInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\System\SystemInfoMessage}
      */
     public function getSystemInfo(): SystemInfoMessage;
 
     /**
-     * Current notices about carriers — delays, suspensions, general information.
+     * Returns current carrier notices: delays, suspensions and general information.
      *
-     * Two sources arrive merged: operational alerts, which mean orders placed now will be affected, and
-     * informational messages. The type distinguishes them and the severity is a presentation hint only.
+     * Each notice has a `type`. Alerts mean orders placed now will be affected. The others are
+     * informational. `severity` is only a display hint.
      *
-     * Worth showing before a customer commits to a carrier. The text is Polish and ready to display;
-     * there is no machine-readable reason code behind it.
+     * Show these before a customer picks a carrier. The text is in Polish and ready to display. There
+     * is no machine-readable reason code.
      *
      * Endpoint: `get_couriers_messages`
      *
@@ -128,29 +126,28 @@ interface SystemServiceInterface
      * With nothing to report the response is `[]`.
      *
      * @return CourierMessage[] payload:
+     *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
      */
     public function getCouriersMessages(): array;
 
     /**
      * Checks a discount coupon, optionally against a specific order.
      *
-     * The code is normalised before lookup — whitespace and symbols are stripped — so what comes back
-     * may differ from what was sent, and it is the normalised form that should be quoted when placing
-     * the order.
+     * The returned `code` may differ from what you sent. Use the returned form when you place the
+     * order.
      *
-     * Two independent verdicts. `valid` says the coupon exists and this account may use it.
-     * `valid_for_order` additionally checks it against the carrier, contents and sender region of the
-     * order supplied alongside; with no order supplied it is always false, which means "not checked"
-     * rather than "not applicable".
+     * The response has 2 separate verdicts. `valid` means the coupon exists and this account may use
+     * it. `valid_for_order` also checks it against the carrier, contents and sender region of the
+     * order you pass. Without an order it is always false, meaning "not checked".
      *
-     * The order context is all-or-nothing: carrier, shipment type and parcels must be sent together. The
-     * SDK rejects a partial set in the message constructor rather than spending a round trip.
+     * Send the carrier, shipment type and parcels together or not at all. With payload validation
+     * on (the default), the SDK throws ValidationException for a partial set before sending the
+     * request, listing every missing field.
      *
      * Endpoint: `validate_coupon_code`
      *
@@ -197,8 +194,8 @@ interface SystemServiceInterface
      * }
      * ```
      *
-     * Response, a code that does not exist — a success, not an error, with every descriptive field null
-     * and `couriers` null rather than an empty list:
+     * Response for a code that doesn't exist. This is a success, not an error. Every descriptive field
+     * is null, and `couriers` is null instead of an empty list:
      * ```json
      * {
      *     "status": "success",
@@ -222,18 +219,19 @@ interface SystemServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [shipmenttype]"}
      * ```
-     * What a partial order context gives, naming whichever of the three is missing.
+     * The API's answer to a partial order context (with payload validation off). It names one of
+     * the missing fields.
      *
      * @param ValidateCouponMessage $validateCouponMessage
      *
      * @return CouponValidationMessage payload:
+     *         {@see \Polkurier\Webservice\Response\System\CouponValidationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\System\CouponValidationMessage}
      */
     public function validateCouponCode(ValidateCouponMessage $validateCouponMessage): CouponValidationMessage;
 }

@@ -10,8 +10,7 @@ namespace Polkurier\Webservice\Exception;
 /**
  * A message was constructed with values the SDK rejects before sending.
  *
- * Raised locally, never in response to anything the API said, so it always indicates a bug in the
- * calling code rather than a transient failure.
+ * Thrown locally, never because of an API response. It always means a bug in the calling code.
  *
  * @api
  */

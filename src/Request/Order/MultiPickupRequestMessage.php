@@ -14,10 +14,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * Request for a single courier pickup covering several shipments.
+ * Books one courier pickup for several shipments.
  *
- * All three scheduling fields are mandatory — unlike a per-order pickup, where the carrier decides
- * what it needs. The API rejects a missing or unparseable date or time outright.
+ * All 3 scheduling fields are required. (For a per-order pickup it depends on the carrier.) The API
+ * rejects a missing or unparseable date or time.
  */
 #[Validate\InOrder(
     earlier: 'pickupTimeFrom',
@@ -37,12 +37,12 @@ readonly class MultiPickupRequestMessage implements MessageInterface
 
     /**
      * @param \DateTimeInterface $pickupDate the day the courier should call
-     * @param \DateTimeInterface $pickupTimeFrom start of the window; only the time is sent
-     * @param \DateTimeInterface $pickupTimeTo end of the window; only the time is sent
-     * @param string[] $orders waybill numbers to collect; duplicates and empty entries are
-     *                         discarded by the API, and an effectively empty list is an error
+     * @param \DateTimeInterface $pickupTimeFrom start of the window, only the time is sent
+     * @param \DateTimeInterface $pickupTimeTo end of the window, only the time is sent
+     * @param string[] $orders waybill numbers to collect. At least one non-empty entry is
+     *                         required
      *
-     * @throws InvalidArgumentException when $orders is empty or holds non-strings
+     * @throws InvalidArgumentException when $orders has no non-empty entries or holds non-strings
      */
     public function __construct(
         /**

@@ -14,30 +14,29 @@ use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 
-final readonly class ResponseFactory implements ResponseFactoryInterface
+readonly class ResponseFactory implements ResponseFactoryInterface
 {
     /**
      * Response format for methods that only acknowledge.
      *
-     * These answer inconsistently — some with a bare `true`, others with an empty array — so the
-     * payload cannot be cast. Reaching this point at all means the envelope said `success`, which
-     * is the actual signal, so the result is true unless the API explicitly said false.
+     * Some of them answer with `true`, others with an empty array, so the payload can't be cast.
+     * Getting this far means the envelope said `success`, so the result is true unless the API
+     * explicitly returned false.
      */
     public const string FORMAT_BOOLEAN = 'boolean';
 
     /**
-     * The wire format the payload came in, passed on to the denormalizer.
+     * The wire format of the payload, passed to the denormalizer.
      *
-     * It matters: JSON draws no distinction between an integer and a float, so a whole-numbered price
-     * arrives as an int where a float is declared. The denormalizer widens one to the other only when
-     * it knows the data came from JSON.
+     * JSON doesn't distinguish integers from floats, so a whole-number price arrives as an int
+     * where a float is declared. The denormalizer only converts it when it knows the data is JSON.
      */
-    private const string FORMAT = 'json';
+    protected const string FORMAT = 'json';
 
     /**
-     * Response format for the two endpoints whose answer has no stable shape.
+     * Response format for the 2 endpoints whose answer has no fixed shape.
      *
-     * The decoded payload is handed back as it arrived; there is nothing to map it onto.
+     * The decoded payload is returned as is.
      */
     public const string FORMAT_RAW_ARRAY = 'array';
 
@@ -47,15 +46,15 @@ final readonly class ResponseFactory implements ResponseFactoryInterface
     public const string FORMAT_STRING_LIST = 'string[]';
 
     /**
-     * Longest raw body quoted back in a MalformedResponseException, so an HTML error page from a
-     * proxy does not end up pasted whole into logs.
+     * Maximum length of the raw body quoted in a MalformedResponseException, so a proxy's HTML
+     * error page doesn't end up in the logs in full.
      */
-    private const int EXCERPT_LENGTH = 512;
+    protected const int EXCERPT_LENGTH = 512;
 
     /**
      * @var DenormalizerInterface
      */
-    private DenormalizerInterface $serializer;
+    protected DenormalizerInterface $serializer;
 
     /**
      * @param SerializerProviderInterface $serializerProvider
@@ -95,7 +94,7 @@ final readonly class ResponseFactory implements ResponseFactoryInterface
             if ($status === ResponseStatusEnum::Error) {
                 return new ResponseWrapper(
                     $httpResponse,
-                    $this->serializer->denormalize($responseData, ErrorMessage::class, self::FORMAT),
+                    $this->serializer->denormalize($responseData, ErrorMessage::class, static::FORMAT),
                 );
             }
 
@@ -104,9 +103,8 @@ final readonly class ResponseFactory implements ResponseFactoryInterface
                 new ResponseMessage($status, $this->deserializePayload($responseData, $responseFormat))
             );
         } catch (SerializerException $e) {
-            // The serializer's own exceptions are outside the SDK's hierarchy, and a caller
-            // catching Polkurier's base exception would miss them. A payload that will not map is
-            // a malformed response by any other name.
+            // Serializer exceptions are outside the SDK's hierarchy, so a caller catching the base
+            // exception would miss them. A payload that doesn't map is a malformed response.
             throw MalformedResponseException::notMappable($httpResponse, $responseFormat, $e);
         }
     }
@@ -116,36 +114,34 @@ final readonly class ResponseFactory implements ResponseFactoryInterface
      * @param string $responseFormat
      *
      * @return mixed
-     * @throws SerializerException when the payload will not map; create() turns it into a
+     * @throws SerializerException when the payload doesn't map. create() turns it into a
      *         {@see MalformedResponseException}
      */
-    private function deserializePayload(array $responseData, string $responseFormat): mixed
+    protected function deserializePayload(array $responseData, string $responseFormat): mixed
     {
         $payload = $responseData[ResponseMessage::FIELD_RESPONSE] ?? null;
 
-        // Acknowledgement-only methods are not consistent about what they put in `response`:
-        // cancel-style calls answer `true`, the delete_* family answers `[]`. Casting would turn
-        // the empty array into false and report a successful delete as a failure, so treat the
-        // success envelope itself as the answer.
-        if ($responseFormat === '' || $responseFormat === self::FORMAT_BOOLEAN) {
+        // Acknowledge-only methods differ in what they put in `response`. Cancel-style calls
+        // return `true`, the delete_* methods return `[]`. Casting would turn `[]` into false and
+        // report a successful delete as a failure, so the success status is the answer.
+        if ($responseFormat === '' || $responseFormat === static::FORMAT_BOOLEAN) {
             return $payload !== false;
         }
 
-        // Shapes with nothing to map onto, and lists or maps of plain scalars, are already what
-        // they need to be once the body is decoded.
-        if ($responseFormat === self::FORMAT_RAW_ARRAY || $responseFormat === self::FORMAT_STRING_LIST) {
+        // Free-form payloads and lists or maps of plain scalars need no mapping after decoding.
+        if ($responseFormat === static::FORMAT_RAW_ARRAY || $responseFormat === static::FORMAT_STRING_LIST) {
             return \is_array($payload) ? $payload : [];
         }
 
         if ($payload === []) {
-            // Several endpoints answer "nothing found" with an empty array even where a single
-            // object is the documented shape — get_courier_point for an unknown id,
-            // get_account_verification_info for an unverified account. An empty array where an
-            // object was expected means absent; where a list was expected it means no rows.
+            // Several endpoints return an empty array for "nothing found" even where a single
+            // object is documented, e.g. get_courier_point for an unknown id, or
+            // get_account_verification_info for an unverified account. An empty array means null
+            // where an object was expected, and no rows where a list was expected.
             return \str_ends_with($responseFormat, '[]') ? [] : null;
         }
 
-        return $this->serializer->denormalize($payload, $responseFormat, self::FORMAT);
+        return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT);
     }
 
     /**
@@ -153,12 +149,12 @@ final readonly class ResponseFactory implements ResponseFactoryInterface
      *
      * @return string
      */
-    private function excerpt(string $raw): string
+    protected function excerpt(string $raw): string
     {
         $trimmed = \trim($raw);
 
-        return \strlen($trimmed) > self::EXCERPT_LENGTH
-            ? \substr($trimmed, 0, self::EXCERPT_LENGTH) . '…'
+        return \strlen($trimmed) > static::EXCERPT_LENGTH
+            ? \substr($trimmed, 0, static::EXCERPT_LENGTH) . '…'
             : $trimmed;
     }
 }

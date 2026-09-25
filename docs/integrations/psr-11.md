@@ -1,14 +1,15 @@
 Slim, PHP-DI and any PSR-11 container
 =====================================
 
-The SDK has no container integration of its own and needs none: every collaborator is a plain
-object with an explicit constructor. This page covers the containers that use PHP definitions
-rather than a bundle or a provider, and finishes with no container at all.
+The SDK doesn't need a container integration. Each class is a plain object with an explicit
+constructor. This page covers containers configured with PHP definitions, and then shows how to
+use the SDK with no container.
 
 PHP-DI
 ------
 
-Used directly, or as Slim's container. One definitions file:
+This works whether you use PHP-DI on its own or as Slim's container. You need one definitions
+file:
 
 ```php
 <?php
@@ -56,7 +57,7 @@ return [
 
     ConfigProviderInterface::class => autowire(ConfigProvider::class),
 
-    // One serializer. This is the expensive object; never make it a transient.
+    // One serializer. This is the expensive object, so never make it a transient.
     SerializerProviderInterface::class => factory(
         static fn(ContainerInterface $c): SerializerProviderInterface => new SerializerProvider(
             new SerializerConfig(metadataCache: $c->get(CacheItemPoolInterface::class)),
@@ -69,7 +70,7 @@ return [
 
     ValidatorInterface::class => factory([DefaultValidatorRegistryFactory::class, 'create']),
 
-    // The services. They all take the same six arguments, so autowire handles them
+    // The services. They all take the same 6 arguments, so autowire handles them
     // once the interfaces above are bound.
     OrdersServiceInterface::class  => autowire(OrdersService::class),
     CourierServiceInterface::class => autowire(CourierService::class),
@@ -85,15 +86,14 @@ return [
 ];
 ```
 
-`autowire()` works on the services because every constructor parameter is an interface bound above,
-with the exception of `LoggerInterface` — bind that to your application's logger, or PHP-DI will
-try to instantiate the interface and fail.
+`autowire()` can build the services because each constructor parameter is an interface bound
+above. The exception is `LoggerInterface`. Bind it to your application's logger, otherwise PHP-DI
+tries to instantiate the interface and fails.
 
 Slim
 ----
 
-Slim uses whatever PSR-11 container you give it, so the definitions above are the whole
-integration:
+Slim works with any PSR-11 container, so the definitions above are all you need:
 
 ```php
 use DI\ContainerBuilder;
@@ -107,7 +107,7 @@ AppFactory::setContainer($builder->build());
 $app = AppFactory::create();
 ```
 
-An action then asks for what it needs:
+An action can then ask for its dependencies:
 
 ```php
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
@@ -129,11 +129,11 @@ final readonly class TrackAction
 }
 ```
 
-> With compilation enabled, PHP-DI freezes the definitions. Clear `var/cache` on deploy, and note
-> that `factory()` closures cannot be compiled — either accept the small cost or move them into
+> With compilation enabled, PHP-DI freezes the definitions, so clear `var/cache` when you deploy.
+> Also, `factory()` closures can't be compiled. Either accept the small cost or move them into
 > invokable factory classes.
 
-A middleware that turns SDK exceptions into responses keeps the actions clean:
+To keep error handling out of the actions, convert SDK exceptions into responses in a middleware:
 
 ```php
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -169,12 +169,13 @@ final readonly class PolkurierErrorMiddleware implements MiddlewareInterface
 Laminas ServiceManager and Mezzio
 ---------------------------------
 
-See [Laminas MVC and Mezzio](laminas-mezzio.md), which uses factory classes rather than closures.
+See [Laminas MVC and Mezzio](laminas-mezzio.md). That page uses factory classes for the main
+services.
 
 No container at all
 -------------------
 
-A cron script, a small CLI tool, a legacy application. Construct the facade and be done:
+For a cron script, a small CLI tool or a legacy application, just construct the facade:
 
 ```php
 require __DIR__ . '/vendor/autoload.php';
@@ -197,10 +198,10 @@ foreach ($client->orders()->getOrders($filter)->getResult() as $order) {
 }
 ```
 
-Everything the facade needs is built internally on first use, and services are cached after that.
+The facade builds what it needs on first use and caches the services after that.
 
-If you want one service and not the facade, wire it by hand. Every service takes the same six
-arguments, in this order:
+If you only want one service, you can wire it by hand. Every service takes the same 6 arguments,
+in this order:
 
 ```php
 use Polkurier\Webservice\ConfigProvider;
@@ -225,21 +226,22 @@ $orders = new OrdersService(
 ```
 
 > **Pass the validator explicitly.** `AbstractService` defaults it to `NullValidator`, so a service
-> constructed by hand validates nothing — the opposite of the facade's default. That default exists
-> so a service built before validation existed keeps working; it is not what you want.
+> you construct by hand doesn't validate anything. The facade does validate by default. The
+> `NullValidator` default keeps older code that builds services by hand working, but you'll want
+> the real validator.
 
 Long-running processes
 ----------------------
 
-Swoole, RoadRunner, FrankenPHP, ReactPHP, and any worker that survives more than one job.
+This covers Swoole, RoadRunner, FrankenPHP, ReactPHP and any worker that handles more than one job.
 
-**Share the serializer, and give it a cache pool.** Reading attributes off a hundred and fifty
-classes is the SDK's biggest start-up cost, and in a worker you pay it once rather than per request
-— but only if the provider instance survives.
+**Share the serializer and give it a cache pool.** Reading the attributes of about 150 classes is
+the SDK's biggest start-up cost. In a worker you pay it once, as long as the same provider instance
+is kept between requests.
 
-**Watch configuration lifetime.** `AbstractService` and `ClientFactory` each call `getConfig()`
-once, in their constructors. A per-tenant `ConfigProviderInterface` therefore does *not* make a
-long-lived service switch tenants. Build the client per job instead, sharing the serializer:
+**Watch how long configuration lives.** `AbstractService` and `ClientFactory` each call
+`getConfig()` once, in the constructor. A per-tenant `ConfigProviderInterface` will *not* make a
+long-lived service switch tenants. Build the client per job instead, and share the serializer:
 
 ```php
 $client = new PolkurierWebservice(
@@ -248,13 +250,13 @@ $client = new PolkurierWebservice(
 );
 ```
 
-**Do not share a service across concurrent coroutines.** `AbstractService::$lastHttpResponse` is
-per-call mutable state, kept so exceptions can report what arrived. In a shared-nothing process it
-is unremarkable; under real concurrency, give each coroutine its own client.
+**Don't share a service between concurrent coroutines.** `AbstractService::$lastHttpResponse` is
+mutable state set on each call, so that exceptions can report the response that came back. In a
+shared-nothing process that's harmless. With real concurrency, give each coroutine its own client.
 
-**Static caches are per process, not per request.** `AttributeValidator`, `MessageFields`,
-`OmitEmptyNormalizer` and `AbstractBuilder` each hold a static reflection cache keyed by class
-name. They warm once and stay warm, which is the point — but it also means a filtered
-`AttributeValidator` subclass must filter what `parent::rulesFor()` returns rather than replacing
-the cached entry, or two differently configured validators will fight over it. See
+**Static caches last for the whole process.** `AttributeValidator`, `MessageFields`,
+`OmitEmptyNormalizer` and `AbstractBuilder` each keep a static reflection cache keyed by class
+name. Once filled, they stay filled. As a result, an `AttributeValidator` subclass that filters
+rules must filter what `parent::rulesFor()` returns. If it replaces the cached entry, two
+validators with different settings will overwrite each other's rules. See
 [Validation](../validation.md#2-drop-one-rule-keep-the-rest).

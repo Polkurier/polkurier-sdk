@@ -10,6 +10,8 @@ namespace Polkurier\Webservice\Request\Order;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * Identifies an order to fetch the status of.
+ *
  * @see GetStatusMessage
  */
 readonly class GetStatusMessage extends OrderIdMessage
@@ -37,11 +39,11 @@ readonly class GetStatusMessage extends OrderIdMessage
     }
 
     /**
-      * Whether to ask for the carrier's scan history alongside the current status.
-      *
-      * Off by default. Turning it on makes the API query the carrier's tracking service, which is
-      * slower than reading the order, so leave it off when only the current state is needed.
-      *
+     * Whether to also fetch the carrier's scan history.
+     *
+     * Off by default. Turning it on makes the call slower. Leave it off if you only need the
+     * current status.
+     *
      * @return bool
      */
     public function isTracking(): bool

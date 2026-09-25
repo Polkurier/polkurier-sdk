@@ -13,20 +13,19 @@ use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
- * The order rules that cannot be declared on the fields themselves.
+ * Order rules that can't be declared on the fields.
  *
- * Most of an order is checked by the attributes on its own messages: the carrier must be present,
- * the parcels positive, the postcodes in the right format. What is left here is the one rule that
- * depends on context rather than on any single value.
+ * Most of an order is checked by attributes on its messages: the carrier must be set, parcel
+ * values positive, postcodes in the right format. This class handles the addresses, where the
+ * required fields depend on context.
  *
- * That rule is the addresses. An email address is required of a sender and optional for a
- * recipient, and a recipient collecting from a pickup point needs no street address at all — so
- * which fields are required depends on the role the address is playing, which the address itself
- * does not know.
+ * An email address is required for the sender and optional for the recipient. A recipient who
+ * collects from a pickup point needs no street address. The address message doesn't know which
+ * role it plays, so the check happens here.
  *
- * Cash on delivery used to be the second, and is no longer: the rules for it belong to
- * {@see \Polkurier\Webservice\Request\Order\CodMessage} and are declared on it, so they
- * hold wherever a block of it is sent rather than only on an order.
+ * Cash-on-delivery rules are declared on
+ * {@see \Polkurier\Webservice\Request\Order\CodMessage}, so they apply wherever that block is
+ * sent.
  *
  * @extends AbstractMessageValidator<CreateOrderMessage>
  */

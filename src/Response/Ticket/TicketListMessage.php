@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of support tickets.
  *
- * Paged like the invoice list, without a `totalpages` field. Page size is clamped to between 1 and
- * 250 and defaults to 100 — a wider range than the order list allows.
+ * Paged like the invoice list, without a `totalpages` field. The page size must be 1–250 (the SDK
+ * checks this before sending) and defaults to 100, a wider range than the order list allows.
  */
 readonly class TicketListMessage implements MessageInterface
 {
@@ -30,7 +30,7 @@ readonly class TicketListMessage implements MessageInterface
     /**
      * @param int $totalRows
      * @param int $currentPage
-     * @param int $pageSize as the API applied it, after clamping
+     * @param int $pageSize tickets per page, as applied to this response
      * @param TicketMessage[] $result the tickets on this page
      */
     public function __construct(

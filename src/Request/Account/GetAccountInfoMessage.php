@@ -14,8 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Optional extras for the account profile.
  *
- * All three are off or absent by default, and each adds to the work of the call, so ask only for
- * what you use.
+ * All 3 are off (or null) by default. Each one makes the call slower, so request only what you use.
  */
 readonly class GetAccountInfoMessage implements MessageInterface
 {
@@ -26,7 +25,7 @@ readonly class GetAccountInfoMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param ?string $externalApplicationId UUID of an external application; when given, its per-account settings are attached
+     * @param ?string $externalApplicationId UUID of an external application. When set, the application's settings for this account are included
      */
     public function __construct(
 

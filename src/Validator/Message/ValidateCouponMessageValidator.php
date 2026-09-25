@@ -13,15 +13,14 @@ use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
- * A coupon is checked either on its own or against an order, and an order means all three fields.
+ * A coupon is checked on its own or against an order. Checking against an order needs all 3
+ * order fields.
  *
- * The carrier, the shipment type and the parcels describe the order the coupon is being tried
- * against. Send none of them and the API answers whether the coupon is valid at all; send all
- * three and it also answers whether it applies to that order. Send some of them and it rejects the
- * call, naming whichever it noticed missing first.
+ * The carrier, the shipment type and the parcels describe the order. With none of them, the API
+ * says whether the coupon is valid at all. With all 3, it also says whether the coupon applies to
+ * that order. With only some, the call is rejected.
  *
- * Which is why this reports all of them at once instead: being told the carrier is missing, fixing
- * that, and then being told the shipment type is missing is three round trips to learn one thing.
+ * This validator reports all missing fields at once.
  *
  * @extends AbstractMessageValidator<ValidateCouponMessage>
  */

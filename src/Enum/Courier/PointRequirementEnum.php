@@ -10,18 +10,18 @@ namespace Polkurier\Webservice\Enum\Courier;
 /**
  * Whether a carrier needs a pickup point chosen for one end of a shipment.
  *
- * Reported per carrier by `available_carriers`. REQUIRED means an order without a point id on the
- * relevant address will be rejected.
+ * Returned per carrier by `available_carriers`. REQUIRED means an order is rejected if the
+ * address has no point id.
  */
 enum PointRequirementEnum: string
 {
     /**
-     * The carrier does not use pickup points here; sending one has no effect.
+     * The carrier doesn't use pickup points here. Don't send one.
      */
     case None = 'NONE';
 
     /**
-     * A point may be chosen, but a street address is equally valid.
+     * A point can be chosen, but a street address works too.
      */
     case Optional = 'OPTIONAL';
 

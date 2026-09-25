@@ -11,10 +11,9 @@ use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
- * A list holding at least one usable entry.
+ * A list with at least one non-blank entry.
  *
- * Blank entries do not count. Several endpoints strip them before deciding whether anything was sent,
- * so a list of empty strings is rejected there as an empty list and is treated the same way here.
+ * Blank entries don't count, so a list of empty strings fails.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class NotEmptyList implements ValueValidatorInterface

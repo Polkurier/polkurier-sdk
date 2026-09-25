@@ -14,11 +14,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A payout request and its progress.
  *
- * Amounts separate what was requested from what has actually moved: the total, the part still to be
- * paid, the part already paid, and anything withheld as compensation against debts.
+ * The amounts show the total requested, the part still to be paid, the part already paid and
+ * anything withheld as compensation against debts.
  *
- * The cancellable flag is the one to check before offering a cancel action — a payout already in
- * flight cannot be recalled.
+ * Check the cancellable flag before offering a cancel action. A payout already in progress cannot be
+ * recalled.
  */
 readonly class MoneyBoxPayoutMessage implements MessageInterface
 {

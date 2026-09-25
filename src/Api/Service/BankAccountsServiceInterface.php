@@ -20,11 +20,10 @@ use Polkurier\Webservice\Response\BankAccount;
 /**
  * Bank accounts that collected cash-on-delivery funds are paid into.
  *
- * An account must be registered here before an order can name it for COD settlement.
+ * Register an account here before an order can use it for COD settlement.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -32,15 +31,15 @@ use Polkurier\Webservice\Response\BankAccount;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface BankAccountsServiceInterface
 {
     /**
      * Lists the registered bank accounts.
      *
-     * Unlike saving and deleting, reading is not behind the PIN lock.
+     * Reading is not behind the PIN lock (saving and deleting are).
      *
      * Endpoint: `get_bank_accounts`
      *
@@ -80,21 +79,18 @@ interface BankAccountsServiceInterface
     /**
      * Registers a bank account, or updates the one the message's id names.
      *
-     * Redirecting where money is paid is treated as sensitive, and the API guards it two ways that are
-     * alternatives rather than both:
+     * This call needs one of two confirmations (only one, never both):
      *
-     * - If the account has PIN-locked bank account editing, the PIN must accompany the request.
-     *   `get_account_info` reports the lock state under `pin_locks.BANK_ACCOUNTS_EDIT`.
-     * - If it has not, the API demands a confirmed two-factor token instead, registered under the
-     *   CHANGE_BANK_ACCOUNT_NUMBER namespace. The token is consumed by this call and cannot be reused.
+     * - If bank account editing is PIN-locked, send the PIN with the request. `get_account_info`
+     *   reports the lock state under `pin_locks.BANK_ACCOUNTS_EDIT`.
+     * - Otherwise, send a confirmed two-factor token registered under the CHANGE_BANK_ACCOUNT_NUMBER
+     *   namespace. This call uses up the token, so it can't be reused.
      *
-     * The number is stripped to digits before validation, so formatting and spacing are irrelevant, but
-     * it must be a structurally valid account number. Validation runs before the two-factor check, so an
-     * invalid number fails without spending the token.
+     * The number must be a valid account number. The SDK checks its check digits before sending.
      *
      * Endpoint: `save_bank_account`
      *
-     * Request; omit `id` to create, and send whichever of the two guards applies:
+     * Request (omit `id` to create, and send whichever confirmation applies):
      * ```json
      * {
      *     "apimethod": "save_bank_account",
@@ -129,12 +125,12 @@ interface BankAccountsServiceInterface
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
      *  "response": "Edycja zablokowana jest kodem PIN. Nie podano kodu PIN lub jest on błędny [access_pin]"}
      * ```
-     * Raised when the PIN lock is engaged and the PIN is missing or wrong.
+     * Thrown when the PIN lock is on and the PIN is missing or wrong.
      * ```json
      * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
      * ```
-     * Two-factor failures surface with the relevant two-factor code; a missing or invalid confirmation
-     * is reported rather than silently ignored.
+     * Two-factor failures come back with the matching two-factor error code. A missing or invalid
+     * confirmation is always reported as an error.
      *
      * @param SaveMessage $saveMessage
      *
@@ -151,12 +147,11 @@ interface BankAccountsServiceInterface
     /**
      * Removes a bank account.
      *
-     * Subject to the same PIN lock as saving, so the PIN must be supplied while that lock is engaged. No
-     * two-factor confirmation is required for removal.
+     * The same PIN lock as for saving applies: while it is on, send the PIN. Deleting does not need
+     * two-factor confirmation.
      *
-     * Deleting an id that does not exist is a silent success rather than an error, so the response says
-     * nothing about whether anything was actually removed — list the accounts afterwards if you need to
-     * know.
+     * Deleting an id that does not exist also succeeds, so the response doesn't tell you whether
+     * anything was removed. List the accounts afterwards if you need to know.
      *
      * Endpoint: `delete_bank_account`
      *

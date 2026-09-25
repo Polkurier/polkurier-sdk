@@ -12,11 +12,11 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One entry of the account's address book, as it is stored.
+ * One entry in the account's address book, as stored.
  *
- * Writing an entry is {@see \Polkurier\Webservice\Request\Address\SaveMessage} instead,
- * which takes the fields the API accepts; the rest of what is here — the parsed street name, the
- * resolved pickup point, whether the entry is shared — the API works out for itself.
+ * To write an entry, use {@see \Polkurier\Webservice\Request\Address\SaveMessage}. It takes
+ * the fields you can set. The rest are read-only: the parsed street name, the resolved pickup point
+ * and whether the entry is shared.
  */
 class Address extends BaseAddress
 {
@@ -31,9 +31,7 @@ class Address extends BaseAddress
     public const string FIELD_DEFAULT = 'default';
     public const string FIELD_SHARED = 'shared';
     public const string FIELD_COVER_ADDRESS = 'is_cover_address';
-    /**
-     * -@#
-     */
+    /**-@#*/
 
     public const AddressTypeEnum DEFAULT_TYPE = AddressTypeEnum::Sender;
 

@@ -31,15 +31,15 @@ use Polkurier\Webservice\Response\Account\PinValidityMessage;
 use Polkurier\Webservice\Response\Account\RegulationsMessage;
 
 /**
- * The account itself: profile, balances, preferences, credentials and telephone numbers.
+ * The account: profile, balances, preferences, credentials and telephone numbers.
  *
- * getAccountInfo() is the call to make first in most integrations — it reports the acceptance,
- * verification and PIN-lock flags that decide whether the account can ship at all and which of the
- * calls here need extra confirmation.
+ * Most integrations call getAccountInfo() first. It reports the acceptance, verification and
+ * PIN-lock flags. These tell you whether the account can ship at all and which calls here need
+ * extra confirmation.
  *
- * Errors always arrive with HTTP 200 and `status: "error"`, so branch on the envelope and never on
- * the transport status. Both `status_code` and `error_code` are optional, so an error can carry
- * both, either, or neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
+ * status. `status_code` and `error_code` are both optional. An error may have one, both or
+ * neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -47,21 +47,21 @@ use Polkurier\Webservice\Response\Account\RegulationsMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK raises these rather than returning them; see the
- * exception list on each method.
+ * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
+ * can throw.
  */
 interface AccountServiceInterface
 {
     /**
-     * The account's profile, balances and outstanding obligations.
+     * Fetches the account's profile, balances and outstanding obligations.
      *
-     * Worth treating as a precondition check rather than display data. The acceptance flags decide
-     * whether orders will be accepted at all; `require_account_verification` and
-     * `require_agreement_verification` gate shipping on some accounts; and `pin_locks` says which
-     * calls need the security PIN attached.
+     * Use it as a check before placing orders, not just for display. The acceptance flags decide
+     * whether orders are accepted at all. `require_account_verification` and
+     * `require_agreement_verification` block shipping on some accounts. `pin_locks` says which calls
+     * need the security PIN.
      *
-     * Balances are in PLN. The money box reports three of them because funds pass through states:
-     * the total held, the part withdrawable now, and the part already committed to a payout.
+     * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw
+     * now, and the part already committed to a payout.
      *
      * Endpoint: `get_account_info`
      *
@@ -116,27 +116,25 @@ interface AccountServiceInterface
      * }
      * ```
      *
-     * @param GetAccountInfoMessage|null $getAccountInfoMessage null omits all three extras
+     * @param GetAccountInfoMessage|null $getAccountInfoMessage null leaves out all 3 optional extras
      *
-     * @return AccountInfoMessage payload:
+     * @return AccountInfoMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
      */
     public function getAccountInfo(?GetAccountInfoMessage $getAccountInfoMessage = null): AccountInfoMessage;
 
     /**
      * Changes the account's order-form defaults.
      *
-     * A partial update: only the fields present are touched. The whole thing runs in one
-     * transaction, so a failure in any part leaves none of it applied.
+     * Only the fields you send are changed.
      *
-     * Returns the full account profile rather than an acknowledgement, which saves a follow-up
-     * call to read the new state back.
+     * Returns the full account profile, so you don't need another call to read the new state.
      *
      * Endpoint: `save_account_settings`
      *
@@ -160,18 +158,18 @@ interface AccountServiceInterface
      * {"status": "error",
      *  "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, DHL, DPD, …]"}
      * ```
-     * Note this one arrives without either code field.
+     * Note: this one has neither code field.
      *
      * @param SaveAccountSettingsMessage $saveAccountSettingsMessage
      *
-     * @return AccountInfoMessage payload:
+     * @return AccountInfoMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
      */
     public function saveAccountSettings(
         SaveAccountSettingsMessage $saveAccountSettingsMessage
@@ -180,8 +178,8 @@ interface AccountServiceInterface
     /**
      * Sets the carrier preselected on the order form.
      *
-     * A narrower alternative to saveAccountSettings() when the carrier is all that changes. The
-     * carrier is validated against what this account may actually use, not against the full list.
+     * Use this instead of saveAccountSettings() when only the carrier changes. The carrier must be
+     * one this account is allowed to use.
      *
      * Endpoint: `change_default_courier`
      *
@@ -223,11 +221,9 @@ interface AccountServiceInterface
      * Sets, or clears, the default drop-off point for one carrier.
      *
      * Only carriers that operate points accept this: InPost lockers, Pocztex points, Paczka w
-     * Ruchu, DPD, FedEx, DHL and UPS Access Points. Sub-variants normalise onto their parent, so
-     * setting it for the InPost courier variant sets it for InPost lockers.
+     * Ruchu, DPD, FedEx, DHL and UPS Access Points.
      *
-     * The point id is validated against that carrier's own network, so a code belonging to another
-     * carrier is rejected rather than stored. An empty point clears the default.
+     * The point id must belong to that carrier's network. An empty point clears the default.
      *
      * Endpoint: `change_default_sender_point`
      *
@@ -254,12 +250,12 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [courier]. Musi zawierać się w zbiorze […]"}
      * ```
-     * Raised for a carrier that does not operate points.
+     * The carrier does not operate points.
      * ```json
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Punkt POZ01A jest nieprawidłowy"}
      * ```
-     * Raised when the point is unknown to that carrier.
+     * The carrier does not know the point.
      *
      * @param ChangeDefaultSenderPointMessage $changeDefaultSenderPointMessage
      *
@@ -278,13 +274,13 @@ interface AccountServiceInterface
     /**
      * Writes one of the account's three addresses: billing, correspondence or contact.
      *
-     * Two gates fire before any field is examined. The call is refused outright once the account
-     * has been issued an invoice — billing details are locked at that point and only support can
-     * change them, which is reported as a forbidden error naming the contact form. And the legal
-     * form is mandatory on the billing address; on the other two it is ignored.
+     * Once the account has been issued an invoice, the billing details are locked and only support
+     * can change them. The call then fails with a forbidden error that points to the contact form.
      *
-     * The correspondence and contact addresses may be declared identical to the billing one rather
-     * than filled in.
+     * The legal form is required on the billing address. Send it only for that one.
+     *
+     * Instead of filling in the correspondence or contact address, you can mark it as the same as
+     * the billing one.
      *
      * Endpoint: `save_payer_address`
      *
@@ -320,8 +316,7 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
      *  "response": "W celu zmiany danych prosimy o kontakt poprzez formularz kontaktowy na stronie www.polkurier.pl"}
      * ```
-     * The invoice lock, checked before anything else — an account that has been invoiced gets this
-     * whatever it sends.
+     * The invoice lock. An invoiced account gets this whatever it sends.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"nip": ["…"], "post_code": ["…"]}}
@@ -342,9 +337,8 @@ interface AccountServiceInterface
     /**
      * Changes the account password.
      *
-     * The current password is checked first, and a missing or wrong one is refused as forbidden
-     * rather than as a validation failure — so the error does not distinguish "you did not send
-     * it" from "it was wrong".
+     * A missing or wrong current password gets a forbidden error, not a validation error, so you
+     * can't tell from the error which it was.
      *
      * Endpoint: `change_password`
      *
@@ -371,7 +365,7 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"password": ["…"]}}
      * ```
-     * Raised when the new password does not meet the strength rules.
+     * The new password does not meet the strength rules.
      *
      * @param ChangePasswordMessage $changePasswordMessage
      *
@@ -388,9 +382,9 @@ interface AccountServiceInterface
     /**
      * Sets or changes the account's telephone PIN.
      *
-     * This is the code quoted when contacting support, and the same code that unlocks PIN-guarded
-     * operations such as editing bank accounts. Its permitted length is policy rather than
-     * contract — read it from `get_system_info` under `security` instead of hard-coding it.
+     * You give this code when contacting support. It also unlocks PIN-protected operations such as
+     * editing bank accounts. The allowed length can change, so read it from `get_system_info` under
+     * `security` instead of hard-coding it.
      *
      * Endpoint: `change_phone_pin`
      *
@@ -430,8 +424,8 @@ interface AccountServiceInterface
     /**
      * Checks a security PIN without changing anything.
      *
-     * A wrong PIN is a verdict, not an error: the response is a success envelope with the flag
-     * cleared. Read the flag rather than relying on an exception.
+     * A wrong PIN does not cause an error. The response is a success envelope with `valid` set to
+     * false, so read the flag.
      *
      * Endpoint: `validate_user_pin`
      *
@@ -449,32 +443,31 @@ interface AccountServiceInterface
      * {"status": "success", "response": {"valid": true}}
      * ```
      *
-     * Response, wrong PIN — still a success envelope:
+     * Response, wrong PIN (still a success envelope):
      * ```json
      * {"status": "success", "response": {"valid": false}}
      * ```
      *
      * @param ValidatePinMessage $validatePinMessage
      *
-     * @return PinValidityMessage payload:
+     * @return PinValidityMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Account\PinValidityMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\PinValidityMessage}
      */
     public function validateUserPin(ValidatePinMessage $validatePinMessage): PinValidityMessage;
 
     /**
      * Fetches the terms of service or the privacy policy.
      *
-     * The one method here that needs no credentials, so it can be shown during registration before
-     * an account exists. The SDK still sends them when configured; the API simply ignores them.
+     * The only method here that needs no credentials, so you can show the terms during registration,
+     * before an account exists. The SDK sends no credentials for this call.
      *
-     * The content is a ready-to-render HTML fragment in Polish, meant to be embedded rather than
-     * displayed raw.
+     * The content is an HTML fragment in Polish, ready to embed in a page.
      *
      * Endpoint: `get_regulations`
      *
@@ -507,26 +500,23 @@ interface AccountServiceInterface
      *
      * @param GetRegulationsMessage|null $getRegulationsMessage null fetches the terms of service
      *
-     * @return RegulationsMessage payload:
+     * @return RegulationsMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Account\RegulationsMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\RegulationsMessage}
      */
     public function getRegulations(?GetRegulationsMessage $getRegulationsMessage = null): RegulationsMessage;
 
     /**
      * Records the customer's acceptance of the current terms.
      *
-     * The id must match the version in force at the moment of the call, so read it from
-     * getRegulations() immediately beforehand. The check exists so a customer cannot accept a
-     * version they were shown earlier and which has since been superseded — which means a stale
-     * cached id will be rejected rather than silently accepted.
-     *
-     * Acceptance is recorded against the parent account, so it covers sub-accounts too.
+     * The id must match the version in force at the time of the call, so read it from
+     * getRegulations() just before. A customer cannot accept a version that has since been replaced,
+     * so a stale cached id is rejected.
      *
      * Endpoint: `accept_regulations`
      *
@@ -549,7 +539,7 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędny ID regulaminu"}
      * ```
-     * Raised both for a malformed id and for a valid one that is no longer current.
+     * Returned for a malformed id and for a valid one that is no longer current.
      *
      * @param AcceptRegulationsMessage $acceptRegulationsMessage
      *
@@ -566,8 +556,7 @@ interface AccountServiceInterface
     /**
      * Lists the account's telephone numbers.
      *
-     * Archived numbers are not listed, so everything returned is live. Exactly one is the default,
-     * and that is the one two-factor codes and carrier notifications go to.
+     * One number is the default, and two-factor codes and carrier notifications go to it.
      *
      * Endpoint: `get_phone_numbers`
      *
@@ -592,26 +581,26 @@ interface AccountServiceInterface
      *
      * An account with none gets `"response": []`.
      *
-     * @return PhoneNumberMessage[] payload:
+     * @return PhoneNumberMessage[] a list of
+     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}[]
      */
     public function getPhoneNumbers(): array;
 
     /**
      * Adds a telephone number, optionally making it the account's default.
      *
-     * The number is stripped to digits and validated, so formatting is irrelevant but a malformed
-     * number is rejected naming the `number` field.
+     * The SDK checks before sending that the number has at least 9 digits. A malformed number is
+     * rejected with an error on the `number` field.
      *
-     * Adding a number needs no confirmation; making it the default does. That requires a verified
-     * two-factor token registered under CHANGE_DEFAULT_PHONE_NUMBER, because the default number is
-     * where future two-factor codes will be sent. The sole exception is the first number on an
-     * account created without one, which becomes default automatically and skips the check.
+     * Adding a number needs no confirmation, but making it the default does. You need a verified
+     * two-factor token registered under CHANGE_DEFAULT_PHONE_NUMBER, because future two-factor codes
+     * go to the default number. The one exception is the first number on an account created without
+     * one. It becomes the default automatically and needs no token.
      *
      * Endpoint: `save_phone_number`
      *
@@ -641,26 +630,25 @@ interface AccountServiceInterface
      *
      * @param SavePhoneNumberMessage $savePhoneNumberMessage
      *
-     * @return PhoneNumberMessage payload:
+     * @return PhoneNumberMessage the payload, see
+     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
      * @throws ValidationException
      * @throws WebserviceException
-     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}
      */
     public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumberMessage;
 
     /**
      * Removes a telephone number from the account.
      *
-     * Both the id and the number are required, and the number is validated on its own before the
-     * id is used, so a malformed number fails even when the id is correct.
+     * Both the id and the number are required, and the number must match the id. The SDK checks the
+     * number's format before sending.
      *
-     * Removal also withdraws any marketing consents recorded against that number, for both calls
-     * and text messages — a side effect worth knowing about, since it is not reversible by
-     * re-adding the number.
+     * Removing a number also withdraws any marketing consents given for it, for both calls and text
+     * messages. Adding the number again does not restore them.
      *
      * Endpoint: `delete_phone_number`
      *
@@ -687,8 +675,7 @@ interface AccountServiceInterface
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
      * ```
-     * Raised when the number may not be removed — the default number cannot be deleted while it is
-     * the only one.
+     * The number can't be removed, e.g. the default number while it is the only one.
      *
      * @param DeletePhoneNumberMessage $deletePhoneNumberMessage
      *

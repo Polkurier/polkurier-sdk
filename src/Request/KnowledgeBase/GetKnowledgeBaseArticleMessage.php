@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Names the article to fetch, by its slug.
+ * Identifies the article to fetch by its slug.
  */
 readonly class GetKnowledgeBaseArticleMessage implements MessageInterface
 {

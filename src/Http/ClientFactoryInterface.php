@@ -10,11 +10,10 @@ namespace Polkurier\Webservice\Http;
 use Psr\Http\Client\ClientInterface;
 
 /**
- * Supplies the PSR-18 client the services send through.
+ * Supplies the PSR-18 client the services send requests through.
  *
- * Indirection rather than a plain client so that the client is built once the configuration is
- * known, and so a host application can substitute its own — one with retries, connection pooling
- * or request tracing — without the services knowing.
+ * The client is built once the configuration is known. You can supply your own client, e.g. one
+ * with retries, connection pooling or request tracing.
  */
 interface ClientFactoryInterface
 {

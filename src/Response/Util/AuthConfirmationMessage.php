@@ -19,9 +19,7 @@ readonly class AuthConfirmationMessage implements MessageInterface
      * JSON parameter keys
      */
     public const string FIELD_AUTHORIZATION = 'authorization';
-    /**
-     * -@#
-     */
+    /**-@#*/
 
     public function __construct(
         /**

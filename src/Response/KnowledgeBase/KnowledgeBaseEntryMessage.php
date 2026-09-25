@@ -13,11 +13,10 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One node of the knowledge base tree — either a category or an article.
+ * One node of the knowledge base tree: a category or an article.
  *
- * The index is a flat list of these, with the hierarchy expressed through the parent id rather than
- * by nesting, so building a tree means grouping on it yourself. A null parent marks a top-level
- * entry.
+ * The index is a flat list of these. The hierarchy comes from the parent id, not from nesting, so to
+ * build a tree you group the entries by it yourself. A null parent marks a top-level entry.
  *
  * The id is the entry's slug, which is what
  * {@see \Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface::getArticle()} takes.
@@ -37,7 +36,7 @@ readonly class KnowledgeBaseEntryMessage implements MessageInterface
 
     /**
      * @param string $id the entry's slug, and its identifier
-     * @param ?string $parentId slug of the parent entry; null at the top level
+     * @param ?string $parentId slug of the parent entry, null at the top level
      * @param string $slug URL-friendly name
      * @param string $title display title, in Polish
      * @param KnowledgeBaseEntryTypeEnum $type whether this is an article or a category

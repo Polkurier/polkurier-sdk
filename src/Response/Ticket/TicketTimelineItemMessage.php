@@ -16,12 +16,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One entry on a ticket's timeline.
  *
- * The timeline mixes two kinds of entry, distinguished by the type: messages someone wrote, and
- * actions that happened to the ticket. For an action the content is a description of the event
- * rather than prose from a person.
+ * The timeline holds 2 kinds of entry, told apart by the type: messages someone wrote, and events on
+ * the ticket. For an event, the content describes what happened.
  *
- * The read timestamp is only meaningful on entries written by Polkurier: it records when the
- * customer saw them, and is null until they did.
+ * The read timestamp applies only to entries written by Polkurier. It records when the customer saw
+ * them, and is null until then.
  */
 readonly class TicketTimelineItemMessage implements MessageInterface
 {
@@ -45,7 +44,7 @@ readonly class TicketTimelineItemMessage implements MessageInterface
      * @param TicketAuthorEnum $origin which side it came from
      * @param string $authorName first name only
      * @param string $content the message text, or a description of the event
-     * @param ?\DateTimeInterface $dateRead when the customer read it; null while unread, and meaningless on their own entries
+     * @param ?\DateTimeInterface $dateRead when the customer read it, null while unread. Ignore it on the customer's own entries
      * @param TicketFileMessage[] $files attachments on this entry
      */
     public function __construct(
