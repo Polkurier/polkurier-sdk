@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Response\DecodesFile;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -17,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class TicketFileContentMessage implements MessageInterface
 {
+    use DecodesFile;
+
     /**+@#
      * JSON parameter keys
      */
@@ -88,15 +91,5 @@ readonly class TicketFileContentMessage implements MessageInterface
     public function getFile(): string
     {
         return $this->file;
-    }
-
-    /**
-     * The attachment's raw bytes, ready to write to disk or stream to a browser.
-     *
-     * @return string
-     */
-    public function getDecodedFile(): string
-    {
-        return (string)\base64_decode($this->file, true);
     }
 }

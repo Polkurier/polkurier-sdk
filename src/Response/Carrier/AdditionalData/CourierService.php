@@ -10,6 +10,12 @@ namespace Polkurier\Webservice\Response\Carrier\AdditionalData;
 use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * The additional services a carrier reports in `available_carriers`.
+ *
+ * Each getter is named after the {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum} case
+ * to order for that service.
+ */
 readonly class CourierService implements MessageInterface
 {
     /**+@#
@@ -30,43 +36,43 @@ readonly class CourierService implements MessageInterface
     /**-@#*/
 
     /**
-     * @param Property|null $rod
-     * @param Property|null $coverAddressSender
-     * @param Property|null $bringingDeliveredParcel
-     * @param Property|null $courierWithLabel
+     * @param Property|null $returnOfDocuments
+     * @param Property|null $coverSenderAddress
+     * @param Property|null $carryIn
+     * @param Property|null $courierBringsLabel
      * @param Property|null $saturdayDelivery
-     * @param Property|null $phoneNotificationRecipient
+     * @param Property|null $phoneCallBeforeDelivery
      * @param Property|null $tires
      * @param Property|null $handDelivery
-     * @param Property|null $endOfWeekCollection
+     * @param Property|null $weekendDelivery
      * @param Property|null $labelless
      * @param Property|null $handleWithCare
-     * @param Property|null $deliveryToTime
+     * @param Property|null $deliveryByTime
      */
     public function __construct(
         /**
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_ROD)]
-        private ?Property $rod = null,
+        private ?Property $returnOfDocuments = null,
 
         /**
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS_SENDER)]
-        private ?Property $coverAddressSender = null,
+        private ?Property $coverSenderAddress = null,
 
         /**
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_BRINGING_DELIVERED_PARCEL)]
-        private ?Property $bringingDeliveredParcel = null,
+        private ?Property $carryIn = null,
 
         /**
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_WITH_LABEL)]
-        private ?Property $courierWithLabel = null,
+        private ?Property $courierBringsLabel = null,
 
         /**
          * @var Property|null
@@ -78,7 +84,7 @@ readonly class CourierService implements MessageInterface
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_PHONE_NOTIFICATION_RECIPIENT)]
-        private ?Property $phoneNotificationRecipient = null,
+        private ?Property $phoneCallBeforeDelivery = null,
 
         /**
          * @var Property|null
@@ -96,7 +102,7 @@ readonly class CourierService implements MessageInterface
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_END_OF_WEEK_COLLECTION)]
-        private ?Property $endOfWeekCollection = null,
+        private ?Property $weekendDelivery = null,
 
         /**
          * @var Property|null
@@ -114,39 +120,39 @@ readonly class CourierService implements MessageInterface
          * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_DELIVERY_TO_TIME)]
-        private ?Property $deliveryToTime = null,
+        private ?Property $deliveryByTime = null,
     ) {}
 
     /**
      * @return Property|null
      */
-    public function getROD(): ?Property
+    public function getReturnOfDocuments(): ?Property
     {
-        return $this->rod;
+        return $this->returnOfDocuments;
     }
 
     /**
      * @return Property|null
      */
-    public function getCoverAddressSender(): ?Property
+    public function getCoverSenderAddress(): ?Property
     {
-        return $this->coverAddressSender;
+        return $this->coverSenderAddress;
     }
 
     /**
      * @return Property|null
      */
-    public function getBringingDeliveredParcel(): ?Property
+    public function getCarryIn(): ?Property
     {
-        return $this->bringingDeliveredParcel;
+        return $this->carryIn;
     }
 
     /**
      * @return Property|null
      */
-    public function getCourierWithLabel(): ?Property
+    public function getCourierBringsLabel(): ?Property
     {
-        return $this->courierWithLabel;
+        return $this->courierBringsLabel;
     }
 
     /**
@@ -160,9 +166,9 @@ readonly class CourierService implements MessageInterface
     /**
      * @return Property|null
      */
-    public function getPhoneNotificationRecipient(): ?Property
+    public function getPhoneCallBeforeDelivery(): ?Property
     {
-        return $this->phoneNotificationRecipient;
+        return $this->phoneCallBeforeDelivery;
     }
 
     /**
@@ -184,9 +190,9 @@ readonly class CourierService implements MessageInterface
     /**
      * @return Property|null
      */
-    public function getEndOfWeekCollection(): ?Property
+    public function getWeekendDelivery(): ?Property
     {
-        return $this->endOfWeekCollection;
+        return $this->weekendDelivery;
     }
 
     /**
@@ -208,8 +214,8 @@ readonly class CourierService implements MessageInterface
     /**
      * @return Property|null
      */
-    public function getDeliveryToTime(): ?Property
+    public function getDeliveryByTime(): ?Property
     {
-        return $this->deliveryToTime;
+        return $this->deliveryByTime;
     }
 }

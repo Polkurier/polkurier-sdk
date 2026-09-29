@@ -18,6 +18,8 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * Values are stored by field name and passed to the message constructor as named arguments. A field
  * you never set is not passed at all, so the message's own constructor default applies. The builders
  * do not keep copies of those defaults.
+ *
+ * @phpstan-consistent-constructor
  */
 abstract class AbstractBuilder
 {
@@ -36,10 +38,11 @@ abstract class AbstractBuilder
     protected array $values = [];
 
     /**
-     * Use create() to start a builder. The constructor is final so that create() can instantiate
-     * any subclass.
+     * Use create() to start a builder, or let a DI container create it. The constructor takes no
+     * arguments, so create() can instantiate any subclass. A subclass that declares its own must
+     * keep it parameterless and call this one.
      */
-    final public function __construct() {}
+    public function __construct() {}
 
     /**
      * @return static
@@ -47,6 +50,19 @@ abstract class AbstractBuilder
     public static function create(): static
     {
         return new static();
+    }
+
+    /**
+     * Forgets every value set so far, so the builder can start over. Values otherwise persist
+     * after build().
+     *
+     * @return static
+     */
+    public function reset(): static
+    {
+        $this->values = [];
+
+        return $this;
     }
 
     /**

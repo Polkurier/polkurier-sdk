@@ -26,7 +26,7 @@ if (!hasFlag('--confirm')) {
 
 try {
     $token = polkurier()->twoFactorToken()->twoFactorTokenRegister(
-        new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeIban)
+        new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber)
     );
 
     \printf("Code sent to %s, valid until %s\n",

@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Request\Courier;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
-use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -43,8 +42,6 @@ readonly class GetPointMessage implements MessageInterface
      * @param PointFunctionEnum[]|null $functions
      * @param int|null $limit
      * @param int|null $page
-     *
-     * @throws InvalidArgumentException when $couriers or $functions hold the wrong types
      */
     public function __construct(
         /**
@@ -52,6 +49,7 @@ readonly class GetPointMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIERS)]
         #[Validate\NotEmptyList]
+        #[Validate\Each(Validate\OfType::class, 'string')]
         private array $couriers,
 
         /**
@@ -73,6 +71,7 @@ readonly class GetPointMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FUNCTIONS)]
         #[OmitWhenEmpty]
+        #[Validate\Each(Validate\OfType::class, PointFunctionEnum::class)]
         private ?array $functions = null,
 
         /**
@@ -90,10 +89,7 @@ readonly class GetPointMessage implements MessageInterface
         #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
         private ?int $page = null,
-    ) {
-        $this->validateCouriers();
-        $this->validateFunctions();
-    }
+    ) {}
 
     /**
      * @return string[]
@@ -141,40 +137,5 @@ readonly class GetPointMessage implements MessageInterface
     public function getPage(): ?int
     {
         return $this->page;
-    }
-
-    /**
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    private function validateCouriers(): void
-    {
-        foreach ($this->couriers as $courier) {
-            if (!is_string($courier)) {
-                throw new InvalidArgumentException(\sprintf(
-                    '"%s" field may only contain strings, %s provided.',
-                    static::FIELD_COURIERS,
-                    \gettype($courier)
-                ));
-            }
-        }
-    }
-
-    /**
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    private function validateFunctions(): void
-    {
-        foreach ($this->functions ?? [] as $function) {
-            if (!($function instanceof PointFunctionEnum)) {
-                throw new InvalidArgumentException(\sprintf(
-                    '"%s" field may only contain instances of %s, %s provided.',
-                    static::FIELD_FUNCTIONS,
-                    PointFunctionEnum::class,
-                    \gettype($function)
-                ));
-            }
-        }
     }
 }

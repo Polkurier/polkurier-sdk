@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Present once the money has been settled, which may be long after delivery.
  */
-class ReturnDetails implements MessageInterface
+readonly class ReturnDetails implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -88,31 +88,11 @@ class ReturnDetails implements MessageInterface
     }
 
     /**
-     * @param CodReturnReasonEnum $reason
-     *
-     * @return void
-     */
-    public function setReason(CodReturnReasonEnum $reason): void
-    {
-        $this->reason = $reason;
-    }
-
-    /**
      * @return string
      */
     public function getDescription(): string
     {
         return $this->description;
-    }
-
-    /**
-     * @param string $description
-     *
-     * @return void
-     */
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
     }
 
     /**
@@ -126,31 +106,11 @@ class ReturnDetails implements MessageInterface
     }
 
     /**
-     * @param string|null $documentNumber
-     *
-     * @return void
-     */
-    public function setDocumentNumber(?string $documentNumber): void
-    {
-        $this->documentNumber = $documentNumber;
-    }
-
-    /**
      * @return string[]|null
      */
     public function getInvoiceNumbers(): ?array
     {
         return $this->invoiceNumbers;
-    }
-
-    /**
-     * @param string[]|null $invoiceNumbers
-     *
-     * @return void
-     */
-    public function setInvoiceNumbers(?array $invoiceNumbers): void
-    {
-        $this->invoiceNumbers = $invoiceNumbers;
     }
 
     /**
@@ -164,30 +124,10 @@ class ReturnDetails implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $date
-     *
-     * @return void
-     */
-    public function setDate(?\DateTimeInterface $date): void
-    {
-        $this->date = $date;
-    }
-
-    /**
      * @return float
      */
     public function getAmount(): float
     {
         return $this->amount;
-    }
-
-    /**
-     * @param float $amount
-     *
-     * @return void
-     */
-    public function setAmount(float $amount): void
-    {
-        $this->amount = $amount;
     }
 }

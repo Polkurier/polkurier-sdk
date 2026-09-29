@@ -89,7 +89,7 @@ final class AbsentValueTest extends TestCase
         self::assertInstanceOf(Carrier::class, $carriers[0]);
         $data = $carriers[0]->getAdditionalData();
         self::assertNotNull($data);
-        self::assertNull($data->getCOD());
+        self::assertNull($data->getCod());
         self::assertNull($data->getInsurance());
         self::assertNull($data->getPickup()?->getPickupTimeFrom());
         self::assertNull($data->getPointsMap()?->getRecipientPoint());

@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Returned only when a listing asks for items.
  */
-class Item implements MessageInterface
+readonly class Item implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -94,31 +94,11 @@ class Item implements MessageInterface
     }
 
     /**
-     * @param string $description
-     *
-     * @return void
-     */
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
-    }
-
-    /**
      * @return int
      */
     public function getAmount(): int
     {
         return $this->amount;
-    }
-
-    /**
-     * @param int $amount
-     *
-     * @return void
-     */
-    public function setAmount(int $amount): void
-    {
-        $this->amount = $amount;
     }
 
     /**
@@ -130,31 +110,11 @@ class Item implements MessageInterface
     }
 
     /**
-     * @param float $price
-     *
-     * @return void
-     */
-    public function setPrice(float $price): void
-    {
-        $this->price = $price;
-    }
-
-    /**
      * @return float
      */
     public function getValueNet(): float
     {
         return $this->valueNet;
-    }
-
-    /**
-     * @param float $valueNet
-     *
-     * @return void
-     */
-    public function setValueNet(float $valueNet): void
-    {
-        $this->valueNet = $valueNet;
     }
 
     /**
@@ -166,31 +126,11 @@ class Item implements MessageInterface
     }
 
     /**
-     * @param float $valueGross
-     *
-     * @return void
-     */
-    public function setValueGross(float $valueGross): void
-    {
-        $this->valueGross = $valueGross;
-    }
-
-    /**
      * @return OrderItemTypeEnum
      */
     public function getType(): OrderItemTypeEnum
     {
         return $this->type;
-    }
-
-    /**
-     * @param OrderItemTypeEnum $type
-     *
-     * @return void
-     */
-    public function setType(OrderItemTypeEnum $type): void
-    {
-        $this->type = $type;
     }
 
     /**

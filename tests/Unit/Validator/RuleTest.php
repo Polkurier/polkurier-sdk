@@ -13,7 +13,18 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\Rule\Each;
+use Polkurier\Webservice\Enum\Order\PackTypeEnum;
+use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
+use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Request\Geo\FindCityMessage;
+use Polkurier\Webservice\Request\Order\CodMessage;
+use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
+use Polkurier\Webservice\Validator\AttributeValidator;
+use Polkurier\Webservice\Validator\Rule\Email;
 use Polkurier\Webservice\Validator\Rule\Iban;
+use Polkurier\Webservice\Validator\Rule\OfType;
 use Polkurier\Webservice\Validator\Rule\IntegerRange;
 use Polkurier\Webservice\Validator\Rule\NonNegative;
 use Polkurier\Webservice\Validator\Rule\NotBlank;
@@ -54,6 +65,10 @@ final class RuleTest extends TestCase
             'a German postcode, which the rule does not judge' => [new Postcode('DE'), '10115'],
             'a British postcode, likewise' => [new Postcode('GB'), 'SW1A 1AA'],
             'an order number' => [new OrderNumber(), '12345-678'],
+            'an email address' => [new Email(), 'jan@example.com'],
+            'an email address left out' => [new Email(), ''],
+            'a string where a string is expected' => [new OfType('string'), 'INPOST'],
+            'an enum case of the expected enum' => [new OfType(PackTypeEnum::class), PackTypeEnum::Standard],
             'an order number with a longer prefix' => [new OrderNumber(), '999999-1'],
             'a Polish account number' => [new Iban(), '34102010260000000000000001'],
             'the same, written with spaces' => [new Iban(), '58 1020 3958 0000 9202 0222 8609'],
@@ -102,6 +117,10 @@ final class RuleTest extends TestCase
             'an order number with no separator' => [new OrderNumber(), '12345678'],
             'an order number that is words' => [new OrderNumber(), 'nope'],
             'an order number inside other text' => [new OrderNumber(), 'abc1-2xyz'],
+            'an email address without a domain' => [new Email(), 'jan@'],
+            'an email address with a space' => [new Email(), 'jan kowalski@example.com'],
+            'a number where a string is expected' => [new OfType('string'), 7],
+            'a string where an enum case is expected' => [new OfType(PackTypeEnum::class), 'ST'],
             'an account number that is too short' => [new Iban(), '5810203958'],
             'an account number with two digits transposed' => [new Iban(), '58102039580000920202228690'],
             'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
@@ -160,5 +179,41 @@ final class RuleTest extends TestCase
         self::assertSame(['must be greater than zero'], (new Positive())->validate(0));
         self::assertSame(['must be 28 characters long for PL'], (new Iban())->validate('123'));
         self::assertSame(['must be between 1 and 100'], (new IntegerRange(1, 100))->validate(500));
+    }
+
+    /**
+     * @return array<string, array{MessageInterface, list<string>}>
+     */
+    public static function classRuleCases(): array
+    {
+        $day = new \DateTimeImmutable('2026-09-01');
+
+        return [
+            'InOrder: equal ends pass' => [new GetOrdersMessage(dateFrom: $day, dateTo: $day), []],
+            'InOrder: a reversed range fails' => [new GetOrdersMessage(dateFrom: $day, dateTo: $day->modify('-1 day')), ['date_from']],
+            'RequiredWhen: a bank account is needed for a bank transfer' => [new CodMessage(amount: 100.0), ['codbankaccount']],
+            'RequiredWhen: not needed for another return type' => [
+                new CodMessage(amount: 100.0, returnType: CodReturnTypeEnum::cases()[1]),
+                [],
+            ],
+            'IgnoredWhen: a zero amount skips the block' => [new CodMessage(amount: 0.0, bankAccount: 'not-an-iban'), []],
+            'Each: every entry is checked' => [new MultiPickupRequestMessage(pickupDate: $day, pickupTimeFrom: $day, pickupTimeTo: $day, orders: ['1234-5', '']), ['orders[1]']],
+            'PostcodeForCountry: falls back to Polish postcodes' => [new FindCityMessage(postcode: '12345', country: ''), ['postcode']],
+            'PostcodeForCountry: another country is not parsed' => [new FindCityMessage(postcode: '12345', country: 'DE'), []],
+        ];
+    }
+
+    /**
+     * @param list<string> $failing
+     */
+    #[DataProvider('classRuleCases')]
+    public function testClassRulesAndEach(MessageInterface $message, array $failing): void
+    {
+        try {
+            (new AttributeValidator())->validate($message);
+            self::assertSame([], $failing);
+        } catch (ValidationException $e) {
+            self::assertSame($failing, \array_keys($e->getValidationErrors()));
+        }
     }
 }

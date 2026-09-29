@@ -93,10 +93,8 @@ Response classes are built through their constructors. If a required field is mi
 reply, mapping fails straight away and the error names the field. You never get an object whose
 getters throw, so a method that returns an [`Order`](../src/Response/Order.php) always returns a complete one.
 
-Most response classes are readonly. These 13 are not: [`Order`](../src/Response/Order.php), [`Address`](../src/Response/Address.php), [`BankAccount`](../src/Response/BankAccount.php), [`Pack`](../src/Response/Order/Pack.php),
-[`PackTemplate`](../src/Response/PackTemplate.php), [`Cod`](../src/Response/Order/Cod.php), [`Cod\ReturnDetails`](../src/Response/Order/Cod/ReturnDetails.php), [`Pickup`](../src/Response/Order/Pickup.php), [`Waybill`](../src/Response/Order/Waybill.php), [`Item`](../src/Response/Order/Item.php), [`IndividualPricing`](../src/Response/Order/IndividualPricing.php),
-[`BaseAddress`](../src/Response/BaseAddress.php) and [`BasePack`](../src/Response/BasePack.php). Some of them have setters. They are the entity-like classes an
-application often keeps and edits locally before saving. The SDK itself never calls those setters.
+Response classes are readonly too, and have getters only. To change a value, build a new request
+message, e.g. an [`Address\SaveMessage`](../src/Request/Address/SaveMessage.php) from an [`Address`](../src/Response/Address.php) you read.
 
 ### Lists, maps and pages
 
@@ -241,8 +239,8 @@ area. The ones you're most likely to use:
 | [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
 | [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
 
-There are also four protocol-level enums under [`Enum\Http`](../src/Enum/Http/): [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) (every endpoint, see
-the [API method index](api-methods.md)), [`ApiStatusCodeEnum`](../src/Enum/Http/ApiStatusCodeEnum.php), [`ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) and
+There are also three protocol-level enums under [`Enum\Http`](../src/Enum/Http/): [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) (every endpoint, see
+the [API method index](api-methods.md)), [`ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) and
 [`ResponseStatusEnum`](../src/Enum/Http/ResponseStatusEnum.php).
 
 ### Enums on responses, strings on some fields

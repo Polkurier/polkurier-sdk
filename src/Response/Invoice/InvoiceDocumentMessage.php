@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Invoice;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Response\DecodesFile;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -18,6 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class InvoiceDocumentMessage implements MessageInterface
 {
+    use DecodesFile;
+
     /**+@#
      * JSON parameter keys
      */
@@ -89,15 +92,5 @@ readonly class InvoiceDocumentMessage implements MessageInterface
     public function getInvoiceNumber(): string
     {
         return $this->invoiceNumber;
-    }
-
-    /**
-     * The document's raw bytes, ready to write to disk or stream to a browser.
-     *
-     * @return string
-     */
-    public function getDecodedFile(): string
-    {
-        return (string)\base64_decode($this->file, true);
     }
 }

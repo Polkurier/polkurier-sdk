@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An order cannot reference a template. To use one, read it and copy its values into the order
  * payload.
  */
-class PackTemplate extends BasePack
+readonly class PackTemplate extends BasePack
 {
     /**+@#
      * JSON parameter keys
@@ -132,31 +132,11 @@ class PackTemplate extends BasePack
     }
 
     /**
-     * @param string|null $id
-     *
-     * @return void
-     */
-    public function setId(?string $id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
      * @return string
      */
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return void
-     */
-    public function setName(string $name): void
-    {
-        $this->name = $name;
     }
 
     /**
@@ -168,31 +148,11 @@ class PackTemplate extends BasePack
     }
 
     /**
-     * @param ShipmentTypeEnum $shipmentType
-     *
-     * @return void
-     */
-    public function setShipmentType(ShipmentTypeEnum $shipmentType): void
-    {
-        $this->shipmentType = $shipmentType;
-    }
-
-    /**
      * @return float
      */
     public function getCod(): float
     {
         return $this->cod;
-    }
-
-    /**
-     * @param float $cod
-     *
-     * @return void
-     */
-    public function setCod(float $cod): void
-    {
-        $this->cod = $cod;
     }
 
     /**
@@ -204,31 +164,11 @@ class PackTemplate extends BasePack
     }
 
     /**
-     * @param float $insurance
-     *
-     * @return void
-     */
-    public function setInsurance(float $insurance): void
-    {
-        $this->insurance = $insurance;
-    }
-
-    /**
      * @return string
      */
     public function getDescription(): string
     {
         return $this->description;
-    }
-
-    /**
-     * @param string $description
-     *
-     * @return void
-     */
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
     }
 
     /**
@@ -240,16 +180,6 @@ class PackTemplate extends BasePack
     }
 
     /**
-     * @param string|null $courier
-     *
-     * @return void
-     */
-    public function setCourier(?string $courier): void
-    {
-        $this->courier = $courier;
-    }
-
-    /**
      * @return AdditionalServiceEnum[]
      */
     public function getServices(): array
@@ -258,30 +188,10 @@ class PackTemplate extends BasePack
     }
 
     /**
-     * @param AdditionalServiceEnum[] $services
-     *
-     * @return void
-     */
-    public function setServices(array $services): void
-    {
-        $this->services = $services;
-    }
-
-    /**
      * @return bool
      */
     public function isDefault(): bool
     {
         return $this->default;
-    }
-
-    /**
-     * @param bool $default
-     *
-     * @return void
-     */
-    public function setDefault(bool $default): void
-    {
-        $this->default = $default;
     }
 }

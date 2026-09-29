@@ -19,6 +19,7 @@ use Polkurier\Webservice\Enum\Order\CodTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
+use Polkurier\Webservice\Response\BasePack;
 use Polkurier\Webservice\Response\CourierPoint;
 use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
@@ -246,7 +247,7 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'two factor namespace' => [
-                new RegisterMessage(TwoFactorNamespaceEnum::ChangeIban),
+                new RegisterMessage(TwoFactorNamespaceEnum::ChangeBankAccountNumber),
                 ['namespace' => 'CHANGE_BANK_ACCOUNT_NUMBER'],
             ],
             'regulations type' => [
@@ -316,6 +317,35 @@ final class SerializationTest extends TestCase
         );
 
         self::assertSame(['page' => 2], $actual);
+    }
+
+    /**
+     * @return array<string, array{PackTypeEnum}>
+     */
+    public static function packTypes(): array
+    {
+        $cases = [];
+        foreach (PackTypeEnum::cases() as $type) {
+            $cases[$type->name] = [$type];
+        }
+
+        return $cases;
+    }
+
+    /**
+     * A response carrying any pack type can be read.
+     */
+    #[DataProvider('packTypes')]
+    public function testEveryPackTypeDeserializes(PackTypeEnum $type): void
+    {
+        /** @var BasePack $pack */
+        $pack = (new SerializerProvider())->getSerializer()->deserialize(
+            (string)\json_encode(['length' => 120, 'width' => 80, 'height' => 100, 'weight' => 50, 'type' => $type->value]),
+            BasePack::class,
+            'json'
+        );
+
+        self::assertSame($type, $pack->getType());
     }
 
     /**

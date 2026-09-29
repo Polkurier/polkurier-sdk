@@ -18,7 +18,7 @@ use Polkurier\Webservice\Response\Order\Waybill;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
-class Order implements MessageInterface
+readonly class Order implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -71,9 +71,9 @@ class Order implements MessageInterface
      * @param string $courier
      * @param BaseAddress $sender
      * @param BaseAddress $recipient
-     * @param iterable<Waybill> $waybills
-     * @param iterable<Item> $items absent from the order list unless it was asked for them
-     * @param iterable<Pack> $packs absent from the order list unless it was asked for them
+     * @param Waybill[] $waybills
+     * @param Item[] $items absent from the order list unless it was asked for them
+     * @param Pack[] $packs absent from the order list unless it was asked for them
      * @param float $priceNet
      * @param float $priceGross
      * @param float $unpaidAmount
@@ -139,10 +139,10 @@ class Order implements MessageInterface
         private BaseAddress $recipient,
 
         /**
-         * @var iterable<Waybill>
+         * @var Waybill[]
          */
         #[Serializer\SerializedName(self::FIELD_WAYBILLS)]
-        private iterable $waybills,
+        private array $waybills,
 
         /**
          * @var float
@@ -163,16 +163,16 @@ class Order implements MessageInterface
         private float $unpaidAmount,
 
         /**
-         * @var iterable<Item>
+         * @var Item[]
          */
         #[Serializer\SerializedName(self::FIELD_ITEMS)]
-        private iterable $items = [],
+        private array $items = [],
 
         /**
-         * @var iterable<Pack>
+         * @var Pack[]
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
-        private iterable $packs = [],
+        private array $packs = [],
 
         /**
          * @var Pickup|null
@@ -342,31 +342,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string|null $number
-     *
-     * @return void
-     */
-    public function setNumber(?string $number): void
-    {
-        $this->number = $number;
-    }
-
-    /**
      * @return string
      */
     public function getStatus(): string
     {
         return $this->status;
-    }
-
-    /**
-     * @param string $status
-     *
-     * @return void
-     */
-    public function setStatus(string $status): void
-    {
-        $this->status = $status;
     }
 
     /**
@@ -378,31 +358,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string $statusCode
-     *
-     * @return void
-     */
-    public function setStatusCode(string $statusCode): void
-    {
-        $this->statusCode = $statusCode;
-    }
-
-    /**
      * @return \DateTimeInterface
      */
     public function getDate(): \DateTimeInterface
     {
         return $this->date;
-    }
-
-    /**
-     * @param \DateTimeInterface $date
-     *
-     * @return void
-     */
-    public function setDate(\DateTimeInterface $date): void
-    {
-        $this->date = $date;
     }
 
     /**
@@ -414,31 +374,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface $statusDate
-     *
-     * @return void
-     */
-    public function setStatusDate(\DateTimeInterface $statusDate): void
-    {
-        $this->statusDate = $statusDate;
-    }
-
-    /**
      * @return ShipmentTypeEnum
      */
     public function getShipmentType(): ShipmentTypeEnum
     {
         return $this->shipmentType;
-    }
-
-    /**
-     * @param ShipmentTypeEnum $shipmentType
-     *
-     * @return void
-     */
-    public function setShipmentType(ShipmentTypeEnum $shipmentType): void
-    {
-        $this->shipmentType = $shipmentType;
     }
 
     /**
@@ -450,31 +390,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string $courier
-     *
-     * @return void
-     */
-    public function setCourier(string $courier): void
-    {
-        $this->courier = $courier;
-    }
-
-    /**
      * @return string|null
      */
     public function getDescription(): ?string
     {
         return $this->description;
-    }
-
-    /**
-     * @param string|null $description
-     *
-     * @return void
-     */
-    public function setDescription(?string $description): void
-    {
-        $this->description = $description;
     }
 
     /**
@@ -486,31 +406,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param BaseAddress $sender
-     *
-     * @return void
-     */
-    public function setSender(BaseAddress $sender): void
-    {
-        $this->sender = $sender;
-    }
-
-    /**
      * @return BaseAddress
      */
     public function getRecipient(): BaseAddress
     {
         return $this->recipient;
-    }
-
-    /**
-     * @param BaseAddress $recipient
-     *
-     * @return void
-     */
-    public function setRecipient(BaseAddress $recipient): void
-    {
-        $this->recipient = $recipient;
     }
 
     /**
@@ -522,31 +422,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param BaseAddress|null $coverAddress
-     *
-     * @return void
+     * @return Waybill[]
      */
-    public function setCoverAddress(?BaseAddress $coverAddress): void
-    {
-        $this->coverAddress = $coverAddress;
-    }
-
-    /**
-     * @return iterable<Waybill>
-     */
-    public function getWaybills(): iterable
+    public function getWaybills(): array
     {
         return $this->waybills;
-    }
-
-    /**
-     * @param iterable<Waybill> $waybills
-     *
-     * @return void
-     */
-    public function setWaybills(iterable $waybills): void
-    {
-        $this->waybills = $waybills;
     }
 
     /**
@@ -558,49 +438,19 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param Cod|null $cod
-     *
-     * @return void
+     * @return Item[]
      */
-    public function setCod(?Cod $cod): void
-    {
-        $this->cod = $cod;
-    }
-
-    /**
-     * @return iterable<Item>
-     */
-    public function getItems(): iterable
+    public function getItems(): array
     {
         return $this->items;
     }
 
     /**
-     * @param iterable<Item> $items absent from the order list unless it was asked for them
-     *
-     * @return void
+     * @return Pack[]
      */
-    public function setItems(iterable $items): void
-    {
-        $this->items = $items;
-    }
-
-    /**
-     * @return iterable<Pack>
-     */
-    public function getPacks(): iterable
+    public function getPacks(): array
     {
         return $this->packs;
-    }
-
-    /**
-     * @param iterable<Pack> $packs absent from the order list unless it was asked for them
-     *
-     * @return void
-     */
-    public function setPacks(iterable $packs): void
-    {
-        $this->packs = $packs;
     }
 
     /**
@@ -612,31 +462,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float $priceNet
-     *
-     * @return void
-     */
-    public function setPriceNet(float $priceNet): void
-    {
-        $this->priceNet = $priceNet;
-    }
-
-    /**
      * @return float
      */
     public function getPriceGross(): float
     {
         return $this->priceGross;
-    }
-
-    /**
-     * @param float $priceGross
-     *
-     * @return void
-     */
-    public function setPriceGross(float $priceGross): void
-    {
-        $this->priceGross = $priceGross;
     }
 
     /**
@@ -648,31 +478,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float $unpaidAmount
-     *
-     * @return void
-     */
-    public function setUnpaidAmount(float $unpaidAmount): void
-    {
-        $this->unpaidAmount = $unpaidAmount;
-    }
-
-    /**
      * @return bool
      */
     public function isPaid(): bool
     {
         return $this->paid;
-    }
-
-    /**
-     * @param bool $paid
-     *
-     * @return void
-     */
-    public function setPaid(bool $paid): void
-    {
-        $this->paid = $paid;
     }
 
     /**
@@ -684,31 +494,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param bool $invoice
-     *
-     * @return void
-     */
-    public function setInvoice(bool $invoice): void
-    {
-        $this->invoice = $invoice;
-    }
-
-    /**
      * @return float|null
      */
     public function getInsuranceAmount(): ?float
     {
         return $this->insuranceAmount;
-    }
-
-    /**
-     * @param float|null $insuranceAmount
-     *
-     * @return void
-     */
-    public function setInsuranceAmount(?float $insuranceAmount): void
-    {
-        $this->insuranceAmount = $insuranceAmount;
     }
 
     /**
@@ -722,16 +512,6 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string[]|null $courierService
-     *
-     * @return void
-     */
-    public function setCourierService(?array $courierService): void
-    {
-        $this->courierService = $courierService;
-    }
-
-    /**
      * When the courier is due to collect, or null when no collection has been arranged.
      *
      * @return Pickup|null
@@ -739,16 +519,6 @@ class Order implements MessageInterface
     public function getPickup(): ?Pickup
     {
         return $this->pickup;
-    }
-
-    /**
-     * @param Pickup|null $pickup null when no collection has been arranged
-     *
-     * @return void
-     */
-    public function setPickup(?Pickup $pickup): void
-    {
-        $this->pickup = $pickup;
     }
 
     /**
@@ -760,31 +530,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string|null $trackingUri
-     *
-     * @return void
-     */
-    public function setTrackingUri(?string $trackingUri): void
-    {
-        $this->trackingUri = $trackingUri;
-    }
-
-    /**
      * @return \DateTimeInterface|null
      */
     public function getDeliveredDate(): ?\DateTimeInterface
     {
         return $this->deliveredDate;
-    }
-
-    /**
-     * @param \DateTimeInterface|null $deliveredDate
-     *
-     * @return void
-     */
-    public function setDeliveredDate(?\DateTimeInterface $deliveredDate): void
-    {
-        $this->deliveredDate = $deliveredDate;
     }
 
     /**
@@ -795,16 +545,6 @@ class Order implements MessageInterface
     public function getAdditionalFields(): ?array
     {
         return $this->additionalFields;
-    }
-
-    /**
-     * @param array<string, scalar>|null $additionalFields
-     *
-     * @return void
-     */
-    public function setAdditionalFields(?array $additionalFields): void
-    {
-        $this->additionalFields = $additionalFields;
     }
 
     /**

@@ -7,10 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Request\Invoice;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\PagedMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -19,14 +17,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The type is required and must be one of the 2 the API accepts. Any other value is rejected with
  * an error listing the accepted ones.
  */
-readonly class GetInvoicesMessage implements MessageInterface
+readonly class GetInvoicesMessage extends PagedMessage
 {
     /**+@#
      * JSON parameter keys
      */
     public const string FIELD_TYPE = 'type';
-    public const string FIELD_PAGE_SIZE = 'pagesize';
-    public const string FIELD_PAGE = 'page';
     /**-@#*/
 
     /**
@@ -41,22 +37,12 @@ readonly class GetInvoicesMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         private InvoiceTypeEnum $type,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        #[OmitWhenEmpty]
-        private ?int $pageSize = null,
+        ?int $pageSize = null,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        #[OmitWhenEmpty]
-        private ?int $page = null,
-    ) {}
+        ?int $page = null,
+    ) {
+        parent::__construct(pageSize: $pageSize, page: $page);
+    }
 
     /**
      * @return InvoiceTypeEnum
@@ -66,19 +52,4 @@ readonly class GetInvoicesMessage implements MessageInterface
         return $this->type;
     }
 
-    /**
-     * @return ?int
-     */
-    public function getPageSize(): ?int
-    {
-        return $this->pageSize;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
 }

@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An order can have several: one per parcel, plus any return waybill. Exactly one is marked as
  * primary.
  */
-class Waybill implements MessageInterface
+readonly class Waybill implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -52,30 +52,10 @@ class Waybill implements MessageInterface
     }
 
     /**
-     * @param string $number
-     *
-     * @return void
-     */
-    public function setNumber(string $number): void
-    {
-        $this->number = $number;
-    }
-
-    /**
      * @return bool
      */
     public function isDefault(): bool
     {
         return $this->default;
-    }
-
-    /**
-     * @param bool $default
-     *
-     * @return void
-     */
-    public function setDefault(bool $default): void
-    {
-        $this->default = $default;
     }
 }

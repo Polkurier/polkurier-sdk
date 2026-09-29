@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Present only on freight orders, which are priced by offer instead of from a tariff. The validity
  * and confirmation dates are null until the offer has them.
  */
-class IndividualPricing implements MessageInterface
+readonly class IndividualPricing implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -68,31 +68,11 @@ class IndividualPricing implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface $offerSentDate
-     *
-     * @return void
-     */
-    public function setOfferSentDate(\DateTimeInterface $offerSentDate): void
-    {
-        $this->offerSentDate = $offerSentDate;
-    }
-
-    /**
      * @return \DateTimeInterface|null
      */
     public function getOfferValidDate(): ?\DateTimeInterface
     {
         return $this->offerValidDate;
-    }
-
-    /**
-     * @param \DateTimeInterface|null $offerValidDate
-     *
-     * @return void
-     */
-    public function setOfferValidDate(?\DateTimeInterface $offerValidDate): void
-    {
-        $this->offerValidDate = $offerValidDate;
     }
 
     /**
@@ -104,30 +84,10 @@ class IndividualPricing implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $customerConfirmedDate
-     *
-     * @return void
-     */
-    public function setCustomerConfirmedDate(?\DateTimeInterface $customerConfirmedDate): void
-    {
-        $this->customerConfirmedDate = $customerConfirmedDate;
-    }
-
-    /**
      * @return string
      */
     public function getCustomerRemarks(): string
     {
         return $this->customerRemarks;
-    }
-
-    /**
-     * @param string $customerRemarks
-     *
-     * @return void
-     */
-    public function setCustomerRemarks(string $customerRemarks): void
-    {
-        $this->customerRemarks = $customerRemarks;
     }
 }

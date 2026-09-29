@@ -17,7 +17,8 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * Use it for lists of plain values, such as order numbers or waybill numbers, where each entry has
  * its own format. For lists of objects use {@see Valid}, so each object applies its own rules.
  *
- * Failures are reported with the index, e.g. `orderno[1]`.
+ * Failures are reported with the index, e.g. `orderno[1]`. Arguments after the rule class go to
+ * its constructor, e.g. `#[Each(OfType::class, PackMessage::class)]`.
  *
  * ```php
  * #[NotEmptyList]
@@ -32,7 +33,13 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 class Each
 {
     /**
+     * @var array<array-key, mixed>
+     */
+    public readonly array $arguments;
+
+    /**
      * @param class-string<ValueValidatorInterface> $rule the rule to apply to each entry
+     * @param mixed ...$arguments passed to the rule's constructor
      *
      * @throws InvalidArgumentException when the named class is not a value rule
      */
@@ -41,7 +48,10 @@ class Each
          * @var class-string<ValueValidatorInterface>
          */
         public readonly string $rule,
+        mixed ...$arguments,
     ) {
+        $this->arguments = $arguments;
+
         if (!\is_subclass_of($rule, ValueValidatorInterface::class)) {
             throw new InvalidArgumentException(\sprintf(
                 '%s is not a %s, so it cannot check list entries.',
@@ -57,6 +67,6 @@ class Each
     public function rule(): ValueValidatorInterface
     {
         /** @var ValueValidatorInterface */
-        return new ($this->rule)();
+        return new ($this->rule)(...$this->arguments);
     }
 }

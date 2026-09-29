@@ -27,14 +27,29 @@ enum PackTypeEnum: string
     case NonStandard = 'NST';
 
     /**
-     * A half pallet.
+     * A quarter pallet, 60 × 40 cm.
+     */
+    case QuarterPalette = 'VP';
+
+    /**
+     * A half pallet, 60 × 80 cm.
      */
     case HalfPalette = 'PPAL';
 
     /**
-     * A full pallet.
+     * A pallet, 120 × 120 cm.
      */
     case Palette = 'PAL';
+
+    /**
+     * A pallet, 120 × 100 cm.
+     */
+    case Palette120x100 = 'EUR2';
+
+    /**
+     * A pallet, 150 × 150 cm.
+     */
+    case Palette150x150 = 'PA15';
 
     /**
      * A long item, priced by length instead of volume.

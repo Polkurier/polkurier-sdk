@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Exception;
 
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
-use Polkurier\Webservice\Enum\Http\ApiStatusCodeEnum;
 
 /**
  * The API rejected the credentials.
@@ -24,15 +23,6 @@ use Polkurier\Webservice\Enum\Http\ApiStatusCodeEnum;
  */
 class AuthorizationException extends WebserviceException
 {
-    public const array ERROR_STATUSES = [
-        ApiStatusCodeEnum::EmptyAuthData->value,
-        ApiStatusCodeEnum::EmptyLogin->value,
-        ApiStatusCodeEnum::EmptyToken->value,
-        ApiStatusCodeEnum::InvalidAuthData->value,
-        ApiStatusCodeEnum::TokenNotActive->value,
-        ApiStatusCodeEnum::InvalidAuthMethod->value,
-    ];
-
     public const array ERROR_CODES = [
         ApiErrorCodeEnum::EmptyAuthData->value,
         ApiErrorCodeEnum::EmptyLogin->value,
@@ -49,7 +39,9 @@ class AuthorizationException extends WebserviceException
      */
     public static function isAuthorizationErrorStatus(int $status): bool
     {
-        return \in_array($status, static::ERROR_STATUSES);
+        $code = ApiErrorCodeEnum::fromStatusCode($status);
+
+        return $code !== null && static::isAuthorizationErrorCode($code->value);
     }
 
     /**

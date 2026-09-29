@@ -115,6 +115,7 @@ readonly class SaveMessage extends BasePackMessage
          * @var AdditionalServiceEnum[]
          */
         #[Serializer\SerializedName(self::FIELD_SERVICES)]
+        #[Validate\Each(Validate\OfType::class, AdditionalServiceEnum::class)]
         private array $services = [],
     ) {
         parent::__construct($length, $width, $height, $weight, $type);

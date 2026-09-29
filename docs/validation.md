@@ -147,6 +147,7 @@ The rules
 | [`Postcode`](../src/Validator/Rule/Postcode.php) / [`Postcode(country: 'DE')`](../src/Validator/Rule/Postcode.php) | The NN-NNN form. Other countries' formats are skipped |
 | [`OrderNumber`](../src/Validator/Rule/OrderNumber.php) | The documented order-number format |
 | [`Iban`](../src/Validator/Rule/Iban.php) | ISO 13616 check digits, on a full IBAN or a bare national number |
+| [`OfType('string')`](../src/Validator/Rule/OfType.php) / [`OfType(PackMessage::class)`](../src/Validator/Rule/OfType.php) | A value of that type, mostly for list entries through `Each` |
 
 Two points explain most of this list. First, only [`NotBlank`](../src/Validator/Rule/NotBlank.php) checks whether a value is present.
 Format rules pass on null, so the same postcode rule can be optional in one message and required
@@ -173,8 +174,9 @@ reports errors against the index:
 private array $orderNo;
 ```
 
-The rule is given by class name and built with no arguments. For a rule that needs parameters or
-depends on a sibling field, write a message validator.
+The rule is given by class name. Any further arguments go to its constructor, which is how a list
+declares the type of its entries: `#[Validate\Each(Validate\OfType::class, PackMessage::class)]`. For a
+rule that depends on a sibling field, write a message validator.
 
 ### Class rules
 
@@ -188,6 +190,9 @@ dates and numbers. If either end is missing there's no range to check, so it pas
 are checked. The typical case is cash on delivery with nothing to collect. An amount of zero means
 no collection, and the other fields in the block would otherwise fail their usual rules on a valid
 payload.
+
+[`#[PageSizeAtMost(self::MAX_PAGE_SIZE)]`](../src/Validator/Rule/PageSizeAtMost.php): the largest page size a paged request may ask for, on
+the endpoints that have a limit.
 
 [`#[ValidatedBy(SomeValidator::class)]`](../src/Validator/Rule/ValidatedBy.php): see below.
 

@@ -7,23 +7,20 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Request\MoneyBox;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\PagedMessage;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Filters and paging for the payout list.
  */
-readonly class GetMoneyBoxPayoutsMessage implements MessageInterface
+readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
 {
     /**+@#
      * JSON parameter keys
      */
     public const string FIELD_PAYOUT_NUMBER = 'payout_number';
     public const string FIELD_SEARCH_QUERY = 'search_query';
-    public const string FIELD_PAGE_SIZE = 'pagesize';
-    public const string FIELD_PAGE = 'page';
     /**-@#*/
 
     /**
@@ -47,22 +44,12 @@ readonly class GetMoneyBoxPayoutsMessage implements MessageInterface
         #[OmitWhenEmpty]
         private ?string $searchQuery = null,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        #[OmitWhenEmpty]
-        private ?int $pageSize = null,
+        ?int $pageSize = null,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        #[OmitWhenEmpty]
-        private ?int $page = null,
-    ) {}
+        ?int $page = null,
+    ) {
+        parent::__construct(pageSize: $pageSize, page: $page);
+    }
 
     /**
      * @return ?string
@@ -80,19 +67,4 @@ readonly class GetMoneyBoxPayoutsMessage implements MessageInterface
         return $this->searchQuery;
     }
 
-    /**
-     * @return ?int
-     */
-    public function getPageSize(): ?int
-    {
-        return $this->pageSize;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
 }

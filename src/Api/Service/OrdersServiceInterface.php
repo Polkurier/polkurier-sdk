@@ -190,8 +190,8 @@ interface OrdersServiceInterface
      * {"status": "error", "status_code": 23, "error_code": "ADDITIONAL_SERVICE_UNAVAILABLE",
      *  "response": "…"}
      * ```
-     * The carrier does not offer the service. This includes WEEK_COLLECTION on anything other than
-     * an InPost locker.
+     * The carrier does not offer the service. This includes WEEK_COLLECTION (weekend delivery) on
+     * anything other than an InPost locker.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR", "response": "…"}
      * ```

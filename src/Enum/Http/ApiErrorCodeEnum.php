@@ -8,11 +8,13 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Http;
 
 /**
- * The `error_code` string an API error carries.
+ * The error codes an API error can carry.
  *
- * Case names follow SDK conventions. The values are the exact strings the API returns, including
- * its spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. Each case has a
- * numeric counterpart with the same name in {@see ApiStatusCodeEnum}.
+ * An error names its condition twice: as the `error_code` string, which is the case's value, and
+ * as the numeric `status_code`, which statusCode() returns and fromStatusCode() maps back. Case
+ * names follow SDK conventions. The values are the exact strings the API returns, including its
+ * spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. The high-numbered
+ * status codes reuse HTTP status numbers, but they arrive in the JSON body, not as the HTTP status.
  *
  * Both fields are optional in an error payload, so don't assume either is present.
  */
@@ -52,4 +54,67 @@ enum ApiErrorCodeEnum: string
     case Forbidden = 'FORBIDDEN';
     case InternalServerError = 'INTERNAL_SERVER_ERROR';
     case InvalidOrderNumber = 'INVALID_ORDER_NUMBER';
+
+    /**
+     * The numeric `status_code` for this condition.
+     *
+     * @return int
+     */
+    public function statusCode(): int
+    {
+        return match ($this) {
+            self::UnknownError => 1,
+            self::JsonSyntaxError => 2,
+            self::InputDataEmpty => 3,
+            self::EmptyAuthData => 4,
+            self::EmptyLogin => 5,
+            self::EmptyToken => 6,
+            self::InvalidAuthData => 7,
+            self::TokenNotActive => 8,
+            self::UnknownApiMethod => 9,
+            self::NoInputObject => 10,
+            self::ParamsNotSet => 11,
+            self::ParcelsAreTooBig => 12,
+            self::ParcelParameterFromSet => 13,
+            self::CourierNameNotSet => 14,
+            self::ParamsIsEmpty => 15,
+            self::NonLoggedUser => 16,
+            self::UserDoesNotExist => 20,
+            self::InvalidAuthMethod => 21,
+            self::MaintenanceMode => 22,
+            self::AdditionalServiceUnavailable => 23,
+            self::ParameterInvalid => 24,
+            self::ParameterOutOfRange => 25,
+            self::ValidationError => 26,
+            self::FileUploadFail => 27,
+            self::EmptyValuation => 28,
+            self::FormExpired => 30,
+            self::TwoFactorAlreadySent => 31,
+            self::InvalidOrderNumber => 400,
+            self::Forbidden => 403,
+            self::NotFound => 404,
+            self::MethodNotAllowed => 405,
+            self::UnsupportedMediaType => 415,
+            self::TooManyRequests => 429,
+            self::InternalServerError => 500,
+        };
+    }
+
+    /**
+     * The case for a numeric `status_code`, or null for a code this SDK doesn't know.
+     *
+     * @param int $statusCode
+     *
+     * @return self|null
+     */
+    public static function fromStatusCode(int $statusCode): ?self
+    {
+        foreach (self::cases() as $case) {
+            if ($case->statusCode() === $statusCode) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
 }

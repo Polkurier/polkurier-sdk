@@ -243,16 +243,16 @@ class AttributeValidator implements ValidatorInterface
 
         // Class-level rules are inherited, so a rule on a base message applies to its subclasses.
         for ($declaring = $reflection; $declaring !== false; $declaring = $declaring->getParentClass()) {
-            foreach ($declaring->getAttributes() as $attribute) {
-                $instance = $attribute->newInstance();
-
-                if ($instance instanceof MessageRuleInterface) {
-                    $message[] = $instance;
-                } elseif ($instance instanceof IgnoredWhen) {
-                    $ignored[] = $instance;
-                } elseif ($instance instanceof ValidatedBy) {
-                    $validators[] = $instance->validator;
-                }
+            // Only the SDK's own attributes are instantiated, so a foreign attribute on a message
+            // is never constructed here.
+            foreach ($declaring->getAttributes(MessageRuleInterface::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $message[] = $attribute->newInstance();
+            }
+            foreach ($declaring->getAttributes(IgnoredWhen::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $ignored[] = $attribute->newInstance();
+            }
+            foreach ($declaring->getAttributes(ValidatedBy::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $validators[] = $attribute->newInstance()->validator;
             }
         }
 
@@ -269,16 +269,14 @@ class AttributeValidator implements ValidatorInterface
                 }
                 $seen[$name] = true;
 
-                foreach ($property->getAttributes() as $attribute) {
-                    $instance = $attribute->newInstance();
-
-                    if ($instance instanceof ValueValidatorInterface) {
-                        $values[$name][] = $instance;
-                    } elseif ($instance instanceof Each) {
-                        $each[$name][] = $instance->rule();
-                    } elseif ($instance instanceof Valid && !\in_array($name, $nested, true)) {
-                        $nested[] = $name;
-                    }
+                foreach ($property->getAttributes(ValueValidatorInterface::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                    $values[$name][] = $attribute->newInstance();
+                }
+                foreach ($property->getAttributes(Each::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                    $each[$name][] = $attribute->newInstance()->rule();
+                }
+                if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== [] && !\in_array($name, $nested, true)) {
+                    $nested[] = $name;
                 }
             }
             $current = $current->getParentClass();

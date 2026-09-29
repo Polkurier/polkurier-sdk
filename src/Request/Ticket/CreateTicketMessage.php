@@ -75,6 +75,7 @@ readonly class CreateTicketMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
+        #[Validate\Each(Validate\OfType::class, 'string')]
         private array $files = [],
     ) {}
 

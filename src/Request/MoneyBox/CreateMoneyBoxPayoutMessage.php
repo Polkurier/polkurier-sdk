@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\TwoFactorFields;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -30,6 +31,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 {
+    use TwoFactorFields;
+
     /**+@#
      * JSON parameter keys
      */
@@ -43,9 +46,7 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
     public const string FIELD_POSTCODE = 'postcode';
     public const string FIELD_CITY = 'city';
     public const string FIELD_SECURITY_PIN = 'security_pin';
-    public const string FIELD_TWO_FACTOR_TOKEN = 'two_factor_token';
     public const string FIELD_TWO_FACTOR_FORM_ID = 'two_factor_form_id';
-    public const string FIELD_TWO_FACTOR_CODE = 'two_factor_code';
     /**-@#*/
 
     /**
@@ -241,24 +242,8 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
     /**
      * @return ?string
      */
-    public function getTwoFactorToken(): ?string
-    {
-        return $this->twoFactorToken;
-    }
-
-    /**
-     * @return ?string
-     */
     public function getTwoFactorFormId(): ?string
     {
         return $this->twoFactorFormId;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getTwoFactorCode(): ?string
-    {
-        return $this->twoFactorCode;
     }
 }

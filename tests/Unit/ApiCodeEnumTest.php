@@ -10,7 +10,6 @@ namespace Polkurier\Webservice\Test\Unit;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
-use Polkurier\Webservice\Enum\Http\ApiStatusCodeEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 
 /**
@@ -19,7 +18,6 @@ use Polkurier\Webservice\Exception\AuthorizationException;
  * sends) stopped expired tokens being recognised as authorization failures.
  */
 #[CoversClass(ApiErrorCodeEnum::class)]
-#[CoversClass(ApiStatusCodeEnum::class)]
 #[CoversClass(AuthorizationException::class)]
 final class ApiCodeEnumTest extends TestCase
 {
@@ -49,14 +47,15 @@ final class ApiCodeEnumTest extends TestCase
         }
     }
 
-    public function testStatusAndErrorCodeEnumsDescribeTheSameSetOfFailures(): void
+    public function testEveryCaseHasItsOwnStatusCodeAndMapsBack(): void
     {
-        $statusNames = \array_map(static fn(ApiStatusCodeEnum $c): string => $c->name, ApiStatusCodeEnum::cases());
-        $errorNames = \array_map(static fn(ApiErrorCodeEnum $c): string => $c->name, ApiErrorCodeEnum::cases());
+        $statusCodes = \array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases());
+        self::assertSame(\array_values(\array_unique($statusCodes)), $statusCodes);
 
-        \sort($statusNames);
-        \sort($errorNames);
-
-        self::assertSame($statusNames, $errorNames);
+        foreach (ApiErrorCodeEnum::cases() as $case) {
+            self::assertSame($case, ApiErrorCodeEnum::fromStatusCode($case->statusCode()));
+        }
+        self::assertSame(15, ApiErrorCodeEnum::ParamsIsEmpty->statusCode());
+        self::assertNull(ApiErrorCodeEnum::fromStatusCode(999));
     }
 }

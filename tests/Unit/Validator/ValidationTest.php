@@ -27,6 +27,8 @@ use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
 use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
 
@@ -337,6 +339,50 @@ final class ValidationTest extends TestCase
         ));
 
         $this->addToAssertionCount(1);
+    }
+
+    /**
+     * The page size limit of a paged endpoint, and one report per field when a value is too small.
+     *
+     * @return void
+     */
+    public function testAPagedEndpointEnforcesItsPageSizeLimit(): void
+    {
+        foreach ([0, GetOrdersMessage::MAX_PAGE_SIZE + 1] as $pageSize) {
+            try {
+                $this->validator->validate(new GetOrdersMessage(pageSize: $pageSize));
+                self::fail('Expected a ValidationException.');
+            } catch (ValidationException $e) {
+                self::assertCount(1, $e->getFieldErrors('pagesize'), (string)$pageSize);
+            }
+        }
+
+        $this->validator->validate(new GetOrdersMessage(pageSize: GetOrdersMessage::MAX_PAGE_SIZE));
+        $this->validator->validate(new GetInvoicesMessage(type: InvoiceTypeEnum::cases()[0], pageSize: 1000));
+    }
+
+    /**
+     * List entries of the wrong type are reported against their index.
+     *
+     * @return void
+     */
+    public function testListEntriesOfTheWrongTypeAreReported(): void
+    {
+        try {
+            // @phpstan-ignore argument.type, argument.type (the wrong entry types are the point)
+            $this->validator->validate(new GetPointMessage(couriers: ['INPOST', 7], functions: ['send']));
+            self::fail('Expected a ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertSame(['couriers[1]', 'functions[0]'], \array_keys($e->getValidationErrors()));
+        }
+
+        try {
+            // @phpstan-ignore argument.type
+            $this->validator->validate(self::order(packs: ['not a pack']));
+            self::fail('Expected a ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertArrayHasKey('packs[0]', $e->getValidationErrors());
+        }
     }
 
     /**

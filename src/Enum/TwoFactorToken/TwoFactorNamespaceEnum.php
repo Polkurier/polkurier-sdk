@@ -42,7 +42,7 @@ enum TwoFactorNamespaceEnum: string
      * The most common one. The bank accounts service requires it unless the account is protected
      * by a PIN.
      */
-    case ChangeIban = 'CHANGE_BANK_ACCOUNT_NUMBER';
+    case ChangeBankAccountNumber = 'CHANGE_BANK_ACCOUNT_NUMBER';
 
     /**
      * Changing how the money box pays out.

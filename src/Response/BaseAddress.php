@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * To address a pickup point, set the point id. The street fields then act as contact details, not
  * as the delivery destination.
  */
-class BaseAddress implements MessageInterface
+readonly class BaseAddress implements MessageInterface
 {
     public const string DEFAULT_COUNTRY = 'PL';
 
@@ -150,31 +150,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * @param string $person
-     *
-     * @return void
-     */
-    public function setPerson(string $person): void
-    {
-        $this->person = $person;
-    }
-
-    /**
      * @return string|null
      */
     public function getCompany(): ?string
     {
         return $this->company;
-    }
-
-    /**
-     * @param string|null $company
-     *
-     * @return void
-     */
-    public function setCompany(?string $company): void
-    {
-        $this->company = $company;
     }
 
     /**
@@ -186,31 +166,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * @param string $street
-     *
-     * @return void
-     */
-    public function setStreet(string $street): void
-    {
-        $this->street = $street;
-    }
-
-    /**
      * @return string
      */
     public function getCity(): string
     {
         return $this->city;
-    }
-
-    /**
-     * @param string $city
-     *
-     * @return void
-     */
-    public function setCity(string $city): void
-    {
-        $this->city = $city;
     }
 
     /**
@@ -222,31 +182,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * @param string $postcode
-     *
-     * @return void
-     */
-    public function setPostcode(string $postcode): void
-    {
-        $this->postcode = $postcode;
-    }
-
-    /**
      * @return string|null
      */
     public function getProvince(): ?string
     {
         return $this->province;
-    }
-
-    /**
-     * @param string|null $province
-     *
-     * @return void
-     */
-    public function setProvince(?string $province): void
-    {
-        $this->province = $province;
     }
 
     /**
@@ -258,31 +198,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * @param string $country
-     *
-     * @return void
-     */
-    public function setCountry(string $country): void
-    {
-        $this->country = $country;
-    }
-
-    /**
      * @return string|null
      */
     public function getPointId(): ?string
     {
         return $this->pointId;
-    }
-
-    /**
-     * @param string|null $pointId
-     *
-     * @return void
-     */
-    public function setPointId(?string $pointId): void
-    {
-        $this->pointId = $pointId;
     }
 
     /**
@@ -294,31 +214,11 @@ class BaseAddress implements MessageInterface
     }
 
     /**
-     * @param string $email
-     *
-     * @return void
-     */
-    public function setEmail(string $email): void
-    {
-        $this->email = $email;
-    }
-
-    /**
      * @return string
      */
     public function getPhone(): string
     {
         return $this->phone;
-    }
-
-    /**
-     * @param string $phone
-     *
-     * @return void
-     */
-    public function setPhone(string $phone): void
-    {
-        $this->phone = $phone;
     }
 
     /**

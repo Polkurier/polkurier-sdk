@@ -26,14 +26,14 @@ readonly class AuthConfirmationMessage implements MessageInterface
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AUTHORIZATION)]
-        private bool $authorization,
+        private bool $authorized,
     ) {}
 
     /**
      * @return bool
      */
-    public function getAuthorization(): bool
+    public function isAuthorized(): bool
     {
-        return $this->authorization;
+        return $this->authorized;
     }
 }

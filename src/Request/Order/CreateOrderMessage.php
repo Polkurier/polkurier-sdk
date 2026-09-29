@@ -10,7 +10,6 @@ namespace Polkurier\Webservice\Request\Order;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Message\CreateOrderMessageValidator;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -26,7 +25,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * - `pickup`: some carriers need a pickup date, some also a time window. `available_carriers`
  *   reports which, per carrier.
- * - {@see AdditionalServiceEnum::WeekCollection} is only available for InPost parcel lockers.
+ * - {@see AdditionalServiceEnum::WeekendDelivery} is only available for InPost parcel lockers, and
+ *   only inside a weekly ordering window.
  * - The recipient SMS notifications (on dispatch and on going out for delivery) are ordered
  *   separately. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
  *   replaces its plain variant. {@see AdditionalServiceEnum} describes how the two kinds combine.
@@ -75,8 +75,6 @@ readonly class CreateOrderMessage implements MessageInterface
      * @param array<string, string> $additionalFields carrier-specific extra fields
      * @param string|null $description
      * @param string|null $couponCode
-     *
-     * @throws InvalidArgumentException when $packs is empty, or $packs or $courierService hold the wrong types
      */
     public function __construct(
         /**
@@ -98,6 +96,7 @@ readonly class CreateOrderMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[Validate\NotEmptyList]
         #[Validate\Valid]
+        #[Validate\Each(Validate\OfType::class, PackMessage::class)]
         private array $packs,
 
         /**
@@ -153,6 +152,7 @@ readonly class CreateOrderMessage implements MessageInterface
          * @var AdditionalServiceEnum[]
          */
         #[Serializer\Ignore]
+        #[Validate\Each(Validate\OfType::class, AdditionalServiceEnum::class)]
         private array $courierService = [],
 
         /**
@@ -175,10 +175,7 @@ readonly class CreateOrderMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_COUPON_CODE)]
         #[OmitWhenEmpty]
         private ?string $couponCode = null,
-    ) {
-        $this->validatePacks();
-        $this->validateCourierService();
-    }
+    ) {}
 
     /**
      * The services in the format the API expects: a flat map of service code to `true`.
@@ -301,48 +298,5 @@ readonly class CreateOrderMessage implements MessageInterface
     public function getCouponCode(): ?string
     {
         return $this->couponCode;
-    }
-
-    /**
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    private function validatePacks(): void
-    {
-        if ($this->packs === []) {
-            throw new InvalidArgumentException(\sprintf(
-                '"%s" field requires at least one pack.',
-                self::FIELD_PACKS
-            ));
-        }
-
-        foreach ($this->packs as $pack) {
-            if (!($pack instanceof PackMessage)) {
-                throw new InvalidArgumentException(\sprintf(
-                    '"%s" field may only contain instances of %s, %s provided.',
-                    self::FIELD_PACKS,
-                    PackMessage::class,
-                    \get_debug_type($pack)
-                ));
-            }
-        }
-    }
-
-    /**
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    private function validateCourierService(): void
-    {
-        foreach ($this->courierService as $service) {
-            if (!($service instanceof AdditionalServiceEnum)) {
-                throw new InvalidArgumentException(\sprintf(
-                    '"%s" field may only contain instances of %s, %s provided.',
-                    self::FIELD_COURIER_SERVICE,
-                    AdditionalServiceEnum::class,
-                    \get_debug_type($service)
-                ));
-            }
-        }
     }
 }

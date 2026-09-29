@@ -121,7 +121,7 @@ readonly class ContactTopicMessage implements MessageInterface
     /**
      * @return bool
      */
-    public function isHasForm(): bool
+    public function hasForm(): bool
     {
         return $this->hasForm;
     }

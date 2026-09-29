@@ -53,7 +53,7 @@ $order = new CreateOrderMessage(
     ),
     // Declared value in PLN. Zero means no insurance.
     insurance: 500.0,
-    courierService: [AdditionalServiceEnum::SmsNotificationRecipient],
+    courierService: [AdditionalServiceEnum::SmsOnDispatch],
     // Keep it short: see CreateOrderMessage::DESCRIPTION_MAX_LENGTH, and carriers may be stricter.
     description: 'Books',
 );

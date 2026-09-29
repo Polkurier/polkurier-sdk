@@ -69,6 +69,20 @@ final class ValidatorWiringTest extends TestCase
 
         self::expectNotToPerformAssertions();
     }
+
+    /**
+     * Only the SDK's own attributes are instantiated. Another library's attribute on a message is
+     * left alone, even one that can't be built without its own context.
+     */
+    public function testAForeignAttributeOnAMessageIsNeverInstantiated(): void
+    {
+        try {
+            (new AttributeValidator())->validate(new WiringForeignAttributeMessage(''));
+            self::fail('Expected a ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertSame(['name'], \array_keys($e->getValidationErrors()));
+        }
+    }
 }
 
 /**
@@ -116,5 +130,23 @@ readonly class WiringOuterMessage implements MessageInterface
     public function __construct(
         #[Validate\Valid]
         public WiringInnerMessage $inner,
+    ) {}
+}
+
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final class WiringExplodingAttribute
+{
+    public function __construct()
+    {
+        throw new \LogicException('A foreign attribute must not be instantiated by the validator.');
+    }
+}
+
+final readonly class WiringForeignAttributeMessage implements MessageInterface
+{
+    public function __construct(
+        #[WiringExplodingAttribute]
+        #[Validate\NotBlank]
+        public string $name,
     ) {}
 }

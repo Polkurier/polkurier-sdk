@@ -7,9 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Builder\PackTemplate;
 
-use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Builder\Common\BasePackMessageBuilder;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
-use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
@@ -19,7 +18,7 @@ use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
  *
  * Set an id to update an existing template. Without one, a new template is created.
  */
-class SaveMessageBuilder extends AbstractBuilder
+class SaveMessageBuilder extends BasePackMessageBuilder
 {
     /**
      * @param string $name required before build()
@@ -32,46 +31,6 @@ class SaveMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param int $length required before build()
-     *
-     * @return static
-     */
-    public function length(int $length): static
-    {
-        return $this->set('length', $length);
-    }
-
-    /**
-     * @param int $width required before build()
-     *
-     * @return static
-     */
-    public function width(int $width): static
-    {
-        return $this->set('width', $width);
-    }
-
-    /**
-     * @param int $height required before build()
-     *
-     * @return static
-     */
-    public function height(int $height): static
-    {
-        return $this->set('height', $height);
-    }
-
-    /**
-     * @param float $weight required before build()
-     *
-     * @return static
-     */
-    public function weight(float $weight): static
-    {
-        return $this->set('weight', $weight);
-    }
-
-    /**
      * @param ShipmentTypeEnum $shipmentType
      *
      * @return static
@@ -79,16 +38,6 @@ class SaveMessageBuilder extends AbstractBuilder
     public function shipmentType(ShipmentTypeEnum $shipmentType): static
     {
         return $this->set('shipmentType', $shipmentType);
-    }
-
-    /**
-     * @param PackTypeEnum $type
-     *
-     * @return static
-     */
-    public function type(PackTypeEnum $type): static
-    {
-        return $this->set('type', $type);
     }
 
     /**

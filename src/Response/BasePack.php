@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * subclasses. Lengths are whole centimetres and the weight is in kilograms. Each carrier has its own
  * limits on both, and `available_carriers` reports them.
  */
-class BasePack implements MessageInterface
+readonly class BasePack implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -78,31 +78,11 @@ class BasePack implements MessageInterface
     }
 
     /**
-     * @param int $length
-     *
-     * @return void
-     */
-    public function setLength(int $length): void
-    {
-        $this->length = $length;
-    }
-
-    /**
      * @return int
      */
     public function getWidth(): int
     {
         return $this->width;
-    }
-
-    /**
-     * @param int $width
-     *
-     * @return void
-     */
-    public function setWidth(int $width): void
-    {
-        $this->width = $width;
     }
 
     /**
@@ -114,16 +94,6 @@ class BasePack implements MessageInterface
     }
 
     /**
-     * @param int $height
-     *
-     * @return void
-     */
-    public function setHeight(int $height): void
-    {
-        $this->height = $height;
-    }
-
-    /**
      * @return float
      */
     public function getWeight(): float
@@ -132,30 +102,10 @@ class BasePack implements MessageInterface
     }
 
     /**
-     * @param float $weight
-     *
-     * @return void
-     */
-    public function setWeight(float $weight): void
-    {
-        $this->weight = $weight;
-    }
-
-    /**
      * @return PackTypeEnum
      */
     public function getType(): PackTypeEnum
     {
         return $this->type;
-    }
-
-    /**
-     * @param PackTypeEnum $type
-     *
-     * @return void
-     */
-    public function setType(PackTypeEnum $type): void
-    {
-        $this->type = $type;
     }
 }

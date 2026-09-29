@@ -17,7 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * To register or update one, use {@see \Polkurier\Webservice\Request\BankAccount\SaveMessage}.
  * It also carries the confirmation the API may require before it changes where money is paid.
  */
-class BankAccount implements MessageInterface
+readonly class BankAccount implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -70,31 +70,11 @@ class BankAccount implements MessageInterface
     }
 
     /**
-     * @param string|null $id
-     *
-     * @return void
-     */
-    public function setId(?string $id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
      * @return string
      */
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return void
-     */
-    public function setName(string $name): void
-    {
-        $this->name = $name;
     }
 
     /**
@@ -106,30 +86,10 @@ class BankAccount implements MessageInterface
     }
 
     /**
-     * @param string $number
-     *
-     * @return void
-     */
-    public function setNumber(string $number): void
-    {
-        $this->number = $number;
-    }
-
-    /**
      * @return bool
      */
     public function isDefault(): bool
     {
         return $this->default;
-    }
-
-    /**
-     * @param bool $default
-     *
-     * @return void
-     */
-    public function setDefault(bool $default): void
-    {
-        $this->default = $default;
     }
 }

@@ -14,7 +14,7 @@ The source is organised by role:
 | `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
 | `Request` | Everything you send |
 | `Response` | Everything you get back |
-| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the 23 hand-written builders |
+| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the hand-written builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, 2 custom normalizers and 1 attribute |
 | `Validator` | The rules, and the machinery that runs them |
@@ -105,8 +105,8 @@ problem, so test such changes well.
 
 Internals in the open classes are `protected`, so you can override them in a subclass.
 
-[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) is final even though the class is not, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to
-call on a subclass.
+[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) takes no arguments, and a subclass that declares its own must keep it that
+way, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
 
 Extension points
 ----------------

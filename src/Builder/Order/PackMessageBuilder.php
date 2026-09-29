@@ -7,66 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Builder\Order;
 
-use Polkurier\Webservice\Builder\AbstractBuilder;
-use Polkurier\Webservice\Enum\Order\PackTypeEnum;
+use Polkurier\Webservice\Builder\Common\BasePackMessageBuilder;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Order\PackMessage;
 
 /**
  * Assembles one parcel on an order.
  */
-class PackMessageBuilder extends AbstractBuilder
+class PackMessageBuilder extends BasePackMessageBuilder
 {
-    /**
-     * @param int $length required before build()
-     *
-     * @return static
-     */
-    public function length(int $length): static
-    {
-        return $this->set('length', $length);
-    }
-
-    /**
-     * @param int $width required before build()
-     *
-     * @return static
-     */
-    public function width(int $width): static
-    {
-        return $this->set('width', $width);
-    }
-
-    /**
-     * @param int $height required before build()
-     *
-     * @return static
-     */
-    public function height(int $height): static
-    {
-        return $this->set('height', $height);
-    }
-
-    /**
-     * @param float $weight required before build()
-     *
-     * @return static
-     */
-    public function weight(float $weight): static
-    {
-        return $this->set('weight', $weight);
-    }
-
-    /**
-     * @param PackTypeEnum $type
-     *
-     * @return static
-     */
-    public function type(PackTypeEnum $type): static
-    {
-        return $this->set('type', $type);
-    }
-
     /**
      * @param int $amount
      *

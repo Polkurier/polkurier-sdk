@@ -199,7 +199,7 @@ $file     = $client->orders()->getOrderFile($msg);  // a document attached to on
 numbers. You get labels for several orders back as one PDF from a single call.
 
 Each result is a [`DocumentMessage`](../src/Response/Order/DocumentMessage.php), with the base64 content in
-[`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the raw bytes in [`DocumentMessage::getDecodedFile()`](../src/Response/Order/DocumentMessage.php):
+[`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the raw bytes in [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFile.php):
 
 ```php
 file_put_contents('labels.pdf', $labels->getDecodedFile());     // write it out

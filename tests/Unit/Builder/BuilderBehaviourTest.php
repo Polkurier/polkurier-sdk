@@ -10,12 +10,15 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Builder\Courier\GetPickupTimeMessageBuilder;
 use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
+use Polkurier\Webservice\Builder\Courier\PickupMessageBuilder;
 use Polkurier\Webservice\Builder\Order\PackMessageBuilder;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Request\Courier\PickupMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
 
 /**
@@ -139,5 +142,77 @@ final class BuilderBehaviourTest extends TestCase
             ->build();
 
         self::assertSame(10, $message->getLimit());
+    }
+
+    public function testResetForgetsEveryValue(): void
+    {
+        $builder = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT'])->limit(5);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $builder->reset()->build();
+    }
+
+    /**
+     * A builder inherits the setters of the message its message extends.
+     */
+    public function testAPickupBuilderTakesThePickupTimeSetters(): void
+    {
+        $builder = PickupMessageBuilder::create();
+        self::assertInstanceOf(GetPickupTimeMessageBuilder::class, $builder);
+
+        $message = $builder->courier('UPS')->shipFrom('61-001')->pickupDate(new \DateTimeImmutable('2026-10-01'))->build();
+
+        self::assertInstanceOf(PickupMessage::class, $message);
+        self::assertSame('61-001', $message->getShipFrom());
+    }
+
+    /**
+     * A container may hand out a subclass that declares its own parameterless constructor, as
+     * Magento's generated interceptors do. It still has the setters and builds the same message.
+     */
+    public function testASubclassWithItsOwnConstructorBuildsTheSameMessage(): void
+    {
+        $builder = new class extends PackMessageBuilder {
+            public bool $constructed = false;
+
+            public function __construct()
+            {
+                $this->constructed = true;
+                parent::__construct();
+            }
+        };
+
+        $built = $builder->length(30)->width(20)->height(15)->weight(2.5)->build();
+
+        self::assertTrue($builder->constructed);
+        self::assertEquals(new PackMessage(length: 30, width: 20, height: 15, weight: 2.5), $built);
+        self::assertInstanceOf($builder::class, $builder::create());
+    }
+
+    /**
+     * Nothing a container would wrap is final: neither a builder class nor its public methods.
+     */
+    public function testNoBuilderOrPublicBuilderMethodIsFinal(): void
+    {
+        $root = \dirname(__DIR__, 3) . '/src/Builder';
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
+        $checked = 0;
+
+        foreach ($files as $file) {
+            $class = 'Polkurier\\Webservice\\Builder\\'
+                . \str_replace('/', '\\', \substr((string)$file, \strlen($root) + 1, -4));
+            $reflection = new \ReflectionClass($class);
+
+            self::assertFalse($reflection->isFinal(), $class . ' is final');
+
+            foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                self::assertFalse($method->isFinal(), $class . '::' . $method->getName() . '() is final');
+            }
+
+            ++$checked;
+        }
+
+        self::assertGreaterThan(20, $checked);
     }
 }

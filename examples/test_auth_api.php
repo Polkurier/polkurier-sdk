@@ -28,7 +28,7 @@ try {
         new AuthorizationMessage(token: $token, login: $login)
     );
 
-    \printf("Credentials for account %s are valid (%s).\n", $login, $confirmation->getAuthorization());
+    \printf("Credentials for account %s are valid (%s).\n", $login, $confirmation->isAuthorized() ? 'yes' : 'no');
 } catch (AuthorizationException $e) {
     \printf("Credentials for account %s were rejected: %s\n", $login, $e->getMessage());
     exit(1);

@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * the fields you can set. The rest are read-only: the parsed street name, the resolved pickup point
  * and whether the entry is shared.
  */
-class Address extends BaseAddress
+readonly class Address extends BaseAddress
 {
     /**+@#
      * JSON parameter keys
@@ -161,31 +161,11 @@ class Address extends BaseAddress
     }
 
     /**
-     * @param string|null $id
-     *
-     * @return void
-     */
-    public function setId(?string $id): void
-    {
-        $this->id = $id;
-    }
-
-    /**
      * @return string
      */
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return void
-     */
-    public function setName(string $name): void
-    {
-        $this->name = $name;
     }
 
     /**
@@ -197,31 +177,11 @@ class Address extends BaseAddress
     }
 
     /**
-     * @param AddressTypeEnum $type
-     *
-     * @return void
-     */
-    public function setType(AddressTypeEnum $type): void
-    {
-        $this->type = $type;
-    }
-
-    /**
      * @return string
      */
     public function getHouseNumber(): string
     {
         return $this->houseNumber;
-    }
-
-    /**
-     * @param string $houseNumber
-     *
-     * @return void
-     */
-    public function setHouseNumber(string $houseNumber): void
-    {
-        $this->houseNumber = $houseNumber;
     }
 
     /**
@@ -233,31 +193,11 @@ class Address extends BaseAddress
     }
 
     /**
-     * @param string|null $flatNumber
-     *
-     * @return void
-     */
-    public function setFlatNumber(?string $flatNumber): void
-    {
-        $this->flatNumber = $flatNumber;
-    }
-
-    /**
      * @return bool
      */
     public function isDefault(): bool
     {
         return $this->default;
-    }
-
-    /**
-     * @param bool $default
-     *
-     * @return void
-     */
-    public function setDefault(bool $default): void
-    {
-        $this->default = $default;
     }
 
     /**
@@ -269,30 +209,10 @@ class Address extends BaseAddress
     }
 
     /**
-     * @param bool $shared
-     *
-     * @return void
-     */
-    public function setShared(bool $shared): void
-    {
-        $this->shared = $shared;
-    }
-
-    /**
      * @return bool
      */
     public function isCoverAddress(): bool
     {
         return $this->coverAddress;
-    }
-
-    /**
-     * @param bool $coverAddress
-     *
-     * @return void
-     */
-    public function setCoverAddress(bool $coverAddress): void
-    {
-        $this->coverAddress = $coverAddress;
     }
 }

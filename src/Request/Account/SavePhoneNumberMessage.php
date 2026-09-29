@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\TwoFactorFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -35,14 +36,14 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 )]
 readonly class SavePhoneNumberMessage implements MessageInterface
 {
+    use TwoFactorFields;
+
     /**+@#
      * JSON parameter keys
      */
     public const string FIELD_NUMBER = 'number';
     public const string FIELD_NAME = 'name';
     public const string FIELD_DEFAULT = 'default';
-    public const string FIELD_TWO_FACTOR_TOKEN = 'two_factor_token';
-    public const string FIELD_TWO_FACTOR_CODE = 'two_factor_code';
     /**-@#*/
 
     /**
@@ -110,21 +111,5 @@ readonly class SavePhoneNumberMessage implements MessageInterface
     public function isDefault(): bool
     {
         return $this->default;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getTwoFactorToken(): ?string
-    {
-        return $this->twoFactorToken;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getTwoFactorCode(): ?string
-    {
-        return $this->twoFactorCode;
     }
 }

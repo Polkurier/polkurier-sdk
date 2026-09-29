@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * carrier works out both prices from the dimensions given, rounded to its own increments, so they
  * may be based on larger figures than you sent.
  */
-class Pack extends BasePack
+readonly class Pack extends BasePack
 {
     /**+@#
      * JSON parameter keys
@@ -75,16 +75,6 @@ class Pack extends BasePack
     }
 
     /**
-     * @param int $amount
-     *
-     * @return void
-     */
-    public function setAmount(int $amount): void
-    {
-        $this->amount = $amount;
-    }
-
-    /**
      * @return float|null
      */
     public function getPriceNet(): ?float
@@ -93,30 +83,10 @@ class Pack extends BasePack
     }
 
     /**
-     * @param float|null $priceNet
-     *
-     * @return void
-     */
-    public function setPriceNet(?float $priceNet): void
-    {
-        $this->priceNet = $priceNet;
-    }
-
-    /**
      * @return float|null
      */
     public function getPriceGross(): ?float
     {
         return $this->priceGross;
-    }
-
-    /**
-     * @param float|null $priceGross
-     *
-     * @return void
-     */
-    public function setPriceGross(?float $priceGross): void
-    {
-        $this->priceGross = $priceGross;
     }
 }

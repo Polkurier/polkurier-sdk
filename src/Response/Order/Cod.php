@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * An amount of zero means no collection.
  */
-class Cod implements MessageInterface
+readonly class Cod implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -41,7 +41,7 @@ class Cod implements MessageInterface
      * @param CodTypeEnum $type how quickly the collected money is settled
      * @param CodReturnTypeEnum $returnType where it is sent
      * @param CodStatusEnum $status where the money has got to
-     * @param iterable<ReturnDetails> $returnDetails one entry per movement of the money
+     * @param ReturnDetails[] $returnDetails one entry per movement of the money
      */
     public function __construct(
         /**
@@ -75,10 +75,10 @@ class Cod implements MessageInterface
         private CodStatusEnum $status = CodStatusEnum::Waiting,
 
         /**
-         * @var iterable<ReturnDetails>
+         * @var ReturnDetails[]
          */
         #[Serializer\SerializedName(self::FIELD_RETURN_DETAILS)]
-        private iterable $returnDetails = [],
+        private array $returnDetails = [],
     ) {}
 
     /**
@@ -90,31 +90,11 @@ class Cod implements MessageInterface
     }
 
     /**
-     * @param CodTypeEnum $type
-     *
-     * @return void
-     */
-    public function setType(CodTypeEnum $type): void
-    {
-        $this->type = $type;
-    }
-
-    /**
      * @return float
      */
     public function getAmount(): float
     {
         return $this->amount;
-    }
-
-    /**
-     * @param float $amount
-     *
-     * @return void
-     */
-    public function setAmount(float $amount): void
-    {
-        $this->amount = $amount;
     }
 
     /**
@@ -126,31 +106,11 @@ class Cod implements MessageInterface
     }
 
     /**
-     * @param string $bankAccount
-     *
-     * @return void
-     */
-    public function setBankAccount(string $bankAccount): void
-    {
-        $this->bankAccount = $bankAccount;
-    }
-
-    /**
      * @return CodReturnTypeEnum
      */
     public function getReturnType(): CodReturnTypeEnum
     {
         return $this->returnType;
-    }
-
-    /**
-     * @param CodReturnTypeEnum $returnType
-     *
-     * @return void
-     */
-    public function setReturnType(CodReturnTypeEnum $returnType): void
-    {
-        $this->returnType = $returnType;
     }
 
     /**
@@ -164,30 +124,10 @@ class Cod implements MessageInterface
     }
 
     /**
-     * @param CodStatusEnum $status
-     *
-     * @return void
+     * @return ReturnDetails[]
      */
-    public function setStatus(CodStatusEnum $status): void
-    {
-        $this->status = $status;
-    }
-
-    /**
-     * @return iterable<ReturnDetails>
-     */
-    public function getReturnDetails(): iterable
+    public function getReturnDetails(): array
     {
         return $this->returnDetails;
-    }
-
-    /**
-     * @param iterable<ReturnDetails> $returnDetails
-     *
-     * @return void
-     */
-    public function setReturnDetails(iterable $returnDetails): void
-    {
-        $this->returnDetails = $returnDetails;
     }
 }

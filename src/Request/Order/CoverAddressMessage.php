@@ -13,8 +13,8 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The alternative return address printed on the label, when the order uses the
- * {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum::CoverAddressSender} service.
+ * The alternative sender address printed on the label, when the order uses the
+ * {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum::CoverSenderAddress} service.
  *
  * Note the key spelling: this uses `flat_number` with an underscore, while sender and recipient
  * addresses use `flatnumber`. The API defines them that way.

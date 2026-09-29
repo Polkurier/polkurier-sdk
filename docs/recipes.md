@@ -60,7 +60,7 @@ $order = new CreateOrderMessage(
         flatNumber: '3',
     ),
     insurance: 500.0,
-    courierService: [AdditionalServiceEnum::SmsNotificationRecipient],
+    courierService: [AdditionalServiceEnum::SmsOnDispatch],
     description: 'Books',
 );
 
@@ -82,8 +82,8 @@ The SDK cannot check these for you:
 - `description` has a length limit. [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) is the general
   one, and a carrier may set a lower one. Keep it short.
 - Some additional services have prerequisites. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists them
-  per carrier, and they vary by carrier and by account. The recipient SMS notifications are the
-  exception: they are not listed there, and their rules are documented on [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
+  per carrier, and they vary by carrier and by account. Not every service is listed there. The rules
+  for the others, such as the recipient SMS notifications, are documented on [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
 
 > [`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) only returns a price. It is not a dry run of [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). Both take the
 > same payload, but a payload that gets a price can still be rejected when you create the order.
@@ -461,7 +461,7 @@ use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
 
 // 1. Register against the operation the code will authorise.
 $token = $client->twoFactorToken()->twoFactorTokenRegister(
-    new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeIban),
+    new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber),
 );
 
 printf("Code sent to %s, valid until %s\n",

@@ -25,7 +25,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  * date part of the objects the time accessors return, and read the day from
  * {@see self::getPickupDate()}.
  */
-class Pickup implements MessageInterface
+readonly class Pickup implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -101,16 +101,6 @@ class Pickup implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $pickupDate
-     *
-     * @return void
-     */
-    public function setPickupDate(?\DateTimeInterface $pickupDate): void
-    {
-        $this->pickupDate = $pickupDate;
-    }
-
-    /**
      * Start of the collection window (time part only).
      *
      * @return \DateTimeInterface|null
@@ -118,16 +108,6 @@ class Pickup implements MessageInterface
     public function getPickupTimeFrom(): ?\DateTimeInterface
     {
         return $this->pickupTimeFrom;
-    }
-
-    /**
-     * @param \DateTimeInterface|null $pickupTimeFrom
-     *
-     * @return void
-     */
-    public function setPickupTimeFrom(?\DateTimeInterface $pickupTimeFrom): void
-    {
-        $this->pickupTimeFrom = $pickupTimeFrom;
     }
 
     /**
@@ -141,16 +121,6 @@ class Pickup implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $pickupTimeTo
-     *
-     * @return void
-     */
-    public function setPickupTimeTo(?\DateTimeInterface $pickupTimeTo): void
-    {
-        $this->pickupTimeTo = $pickupTimeTo;
-    }
-
-    /**
      * True when the sender hands the parcel over themselves and no collection should be booked.
      *
      * @return bool
@@ -158,16 +128,6 @@ class Pickup implements MessageInterface
     public function isNoCourierOrder(): bool
     {
         return $this->noCourierOrder;
-    }
-
-    /**
-     * @param bool $noCourierOrder
-     *
-     * @return void
-     */
-    public function setNoCourierOrder(bool $noCourierOrder): void
-    {
-        $this->noCourierOrder = $noCourierOrder;
     }
 
     /**

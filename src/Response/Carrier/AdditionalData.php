@@ -88,7 +88,7 @@ readonly class AdditionalData implements MessageInterface
     /**
      * @return Cod|null
      */
-    public function getCOD(): ?Cod
+    public function getCod(): ?Cod
     {
         return $this->cod;
     }

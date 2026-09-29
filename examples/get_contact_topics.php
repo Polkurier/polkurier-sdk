@@ -22,7 +22,7 @@ try {
             "%-8s %-44s %s\n",
             $topic->getId(),
             $topic->getTitle(),
-            $topic->isHasForm() ? '(has a form)' : ''
+            $topic->hasForm() ? '(has a form)' : ''
         );
     }
 } catch (Exception $e) {

@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Request\Order;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\PagedMessage;
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -22,7 +22,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  */
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
 #[Validate\InOrder(earlier: 'codMin', later: 'codMax')]
-readonly class GetOrdersMessage implements MessageInterface
+#[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
+readonly class GetOrdersMessage extends PagedMessage
 {
     /**+@#
      * JSON parameter keys
@@ -35,8 +36,6 @@ readonly class GetOrdersMessage implements MessageInterface
     public const string FIELD_DATE_FROM = 'date_from';
     public const string FIELD_DATE_TO = 'date_to';
     public const string FIELD_SEARCH_PHRASE = 'search';
-    public const string FIELD_PAGE_SIZE = 'pagesize';
-    public const string FIELD_PAGE = 'page';
     public const string FIELD_EXTERNAL_APPLICATION_ID = 'external_application_id';
     public const string FIELD_EXTERNAL_ORDER_ID = 'external_order_id';
     public const string FIELD_PACKS = 'packs';
@@ -122,21 +121,9 @@ readonly class GetOrdersMessage implements MessageInterface
         #[OmitWhenEmpty]
         private ?string $searchPhrase = null,
 
-        /**
-         * @var int|null
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[OmitWhenEmpty]
-        #[Validate\IntegerRange(1, self::MAX_PAGE_SIZE)]
-        private ?int $pageSize = null,
+        ?int $pageSize = null,
 
-        /**
-         * @var int|null
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[OmitWhenEmpty]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        private ?int $page = null,
+        ?int $page = null,
 
         /**
          * @var string|null
@@ -172,7 +159,9 @@ readonly class GetOrdersMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
         private ?bool $files = null,
-    ) {}
+    ) {
+        parent::__construct(pageSize: $pageSize, page: $page);
+    }
 
     /**
      * @return string|null
@@ -236,24 +225,6 @@ readonly class GetOrdersMessage implements MessageInterface
     public function getSearchPhrase(): ?string
     {
         return $this->searchPhrase;
-    }
-
-    /**
-     * At most 100. Defaults to 100.
-     *
-     * @return int|null
-     */
-    public function getPageSize(): ?int
-    {
-        return $this->pageSize;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
     }
 
     /**

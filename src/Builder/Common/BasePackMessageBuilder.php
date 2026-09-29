@@ -13,11 +13,11 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Common\BasePackMessage;
 
 /**
- * Assembles the dimensions and weight shared by every parcel payload.
+ * The setters for the dimensions, weight and type shared by every parcel payload.
  *
- * You will rarely need this directly. Use the builder of the message that contains the parcel.
+ * Extended by the builders of the messages that carry a parcel.
  */
-class BasePackMessageBuilder extends AbstractBuilder
+abstract class BasePackMessageBuilder extends AbstractBuilder
 {
     /**
      * @param int $length required before build()
@@ -73,8 +73,5 @@ class BasePackMessageBuilder extends AbstractBuilder
      * @return BasePackMessage
      * @throws InvalidArgumentException
      */
-    public function build(): BasePackMessage
-    {
-        return $this->make(BasePackMessage::class);
-    }
+    abstract public function build(): BasePackMessage;
 }

@@ -10,22 +10,20 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * Optional services that can be bought alongside carriage.
  *
- * Availability depends on the carrier and sometimes on the account. `available_carriers` lists
- * the supported services, except the SMS notifications. Asking for an unsupported service is an
- * error. Services are sent as a map of code to `true`.
+ * Which services you can order depends on the carrier and sometimes on the account. Asking for one
+ * the carrier doesn't offer is an error. Services are sent as a map of code to `true`.
  * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} builds the map from a plain list.
  *
- * Conditions the SDK can't check locally:
+ * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\CourierService} lists the services
+ * `available_carriers` reports for a carrier.
  *
- * - WEEK_COLLECTION is for InPost parcel lockers only.
- * - COVER_ADDRESS_SENDER requires a cover address on the order.
- * - There are 2 independent recipient SMS notifications: one when the parcel is dispatched and
- *   one when it goes out for delivery. You can order either or both. Each has a _WITH_NAME
- *   variant that replaces the plain one (don't order both). It needs a default SMS sender name on
- *   the account, otherwise the order is refused with PARAMS_NOT_SET. If you order the named
- *   dispatch notification, an out-for-delivery notification you also ordered is sent under that
- *   name too. It doesn't work the other way round.
- * - Not every UPS service supports SMS notifications.
+ * The recipient SMS notifications come in 2 independent kinds: one when the parcel is dispatched
+ * and one when it goes out for delivery. You can order either or both. Each has a variant sent
+ * under the account's default SMS sender name. The named variant replaces the plain one, so don't
+ * order both. If the account has no default sender name, the order is refused with PARAMS_NOT_SET.
+ * If you order the named dispatch notification, an out-for-delivery notification you also ordered
+ * is sent under that name too. It doesn't work the other way round. Not every UPS service supports
+ * SMS notifications.
  */
 enum AdditionalServiceEnum: string
 {
@@ -33,44 +31,41 @@ enum AdditionalServiceEnum: string
      * Return of signed documents (ROD): the recipient signs paperwork that the
      * carrier brings back to the sender.
      */
-    case RefundDocs = 'ROD';
+    case ReturnOfDocuments = 'ROD';
 
     /**
      * The courier brings the printed label, so the sender need not print one.
      */
-    case CourierWithLabel = 'COURIER_WITH_LABEL';
+    case CourierBringsLabel = 'COURIER_WITH_LABEL';
 
     /**
-     * A regular weekly collection. InPost parcel lockers only. Requesting it
-     * for any other carrier is rejected.
+     * Delivery at the weekend. For InPost parcel lockers. It can only be ordered
+     * inside a weekly window, and is refused outside it.
      */
-    case WeekCollection = 'WEEK_COLLECTION';
+    case WeekendDelivery = 'WEEK_COLLECTION';
 
     /**
      * Texts the recipient when the parcel is dispatched.
      */
-    case SmsNotificationRecipient = 'SMS_NOTIFICATION_RECIPIENT';
+    case SmsOnDispatch = 'SMS_NOTIFICATION_RECIPIENT';
 
     /**
-     * Like SMS_NOTIFICATION_RECIPIENT, but sent under the
-     * account's own sender name. The name must be set on the
-     * account. Replaces the plain variant, so don't order both.
+     * SmsOnDispatch sent under the account's default SMS sender name. Order it
+     * instead of SmsOnDispatch, not as well.
      */
-    case SmsNotificationRecipientWithName = 'SMS_NOTIFICATION_RECIPIENT_WITH_NAME';
+    case SmsOnDispatchWithSenderName = 'SMS_NOTIFICATION_RECIPIENT_WITH_NAME';
 
     /**
-     * Texts the recipient when the parcel goes out for delivery.
-     * Independent of SMS_NOTIFICATION_RECIPIENT. You can order
-     * either or both.
+     * Texts the recipient when the parcel goes out for delivery. Independent of
+     * SmsOnDispatch. You can order either or both.
      */
-    case SmsNotificationRecipientOutForDelivery = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY';
+    case SmsOutForDelivery = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY';
 
     /**
-     * Like SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY, but
-     * sent under the account's own sender name. The name must be set
-     * on the account. Replaces the plain variant, so don't order both.
+     * SmsOutForDelivery sent under the account's default SMS sender name. Order it
+     * instead of SmsOutForDelivery, not as well.
      */
-    case SmsNotificationRecipientOutForDeliveryWithName = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY_WITH_NAME';
+    case SmsOutForDeliveryWithSenderName = 'SMS_NOTIFICATION_RECIPIENT_ORDER_ISSUED_FOR_DELIVERY_WITH_NAME';
 
     /**
      * No printed label. The sender shows a code at drop-off. The code is returned
@@ -91,13 +86,13 @@ enum AdditionalServiceEnum: string
     /**
      * The courier telephones the recipient before delivering.
      */
-    case PhoneNotificationRecipient = 'PHONE_NOTIFICATION_RECIPIENT';
+    case PhoneCallBeforeDelivery = 'PHONE_NOTIFICATION_RECIPIENT';
 
     /**
-     * Prints an alternative return address on the label. Requires a cover
+     * Prints an alternative sender address on the label. Requires a cover
      * address on the order.
      */
-    case CoverAddressSender = 'COVER_ADDRESS_SENDER';
+    case CoverSenderAddress = 'COVER_ADDRESS_SENDER';
 
     /**
      * Declares the shipment as tyres, which several carriers price separately.
@@ -105,9 +100,9 @@ enum AdditionalServiceEnum: string
     case Tires = 'TIRES';
 
     /**
-     * The courier carries the parcel to the door, not just to the kerb.
+     * The courier carries the parcel in to the door, not just to the kerb.
      */
-    case BringingDeliveredParcel = 'BRINGING_DELIVERED_PARCEL';
+    case CarryIn = 'BRINGING_DELIVERED_PARCEL';
 
     /**
      * Delivery on a Saturday.
@@ -115,30 +110,31 @@ enum AdditionalServiceEnum: string
     case SaturdayDelivery = 'SATURDAY_DELIVERY';
 
     /**
-     * The courier telephones before collecting from the sender.
+     * The courier telephones the sender before collecting.
      */
-    case PhoneNotificationCollection = 'PHONE_NOTIFICATION_COLLECTION';
+    case PhoneCallBeforePickup = 'PHONE_NOTIFICATION_COLLECTION';
 
     /**
-     * Delivery before an agreed time of day.
+     * Delivery by a set time of day, such as 9:00 or 12:00.
      */
-    case DeliveryToTime = 'DELIVERY_TO_TIME';
+    case DeliveryByTime = 'DELIVERY_TO_TIME';
 
     /**
-     * Handed to a person, not left in a safe place.
+     * Handed over to a person at the delivery address. The parcel can't be left
+     * unattended, but anyone there may accept it.
      */
     case HandDelivery = 'HAND_DELIVERY';
 
     /**
-     * Carriage of dangerous goods under the ADR agreement.
-     */
-    case Adr = 'ADR';
-
-    /**
-     * Handed to the addressee personally, against an identity check.
-     * Stricter than HAND_DELIVERY, which any person may accept.
+     * Handed to the addressee in person, after an identity check. Stricter than
+     * HandDelivery, which anyone at the address may accept.
      */
     case DeliveryToOwnHands = 'DOSTAWA_DO_RAK_WLASNYCH';
+
+    /**
+     * Carriage of dangerous goods under the ADR agreement.
+     */
+    case DangerousGoods = 'ADR';
 
     /**
      * The freight must not have anything stacked on it.
@@ -146,22 +142,22 @@ enum AdditionalServiceEnum: string
     case DoNotStack = 'DO_NOT_STACK';
 
     /**
-     * A tail lift is needed at the collection address.
+     * A vehicle with a tail lift is needed at the collection address.
      */
-    case RequireLiftForLoad = 'REQUIRE_LIFT_FOR_LOAD';
+    case TailLiftAtPickup = 'REQUIRE_LIFT_FOR_LOAD';
 
     /**
-     * A tail lift is needed at the delivery address.
+     * A vehicle with a tail lift is needed at the delivery address.
      */
-    case RequireLiftForUnload = 'REQUIRE_LIFT_FOR_UNLOAD';
+    case TailLiftAtDelivery = 'REQUIRE_LIFT_FOR_UNLOAD';
 
     /**
-     * The vehicle must be loaded from the side.
+     * The vehicle must be loaded from the side at the collection address.
      */
-    case SideLoad = 'SIDE_LOAD';
+    case SideLoadAtPickup = 'SIDE_LOAD';
 
     /**
-     * The vehicle must be unloaded from the side.
+     * The vehicle must be unloaded from the side at the delivery address.
      */
-    case SideUnload = 'SIDE_UNLOAD';
+    case SideUnloadAtDelivery = 'SIDE_UNLOAD';
 }

@@ -64,7 +64,9 @@ have no builder.
 Available builders
 ------------------
 
-There are 23 builders. Every message with four or more fields has one.
+There are 22 builders. Every message with four or more fields has one. Builders inherit like their
+messages: the parcel builders share the abstract [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php), and
+[`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) extends [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php).
 
 | Builder | Builds |
 |---------|--------|
@@ -72,7 +74,6 @@ There are 23 builders. Every message with four or more fields has one.
 | [`Account\SavePhoneNumberMessageBuilder`](../src/Builder/Account/SavePhoneNumberMessageBuilder.php) | [`Request\Account\SavePhoneNumberMessage`](../src/Request/Account/SavePhoneNumberMessage.php) |
 | [`Address\SaveMessageBuilder`](../src/Builder/Address/SaveMessageBuilder.php) | [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) |
 | [`BankAccount\SaveMessageBuilder`](../src/Builder/BankAccount/SaveMessageBuilder.php) | [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) |
-| [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php) | [`Request\Common\BasePackMessage`](../src/Request/Common/BasePackMessage.php) |
 | [`Contact\SaveContactFormMessageBuilder`](../src/Builder/Contact/SaveContactFormMessageBuilder.php) | [`Request\Contact\SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php) |
 | [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php) | [`Request\Courier\GetPickupTimeMessage`](../src/Request/Courier/GetPickupTimeMessage.php) |
 | [`Courier\GetPointMessageBuilder`](../src/Builder/Courier/GetPointMessageBuilder.php) | [`Request\Courier\GetPointMessage`](../src/Request/Courier/GetPointMessage.php) |
@@ -148,7 +149,20 @@ $secondPage = $base->page(2)->build();
 ```
 
 Note: this mutates `$base`. Setters return the same instance, not a copy. If you need two
-independent builders, create two.
+independent builders, create two. To start over with the same builder, call
+[`AbstractBuilder::reset()`](../src/Builder/AbstractBuilder.php).
+
+Builders in a DI container
+--------------------------
+
+A builder's constructor takes no arguments, so a DI container can create builders in place of
+[`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php), e.g. through Magento's generated factories. No builder class or public builder
+method is `final`, so a container can also hand out a subclass or wrap a builder in an interceptor,
+e.g. a Magento plugin on a setter or on `build()`. Ask the container for a new builder each time
+you need one, since a builder keeps its values.
+
+The messages themselves are readonly value objects. To change what is sent, change the values
+given to the builder, or build a new message from the one `build()` returned.
 
 Writing your own
 ----------------
@@ -184,7 +198,8 @@ spread as a named argument. [`AbstractBuilder::make()`](../src/Builder/AbstractB
 by reflection, so it always agrees with the constructor.
 
 Builders aren't `final`, because their setters return `static` and a subclass can add setters.
-[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) **is** final, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
+[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) takes no arguments. A subclass that declares its own constructor must keep it
+parameterless and call `parent::__construct()`, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
 
 Drift test
 ----------

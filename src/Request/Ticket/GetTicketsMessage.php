@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Request\Ticket;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Request\Common\PagedMessage;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -17,15 +17,14 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Setting an id narrows the list to that ticket. The response is still a list.
  */
-readonly class GetTicketsMessage implements MessageInterface
+#[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
+readonly class GetTicketsMessage extends PagedMessage
 {
     /**+@#
      * JSON parameter keys
      */
     public const string FIELD_ID = 'id';
     public const string FIELD_SEARCH_QUERY = 'search_query';
-    public const string FIELD_PAGE_SIZE = 'pagesize';
-    public const string FIELD_PAGE = 'page';
     /**-@#*/
 
     /**
@@ -54,22 +53,12 @@ readonly class GetTicketsMessage implements MessageInterface
         #[OmitWhenEmpty]
         private ?string $searchQuery = null,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[OmitWhenEmpty]
-        #[Validate\IntegerRange(1, self::MAX_PAGE_SIZE)]
-        private ?int $pageSize = null,
+        ?int $pageSize = null,
 
-        /**
-         * @var ?int
-         */
-        #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[OmitWhenEmpty]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
-        private ?int $page = null,
-    ) {}
+        ?int $page = null,
+    ) {
+        parent::__construct(pageSize: $pageSize, page: $page);
+    }
 
     /**
      * @return ?string
@@ -87,19 +76,4 @@ readonly class GetTicketsMessage implements MessageInterface
         return $this->searchQuery;
     }
 
-    /**
-     * @return ?int
-     */
-    public function getPageSize(): ?int
-    {
-        return $this->pageSize;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
 }

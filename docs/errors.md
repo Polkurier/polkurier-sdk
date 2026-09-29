@@ -163,14 +163,17 @@ function fieldErrors(\Throwable $e): array
 
 ### The code enums
 
-[`Enum\Http\ApiStatusCodeEnum`](../src/Enum/Http/ApiStatusCodeEnum.php) and [`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) hold the values the API is known to
-send. There are 34 of each, covering the same conditions as numbers and as strings. Compare
-against them instead of literals:
+[`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) holds the 34 conditions the API is known to report. Each case's
+value is the `error_code` string, [`ApiErrorCodeEnum::statusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) gives the numeric `status_code`,
+and [`ApiErrorCodeEnum::fromStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. Compare against them instead of
+literals:
 
 ```php
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
 
-if ($e->getErrorMessage()->getErrorCode() === ApiErrorCodeEnum::TokenNotActive->value) { … }
+$error = $e->getErrorMessage();
+if ($error->getErrorCode() === ApiErrorCodeEnum::TokenNotActive->value) { … }
+if ($error->getStatusCode() === ApiErrorCodeEnum::TokenNotActive->statusCode()) { … }
 ```
 
 You compare against `->value` because the properties are plain strings and ints, not enums, just
@@ -184,10 +187,9 @@ may be missing, malformed, unknown or inactive, or used with an authorization me
 isn't allowed to use.
 
 The SDK classifies it from whichever of the two codes the response has, since either can be
-missing. The code sets are public:
+missing. The code set is public:
 
 ```php
-AuthorizationException::ERROR_STATUSES;   // int[]
 AuthorizationException::ERROR_CODES;      // string[]
 AuthorizationException::isAuthorizationErrorStatus($status);
 AuthorizationException::isAuthorizationErrorCode($code);
