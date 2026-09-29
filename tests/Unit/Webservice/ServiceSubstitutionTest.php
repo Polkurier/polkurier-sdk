@@ -21,7 +21,6 @@ use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Service\AbstractService;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Service\UtilsService;
 use Polkurier\Webservice\Testing\RecordingClient;

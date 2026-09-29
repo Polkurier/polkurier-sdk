@@ -37,7 +37,7 @@ class OrderAddressValidator
     {
         $notBlank = new NotBlank();
 
-        $violations->check('phone', $address->getPhone(), $notBlank);
+        $violations->check(OrderAddressMessage::FIELD_PHONE, $address->getPhone(), $notBlank);
 
         if ($recipient && ($address->getPointId() !== null || $address->getMachineName() !== null)) {
             // Delivery goes to the point, so the street address is not required.
@@ -45,10 +45,10 @@ class OrderAddressValidator
         }
 
         $violations
-            ->check('person', $address->getPerson(), $notBlank)
-            ->check('street', $address->getStreet(), $notBlank)
-            ->check('city', $address->getCity(), $notBlank)
-            ->check('postcode', $address->getPostcode(), $notBlank)
-            ->checkWhen(!$recipient, 'email', $address->getEmail(), $notBlank);
+            ->check(OrderAddressMessage::FIELD_PERSON, $address->getPerson(), $notBlank)
+            ->check(OrderAddressMessage::FIELD_STREET, $address->getStreet(), $notBlank)
+            ->check(OrderAddressMessage::FIELD_CITY, $address->getCity(), $notBlank)
+            ->check(OrderAddressMessage::FIELD_POSTCODE, $address->getPostcode(), $notBlank)
+            ->checkWhen(!$recipient, OrderAddressMessage::FIELD_EMAIL, $address->getEmail(), $notBlank);
     }
 }

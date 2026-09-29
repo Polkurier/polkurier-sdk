@@ -291,6 +291,55 @@ final class ValidationTest extends TestCase
     }
 
     /**
+     * A missing field is reported once, not once per rule that requires it.
+     *
+     * @return void
+     */
+    public function testEachViolationIsReportedOnce(): void
+    {
+        try {
+            $this->validator->validate(self::order(sender: new OrderAddressMessage(
+                person: 'Jan Kowalski',
+                street: 'Długa',
+                city: 'Poznań',
+                postcode: '61-001',
+                email: 'jan@example.com',
+                phone: '',
+                houseNumber: '12',
+            )));
+            self::fail('Expected a ValidationException.');
+        } catch (ValidationException $e) {
+            self::assertSame(['sender.phone'], \array_keys($e->getValidationErrors()));
+            self::assertCount(1, $e->getFieldErrors('sender.phone'));
+        }
+    }
+
+    /**
+     * A coupon check only needs the sender's region, as in the validateCouponCode() example.
+     *
+     * @return void
+     */
+    public function testCouponCheckAcceptsARegionOnlySender(): void
+    {
+        $this->validator->validate(new ValidateCouponMessage(
+            couponCode: 'SPRING10',
+            courier: 'UPS',
+            shipmentType: ShipmentTypeEnum::Box,
+            packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard)],
+            sender: new OrderAddressMessage(
+                person: '',
+                street: '',
+                city: 'Poznań',
+                postcode: '61-001',
+                email: '',
+                phone: '',
+            ),
+        ));
+
+        $this->addToAssertionCount(1);
+    }
+
+    /**
      * A message with no rule registered passes: silence means "not checked", not "approved".
      *
      * @return void

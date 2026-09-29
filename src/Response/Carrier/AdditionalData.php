@@ -33,43 +33,43 @@ readonly class AdditionalData implements MessageInterface
     /**-@#*/
 
     /**
-     * @param Cod $cod
-     * @param Property $insurance
-     * @param CourierService $courierService
-     * @param ShipmentType $shipmentType
-     * @param Pickup $pickup
+     * @param Cod|null $cod
+     * @param Property|null $insurance
+     * @param CourierService|null $courierService
+     * @param ShipmentType|null $shipmentType
+     * @param Pickup|null $pickup
      * @param AdditionalField[] $additionalFields
      */
     public function __construct(
         /**
-         * @var Cod
+         * @var Cod|null
          */
         #[Serializer\SerializedName(self::FIELD_COD)]
-        private Cod $cod,
+        private ?Cod $cod = null,
 
         /**
-         * @var Property
+         * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_INSURANCE)]
-        private Property $insurance,
+        private ?Property $insurance = null,
 
         /**
-         * @var CourierService
+         * @var CourierService|null
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_SERVICE)]
-        private CourierService $courierService,
+        private ?CourierService $courierService = null,
 
         /**
-         * @var ShipmentType
+         * @var ShipmentType|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
-        private ShipmentType $shipmentType,
+        private ?ShipmentType $shipmentType = null,
 
         /**
-         * @var Pickup
+         * @var Pickup|null
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP)]
-        private Pickup $pickup,
+        private ?Pickup $pickup = null,
 
         /**
          * @var PointsMap|null
@@ -86,41 +86,41 @@ readonly class AdditionalData implements MessageInterface
     ) {}
 
     /**
-     * @return Cod
+     * @return Cod|null
      */
-    public function getCOD(): Cod
+    public function getCOD(): ?Cod
     {
         return $this->cod;
     }
 
     /**
-     * @return Property
+     * @return Property|null
      */
-    public function getInsurance(): Property
+    public function getInsurance(): ?Property
     {
         return $this->insurance;
     }
 
     /**
-     * @return CourierService
+     * @return CourierService|null
      */
-    public function getCourierService(): CourierService
+    public function getCourierService(): ?CourierService
     {
         return $this->courierService;
     }
 
     /**
-     * @return ShipmentType
+     * @return ShipmentType|null
      */
-    public function getShipmentType(): ShipmentType
+    public function getShipmentType(): ?ShipmentType
     {
         return $this->shipmentType;
     }
 
     /**
-     * @return Pickup
+     * @return Pickup|null
      */
-    public function getPickup(): Pickup
+    public function getPickup(): ?Pickup
     {
         return $this->pickup;
     }

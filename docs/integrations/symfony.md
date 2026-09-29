@@ -233,15 +233,11 @@ final readonly class TenantConfigProvider implements ConfigProviderInterface
     Polkurier\Webservice\Api\ConfigProviderInterface: '@App\Polkurier\TenantConfigProvider'
 ```
 
-There's a catch, described in [Configuration](../configuration.md#per-tenant-credentials): each
-service reads its configuration once, in the constructor. In a classic Symfony application with
-one process per request, that means once per request, which is fine. Under Messenger workers,
-FrankenPHP or RoadRunner the container is reused between messages, so a service built for tenant A
-**keeps tenant A's credentials**.
-
-You can fix this in two ways. Make the services lazy and reset them between messages (see
-[service reset](https://symfony.com/doc/current/messenger.html)), or build the client for each
-message:
+The SDK asks the provider for its configuration on every call (see
+[Configuration](../configuration.md#per-tenant-credentials)), so this works for as long as
+`TenantContext` knows the current tenant. In a Messenger handler there is no current request, so
+it usually doesn't. Build the client for each message instead, from the tenant the message
+carries:
 
 ```php
 #[AsMessageHandler]

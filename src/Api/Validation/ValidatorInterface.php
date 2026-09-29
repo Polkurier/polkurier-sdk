@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Api\Validation;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Exception\ValidationException;
 
 /**
  * Validates a message before it is sent.
@@ -24,7 +25,8 @@ interface ValidatorInterface
      * @param MessageInterface $data
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException when a rule is declared wrongly
+     * @throws ValidationException when the message breaks a rule
      */
     public function validate(MessageInterface $data): void;
 }

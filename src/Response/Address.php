@@ -46,7 +46,7 @@ class Address extends BaseAddress
      * @param string $houseNumber
      * @param string|null $company
      * @param string|null $province
-     * @param string|null $country
+     * @param string $country
      * @param string|null $pointId
      * @param string|null $id
      * @param AddressTypeEnum $type
@@ -54,6 +54,9 @@ class Address extends BaseAddress
      * @param bool $default
      * @param bool $shared
      * @param bool $coverAddress
+     * @param string|null $streetName
+     * @param string|null $machineName
+     * @param CourierPoint|null $point
      */
     public function __construct(
         string $person,
@@ -84,7 +87,7 @@ class Address extends BaseAddress
 
         ?string $province = null,
 
-        ?string $country = self::DEFAULT_COUNTRY,
+        string $country = self::DEFAULT_COUNTRY,
 
         ?string $pointId = null,
 
@@ -125,6 +128,12 @@ class Address extends BaseAddress
          */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS)]
         private bool $coverAddress = false,
+
+        ?string $streetName = null,
+
+        ?string $machineName = null,
+
+        ?CourierPoint $point = null,
     ) {
         parent::__construct(
             person: $person,
@@ -137,6 +146,9 @@ class Address extends BaseAddress
             province: $province,
             country: $country,
             pointId: $pointId,
+            streetName: $streetName,
+            machineName: $machineName,
+            point: $point,
         );
     }
 
@@ -153,7 +165,7 @@ class Address extends BaseAddress
      *
      * @return void
      */
-    public function setId($id): void
+    public function setId(?string $id): void
     {
         $this->id = $id;
     }
@@ -213,19 +225,19 @@ class Address extends BaseAddress
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getFlatNumber(): string
+    public function getFlatNumber(): ?string
     {
         return $this->flatNumber;
     }
 
     /**
-     * @param string $flatNumber
+     * @param string|null $flatNumber
      *
      * @return void
      */
-    public function setFlatNumber(string $flatNumber): void
+    public function setFlatNumber(?string $flatNumber): void
     {
         $this->flatNumber = $flatNumber;
     }

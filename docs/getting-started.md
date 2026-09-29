@@ -8,8 +8,8 @@ PHP 8.4 or 8.5. The SDK uses readonly classes, backed enums, attributes, named a
 `new Foo()->bar()` without parentheses, and there is no polyfill for older versions.
 
 Composer installs the dependencies: Guzzle for HTTP, `symfony/serializer` with `property-info` and
-`property-access` for mapping, `psr/cache` for the optional metadata cache, and Monolog (only its
-`Level` constants are used, for logging).
+`property-access` for mapping, `psr/cache` for the optional metadata cache, and the PSR interfaces
+for HTTP clients, HTTP messages and logging. Any PSR-3 logger works.
 
 Installation
 ------------
@@ -157,7 +157,8 @@ Running the examples
 POLKURIER_API_LOGIN=12345 POLKURIER_API_TOKEN=… php examples/available_carriers.php
 ```
 
-Set `POLKURIER_API_URL` to use an endpoint other than production. Scripts that write anything
+Set `POLKURIER_API_URL` to use an endpoint other than production, or `POLKURIER_API_SANDBOX=1` to
+use the sandbox. Scripts that write anything
 (placing an order, deleting an address, requesting a payout) do nothing until you add `--confirm`,
 so you can run all of them to see what each method returns. Scripts that need an identifier take it
 as the first argument:

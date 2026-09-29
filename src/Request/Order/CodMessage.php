@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Request\Order;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodTypeEnum;
+use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -62,6 +63,7 @@ readonly class CodMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT)]
         #[Validate\Iban]
+        #[OmitWhenEmpty]
         private string $bankAccount = '',
 
         /**

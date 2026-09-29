@@ -147,11 +147,10 @@ class ConfigProvider implements ConfigProviderInterface
 }
 ```
 
-> Watch the object lifetime. Magento's object manager caches shared instances for the request, and
-> [`AbstractService`](../../src/Service/AbstractService.php) reads its configuration once, in the constructor. A normal storefront or admin
-> request deals with one store, so that's fine. A **cron job or consumer that loops over stores**
-> will keep the first store's config. Emulate the store *before* resolving the service, or build
-> the client per store. See [the multi-store note](#multi-store-and-cron) below.
+> The SDK asks the provider for its configuration on every call, and the provider above reads the
+> current store. A normal storefront or admin request deals with one store, so that's fine. In a
+> **cron job or consumer that loops over stores**, emulate each store before calling the SDK, or
+> build the client per store. See [the multi-store note](#multi-store-and-cron) below.
 
 `etc/di.xml`
 ------------
@@ -455,8 +454,9 @@ public function execute()
 Multi-store and cron
 --------------------
 
-This is where most Magento integrations go wrong. A service keeps the configuration it was built
-with, so a cron job that loops over stores must build the client again for each store:
+This is where most Magento integrations go wrong. A cron job that loops over stores has to make
+each call inside that store's emulation. Here the client is built inside the emulation from the
+store's configuration:
 
 ```php
 foreach ($this->storeManager->getStores() as $store) {
@@ -476,9 +476,8 @@ foreach ($this->storeManager->getStores() as $store) {
 }
 ```
 
-Here the facade is constructed directly instead of injected. An injected service is the object
-manager's cached instance, and it holds the configuration of whichever store was current when it
-was first built.
+An injected client works too, since the SDK asks the provider for its configuration on every call.
+What matters is that the call happens while the store is emulated.
 
 Testing
 -------

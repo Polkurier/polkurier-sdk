@@ -91,54 +91,63 @@ readonly class SavePayerAddressMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
+        #[OmitWhenEmpty]
         private string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
+        #[OmitWhenEmpty]
         private string $street = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_BUILDING_NUMBER)]
+        #[OmitWhenEmpty]
         private string $buildingNumber = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POST_CODE)]
+        #[OmitWhenEmpty]
         private string $postCode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
+        #[OmitWhenEmpty]
         private string $city = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
+        #[OmitWhenEmpty]
         private string $country = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NIP_PREFIX)]
+        #[OmitWhenEmpty]
         private string $nipPrefix = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NIP)]
+        #[OmitWhenEmpty]
         private string $nip = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_REGON)]
+        #[OmitWhenEmpty]
         private string $regon = '',
     ) {}
 

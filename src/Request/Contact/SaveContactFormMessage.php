@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -16,7 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Take the form id and nonce from the matching
  * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactForm()} response.
- * Fetch the form again for each submission.
+ * Fetch the form again for each submission. Pass the answers in $fields, keyed by the field names
+ * the form definition gives. They are sent next to the category, form id and nonce.
  */
 readonly class SaveContactFormMessage implements MessageInterface
 {
@@ -26,12 +28,14 @@ readonly class SaveContactFormMessage implements MessageInterface
     public const string FIELD_CATEGORY = 'category';
     public const string FIELD_FORM_ID = 'form_id';
     public const string FIELD_NONCE = 'nonce';
+    public const string FIELD_FIELDS = 'fields';
     /**-@#*/
 
     /**
      * @param string $category category slug, matching the form that was fetched
      * @param string $formId from the form definition
      * @param string $nonce from the form definition
+     * @param array<string, scalar> $fields the answers, keyed by the form's field names
      */
     public function __construct(
         /**
@@ -54,6 +58,13 @@ readonly class SaveContactFormMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[Validate\NotBlank]
         private string $nonce,
+
+        /**
+         * @var array<string, scalar>
+         */
+        #[Serializer\SerializedName(self::FIELD_FIELDS)]
+        #[InlineFields]
+        private array $fields = [],
     ) {}
 
     /**
@@ -78,5 +89,13 @@ readonly class SaveContactFormMessage implements MessageInterface
     public function getNonce(): string
     {
         return $this->nonce;
+    }
+
+    /**
+     * @return array<string, scalar>
+     */
+    public function getFields(): array
+    {
+        return $this->fields;
     }
 }

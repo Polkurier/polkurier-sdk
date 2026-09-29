@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 
 /**
  * Applies a rule to every entry of a list.
@@ -32,13 +33,23 @@ class Each
 {
     /**
      * @param class-string<ValueValidatorInterface> $rule the rule to apply to each entry
+     *
+     * @throws InvalidArgumentException when the named class is not a value rule
      */
     public function __construct(
         /**
          * @var class-string<ValueValidatorInterface>
          */
         public readonly string $rule,
-    ) {}
+    ) {
+        if (!\is_subclass_of($rule, ValueValidatorInterface::class)) {
+            throw new InvalidArgumentException(\sprintf(
+                '%s is not a %s, so it cannot check list entries.',
+                $rule,
+                ValueValidatorInterface::class,
+            ));
+        }
+    }
 
     /**
      * @return ValueValidatorInterface

@@ -119,7 +119,7 @@ Reflection runs once per class and the result is cached.
 
 ### Cross-field rules
 
-A property attribute that names a sibling, like [`#[Postcode(countryFrom: 'country')]`](../src/Validator/Rule/Postcode.php), links two
+A property attribute that names a sibling, like a hypothetical `#[Postcode(countryFrom: 'country')]`, links two
 fields from a place that can only see one of them, and the pairing has to be kept right by hand.
 Only the class sees both fields, so cross-field rules go there:
 
@@ -223,9 +223,8 @@ There are five options, roughly from most to least drastic.
 new Config(/* … */, validatePayloads: false);
 ```
 
-The service layer then uses [`NullValidator`](../src/Validator/NullValidator.php), which accepts everything, so the code path is the
-same either way. Use this when the SDK disagrees with the API and you need to ship, and report the
-disagreement.
+The services then skip validation entirely. Use this when the SDK disagrees with the API and you
+need to ship, and report the disagreement.
 
 ### 2. Drop one rule, keep the rest
 
@@ -341,7 +340,7 @@ Where validation happens
 In [`AbstractService::processRequest()`](../src/Service/AbstractService.php), before the request is built:
 
 ```php
-if ($payload !== null && $this->config->validatePayloads()) {
+if ($payload !== null && $this->config()->validatePayloads()) {
     $this->validator->validate($payload);
 }
 ```

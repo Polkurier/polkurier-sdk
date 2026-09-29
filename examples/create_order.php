@@ -10,7 +10,7 @@
  * is a price, not a guarantee that the same payload will be accepted for creation, so this example
  * does both in turn rather than treating the quote as a dry run.
  *
- * Nothing is placed unless you pass --create, so the script is safe to run as-is.
+ * Nothing is placed unless you pass --confirm, so the script is safe to run as-is.
  */
 declare(strict_types=1);
 
@@ -64,8 +64,8 @@ try {
     echo "Quote:\n";
     dumpResponse($sdk->orders()->orderValuation($order));
 
-    if (!hasFlag('--create')) {
-        echo "\nRe-run with --create to place this order.\n";
+    if (!hasFlag('--confirm')) {
+        echo "\nRe-run with --confirm to place this order.\n";
         exit(0);
     }
 

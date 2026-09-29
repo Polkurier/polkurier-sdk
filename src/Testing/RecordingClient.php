@@ -68,13 +68,23 @@ final class RecordingClient implements ClientInterface, ClientFactoryInterface
     }
 
     /**
+     * The most recent request, or null before the first call.
+     *
+     * @return RequestInterface|null
+     */
+    public function lastRequest(): ?RequestInterface
+    {
+        return $this->requests[\count($this->requests) - 1] ?? null;
+    }
+
+    /**
      * The decoded request body of the most recent call.
      *
      * @return array<string, mixed>
      */
     public function lastPayload(): array
     {
-        $request = $this->requests[\count($this->requests) - 1] ?? null;
+        $request = $this->lastRequest();
         if ($request === null) {
             return [];
         }
@@ -86,6 +96,7 @@ final class RecordingClient implements ClientInterface, ClientFactoryInterface
 
     /**
      * @return int
+     * @phpstan-impure
      */
     public function requestCount(): int
     {

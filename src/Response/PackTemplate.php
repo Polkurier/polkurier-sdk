@@ -136,7 +136,7 @@ class PackTemplate extends BasePack
      *
      * @return void
      */
-    public function setId($id): void
+    public function setId(?string $id): void
     {
         $this->id = $id;
     }

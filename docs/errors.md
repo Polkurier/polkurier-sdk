@@ -164,7 +164,7 @@ function fieldErrors(\Throwable $e): array
 ### The code enums
 
 [`Enum\Http\ApiStatusCodeEnum`](../src/Enum/Http/ApiStatusCodeEnum.php) and [`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) hold the values the API is known to
-send. There are 35 of each, covering the same conditions as numbers and as strings. Compare
+send. There are 34 of each, covering the same conditions as numbers and as strings. Compare
 against them instead of literals:
 
 ```php

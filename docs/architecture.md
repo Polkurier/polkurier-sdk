@@ -14,7 +14,7 @@ The source is organised by role:
 | `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
 | `Request` | Everything you send |
 | `Response` | Everything you get back |
-| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the 22 hand-written builders |
+| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the 23 hand-written builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, 2 custom normalizers and 1 attribute |
 | `Validator` | The rules, and the machinery that runs them |
@@ -281,7 +281,8 @@ The SDK holds no connection state and does no I/O until you call a service metho
 
 - [`PolkurierWebservice`](../src/PolkurierWebservice.php) caches each service after first use, so repeated calls to an accessor
   return the same instance.
-- [`AbstractService`](../src/Service/AbstractService.php) and [`ClientFactory`](../src/Http/ClientFactory.php) each resolve configuration once, in their constructors.
+- [`AbstractService`](../src/Service/AbstractService.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php) and [`ClientFactory`](../src/Http/ClientFactory.php) read the configuration from the
+  provider on every call and don't keep it.
 - [`SerializerProvider`](../src/Serializer/SerializerProvider.php) holds no per-call state and can be shared across any number of clients.
 - The reflection caches in [`AttributeValidator`](../src/Validator/AttributeValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) and
   [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) are `static` and keyed by class name, so they fill once per process.

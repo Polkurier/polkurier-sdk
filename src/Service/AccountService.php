@@ -15,7 +15,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Request\Account\AcceptRegulationsMessage;
 use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Request\Account\ChangeDefaultSenderPointMessage;

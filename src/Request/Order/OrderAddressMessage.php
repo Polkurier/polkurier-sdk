@@ -94,7 +94,6 @@ readonly class OrderAddressMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PHONE)]
-        #[Validate\NotBlank]
         #[Validate\PhoneNumber]
         private string $phone,
 

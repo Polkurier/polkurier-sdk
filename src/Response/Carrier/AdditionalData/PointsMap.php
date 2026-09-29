@@ -26,19 +26,19 @@ readonly class PointsMap implements MessageInterface
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE_PROVIDERS)]
-        private array $availableProviders,
+        private array $availableProviders = [],
 
         /**
-         * @var PointRequirementEnum
+         * @var PointRequirementEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SENDER_POINT)]
-        private PointRequirementEnum $senderPoint,
+        private ?PointRequirementEnum $senderPoint = null,
 
         /**
-         * @var PointRequirementEnum
+         * @var PointRequirementEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_RECIPIENT_POINT)]
-        private PointRequirementEnum $recipientPoint,
+        private ?PointRequirementEnum $recipientPoint = null,
     ) {}
 
     /**
@@ -50,17 +50,17 @@ readonly class PointsMap implements MessageInterface
     }
 
     /**
-     * @return PointRequirementEnum
+     * @return PointRequirementEnum|null
      */
-    public function getSenderPoint(): PointRequirementEnum
+    public function getSenderPoint(): ?PointRequirementEnum
     {
         return $this->senderPoint;
     }
 
     /**
-     * @return PointRequirementEnum
+     * @return PointRequirementEnum|null
      */
-    public function getRecipientPoint(): PointRequirementEnum
+    public function getRecipientPoint(): ?PointRequirementEnum
     {
         return $this->recipientPoint;
     }

@@ -477,7 +477,8 @@ interface TicketsServiceInterface
      *
      * Endpoint: `save_contact_form`
      *
-     * Request (any fields besides these 3 come from the form definition):
+     * Request. The answers go in the message's `fields`, keyed by the field names in the form
+     * definition, and are sent next to the category, form id and nonce:
      * ```json
      * {
      *     "apimethod": "save_contact_form",
@@ -485,7 +486,8 @@ interface TicketsServiceInterface
      *     "data": {
      *         "category": "wspolpraca",
      *         "form_id": "…",
-     *         "nonce": "…"
+     *         "nonce": "…",
+     *         "email": "jan@example.com"
      *     }
      * }
      * ```

@@ -45,7 +45,7 @@ Three arguments are required. The others have defaults.
 | `apiTimeout` | `int` | `30` | Request timeout, in seconds |
 | `sandbox` | `bool` | `false` | Targets the sandbox host |
 | `loggingEnabled` | `bool` | `true` | Enables error logging |
-| `methodsToLog` | `ApiMethodEnum[]` | `[]` | Methods whose full traffic is logged |
+| `methodsToLog` | [`ApiMethodInterface`](../src/Enum/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
 
 [`Config`](../src/Config.php) is `readonly` and implements [`Api\ConfigInterface`](../src/Api/ConfigInterface.php). If the configuration needs to change
@@ -127,8 +127,7 @@ message.
 ### Payload validation
 
 `validatePayloads` controls whether the SDK checks a message before sending it. It is on by
-default. When it is off, the validator is replaced with one that accepts everything, so the same
-code runs in both cases.
+default. When it is off, the validator isn't called at all.
 
 Only turn it off if the SDK rejects a payload that the API would accept. Please report that as a
 bug. To drop a single rule instead of all of them, see
@@ -262,11 +261,12 @@ $client = new PolkurierWebservice(
 
 If you pass a provider, the `config` argument is ignored.
 
-Note: [`AbstractService`](../src/Service/AbstractService.php) and [`ClientFactory`](../src/Http/ClientFactory.php) each call [`MoneyBoxServiceInterface::getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) once, in their constructors,
-and keep the result. Services are created on first use and then reused, so the provider is called
-once per service per client instance, not once per call. If the tenant can change between
-requests, create one client per tenant. Clients are inexpensive to create. The serializer is the
-costly part, and you can share it between clients.
+The provider is asked on every call. [`AbstractService`](../src/Service/AbstractService.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php) and
+[`ClientFactory`](../src/Http/ClientFactory.php) all call [`ConfigProviderInterface::getConfig()`](../src/Api/ConfigProviderInterface.php) when a request is made and
+don't keep the result. One client can serve every tenant, as long as the provider can tell which
+tenant the current call is for. Where it can't (e.g. in a queue worker with no current request),
+build a client per tenant instead. Clients are inexpensive to create. The serializer is the costly
+part, and you can share it between clients.
 
 Sharing a serializer across clients
 -----------------------------------
@@ -284,7 +284,8 @@ foreach ($tenants as $tenant) {
 ```
 
 [`SerializerProvider`](../src/Serializer/SerializerProvider.php) has no per-call state, so one instance can serve any number of clients. For
-a multi-tenant application, we recommend one serializer and one client per tenant.
+a multi-tenant application, share one serializer, and use either a per-tenant provider or one
+client per tenant.
 
 Full wiring reference
 ---------------------

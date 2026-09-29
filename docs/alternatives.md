@@ -25,7 +25,7 @@ Supplying configuration
 | A [`Config`](../src/Config.php) object | The values are known at wiring time | [Configuration](configuration.md#config) |
 | Your own [`ConfigInterface`](../src/Api/ConfigInterface.php) | The values come from a settings store or parameter bag | [Configuration](configuration.md) |
 | Your own [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) | The values are not known until the call (per tenant, shop or channel) | [Configuration](configuration.md#per-tenant-credentials) |
-| A client per tenant, sharing one serializer | Long-running workers, where a provider is not enough | [Configuration](configuration.md#sharing-a-serializer-across-clients) |
+| A client per tenant, sharing one serializer | Workers where the provider can't tell the current tenant | [Configuration](configuration.md#sharing-a-serializer-across-clients) |
 
 Choosing an endpoint
 --------------------

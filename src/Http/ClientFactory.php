@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Http;
 
 use GuzzleHttp\Client;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
-use Polkurier\Webservice\Api\ConfigInterface;
 use Psr\Http\Client\ClientInterface;
 
 /**
@@ -17,34 +16,39 @@ use Psr\Http\Client\ClientInterface;
  *
  * Redirects are disabled. The API is a single POST endpoint that doesn't redirect, so a 3xx means
  * something is misconfigured. Following it would send the credentials to wherever it points.
+ *
+ * One client is built per distinct API URL and timeout, and reused for every call that has them.
  */
-readonly class ClientFactory implements ClientFactoryInterface
+class ClientFactory implements ClientFactoryInterface
 {
     protected const string CONFIG_BASE_URI = 'base_uri';
     protected const string CONFIG_HEADERS = 'headers';
     protected const string CONFIG_TIMEOUT = 'timeout';
     protected const string CONFIG_ALLOW_REDIRECTS = 'allow_redirects';
     /**
-     * @var ConfigInterface
+     * @param ConfigProviderInterface $configProvider read on every create(), so the client
+     *        follows the configuration of the current call
      */
-    protected ConfigInterface $config;
+    public function __construct(protected readonly ConfigProviderInterface $configProvider) {}
 
     /**
-     * @param ConfigProviderInterface $configProvider
+     * The clients built so far, keyed by API URL and timeout.
+     *
+     * @var array<string, ClientInterface>
      */
-    public function __construct(ConfigProviderInterface $configProvider)
-    {
-        $this->config = $configProvider->getConfig();
-    }
+    protected array $clients = [];
 
     /**
      * @return ClientInterface
      */
     public function create(): ClientInterface
     {
-        return new Client([
-            static::CONFIG_BASE_URI => $this->config->getApiUrl(),
-            static::CONFIG_TIMEOUT => $this->config->getApiTimeout(),
+        $config = $this->configProvider->getConfig();
+        $key = $config->getApiUrl() . '|' . $config->getApiTimeout();
+
+        return $this->clients[$key] ??= new Client([
+            static::CONFIG_BASE_URI => $config->getApiUrl(),
+            static::CONFIG_TIMEOUT => $config->getApiTimeout(),
             static::CONFIG_ALLOW_REDIRECTS => false,
             static::CONFIG_HEADERS => [
                 'Content-Type' => 'application/json',

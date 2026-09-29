@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -23,16 +24,18 @@ use Symfony\Component\Serializer\SerializerInterface;
  * the keys that shouldn't be there. Keys are matched by wire name, since that is what the wrapped
  * normalizer returns.
  *
+ * It also writes the entries of a field marked {@see InlineFields} into the enclosing object.
+ *
  * The list of fields is read once per class and cached, to avoid reflection on every request.
  */
 class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     /**
-     * Wire names to drop when empty, per class.
+     * Wire names of the fields carrying a given attribute, per attribute and class.
      *
-     * @var array<class-string, string[]>
+     * @var array<class-string, array<class-string, string[]>>
      */
-    protected static array $omitted = [];
+    protected static array $marked = [];
 
     /**
      * @param NormalizerInterface&DenormalizerInterface $inner
@@ -79,6 +82,14 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
         foreach (static::omittedFor($data::class) as $field) {
             if (\array_key_exists($field, $normalized) && static::isEmpty($normalized[$field])) {
                 unset($normalized[$field]);
+            }
+        }
+
+        foreach (static::fieldsMarkedWith($data::class, InlineFields::class) as $field) {
+            $entries = $normalized[$field] ?? [];
+            unset($normalized[$field]);
+            if (\is_array($entries)) {
+                $normalized += $entries;
             }
         }
 
@@ -156,8 +167,21 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     protected static function omittedFor(string $class): array
     {
-        if (isset(self::$omitted[$class])) {
-            return self::$omitted[$class];
+        return static::fieldsMarkedWith($class, OmitWhenEmpty::class);
+    }
+
+    /**
+     * The wire names of all fields the class marks with the given attribute.
+     *
+     * @param class-string $class
+     * @param class-string $attributeClass
+     *
+     * @return string[]
+     */
+    protected static function fieldsMarkedWith(string $class, string $attributeClass): array
+    {
+        if (isset(self::$marked[$attributeClass][$class])) {
+            return self::$marked[$attributeClass][$class];
         }
 
         $fields = [];
@@ -168,7 +192,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
             $members = [...$current->getProperties(), ...$current->getMethods()];
 
             foreach ($members as $member) {
-                if ($member->getAttributes(OmitWhenEmpty::class) === []) {
+                if ($member->getAttributes($attributeClass) === []) {
                     continue;
                 }
 
@@ -187,7 +211,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
             }
         }
 
-        return self::$omitted[$class] = \array_values(\array_unique($fields));
+        return self::$marked[$attributeClass][$class] = \array_values(\array_unique($fields));
     }
 
     /**

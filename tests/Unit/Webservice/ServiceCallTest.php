@@ -268,6 +268,23 @@ final class ServiceCallTest extends TestCase
     }
 
     /**
+     * The configured platform and version travel in the User-Agent header.
+     */
+    public function testRequestsCarryTheUserAgent(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $this->sdk->addresses()->getAddresses();
+
+        $request = $this->client->lastRequest();
+        self::assertNotNull($request);
+        self::assertMatchesRegularExpression(
+            '~^phpunit/1\.0\.0 polkurier-sdk/\d+\.\d+\.\d+$~',
+            $request->getHeaderLine('User-Agent'),
+        );
+    }
+
+    /**
      * The services are created once and reused.
      */
     public function testServicesAreMemoised(): void

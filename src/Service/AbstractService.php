@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Service;
 
-use Monolog\Level;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\MessageInterface;
@@ -33,6 +32,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 /**
  * Shared request handling for all services.
@@ -47,16 +47,6 @@ use Psr\Log\LoggerInterface;
  */
 abstract class AbstractService
 {
-    /**
-     * @var ClientInterface
-     */
-    protected ClientInterface $client;
-
-    /**
-     * @var ConfigInterface
-     */
-    protected ConfigInterface $config;
-
     /**
      * @var ResponseInterface|null
      */
@@ -87,16 +77,41 @@ abstract class AbstractService
          */
         protected readonly LoggerInterface $logger,
 
-        ClientFactoryInterface $clientFactory,
-        ConfigProviderInterface $configProvider,
+        /**
+         * @var ClientFactoryInterface
+         */
+        protected readonly ClientFactoryInterface $clientFactory,
+
+        /**
+         * @var ConfigProviderInterface
+         */
+        protected readonly ConfigProviderInterface $configProvider,
 
         /**
          * @var ValidatorInterface
          */
         protected readonly ValidatorInterface $validator = new NullValidator(),
-    ) {
-        $this->client = $clientFactory->create();
-        $this->config = $configProvider->getConfig();
+    ) {}
+
+    /**
+     * The configuration for the current call. It is read from the provider each time, so a
+     * provider can return different settings from one call to the next.
+     *
+     * @return ConfigInterface
+     */
+    protected function config(): ConfigInterface
+    {
+        return $this->configProvider->getConfig();
+    }
+
+    /**
+     * The HTTP client for the current call, from the client factory.
+     *
+     * @return ClientInterface
+     */
+    protected function client(): ClientInterface
+    {
+        return $this->clientFactory->create();
     }
 
     /**
@@ -119,7 +134,7 @@ abstract class AbstractService
         ?MessageInterface $payload = null,
         AuthorizationMessage|bool|null $authorization = null,
     ): mixed {
-        if ($payload !== null && $this->config->validatePayloads()) {
+        if ($payload !== null && $this->config()->validatePayloads()) {
             $this->validator->validate($payload);
         }
 
@@ -127,7 +142,7 @@ abstract class AbstractService
         $this->logRequest($apiMethod, $request, $payload);
 
         try {
-            $response = $this->client->sendRequest($request);
+            $response = $this->client()->sendRequest($request);
             $wrapper = $this->responseFactory->create($response, $responseFormat);
             $this->logResponse(
                 $apiMethod,
@@ -140,6 +155,10 @@ abstract class AbstractService
             $this->logClientError($e, $apiMethod, $request, $payload);
 
             throw new ConnectionException($e->getMessage(), $e->getCode(), $e);
+        } catch (MalformedResponseException $e) {
+            $this->logMalformedResponse($e, $apiMethod, $request, $payload);
+
+            throw $e;
         }
 
         $parsedResponse = $wrapper->getParsedResponse();
@@ -458,7 +477,7 @@ abstract class AbstractService
      */
     protected function logRequest(ApiMethodInterface $apiMethod, RequestInterface $request, ?MessageInterface $payload): void
     {
-        if (!$this->config->isExtendedLoggingEnabled($apiMethod)) {
+        if (!$this->config()->isExtendedLoggingEnabled($apiMethod)) {
             return;
         }
         $this->logger->info(\sprintf(
@@ -467,7 +486,7 @@ abstract class AbstractService
             $request->getBody(),
         ), [
             'method' => $apiMethod,
-            'sandbox' => $this->config->isSandbox(),
+            'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
         ]);
@@ -489,11 +508,11 @@ abstract class AbstractService
         ?MessageInterface $payload,
         bool $error = false,
     ): void {
-        if ($error ? !$this->config->isLoggingEnabled() : !$this->config->isExtendedLoggingEnabled($apiMethod)) {
+        if ($error ? !$this->config()->isLoggingEnabled() : !$this->config()->isExtendedLoggingEnabled($apiMethod)) {
             return;
         }
         $this->logger->log(
-            $error ? Level::Error : Level::Info,
+            $error ? LogLevel::ERROR : LogLevel::INFO,
             sprintf(
                 'Response from method: "%s", response: "%s"',
                 $apiMethod->value,
@@ -501,13 +520,45 @@ abstract class AbstractService
             ),
             [
                 'method' => $apiMethod,
-                'sandbox' => $this->config->isSandbox(),
+                'sandbox' => $this->config()->isSandbox(),
                 'payload' => $payload,
                 'request' => $request,
                 'parsed_response' => $responseWrapper->getParsedResponse(),
                 'response' => $responseWrapper->getHttpResponse(),
             ]
         );
+    }
+
+    /**
+     * Logs a response that couldn't be read, if logging is enabled.
+     *
+     * @param MalformedResponseException $exception
+     * @param ApiMethodInterface $apiMethod
+     * @param RequestInterface $request
+     * @param MessageInterface|null $payload
+     *
+     * @return void
+     */
+    protected function logMalformedResponse(
+        MalformedResponseException $exception,
+        ApiMethodInterface $apiMethod,
+        RequestInterface $request,
+        ?MessageInterface $payload
+    ): void {
+        if (!$this->config()->isLoggingEnabled()) {
+            return;
+        }
+        $this->logger->error(\sprintf(
+            'Malformed response: "%s", while requesting method: "%s"',
+            $exception->getMessage(),
+            $apiMethod->value,
+        ), [
+            'method' => $apiMethod,
+            'sandbox' => $this->config()->isSandbox(),
+            'payload' => $payload,
+            'request' => $request,
+            'exception' => $exception,
+        ]);
     }
 
     /**
@@ -524,7 +575,7 @@ abstract class AbstractService
         RequestInterface $request,
         ?MessageInterface $payload
     ): void {
-        if (!$this->config->isLoggingEnabled()) {
+        if (!$this->config()->isLoggingEnabled()) {
             return;
         }
         $this->logger->error(\sprintf(
@@ -534,7 +585,7 @@ abstract class AbstractService
             $request->getBody(),
         ), [
             'method' => $apiMethod,
-            'sandbox' => $this->config->isSandbox(),
+            'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
             'client_exception' => $exception,

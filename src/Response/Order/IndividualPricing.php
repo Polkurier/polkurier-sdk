@@ -13,7 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An individually negotiated quote and its acceptance state.
  *
- * Present only on freight orders, which are priced by offer instead of from a tariff.
+ * Present only on freight orders, which are priced by offer instead of from a tariff. The validity
+ * and confirmation dates are null until the offer has them.
  */
 class IndividualPricing implements MessageInterface
 {
@@ -28,8 +29,8 @@ class IndividualPricing implements MessageInterface
 
     /**
      * @param \DateTimeInterface $offerSentDate
-     * @param \DateTimeInterface $offerValidDate
-     * @param \DateTimeInterface $customerConfirmedDate
+     * @param \DateTimeInterface|null $offerValidDate
+     * @param \DateTimeInterface|null $customerConfirmedDate
      * @param string $customerRemarks
      */
     public function __construct(
@@ -40,22 +41,22 @@ class IndividualPricing implements MessageInterface
         private \DateTimeInterface $offerSentDate,
 
         /**
-         * @var \DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_VALID_DATE)]
-        private \DateTimeInterface $offerValidDate,
+        private ?\DateTimeInterface $offerValidDate = null,
 
         /**
-         * @var \DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_CONFIRMED_DATE)]
-        private \DateTimeInterface $customerConfirmedDate,
+        private ?\DateTimeInterface $customerConfirmedDate = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_REMARKS)]
-        private string $customerRemarks,
+        private string $customerRemarks = '',
     ) {}
 
     /**
@@ -77,37 +78,37 @@ class IndividualPricing implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
-    public function getOfferValidDate(): \DateTimeInterface
+    public function getOfferValidDate(): ?\DateTimeInterface
     {
         return $this->offerValidDate;
     }
 
     /**
-     * @param \DateTimeInterface $offerValidDate
+     * @param \DateTimeInterface|null $offerValidDate
      *
      * @return void
      */
-    public function setOfferValidDate(\DateTimeInterface $offerValidDate): void
+    public function setOfferValidDate(?\DateTimeInterface $offerValidDate): void
     {
         $this->offerValidDate = $offerValidDate;
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
-    public function getCustomerConfirmedDate(): \DateTimeInterface
+    public function getCustomerConfirmedDate(): ?\DateTimeInterface
     {
         return $this->customerConfirmedDate;
     }
 
     /**
-     * @param \DateTimeInterface $customerConfirmedDate
+     * @param \DateTimeInterface|null $customerConfirmedDate
      *
      * @return void
      */
-    public function setCustomerConfirmedDate(\DateTimeInterface $customerConfirmedDate): void
+    public function setCustomerConfirmedDate(?\DateTimeInterface $customerConfirmedDate): void
     {
         $this->customerConfirmedDate = $customerConfirmedDate;
     }

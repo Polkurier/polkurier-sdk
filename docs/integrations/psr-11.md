@@ -239,9 +239,9 @@ This covers Swoole, RoadRunner, FrankenPHP, ReactPHP and any worker that handles
 the SDK's biggest start-up cost. In a worker you pay it once, as long as the same provider instance
 is kept between requests.
 
-**Watch how long configuration lives.** [`AbstractService`](../../src/Service/AbstractService.php) and [`ClientFactory`](../../src/Http/ClientFactory.php) each call
-[`MoneyBoxServiceInterface::getConfig()`](../../src/Api/Service/MoneyBoxServiceInterface.php) once, in the constructor. A per-tenant [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) will *not* make a
-long-lived service switch tenants. Build the client per job instead, and share the serializer:
+**Watch where the tenant comes from.** The SDK calls [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) on
+every request, so a per-tenant provider works in a long-lived worker, as long as it can tell which
+tenant the current job belongs to. If it can't, build the client per job and share the serializer:
 
 ```php
 $client = new PolkurierWebservice(

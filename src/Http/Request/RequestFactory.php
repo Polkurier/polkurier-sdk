@@ -23,12 +23,14 @@ use Psr\Http\Message\RequestInterface;
  * Builds requests in the format the API accepts.
  *
  * Every call is a POST to the root path with `apimethod`, `authorization` and `data` in the body.
- * The method is a body field, so there is only one endpoint.
+ * The method is a body field, so there is only one endpoint. The `User-Agent` header names your
+ * platform and version, followed by the SDK's.
  */
 readonly class RequestFactory implements RequestFactoryInterface
 {
     protected const string HTTP_METHOD = 'POST';
     protected const string ENDPOINT = '/';
+    protected const string SDK_PRODUCT = 'polkurier-sdk/2.0.0';
 
     /**
      * @var SerializerInterface
@@ -36,19 +38,14 @@ readonly class RequestFactory implements RequestFactoryInterface
     protected SerializerInterface $serializer;
 
     /**
-     * @var ConfigInterface
-     */
-    protected ConfigInterface $config;
-
-    /**
      * @param SerializerProviderInterface $serializerProvider
-     * @param ConfigProviderInterface $configProvider
+     * @param ConfigProviderInterface $configProvider read on every create(), so each request
+     *        carries the configuration of the current call
      */
     public function __construct(
         SerializerProviderInterface $serializerProvider,
-        ConfigProviderInterface $configProvider,
+        protected ConfigProviderInterface $configProvider,
     ) {
-        $this->config = $configProvider->getConfig();
         $this->serializer = $serializerProvider->getSerializer();
     }
 
@@ -67,7 +64,8 @@ readonly class RequestFactory implements RequestFactoryInterface
         ?MessageInterface $payload = null,
         AuthorizationMessage|bool|null $authorization = null,
     ): RequestInterface {
-        $requestMessage = new RequestMessage($apiMethod, $this->resolveAuthorization($authorization), $payload);
+        $config = $this->configProvider->getConfig();
+        $requestMessage = new RequestMessage($apiMethod, $this->resolveAuthorization($authorization, $config), $payload);
 
         try {
             $body = $this->serializer->serialize($requestMessage, Config::SERIALIZATION_FORMAT);
@@ -84,7 +82,25 @@ readonly class RequestFactory implements RequestFactoryInterface
         return new Request(
             method: static::HTTP_METHOD,
             uri: static::ENDPOINT,
+            headers: ['User-Agent' => $this->userAgent($config)],
             body: $body,
+        );
+    }
+
+    /**
+     * `<platform>/<version> polkurier-sdk/<version>`.
+     *
+     * @param ConfigInterface $config
+     *
+     * @return string
+     */
+    protected function userAgent(ConfigInterface $config): string
+    {
+        return \sprintf(
+            '%s/%s %s',
+            $config->getPlatform(),
+            $config->getPlatformVersion(),
+            static::SDK_PRODUCT,
         );
     }
 
@@ -95,16 +111,18 @@ readonly class RequestFactory implements RequestFactoryInterface
      * takes no bool, so `false` becomes null here.
      *
      * @param AuthorizationMessage|bool|null $authorization
+     * @param ConfigInterface $config
      *
      * @return AuthorizationMessage|null
      */
     protected function resolveAuthorization(
-        AuthorizationMessage|bool|null $authorization
+        AuthorizationMessage|bool|null $authorization,
+        ConfigInterface $config,
     ): ?AuthorizationMessage {
         return match (true) {
             $authorization instanceof AuthorizationMessage => $authorization,
             $authorization === false => null,
-            default => $this->config->getAuthorization(),
+            default => $config->getAuthorization(),
         };
     }
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Http\Response;
 
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
@@ -128,17 +129,26 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             return $payload !== false;
         }
 
-        // Free-form payloads and lists or maps of plain scalars need no mapping after decoding.
+        // Free-form payloads and lists or maps of plain scalars need no mapping after decoding. The
+        // service helpers check the shape, so anything else is passed on as it came.
         if ($responseFormat === static::FORMAT_RAW_ARRAY || $responseFormat === static::FORMAT_STRING_LIST) {
-            return \is_array($payload) ? $payload : [];
+            return $payload;
         }
 
-        if ($payload === []) {
+        if ($payload === [] || $payload === null) {
             // Several endpoints return an empty array for "nothing found" even where a single
             // object is documented, e.g. get_courier_point for an unknown id, or
-            // get_account_verification_info for an unverified account. An empty array means null
-            // where an object was expected, and no rows where a list was expected.
+            // get_account_verification_info for an unverified account. An empty or missing payload
+            // means null where an object was expected, and no rows where a list was expected.
             return \str_ends_with($responseFormat, '[]') ? [] : null;
+        }
+
+        if (!\is_array($payload)) {
+            // The object normalizer would cast a scalar to an array and build an object from its
+            // defaults, so refuse it here.
+            throw new UnexpectedValueException(
+                \sprintf('Expected an object or a list for %s, got %s.', $responseFormat, \get_debug_type($payload)),
+            );
         }
 
         return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT);

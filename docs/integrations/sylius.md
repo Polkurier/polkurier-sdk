@@ -110,9 +110,8 @@ You need the [`Sylius\Component\Channel\Context\ChannelNotFoundException`](https
 storefront request (in Messenger handlers, commands and fixtures). If the provider doesn't catch it,
 all of those break.
 
-> As in any Symfony application, a service keeps the configuration it was built with. Under
-> Messenger workers, a channel-scoped provider will **not** make a long-lived service switch
-> channels. The fix is the same as in
+> The SDK asks the provider for its configuration on every call, but a Messenger handler has no
+> current channel for the provider to read. The fix is the same as in
 > [Symfony: per-tenant credentials](symfony.md#per-tenant-credentials). Build the client per
 > message and share the serializer.
 

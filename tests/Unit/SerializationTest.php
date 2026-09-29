@@ -36,6 +36,11 @@ use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Request\Order\PickupMessage;
 use Polkurier\Webservice\Request\PackTemplate\SaveMessage as PackTemplateSaveMessage;
 use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
+use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
 /**
@@ -75,6 +80,35 @@ final class SerializationTest extends TestCase
     public static function messagesAndTheirWireForm(): array
     {
         return [
+            'a payer address the same as the payer, with no blank fields' => [
+                new SavePayerAddressMessage(addressType: PayerAddressTypeEnum::Payer, sameAsPayer: true),
+                ['address_type' => 'PAYER', 'same_as_payer' => true],
+            ],
+            'cash on delivery with no bank account given' => [
+                new CodMessage(amount: 100.0),
+                ['codamount' => 100.0, 'codtype' => 'S', 'return_cod' => 'BA'],
+            ],
+            'a ticket reply with no attachments' => [
+                new CreateTicketMessageMessage(ticketId: 't1', content: 'Hi'),
+                ['ticket_id' => 't1', 'content' => 'Hi'],
+            ],
+            'a ticket with no attachments' => [
+                new CreateTicketMessage(topicId: '5', content: 'Hi'),
+                ['topic_id' => '5', 'content' => 'Hi', 'name' => ''],
+            ],
+            'a contact form, its answers next to the fixed keys' => [
+                new SaveContactFormMessage(
+                    category: 'wspolpraca',
+                    formId: 'f-1',
+                    nonce: 'n-1',
+                    fields: ['email' => 'jan@example.com', 'consent' => true],
+                ),
+                ['category' => 'wspolpraca', 'form_id' => 'f-1', 'nonce' => 'n-1', 'email' => 'jan@example.com', 'consent' => true],
+            ],
+            'a contact form answer never replaces a fixed key' => [
+                new SaveContactFormMessage(category: 'wspolpraca', formId: 'f-1', nonce: 'n-1', fields: ['nonce' => 'forged']),
+                ['category' => 'wspolpraca', 'form_id' => 'f-1', 'nonce' => 'n-1'],
+            ],
             'order id' => [
                 new OrderIdMessage('12345-678'),
                 ['orderno' => '12345-678'],

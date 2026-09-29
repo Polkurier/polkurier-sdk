@@ -36,8 +36,9 @@ getBankAccounts(): array                                             // no param
 ```
 
 A method that returns a [`CreatedOrderMessage`](../src/Response/Order/CreatedOrderMessage.php) either returns one or throws. It never returns null
-because the API sent something unexpected. The one nullable method is [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php): an id
-that matches no point returns null. It is marked in the table below.
+because the API sent something unexpected. Two methods can return null: [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php), for an id
+that matches no point, and [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php), for an account that has
+never started verification. Both are marked in the tables below.
 
 Every method can throw [`AuthorizationException`](../src/Exception/AuthorizationException.php), [`ConnectionException`](../src/Exception/ConnectionException.php),
 [`MalformedResponseException`](../src/Exception/MalformedResponseException.php), [`ValidationException`](../src/Exception/ValidationException.php) and [`WebserviceException`](../src/Exception/WebserviceException.php). This page doesn't
@@ -429,7 +430,8 @@ tickets()
 There are two ways to contact support. A **ticket** is a conversation you can read and reply to.
 Open it with [`TicketsServiceInterface::createTicket()`](../src/Api/Service/TicketsServiceInterface.php), read it with [`TicketsServiceInterface::getTicketMessages()`](../src/Api/Service/TicketsServiceInterface.php), and reply with
 [`TicketsServiceInterface::createTicketMessage()`](../src/Api/Service/TicketsServiceInterface.php). A **contact form** is a one-way submission with fields defined by the
-API. [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) returns the form definition and [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) submits it. Use a
+API. [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) returns the form definition and [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) submits it. Pass the answers in
+[`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the field names in the definition. Use a
 ticket if you want to get the answer back in your own system.
 
 [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) is the other endpoint whose response shape depends on the request, so it also

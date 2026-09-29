@@ -9,7 +9,10 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Response\Carrier;
+use Polkurier\Webservice\Response\Carrier\AdditionalData\Pickup;
 use Polkurier\Webservice\Response\Order;
+use Polkurier\Webservice\Response\Order\IndividualPricing;
 use Polkurier\Webservice\Serializer\AbsentDateNormalizer;
 use Polkurier\Webservice\Serializer\OmitEmptyNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -45,6 +48,52 @@ final class AbsentValueTest extends TestCase
         $order = self::order(['delivered_date' => '2026-09-24']);
 
         self::assertSame('2026-09-24', $order->getDeliveredDate()?->format('Y-m-d'));
+    }
+
+    /**
+     * An offer that hasn't been confirmed has no confirmation date, and may have no validity date.
+     */
+    public function testAnUnconfirmedOfferHasNoConfirmationDate(): void
+    {
+        $pricing = (new SerializerProvider())->getSerializer()->denormalize([
+            'offer_sent_date' => '2026-09-01 10:00:00',
+            'offer_valid_date' => '',
+            'customer_confirmed_date' => null,
+        ], IndividualPricing::class, 'json');
+
+        self::assertInstanceOf(IndividualPricing::class, $pricing);
+        self::assertNull($pricing->getOfferValidDate());
+        self::assertNull($pricing->getCustomerConfirmedDate());
+        self::assertSame('', $pricing->getCustomerRemarks());
+    }
+
+    /**
+     * A carrier that leaves out parts of its additional data still reads, with those parts null,
+     * so one sparse carrier doesn't fail the whole carrier list.
+     */
+    public function testACarrierWithSparseAdditionalDataStillReads(): void
+    {
+        $carriers = (new SerializerProvider())->getSerializer()->denormalize([
+            [
+                'servicecode' => 'UPS',
+                'name' => 'UPS',
+                'foreign_shipments' => true,
+                'additional_data' => [
+                    'pickup' => [Pickup::FIELD_PICKUP_DATE => ['status' => true]],
+                    'points_map' => ['sender_point' => 'NONE'],
+                ],
+            ],
+        ], Carrier::class . '[]', 'json');
+
+        self::assertIsArray($carriers);
+        self::assertInstanceOf(Carrier::class, $carriers[0]);
+        $data = $carriers[0]->getAdditionalData();
+        self::assertNotNull($data);
+        self::assertNull($data->getCOD());
+        self::assertNull($data->getInsurance());
+        self::assertNull($data->getPickup()?->getPickupTimeFrom());
+        self::assertNull($data->getPointsMap()?->getRecipientPoint());
+        self::assertSame([], $data->getPointsMap()?->getAvailableProviders());
     }
 
     /**

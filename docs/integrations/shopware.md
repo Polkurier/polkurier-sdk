@@ -202,10 +202,10 @@ Shopware loads the plugin's `Resources/config/packages/*.yaml` files.
 Sales-channel scoping
 ---------------------
 
-Shopware integrations most often go wrong here. [`AbstractService`](../../src/Service/AbstractService.php) reads its configuration **once,
-in the constructor**. A service taken from the container keeps the credentials of whichever sales
-channel was current when it was built. In a storefront request that's what you want. In a
-**message handler or a scheduled task** there is no current channel at all.
+Shopware integrations most often go wrong here. The SDK asks the provider for its configuration
+on every call, and the provider above reads the current sales channel. In a storefront request
+that's what you want. In a **message handler or a scheduled task** there is no current channel at
+all.
 
 In those cases, build the client for each message:
 

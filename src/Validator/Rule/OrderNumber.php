@@ -11,15 +11,12 @@ use Attribute;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
- * An order number.
- *
- * Uses the same pattern as the API. A number that fails here would be rejected by the API as
- * malformed.
+ * An order number: digits, a hyphen, digits, and nothing else (e.g. `12345-678`).
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class OrderNumber implements ValueValidatorInterface
 {
-    private const string PATTERN = '/\d+-\d+/';
+    private const string PATTERN = '/^\d+-\d+$/';
 
     /**
      * @param mixed $value

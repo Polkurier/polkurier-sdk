@@ -331,10 +331,10 @@ $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new cla
 });
 ```
 
-> **In this setup, don't register the services as singletons.** Each service reads its
-> configuration once, in the constructor. A singleton built for tenant A keeps tenant A's
-> credentials until the process ends. Register the services with [`Illuminate\Container\Container::bind()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Container/Container.php)
-> instead of [`Container::singleton()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Container/Container.php). [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) can stay a singleton, since it is stateless and
+> **The provider is asked on every call.** The services can be singletons: each request reads the
+> configuration from [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) again, so a provider that
+> looks up the current tenant each time keeps working. Just don't let the provider cache the first
+> tenant it sees. [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) should be a singleton too, since it is stateless and
 > expensive to build. Under Octane, also reset anything tenant-scoped between requests.
 
 Artisan commands

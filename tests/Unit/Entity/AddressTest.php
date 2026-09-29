@@ -72,6 +72,34 @@ final class AddressTest extends TestCase
     }
 
     /**
+     * The read-only fields a response carries reach the parent too, and a missing flat number
+     * reads back as null.
+     */
+    public function testDenormalizesTheReadOnlyFieldsAndANullFlatNumber(): void
+    {
+        $address = (new SerializerProvider())->getSerializer()->denormalize([
+            'person' => 'Jan Kowalski',
+            'street' => 'Długa 12',
+            'city' => 'Poznań',
+            'postcode' => '61-001',
+            'email' => 'jan@example.com',
+            'phone' => '500600700',
+            'name' => 'Magazyn',
+            'housenumber' => '12',
+            'flatnumber' => null,
+            'streetname' => 'Długa',
+            'machinename' => 'POZ01A',
+            'point' => ['id' => 'POZ01A', 'city' => 'Poznań'],
+        ], Address::class, 'json');
+
+        self::assertInstanceOf(Address::class, $address);
+        self::assertNull($address->getFlatNumber());
+        self::assertSame('Długa', $address->getStreetName());
+        self::assertSame('POZ01A', $address->getMachineName());
+        self::assertSame('POZ01A', $address->getPoint()?->getId());
+    }
+
+    /**
      * @return array<string, array{string, mixed}>
      */
     public static function expectedSerializedKeys(): array

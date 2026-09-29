@@ -64,7 +64,7 @@ have no builder.
 Available builders
 ------------------
 
-There are 22 builders. Every message with four or more fields has one.
+There are 23 builders. Every message with four or more fields has one.
 
 | Builder | Builds |
 |---------|--------|
@@ -73,6 +73,7 @@ There are 22 builders. Every message with four or more fields has one.
 | [`Address\SaveMessageBuilder`](../src/Builder/Address/SaveMessageBuilder.php) | [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) |
 | [`BankAccount\SaveMessageBuilder`](../src/Builder/BankAccount/SaveMessageBuilder.php) | [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) |
 | [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php) | [`Request\Common\BasePackMessage`](../src/Request/Common/BasePackMessage.php) |
+| [`Contact\SaveContactFormMessageBuilder`](../src/Builder/Contact/SaveContactFormMessageBuilder.php) | [`Request\Contact\SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php) |
 | [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php) | [`Request\Courier\GetPickupTimeMessage`](../src/Request/Courier/GetPickupTimeMessage.php) |
 | [`Courier\GetPointMessageBuilder`](../src/Builder/Courier/GetPointMessageBuilder.php) | [`Request\Courier\GetPointMessage`](../src/Request/Courier/GetPointMessage.php) |
 | [`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) | [`Request\Courier\PickupMessage`](../src/Request/Courier/PickupMessage.php) |

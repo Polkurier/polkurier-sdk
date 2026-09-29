@@ -23,65 +23,65 @@ readonly class Pickup implements MessageInterface
     /**-@#*/
 
     /**
-     * @param Option $pickupDate
-     * @param Option $pickupTimeFrom
-     * @param Option $pickupTimeTo
-     * @param Property $noCourierOrder
+     * @param Option|null $pickupDate
+     * @param Option|null $pickupTimeFrom
+     * @param Option|null $pickupTimeTo
+     * @param Property|null $noCourierOrder
      */
     public function __construct(
         /**
-         * @var Option
+         * @var Option|null
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
-        private Option $pickupDate,
+        private ?Option $pickupDate = null,
 
         /**
-         * @var Option
+         * @var Option|null
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_FROM)]
-        private Option $pickupTimeFrom,
+        private ?Option $pickupTimeFrom = null,
 
         /**
-         * @var Option
+         * @var Option|null
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_TO)]
-        private Option $pickupTimeTo,
+        private ?Option $pickupTimeTo = null,
 
         /**
-         * @var Property
+         * @var Property|null
          */
         #[Serializer\SerializedName(self::FIELD_NO_COURIER_ORDER)]
-        private Property $noCourierOrder,
+        private ?Property $noCourierOrder = null,
     ) {}
 
     /**
-     * @return Option
+     * @return Option|null
      */
-    public function getPickupDate(): Option
+    public function getPickupDate(): ?Option
     {
         return $this->pickupDate;
     }
 
     /**
-     * @return Option
+     * @return Option|null
      */
-    public function getPickupTimeFrom(): Option
+    public function getPickupTimeFrom(): ?Option
     {
         return $this->pickupTimeFrom;
     }
 
     /**
-     * @return Option
+     * @return Option|null
      */
-    public function getPickupTimeTo(): Option
+    public function getPickupTimeTo(): ?Option
     {
         return $this->pickupTimeTo;
     }
 
     /**
-     * @return Property
+     * @return Property|null
      */
-    public function getNoCourierOrder(): Property
+    public function getNoCourierOrder(): ?Property
     {
         return $this->noCourierOrder;
     }

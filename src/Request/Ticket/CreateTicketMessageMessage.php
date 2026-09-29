@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -50,6 +51,7 @@ readonly class CreateTicketMessageMessage implements MessageInterface
          * @var array<string, string>
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
+        #[OmitWhenEmpty]
         private array $files = [],
     ) {}
 

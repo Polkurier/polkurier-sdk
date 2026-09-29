@@ -15,7 +15,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Request\Common\DeleteMessage;
 use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
 use Polkurier\Webservice\Response\PackTemplate;

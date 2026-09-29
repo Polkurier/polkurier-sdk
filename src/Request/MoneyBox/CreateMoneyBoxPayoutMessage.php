@@ -185,7 +185,7 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
     /**
      * @return ?string
      */
-    public function getIban(): ?string
+    public function getBankAccountNumber(): ?string
     {
         return $this->bankAccountNumber;
     }

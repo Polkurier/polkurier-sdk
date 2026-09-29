@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\Iban;
 use Polkurier\Webservice\Validator\Rule\IntegerRange;
 use Polkurier\Webservice\Validator\Rule\NonNegative;
@@ -99,6 +101,7 @@ final class RuleTest extends TestCase
             'a postcode that is words' => [new Postcode(), 'Poznań'],
             'an order number with no separator' => [new OrderNumber(), '12345678'],
             'an order number that is words' => [new OrderNumber(), 'nope'],
+            'an order number inside other text' => [new OrderNumber(), 'abc1-2xyz'],
             'an account number that is too short' => [new Iban(), '5810203958'],
             'an account number with two digits transposed' => [new Iban(), '58102039580000920202228690'],
             'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
@@ -133,6 +136,16 @@ final class RuleTest extends TestCase
             self::assertIsString($problem);
             self::assertNotSame('', \trim($problem));
         }
+    }
+
+    /**
+     * Each names its rule by class, so a class that isn't a value rule is refused up front.
+     */
+    public function testEachRefusesAClassThatIsNotAValueRule(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new Each(\stdClass::class); // @phpstan-ignore argument.type (the wrong class is the point)
     }
 
     /**
