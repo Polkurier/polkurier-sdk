@@ -124,7 +124,7 @@ abstract class AbstractBuilder
         $required = [];
 
         try {
-            $constructor = new \ReflectionClass($message)->getConstructor();
+            $constructor = (new \ReflectionClass($message))->getConstructor();
         } catch (\ReflectionException $e) {
             throw new InvalidArgumentException(\sprintf('There is no message class %s.', $message), 0, $e);
         }

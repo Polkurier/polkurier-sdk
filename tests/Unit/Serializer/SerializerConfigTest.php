@@ -25,7 +25,7 @@ final class SerializerConfigTest extends TestCase
 {
     public function testUtf8IsSentAsItselfRatherThanEscaped(): void
     {
-        $json = new SerializerProvider()->getSerializer()->serialize(self::address(), 'json');
+        $json = (new SerializerProvider())->getSerializer()->serialize(self::address(), 'json');
 
         self::assertStringContainsString('Poznań', $json);
         self::assertStringNotContainsString('Pozna\\u0144', $json);
@@ -37,7 +37,7 @@ final class SerializerConfigTest extends TestCase
      */
     public function testAWholeAmountStaysAFloat(): void
     {
-        $json = new SerializerProvider()->getSerializer()->serialize(['amount' => 250.0], 'json');
+        $json = (new SerializerProvider())->getSerializer()->serialize(['amount' => 250.0], 'json');
 
         self::assertSame('{"amount":250.0}', $json);
     }
@@ -55,10 +55,10 @@ final class SerializerConfigTest extends TestCase
     {
         $payload = ['pickupdate' => '2026-09-24', 'something_the_api_just_added' => 'x'];
 
-        $tolerant = new SerializerProvider()->getSerializer();
+        $tolerant = (new SerializerProvider())->getSerializer();
         self::assertInstanceOf(Pickup::class, $tolerant->denormalize($payload, Pickup::class, 'json'));
 
-        $strict = new SerializerProvider(new SerializerConfig(rejectUnknownFields: true))->getSerializer();
+        $strict = (new SerializerProvider(new SerializerConfig(rejectUnknownFields: true)))->getSerializer();
 
         $this->expectException(ExtraAttributesException::class);
         $strict->denormalize($payload, Pickup::class, 'json');

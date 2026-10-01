@@ -27,7 +27,7 @@ modules/polkurier/
 {
     "name": "polkurier/prestashop",
     "require": {
-        "php": "~8.4.0||~8.5.0",
+        "php": "~8.3.0||~8.4.0||~8.5.0",
         "polkurier/polkurier-sdk": "^2.0"
     },
     "config": {"prepend-autoloader": false},

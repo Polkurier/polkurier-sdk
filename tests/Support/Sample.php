@@ -7,11 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Support;
 
-use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
-use Symfony\Component\TypeInfo\Type\CollectionType;
-use Symfony\Component\TypeInfo\Type\NullableType;
-use Symfony\Component\TypeInfo\Type\ObjectType;
-
 /**
  * Builds instances with every property set to a non-empty sample value, bypassing constructors.
  */
@@ -62,26 +57,55 @@ final class Sample
      */
     private static function element(string $class, string $property): mixed
     {
-        $type = new PhpStanExtractor()->getType($class, $property);
-        if ($type instanceof NullableType) {
-            $type = $type->getWrappedType();
-        }
-        if (!$type instanceof CollectionType) {
+        $reflection = new \ReflectionProperty($class, $property);
+        $doc = (string)$reflection->getDocComment();
+        if (!\preg_match('~@var\s+(?:list<|array<[^,>]+,\s*)?(\\\\?[\w\\\\]+)(?:\[\]|>)~', $doc, $match)) {
             return 'x';
         }
 
-        $value = $type->getCollectionValueType();
-        if ($value instanceof NullableType) {
-            $value = $value->getWrappedType();
-        }
-        if (!$value instanceof ObjectType) {
+        $name = self::resolve($reflection->getDeclaringClass(), $match[1]);
+        if ($name === null) {
             return 'x';
         }
-
-        /** @var class-string $name */
-        $name = $value->getClassName();
 
         return \enum_exists($name) ? $name::cases()[0] : self::of($name);
+    }
+
+    /**
+     * The class a docblock type names, resolved against the file's imports and namespace.
+     *
+     * @param \ReflectionClass<object> $scope
+     *
+     * @return class-string|null
+     */
+    private static function resolve(\ReflectionClass $scope, string $type): ?string
+    {
+        if (\str_starts_with($type, '\\')) {
+            $candidates = [\substr($type, 1)];
+        } else {
+            $head = (string)\strtok($type, '\\');
+            $candidates = [];
+            \preg_match_all(
+                '~^use ([\w\\\\]+?)(?: as (\w+))?;$~m',
+                (string)\file_get_contents((string)$scope->getFileName()),
+                $uses,
+                \PREG_SET_ORDER,
+            );
+            foreach ($uses as $use) {
+                $alias = ($use[2] ?? '') !== '' ? $use[2] : \substr($use[1], (int)\strrpos($use[1], '\\') + 1);
+                if ($alias === $head) {
+                    $candidates[] = $use[1] . \substr($type, \strlen($head));
+                }
+            }
+            $candidates[] = $scope->getNamespaceName() . '\\' . $type;
+        }
+        foreach ($candidates as $candidate) {
+            if (\class_exists($candidate) || \enum_exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     private static function sample(?\ReflectionType $type): mixed

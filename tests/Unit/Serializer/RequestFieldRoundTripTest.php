@@ -65,7 +65,7 @@ final class RequestFieldRoundTripTest extends TestCase
             return;
         }
 
-        $json = new SerializerProvider()->getSerializer()->serialize(Sample::of($class), 'json');
+        $json = (new SerializerProvider())->getSerializer()->serialize(Sample::of($class), 'json');
         $payload = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
 
         self::assertIsArray($payload);

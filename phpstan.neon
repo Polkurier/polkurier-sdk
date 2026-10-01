@@ -5,3 +5,7 @@ parameters:
         - tests
         - examples
     treatPhpDocTypesAsCertain: false
+    # The PHP versions composer.json allows: reports what an older one lacks.
+    phpVersion:
+        min: 80300
+        max: 80599

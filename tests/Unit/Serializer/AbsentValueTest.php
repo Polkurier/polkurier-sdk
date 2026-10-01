@@ -141,7 +141,7 @@ final class AbsentValueTest extends TestCase
         ] + $overrides;
 
         /** @var Order $order */
-        $order = new SerializerProvider()->getSerializer()
+        $order = (new SerializerProvider())->getSerializer()
             ->denormalize($overrides + $payload, Order::class, 'json');
 
         return $order;

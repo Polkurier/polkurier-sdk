@@ -6,14 +6,14 @@
     ],
     "version": "2.0.0",
     "require": {
-        "php": "~8.4.0||~8.5.0",
+        "php": "~8.3.0||~8.4.0||~8.5.0",
         "guzzlehttp/guzzle": "^7.10",
         "psr/http-client": "^1.0",
         "psr/http-message": "^1.1||^2.0",
         "psr/log": "^2.0||^3.0",
-        "symfony/serializer": "^7.2",
-        "symfony/property-info": "^7.2",
-        "symfony/property-access": "^7.2",
+        "symfony/serializer": "^6.4.15 || ^7.4 || ^8.0",
+        "symfony/property-info": "^6.4.15 || ^7.4 || ^8.0",
+        "symfony/property-access": "^6.4.15 || ^7.4 || ^8.0",
         "phpstan/phpdoc-parser": "^2.0",
         "psr/cache": "^3.0",
         "phpdocumentor/type-resolver": "^1.8"
@@ -41,7 +41,7 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5",
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1.30"
     },
     "autoload-dev": {
         "psr-4": {

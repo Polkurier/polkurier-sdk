@@ -1,7 +1,7 @@
 Magento 2 / Adobe Commerce
 ==========================
 
-For Magento 2.4.x on PHP 8.4+. You add the SDK to a module of your own. You don't need to patch
+For Magento 2.4.7 and later, on PHP 8.3+ (2.4.6 and older don't run on PHP 8.3). You add the SDK to a module of your own. You don't need to patch
 core.
 
 Installing the SDK into a module
@@ -21,7 +21,7 @@ goes:
     "name": "vendor/module-polkurier",
     "type": "magento2-module",
     "require": {
-        "php": "~8.4.0||~8.5.0",
+        "php": "~8.3.0||~8.4.0||~8.5.0",
         "polkurier/polkurier-sdk": "^2.0",
         "magento/framework": "*"
     },

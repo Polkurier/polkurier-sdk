@@ -1,7 +1,7 @@
 WooCommerce / WordPress
 =======================
 
-For WooCommerce 8+ on PHP 8.4+, as a plugin. Of all the hosts here, WordPress is the hardest fit
+For WooCommerce 8+ on PHP 8.3+, as a plugin. Of all the hosts here, WordPress is the hardest fit
 for the SDK. It has no container and no autoloader of its own, and it does very little type
 checking. Most of this page is about keeping your plugin code and WordPress separate.
 
@@ -20,7 +20,7 @@ namespace:
 {
     "name": "your-vendor/woo-polkurier",
     "require": {
-        "php": "~8.4.0||~8.5.0",
+        "php": "~8.3.0||~8.4.0||~8.5.0",
         "polkurier/polkurier-sdk": "^2.0"
     },
     "require-dev": {
@@ -65,7 +65,7 @@ Plugin bootstrap
 <?php
 /**
  * Plugin Name: Polkurier for WooCommerce
- * Requires PHP: 8.4
+ * Requires PHP: 8.3
  * Requires Plugins: woocommerce
  */
 

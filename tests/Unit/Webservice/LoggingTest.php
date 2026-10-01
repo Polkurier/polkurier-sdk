@@ -123,6 +123,9 @@ final class SpyLogger extends AbstractLogger
      */
     public array $records = [];
 
+    /**
+     * @param array<mixed> $context
+     */
     public function log($level, \Stringable|string $message, array $context = []): void
     {
         if (!\is_string($level)) {

@@ -80,7 +80,7 @@ final class ResponseConstructionTest extends TestCase
     #[DataProvider('responseClasses')]
     public function testIsEitherWholeOrRefusedOutright(string $class): void
     {
-        $serializer = new SerializerProvider()->getSerializer();
+        $serializer = (new SerializerProvider())->getSerializer();
 
         try {
             // Not a literal empty array: that is how the API says "no object here", and the

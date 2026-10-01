@@ -11,7 +11,7 @@ https://www.polkurier.pl and generate one in the customer panel under Settings >
 Requirements
 ------------
 
-PHP 8.4 or 8.5.
+PHP 8.3, 8.4 or 8.5.
 
 Installation
 ------------

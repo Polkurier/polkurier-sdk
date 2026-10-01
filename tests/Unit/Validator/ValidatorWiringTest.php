@@ -53,7 +53,7 @@ final class ValidatorWiringTest extends TestCase
         $outer = new WiringOuterMessage(new WiringInnerMessage('')); // the inner value is invalid
 
         try {
-            new AttributeValidator()->validate($outer);
+            (new AttributeValidator())->validate($outer);
             self::fail('the nested message should have been rejected');
         } catch (ValidationException $e) {
             self::assertSame(
@@ -65,7 +65,7 @@ final class ValidatorWiringTest extends TestCase
 
     public function testAMessageDeclaringNothingPasses(): void
     {
-        new AttributeValidator()->validate(new WiringInnerMessage('anything'));
+        (new AttributeValidator())->validate(new WiringInnerMessage('anything'));
 
         self::expectNotToPerformAssertions();
     }

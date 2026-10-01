@@ -115,9 +115,12 @@ class MessageFields
                 if ($attributes === []) {
                     continue;
                 }
-                /** @var Serializer\SerializedName $serializedName */
-                $serializedName = $attributes[0]->newInstance();
-                $names[$property->getName()] = $serializedName->serializedName;
+                // The attribute's argument, read the same way on every supported Symfony version
+                $arguments = $attributes[0]->getArguments();
+                $name = $arguments['serializedName'] ?? $arguments[0] ?? null;
+                if (\is_string($name)) {
+                    $names[$property->getName()] = $name;
+                }
             }
             $reflection = $reflection->getParentClass();
         }

@@ -53,7 +53,7 @@ final class BuilderBehaviourTest extends TestCase
     {
         $built = PackMessageBuilder::create()->length(30)->width(20)->height(15)->weight(2.5)->build();
 
-        foreach (new \ReflectionClass(PackMessage::class)->getConstructor()?->getParameters() ?? [] as $parameter) {
+        foreach ((new \ReflectionClass(PackMessage::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
             if (!$parameter->isDefaultValueAvailable()) {
                 continue;
             }
@@ -75,7 +75,7 @@ final class BuilderBehaviourTest extends TestCase
     {
         $builder = PackMessageBuilder::create()->length(30)->width(20)->height(15)->weight(2.5);
 
-        $values = new \ReflectionClass(AbstractBuilder::class)->getProperty('values')->getValue($builder);
+        $values = (new \ReflectionClass(AbstractBuilder::class))->getProperty('values')->getValue($builder);
 
         self::assertSame(['length', 'width', 'height', 'weight'], \array_keys((array)$values));
     }
