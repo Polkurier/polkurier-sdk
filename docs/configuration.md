@@ -47,6 +47,10 @@ Three arguments are required. The others have defaults.
 | `loggingEnabled` | `bool` | `true` | Enables error logging |
 | `methodsToLog` | [`ApiMethodInterface`](../src/Enum/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
+| `logSensitiveData` | `bool` | `false` | Log secrets as they are instead of hiding them |
+| `logPersonalData` | `bool` | `false` | Log personal data as it is instead of hiding it |
+| `logFiles` | `bool` | `false` | Save files from requests and responses, and point to them from the log |
+| `logFilesDirectory` | `?string` | `null` | Where to save them. Defaults to a directory in the system's temporary directory |
 
 [`Config`](../src/Config.php) is `readonly` and implements [`Api\ConfigInterface`](../src/Api/ConfigInterface.php). If the configuration needs to change
 at runtime, implement the interface or use a different provider.
@@ -117,13 +121,67 @@ new Config(
 [`ConfigInterface::isExtendedLoggingEnabled()`](../src/Api/ConfigInterface.php) checks both settings. If `loggingEnabled` is off, nothing is logged,
 whatever `methodsToLog` contains.
 
-> **Request bodies contain the API token.** [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) is included in every
-> authenticated request, and the logger receives the body unchanged. Send the logs somewhere you are
-> OK with storing credentials, or filter the record first. The SDK does not redact anything.
-
 Each record also has structured context (`method`, `sandbox`, `payload`, `request`,
 `parsed_response`, `response`), so a processor can read those fields directly without parsing the
 message.
+
+#### Secrets, personal data and files
+
+Requests and responses carry things that don't belong in a log by default. Before anything is
+logged, the SDK prepares each body:
+
+- **Secrets** are hidden: the API token, which is in every authenticated request, and passwords,
+  PINs, two-factor codes and access tokens. The fields are [`SensitiveDataRedactor::FIELDS`](../src/Log/SensitiveDataRedactor.php).
+- **Personal data** is hidden: names, street addresses, email addresses, phone numbers, tax and
+  company registration numbers, and bank account numbers. The fields are
+  [`PersonalDataRedactor::FIELDS`](../src/Log/PersonalDataRedactor.php), plus a few generic keys that only hold personal data in some methods,
+  such as a bank account's `number` ([`PersonalDataRedactor::METHOD_FIELDS`](../src/Log/PersonalDataRedactor.php)).
+- **Files**, such as labels, protocols, invoices and attachments, are taken out. Each one is
+  replaced with a note of its size, e.g. `[file left out of the log: 48213 bytes]`.
+
+Hidden values are replaced with `***`. The login is kept, since it identifies the account without
+giving access to it. In the context, `request` and `response` are copies prepared the same way.
+`payload` and `parsed_response` are objects that can't be prepared, so they are left out unless
+both secrets and personal data may be logged. Their contents are in the request and response
+bodies either way.
+
+Each of these can be turned off separately when you need it, e.g. to reproduce a call exactly:
+
+```php
+new Config(
+    // …
+    logSensitiveData: true,
+    logPersonalData: true,
+    logFiles: true,
+    logFilesDirectory: '/var/log/my-shop/polkurier-files',
+);
+```
+
+With `logFiles` on, each file is saved in `logFilesDirectory` under a name made of the time, the
+method and a random part, e.g. `20261005T101500-get_label-1a2b3c4d-file.pdf`. The log entry says
+where: `[file saved to /var/log/my-shop/polkurier-files/20261005T101500-get_label-1a2b3c4d-file.pdf: 48213 bytes]`.
+The directory is created if it doesn't exist. If a file can't be saved, the note says so and the
+entry is logged anyway. The SDK never deletes saved files, so clean the directory up yourself.
+Every saved file's name matches [`LoggedFileWriter::FILE_NAME_PATTERN`](../src/Log/LoggedFileWriter.php), so a cleanup job can recognise them
+without touching anything else in the directory:
+
+```php
+use Polkurier\Webservice\Log\LoggedFileWriter;
+
+foreach (new DirectoryIterator($directory) as $file) {
+    if ($file->isFile()
+        && preg_match(LoggedFileWriter::FILE_NAME_PATTERN, $file->getFilename())
+        && $file->getMTime() < strtotime('-7 days')
+    ) {
+        unlink($file->getPathname());
+    }
+}
+```
+
+Keep such logs and files as safe as what's in them. A label, for example, shows the recipient's
+name and address even with `logPersonalData` off. Exceptions in the context (`exception`,
+`client_exception`) are never altered, and some of them hold the full request or response, so a
+logger that serializes exceptions in depth can still record what was hidden.
 
 ### Payload validation
 

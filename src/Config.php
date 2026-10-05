@@ -26,6 +26,7 @@ readonly class Config implements ConfigInterface
     public const string SERIALIZATION_FORMAT = 'json';
     public const string API_URL = 'https://api.polkurier.pl';
     public const string SANDBOX_API_URL = 'https://api-sandbox.polkurier.pl';
+    public const string LOG_FILES_DIRECTORY = 'polkurier-sdk-log-files';
 
     /**
      * @param AuthorizationMessage $authorization
@@ -37,6 +38,12 @@ readonly class Config implements ConfigInterface
      * @param bool $loggingEnabled
      * @param array $methodsToLog
      * @param bool $validatePayloads
+     * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by default
+     * @param bool $logPersonalData log personal data as it is instead of hiding it. Off by default
+     * @param bool $logFiles save files from requests and responses, and point to them from the log.
+     *        Off by default
+     * @param string|null $logFilesDirectory where to save them. Defaults to a directory in the
+     *        system's temporary directory
      */
     public function __construct(
         /**
@@ -83,6 +90,26 @@ readonly class Config implements ConfigInterface
          * @var bool
          */
         protected bool $validatePayloads = true,
+
+        /**
+         * @var bool
+         */
+        protected bool $logSensitiveData = false,
+
+        /**
+         * @var bool
+         */
+        protected bool $logPersonalData = false,
+
+        /**
+         * @var bool
+         */
+        protected bool $logFiles = false,
+
+        /**
+         * @var string|null
+         */
+        protected ?string $logFilesDirectory = null,
     ) {}
 
     /**
@@ -157,6 +184,39 @@ readonly class Config implements ConfigInterface
     public function getMethodsToLog(): array
     {
         return $this->methodsToLog;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSensitiveDataLoggingEnabled(): bool
+    {
+        return $this->logSensitiveData;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPersonalDataLoggingEnabled(): bool
+    {
+        return $this->logPersonalData;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFileLoggingEnabled(): bool
+    {
+        return $this->logFiles;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogFilesDirectory(): string
+    {
+        return $this->logFilesDirectory
+            ?? \sys_get_temp_dir() . \DIRECTORY_SEPARATOR . static::LOG_FILES_DIRECTORY;
     }
 
     /**

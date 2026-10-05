@@ -10,12 +10,25 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
+use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Log\LoggedFileWriter;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\AbstractLogger;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Psr\Log\LogLevel;
 
 /**
@@ -117,11 +130,145 @@ final class LoggingTest extends TestCase
         self::assertSame([], $this->logger->records);
     }
 
+    public function testATransportFailureIsLoggedWithoutTheTokenByDefault(): void
+    {
+        try {
+            $this->sdk(clientFactory: new RefusingClient())->addresses()->getAddresses();
+            self::fail('The transport failure should have been raised.');
+        } catch (ConnectionException) {
+        }
+
+        self::assertCount(1, $this->logger->records);
+        self::assertStringNotContainsString('test-token', $this->logger->records[0]['message']);
+        self::assertStringContainsString('"token":"***"', $this->logger->records[0]['message']);
+        self::assertStringContainsString('"login":"20534"', $this->logger->records[0]['message']);
+        self::assertArrayNotHasKey('payload', $this->logger->records[0]['context']);
+        $request = $this->logger->records[0]['context']['request'] ?? null;
+        self::assertInstanceOf(RequestInterface::class, $request);
+        self::assertStringNotContainsString('test-token', (string)$request->getBody());
+    }
+
+    public function testAPinSentInALoggedCallIsHiddenByDefault(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":true}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::ChangePhonePin])->account()->changePhonePin(new ChangePinMessage(pin: '1234'));
+
+        $logged = \implode("\n", \array_column($this->logger->records, 'message'));
+        self::assertStringNotContainsString('1234', $logged);
+        self::assertStringNotContainsString('test-token', $logged);
+        self::assertStringContainsString('"pin":"***"', $logged);
+    }
+
+    public function testAPinReceivedInALoggedCallIsHiddenByDefault(): void
+    {
+        $serializer = (new SerializerProvider())->getSerializer();
+        self::assertInstanceOf(NormalizerInterface::class, $serializer);
+        $account = $serializer->normalize(Sample::of(AccountInfoMessage::class), 'json');
+        self::assertIsArray($account);
+        $account['other_pin'] = '4321';
+        $this->client->willAnswerWith((string)\json_encode(['status' => 'success', 'response' => $account]));
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetAccountInfo])->account()->getAccountInfo();
+
+        $logged = \implode("\n", \array_column($this->logger->records, 'message'));
+        self::assertStringNotContainsString('4321', $logged);
+        foreach ($this->logger->records as $record) {
+            self::assertArrayNotHasKey('parsed_response', $record['context']);
+        }
+    }
+
+    public function testSecretsAreLoggedAsTheyAreWhenAllowed(): void
+    {
+        try {
+            $this->sdk(logSensitiveData: true, clientFactory: new RefusingClient())->addresses()->getAddresses();
+        } catch (ConnectionException) {
+        }
+
+        self::assertStringContainsString('"token":"test-token"', $this->logger->records[0]['message']);
+        self::assertArrayNotHasKey('payload', $this->logger->records[0]['context'], 'personal data is still hidden');
+    }
+
+    public function testThePayloadIsInTheContextWhenSecretsAndPersonalDataAreBothAllowed(): void
+    {
+        try {
+            $this->sdk(logSensitiveData: true, logPersonalData: true, clientFactory: new RefusingClient())
+                ->addresses()->getAddresses();
+        } catch (ConnectionException) {
+        }
+
+        self::assertArrayHasKey('payload', $this->logger->records[0]['context']);
+    }
+
+    public function testPersonalDataIsHiddenByDefaultAndLoggedWhenAllowed(): void
+    {
+        $answer = '{"status":"success","response":[{"id":"7","number":"61109010140000071219812874","name":"Firmowe","default":true}]}';
+
+        $this->client->willAnswerWith($answer);
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts])->bankAccounts()->getBankAccounts();
+        $hidden = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        $this->logger->records = [];
+        $this->client->willAnswerWith($answer);
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts], logPersonalData: true)->bankAccounts()->getBankAccounts();
+        $shown = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        self::assertStringNotContainsString('61109010140000071219812874', $hidden);
+        self::assertStringContainsString('"number":"***"', $hidden);
+        self::assertStringContainsString('"login":"20534"', $hidden);
+        self::assertStringContainsString('61109010140000071219812874', $shown);
+    }
+
+    public function testAFileIsLeftOutOfTheLogByDefault(): void
+    {
+        $pdf = \base64_encode("%PDF-1.4\nlabel");
+        $this->client->willAnswerWith('{"status":"success","response":{"file":"' . $pdf . '"}}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetLabel])->orders()->getLabel(new GetDocumentMessage(orderNo: ['12345-1']));
+
+        $logged = \implode("\n", \array_column($this->logger->records, 'message'));
+        self::assertStringNotContainsString($pdf, $logged);
+        self::assertStringContainsString('[file left out of the log: 14 bytes]', $logged);
+    }
+
+    public function testAFileIsSavedOnceAndPointedToWhenAllowed(): void
+    {
+        $directory = \sys_get_temp_dir() . '/polkurier-sdk-test-' . \bin2hex(\random_bytes(4));
+        $pdf = \base64_encode("%PDF-1.4\nlabel");
+        $this->client->willAnswerWith('{"status":"success","response":{"file":"' . $pdf . '"}}');
+
+        try {
+            $this->sdk(methodsToLog: [ApiMethodEnum::GetLabel], logFiles: true, logFilesDirectory: $directory)
+                ->orders()->getLabel(new GetDocumentMessage(orderNo: ['12345-1']));
+
+            $saved = \glob($directory . '/*') ?: [];
+            self::assertCount(1, $saved, 'the body is in both the message and the context, but the file is saved once');
+            self::assertMatchesRegularExpression(LoggedFileWriter::FILE_NAME_PATTERN, \basename($saved[0]));
+            self::assertStringContainsString('-get_label-', \basename($saved[0]));
+            self::assertStringEndsWith('-file.pdf', $saved[0]);
+            self::assertSame("%PDF-1.4\nlabel", \file_get_contents($saved[0]));
+
+            $logged = \implode("\n", \array_column($this->logger->records, 'message'));
+            self::assertStringNotContainsString($pdf, $logged);
+            self::assertStringContainsString('[file saved to ' . $saved[0] . ': 14 bytes]', $logged);
+        } finally {
+            \array_map('unlink', \glob($directory . '/*') ?: []);
+            @\rmdir($directory);
+        }
+    }
+
     /**
      * @param ApiMethodEnum[] $methodsToLog
      */
-    private function sdk(bool $loggingEnabled = true, array $methodsToLog = []): PolkurierWebservice
-    {
+    private function sdk(
+        bool $loggingEnabled = true,
+        array $methodsToLog = [],
+        bool $logSensitiveData = false,
+        ?ClientFactoryInterface $clientFactory = null,
+        bool $logPersonalData = false,
+        bool $logFiles = false,
+        ?string $logFilesDirectory = null,
+    ): PolkurierWebservice {
         return new PolkurierWebservice(
             config: new Config(
                 authorization: new AuthorizationMessage(token: 'test-token', login: '20534'),
@@ -129,9 +276,13 @@ final class LoggingTest extends TestCase
                 platformVersion: '1.0.0',
                 loggingEnabled: $loggingEnabled,
                 methodsToLog: $methodsToLog,
+                logSensitiveData: $logSensitiveData,
+                logPersonalData: $logPersonalData,
+                logFiles: $logFiles,
+                logFilesDirectory: $logFilesDirectory,
             ),
             logger: $this->logger,
-            clientFactory: $this->client,
+            clientFactory: $clientFactory ?? $this->client,
         );
     }
 }
@@ -142,7 +293,7 @@ final class LoggingTest extends TestCase
 final class SpyLogger extends AbstractLogger
 {
     /**
-     * @var list<array{level: string, message: string}>
+     * @var list<array{level: string, message: string, context: array<string, mixed>}>
      */
     public array $records = [];
 
@@ -155,6 +306,22 @@ final class SpyLogger extends AbstractLogger
             throw new \Psr\Log\InvalidArgumentException('Level must be a PSR-3 level string.');
         }
 
-        $this->records[] = ['level' => $level, 'message' => (string)$message];
+        $this->records[] = ['level' => $level, 'message' => (string)$message, 'context' => $context];
+    }
+}
+
+/**
+ * A client whose every request fails at the transport level.
+ */
+final class RefusingClient implements ClientInterface, ClientFactoryInterface
+{
+    public function sendRequest(RequestInterface $request): ResponseInterface
+    {
+        throw new class ('Connection refused') extends \RuntimeException implements ClientExceptionInterface {};
+    }
+
+    public function create(): ClientInterface
+    {
+        return $this;
     }
 }

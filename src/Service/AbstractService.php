@@ -27,9 +27,11 @@ use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
+use Polkurier\Webservice\Log\LogSanitizer;
 use Polkurier\Webservice\Validator\NullValidator;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\MessageInterface as HttpMessageInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -63,6 +65,8 @@ abstract class AbstractService
      *        that accepts everything
      * @param LastResponseHolder $lastResponse receives the response to each call. Share one between
      *        services to see the last call made through any of them
+     * @param LogSanitizer $logSanitizer prepares bodies for the log: takes files out and hides
+     *        secrets and personal data, as the configuration says
      */
     public function __construct(
         /**
@@ -99,6 +103,11 @@ abstract class AbstractService
          * @var LastResponseHolder
          */
         protected readonly LastResponseHolder $lastResponse = new LastResponseHolder(),
+
+        /**
+         * @var LogSanitizer
+         */
+        protected readonly LogSanitizer $logSanitizer = new LogSanitizer(),
     ) {}
 
     /**
@@ -482,6 +491,47 @@ abstract class AbstractService
     }
 
     /**
+     * The body of a request or response as it goes into a log message: with file contents taken
+     * out, and secrets and personal data hidden unless the configuration allows them.
+     *
+     * @param HttpMessageInterface $message
+     * @param ApiMethodInterface $apiMethod
+     *
+     * @return string
+     */
+    protected function bodyForLog(HttpMessageInterface $message, ApiMethodInterface $apiMethod): string
+    {
+        return $this->logSanitizer->body($message, $this->config(), $apiMethod);
+    }
+
+    /**
+     * The log context, prepared the same way as the bodies.
+     *
+     * The request and response are replaced with copies whose bodies are prepared for the log. The
+     * payload and parsed response are objects that can't be prepared, so they are left out unless
+     * the configuration allows logging both secrets and personal data. Their contents are in the
+     * request and response bodies either way.
+     *
+     * @param array<string, mixed> $context
+     * @param ApiMethodInterface $apiMethod
+     *
+     * @return array<string, mixed>
+     */
+    protected function contextForLog(array $context, ApiMethodInterface $apiMethod): array
+    {
+        if (!$this->logSanitizer->allowsObjects($this->config())) {
+            unset($context['payload'], $context['parsed_response']);
+        }
+        foreach (['request', 'response'] as $key) {
+            if (($context[$key] ?? null) instanceof HttpMessageInterface) {
+                $context[$key] = $this->logSanitizer->message($context[$key], $this->config(), $apiMethod);
+            }
+        }
+
+        return $context;
+    }
+
+    /**
      * @param ApiMethodInterface $apiMethod
      * @param RequestInterface $request
      * @param MessageInterface|null $payload
@@ -496,13 +546,13 @@ abstract class AbstractService
         $this->logger->info(\sprintf(
             'Request method: "%s", payload: "%s"',
             $apiMethod->value,
-            $request->getBody(),
-        ), [
+            $this->bodyForLog($request, $apiMethod),
+        ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
-        ]);
+        ], $apiMethod));
     }
 
     /**
@@ -529,16 +579,16 @@ abstract class AbstractService
             sprintf(
                 'Response from method: "%s", response: "%s"',
                 $apiMethod->value,
-                $responseWrapper->getHttpResponse()->getBody(),
+                $this->bodyForLog($responseWrapper->getHttpResponse(), $apiMethod),
             ),
-            [
+            $this->contextForLog([
                 'method' => $apiMethod,
                 'sandbox' => $this->config()->isSandbox(),
                 'payload' => $payload,
                 'request' => $request,
                 'parsed_response' => $responseWrapper->getParsedResponse(),
                 'response' => $responseWrapper->getHttpResponse(),
-            ]
+            ], $apiMethod)
         );
     }
 
@@ -603,13 +653,13 @@ abstract class AbstractService
             'Malformed response: "%s", while requesting method: "%s"',
             $exception->getMessage(),
             $apiMethod->value,
-        ), [
+        ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
             'exception' => $exception,
-        ]);
+        ], $apiMethod));
     }
 
     /**
@@ -633,13 +683,13 @@ abstract class AbstractService
             'HTTP client error: "%s", while requesting method: "%s" with payload: "%s"',
             $exception->getMessage(),
             $apiMethod->value,
-            $request->getBody(),
-        ), [
+            $this->bodyForLog($request, $apiMethod),
+        ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
             'client_exception' => $exception,
-        ]);
+        ], $apiMethod));
     }
 }

@@ -74,6 +74,46 @@ interface ConfigInterface
     public function getMethodsToLog(): array;
 
     /**
+     * Whether secrets are logged as they are.
+     *
+     * Off by default: the API token, passwords, PINs, two-factor codes and access tokens are
+     * replaced with `***` in logged bodies, and objects that could hold them are left out of the log
+     * context. Turn it on when you need the full payloads to debug, and keep such logs as safe as
+     * the credentials in them.
+     *
+     * @return bool
+     */
+    public function isSensitiveDataLoggingEnabled(): bool;
+
+    /**
+     * Whether personal data is logged as it is.
+     *
+     * Off by default: names, street addresses, email addresses, phone numbers, tax numbers and bank
+     * account numbers are replaced with `***` in logged bodies.
+     *
+     * @return bool
+     */
+    public function isPersonalDataLoggingEnabled(): bool;
+
+    /**
+     * Whether files in requests and responses are saved for the log.
+     *
+     * File contents, such as labels and attachments, are never written into a log entry. When this
+     * is on, each file is saved in {@see self::getLogFilesDirectory()} and the entry gives its path.
+     * When it is off, which is the default, the entry only gives its size.
+     *
+     * @return bool
+     */
+    public function isFileLoggingEnabled(): bool;
+
+    /**
+     * Where files are saved when {@see self::isFileLoggingEnabled()} is on.
+     *
+     * @return string
+     */
+    public function getLogFilesDirectory(): string;
+
+    /**
      * Whether outgoing payloads are checked before they are sent.
      *
      * On by default. When off, the client-side rules are skipped and only the API checks the

@@ -266,13 +266,13 @@ Logging a failure
 -----------------
 
 When `loggingEnabled` is on and you've passed a PSR-3 logger, the SDK logs errors itself: the
-failing request, its body and the response, at `error` level with structured context. See
-[Configuration: logging](configuration.md#logging), including the warning about tokens in request
-bodies.
+failing request, its body and the response, at `error` level with structured context. Secrets such
+as the API token, personal data and file contents are left out unless you turn that off. See
+[Configuration: logging](configuration.md#logging) and [secrets, personal data and files](configuration.md#secrets-personal-data-and-files).
 
 If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
 whose body contains the API token. Log [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) instead, unless you need the
-payload.
+payload. If you do, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives you a copy with the secrets hidden.
 
 A complete handler
 ------------------
