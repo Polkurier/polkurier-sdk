@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Response\TwoFactorToken\TransportMethodMessage;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -25,6 +26,8 @@ readonly class TwoFactorToken implements MessageInterface
     public const string FIELD_OPERATION_DATE = 'operation_date';
     public const string FIELD_SENT_AT = 'sent_at';
     public const string FIELD_EXPIRES_AT = 'expires_at';
+    public const string FIELD_TRANSPORT_METHOD = 'transport_method';
+    public const string FIELD_AVAILABLE_METHODS = 'available_methods';
     /**-@#*/
 
     /**
@@ -33,8 +36,10 @@ readonly class TwoFactorToken implements MessageInterface
      * @param string $operationTitle
      * @param int $operationNumber
      * @param \DateTimeInterface $operationDate
-     * @param \DateTimeInterface $sentAt
+     * @param \DateTimeInterface|null $sentAt
      * @param \DateTimeInterface $expiresAt
+     * @param TransportMethodMessage|null $transportMethod how the code was sent
+     * @param TransportMethodMessage[] $availableMethods the other ways the code can be sent
      */
     public function __construct(
         /**
@@ -68,16 +73,28 @@ readonly class TwoFactorToken implements MessageInterface
         private \DateTimeInterface $operationDate,
 
         /**
-         * @var \DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_SENT_AT)]
-        private \DateTimeInterface $sentAt,
+        private ?\DateTimeInterface $sentAt,
 
         /**
          * @var \DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_EXPIRES_AT)]
         private \DateTimeInterface $expiresAt,
+
+        /**
+         * @var TransportMethodMessage|null
+         */
+        #[Serializer\SerializedName(self::FIELD_TRANSPORT_METHOD)]
+        private ?TransportMethodMessage $transportMethod = null,
+
+        /**
+         * @var TransportMethodMessage[]
+         */
+        #[Serializer\SerializedName(self::FIELD_AVAILABLE_METHODS)]
+        private array $availableMethods = [],
     ) {}
 
     /**
@@ -89,7 +106,8 @@ readonly class TwoFactorToken implements MessageInterface
     }
 
     /**
-     * @return string
+     * @return string can be empty. To tell the customer where the code went, use the transport
+     *         method's name instead, see {@see self::getTransportMethod()}
      */
     public function getPhoneNumber(): string
     {
@@ -121,9 +139,9 @@ readonly class TwoFactorToken implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null null if it hasn't been sent
      */
-    public function getSentAt(): \DateTimeInterface
+    public function getSentAt(): ?\DateTimeInterface
     {
         return $this->sentAt;
     }
@@ -134,5 +152,29 @@ readonly class TwoFactorToken implements MessageInterface
     public function getExpiresAt(): \DateTimeInterface
     {
         return  $this->expiresAt;
+    }
+
+    /**
+     * How the code was sent. Its name says where, e.g. a masked phone number, so show that to tell
+     * the customer where to look.
+     *
+     * @return TransportMethodMessage|null null if the token has no transport method
+     */
+    public function getTransportMethod(): ?TransportMethodMessage
+    {
+        return $this->transportMethod;
+    }
+
+    /**
+     * The ways the code can be sent instead. Pass one's id to
+     * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()}.
+     *
+     * Registering, resending and changing the method return these. Empty otherwise.
+     *
+     * @return list<TransportMethodMessage>
+     */
+    public function getAvailableMethods(): array
+    {
+        return \array_values($this->availableMethods);
     }
 }

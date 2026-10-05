@@ -23,6 +23,21 @@ release of the SDK. Any change to the serializer has to preserve this.
 weaker for serialization than for mapping. It is also one of the two reasons `jms/serializer` was
 dropped. The other one is covered [below](#why-objects-are-built-through-their-constructors).
 
+Unknown enum values
+-------------------
+
+[`ResponseFactory`](../src/Http/Response/ResponseFactory.php) puts an [`UnknownEnumValues`](../src/Serializer/UnknownEnumValues.php) collector in the context when it reads a payload.
+With it there, an enum value the SDK doesn't know reads as null, or is left out of a list, and is
+recorded with its path. Without it, as when you call the serializer yourself, an unknown value
+fails as usual. Requests are never read this way, so they stay strict.
+
+The recorded values end up in [`ResponseWrapper::getUnknownEnumValues()`](../src/Http/Response/ResponseWrapper.php), and
+[`AbstractService::logUnknownEnumValues()`](../src/Service/AbstractService.php) logs a warning for each. An empty string isn't recorded.
+
+The services the facade builds share a [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php). Each call clears it, then stores the HTTP
+response and the recorded values, which the facade returns from
+[`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php) and [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php).
+
 The stack
 ---------
 
@@ -32,9 +47,11 @@ takes a while, so share a single instance. The facade already does.
 ```php
 new Serializer(
     normalizers: [
+        new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
         new AbsentDateNormalizer(),
         new DateTimeNormalizer($dateTimeContext),
+        new EnumListDenormalizer(),
         new ArrayDenormalizer(),
         new OmitEmptyNormalizer($objectNormalizer),
     ],
@@ -46,7 +63,10 @@ new Serializer(
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
 first one to say yes handles it. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
-catch an empty string before the date parser sees it. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes last because it
+catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
+[`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
+response, an enum value the SDK doesn't know reads as null or is left out of its list (see
+[unknown enum values](#unknown-enum-values)). [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes last because it
 wraps the general object normalizer, which supports nearly everything.
 
 The object normalizer is set up with four pieces:
@@ -239,7 +259,7 @@ final readonly class MySerializerProvider implements SerializerProviderInterface
     {
         $this->serializer = new Serializer(
             normalizers: [
-                new MyLenientEnumNormalizer(),   // ahead of BackedEnumNormalizer
+                new MyNormalizer(),   // ahead of the SDK's own
                 // … then the SDK's own list, in its own order …
             ],
             encoders: [/* … */],
@@ -256,8 +276,8 @@ final readonly class MySerializerProvider implements SerializerProviderInterface
 Start from the SDK's normalizer list, in the same order. The order matters, and
 [`SerializerProvider`](../src/Serializer/SerializerProvider.php) shows what it should be.
 
-Typical reasons to do this: accepting a new enum value from the API, mapping a field the SDK does
-not know about yet, or instrumenting the mapping to see where a response loses data.
+Typical reasons to do this: mapping a field the SDK does not know about yet, or instrumenting the
+mapping to see where a response loses data.
 
 ### 3. Wrap the whole serializer
 

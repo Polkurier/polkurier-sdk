@@ -116,6 +116,8 @@ The fourth means the API replied in its normal envelope, but the payload doesn't
 method returns. This is a real incompatibility. The SDK throws so that typed methods never return
 the wrong type.
 
+An enum value the SDK doesn't know isn't treated as the wrong shape. See [enums](messages.md#enums).
+
 ```php
 $e->getResponse();   // Psr\Http\Message\ResponseInterface: status line, headers, body
 ```

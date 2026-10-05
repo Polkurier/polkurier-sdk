@@ -26,24 +26,24 @@ readonly class OrderListMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int $totalRows
-     * @param int $totalPages
-     * @param int $currentPage
-     * @param int $pageSize
+     * @param int|null $totalRows
+     * @param int|null $totalPages
+     * @param int|null $currentPage
+     * @param int|null $pageSize
      * @param Order[] $result
      */
     public function __construct(
-        int $totalRows = 0,
+        ?int $totalRows = 0,
 
         /**
-         * @var int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_TOTAL_PAGES)]
-        private int $totalPages = 0,
+        private ?int $totalPages = 0,
 
-        int $currentPage = 0,
+        ?int $currentPage = 0,
 
-        int $pageSize = 0,
+        ?int $pageSize = 0,
 
         /**
          * @var Order[]
@@ -55,11 +55,11 @@ readonly class OrderListMessage extends PagedListMessage
     }
 
     /**
-     * @return int
+     * @return int 0 when the API sends none
      */
     public function getTotalPages(): int
     {
-        return $this->totalPages;
+        return $this->totalPages ?? 0;
     }
 
     /**

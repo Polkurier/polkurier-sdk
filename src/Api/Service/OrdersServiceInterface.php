@@ -300,10 +300,13 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * Filtering by an order number that does not exist returns an empty page:
+     * Filtered by an order number, the response is the order itself instead of a page. The SDK
+     * returns it as a page with that one order, so the result has the same shape either way.
+     *
+     * Filtering by an order number that does not exist is an error, not an empty page. It has
+     * neither `status_code` nor `error_code`:
      * ```json
-     * {"status": "success",
-     *  "response": {"totalrows": 0, "totalpages": 0, "currentpage": 1, "pagesize": 100, "result": []}}
+     * {"status": "error", "response": "Nie znaleziono zlecenia [12345-999]"}
      * ```
      *
      * @param GetOrdersMessage|null $getOrdersMessage null lists the first page with no filters

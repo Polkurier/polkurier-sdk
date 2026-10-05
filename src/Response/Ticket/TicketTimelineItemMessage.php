@@ -39,9 +39,9 @@ readonly class TicketTimelineItemMessage implements MessageInterface
 
     /**
      * @param string $id
-     * @param TicketTimelineItemTypeEnum $type whether this is a message or an event
+     * @param TicketTimelineItemTypeEnum|null $type whether this is a message or an event
      * @param ?\DateTimeInterface $date
-     * @param TicketAuthorEnum $origin which side it came from
+     * @param TicketAuthorEnum|null $origin which side it came from
      * @param string $authorName first name only
      * @param string $content the message text, or a description of the event
      * @param ?\DateTimeInterface $dateRead when the customer read it, null while unread. Ignore it on the customer's own entries
@@ -55,10 +55,10 @@ readonly class TicketTimelineItemMessage implements MessageInterface
         private string $id = '',
 
         /**
-         * @var TicketTimelineItemTypeEnum
+         * @var TicketTimelineItemTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private TicketTimelineItemTypeEnum $type = TicketTimelineItemTypeEnum::Message,
+        private ?TicketTimelineItemTypeEnum $type = TicketTimelineItemTypeEnum::Message,
 
         /**
          * @var ?\DateTimeInterface
@@ -68,10 +68,10 @@ readonly class TicketTimelineItemMessage implements MessageInterface
         private ?\DateTimeInterface $date = null,
 
         /**
-         * @var TicketAuthorEnum
+         * @var TicketAuthorEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
-        private TicketAuthorEnum $origin = TicketAuthorEnum::Customer,
+        private ?TicketAuthorEnum $origin = TicketAuthorEnum::Customer,
 
         /**
          * @var string
@@ -108,9 +108,9 @@ readonly class TicketTimelineItemMessage implements MessageInterface
     }
 
     /**
-     * @return TicketTimelineItemTypeEnum
+     * @return TicketTimelineItemTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): TicketTimelineItemTypeEnum
+    public function getType(): ?TicketTimelineItemTypeEnum
     {
         return $this->type;
     }
@@ -124,9 +124,9 @@ readonly class TicketTimelineItemMessage implements MessageInterface
     }
 
     /**
-     * @return TicketAuthorEnum
+     * @return TicketAuthorEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getOrigin(): TicketAuthorEnum
+    public function getOrigin(): ?TicketAuthorEnum
     {
         return $this->origin;
     }

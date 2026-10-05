@@ -80,10 +80,17 @@ readonly class SerializerProvider implements SerializerProviderInterface
 
         $this->serializer = new Serializer(
             normalizers: [
+                // Must come before the object normalizer, which would read a single order as an
+                // empty page.
+                new OrderListDenormalizer(),
+                // Must come before the enum normalizer, so responses read unknown values as null.
+                new LenientEnumDenormalizer(),
                 new BackedEnumNormalizer(),
                 // Must come before the date normalizer, so empty strings never reach it.
                 new AbsentDateNormalizer(),
                 new DateTimeNormalizer($dateTimeContext),
+                // Must come before the array normalizer, so unknown enum values never reach it.
+                new EnumListDenormalizer(),
                 new ArrayDenormalizer(),
                 new OmitEmptyNormalizer($objectNormalizer),
             ],

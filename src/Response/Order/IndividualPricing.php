@@ -28,17 +28,17 @@ readonly class IndividualPricing implements MessageInterface
     /**-@#*/
 
     /**
-     * @param \DateTimeInterface $offerSentDate
+     * @param \DateTimeInterface|null $offerSentDate
      * @param \DateTimeInterface|null $offerValidDate
      * @param \DateTimeInterface|null $customerConfirmedDate
      * @param string $customerRemarks
      */
     public function __construct(
         /**
-         * @var \DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_SENT_DATE)]
-        private \DateTimeInterface $offerSentDate,
+        private ?\DateTimeInterface $offerSentDate,
 
         /**
          * @var \DateTimeInterface|null
@@ -60,9 +60,9 @@ readonly class IndividualPricing implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface|null
      */
-    public function getOfferSentDate(): \DateTimeInterface
+    public function getOfferSentDate(): ?\DateTimeInterface
     {
         return $this->offerSentDate;
     }

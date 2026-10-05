@@ -44,7 +44,7 @@ readonly class TicketMessage implements MessageInterface
      * @param string $id UUID, used to address the ticket
      * @param string $number human-readable reference
      * @param string $subject the topic the ticket was raised under
-     * @param TicketStatusEnum $status
+     * @param TicketStatusEnum|null $status
      * @param bool $hasEmployeeResponses whether Polkurier has replied at all
      * @param bool $read true when there are replies and none is unseen
      * @param ?\DateTimeInterface $dateCreated
@@ -74,10 +74,10 @@ readonly class TicketMessage implements MessageInterface
         private string $subject = '',
 
         /**
-         * @var TicketStatusEnum
+         * @var TicketStatusEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private TicketStatusEnum $status = TicketStatusEnum::Opened,
+        private ?TicketStatusEnum $status = TicketStatusEnum::Opened,
 
         /**
          * @var bool
@@ -154,9 +154,9 @@ readonly class TicketMessage implements MessageInterface
     }
 
     /**
-     * @return TicketStatusEnum
+     * @return TicketStatusEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getStatus(): TicketStatusEnum
+    public function getStatus(): ?TicketStatusEnum
     {
         return $this->status;
     }

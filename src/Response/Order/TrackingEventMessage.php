@@ -32,8 +32,8 @@ readonly class TrackingEventMessage implements MessageInterface
      * @param string $statusCode Polkurier's status code, e.g. "WP"
      * @param string $status Polkurier's status label
      * @param string $trackingStatus the carrier's own status name
-     * @param string $location where the scan happened
-     * @param string $description
+     * @param string|null $location where the scan happened; null when the carrier doesn't say
+     * @param string|null $description
      */
     public function __construct(
         /**
@@ -62,16 +62,16 @@ readonly class TrackingEventMessage implements MessageInterface
         private string $trackingStatus = '',
 
         /**
-         * @var string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_LOCATION)]
-        private string $location = '',
+        private ?string $location = '',
 
         /**
-         * @var string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description = '',
+        private ?string $description = '',
     ) {}
 
     /**
@@ -111,7 +111,7 @@ readonly class TrackingEventMessage implements MessageInterface
      */
     public function getLocation(): string
     {
-        return $this->location;
+        return $this->location ?? '';
     }
 
     /**
@@ -119,6 +119,6 @@ readonly class TrackingEventMessage implements MessageInterface
      */
     public function getDescription(): string
     {
-        return $this->description;
+        return $this->description ?? '';
     }
 }

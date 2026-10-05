@@ -31,7 +31,7 @@ try {
         origin: TicketOriginEnum::Api,
     ));
 
-    \printf("Ticket %s opened (%s)\n", $ticket->getNumber(), $ticket->getStatus()->value);
+    \printf("Ticket %s opened (%s)\n", $ticket->getNumber(), $ticket->getStatus()->value ?? 'unknown');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

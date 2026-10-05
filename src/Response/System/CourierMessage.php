@@ -33,8 +33,8 @@ readonly class CourierMessage implements MessageInterface
     /**
      * @param string $courier carrier code the notice concerns
      * @param string $message the text to display, in Polish
-     * @param CourierMessageTypeEnum $type
-     * @param CourierMessageSeverityEnum $severity
+     * @param CourierMessageTypeEnum|null $type
+     * @param CourierMessageSeverityEnum|null $severity
      * @param int $hideTimeout seconds the notice should stay on screen, 0 to leave it up
      */
     public function __construct(
@@ -51,16 +51,16 @@ readonly class CourierMessage implements MessageInterface
         private string $message = '',
 
         /**
-         * @var CourierMessageTypeEnum
+         * @var CourierMessageTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private CourierMessageTypeEnum $type = CourierMessageTypeEnum::Message,
+        private ?CourierMessageTypeEnum $type = CourierMessageTypeEnum::Message,
 
         /**
-         * @var CourierMessageSeverityEnum
+         * @var CourierMessageSeverityEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SEVERITY)]
-        private CourierMessageSeverityEnum $severity = CourierMessageSeverityEnum::Warning,
+        private ?CourierMessageSeverityEnum $severity = CourierMessageSeverityEnum::Warning,
 
         /**
          * @var int
@@ -78,6 +78,9 @@ readonly class CourierMessage implements MessageInterface
     }
 
     /**
+     * The notice as HTML, with tags such as `<p>`, `<strong>` and `<a>`. Sanitise it before you
+     * display it, or strip the tags for plain text.
+     *
      * @return string
      */
     public function getMessage(): string
@@ -86,17 +89,17 @@ readonly class CourierMessage implements MessageInterface
     }
 
     /**
-     * @return CourierMessageTypeEnum
+     * @return CourierMessageTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): CourierMessageTypeEnum
+    public function getType(): ?CourierMessageTypeEnum
     {
         return $this->type;
     }
 
     /**
-     * @return CourierMessageSeverityEnum
+     * @return CourierMessageSeverityEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getSeverity(): CourierMessageSeverityEnum
+    public function getSeverity(): ?CourierMessageSeverityEnum
     {
         return $this->severity;
     }

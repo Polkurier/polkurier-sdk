@@ -20,8 +20,8 @@ require __DIR__ . '/bootstrap.php';
 try {
     $config = polkurier()->moneyBox()->getConfig();
 
-    \printf("Payout type: %s\n", $config->getPayoutType()->value);
-    \printf("Fee paid by: %s\n", $config->getFeePayment()->value);
+    \printf("Payout type: %s\n", $config->getPayoutType()->value ?? 'unknown');
+    \printf("Fee paid by: %s\n", $config->getFeePayment()->value ?? 'unknown');
     \printf("IBAN:        %s\n", $config->getIban());
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

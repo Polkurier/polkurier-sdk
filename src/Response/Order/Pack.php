@@ -33,7 +33,7 @@ readonly class Pack extends BasePack
      * @param int $width
      * @param int $height
      * @param float $weight
-     * @param PackTypeEnum $type
+     * @param PackTypeEnum|null $type
      * @param int $amount
      * @param float|null $priceNet
      * @param float|null $priceGross
@@ -43,7 +43,7 @@ readonly class Pack extends BasePack
         int $width,
         int $height,
         float $weight,
-        PackTypeEnum $type = PackTypeEnum::Standard,
+        ?PackTypeEnum $type = PackTypeEnum::Standard,
 
         /**
          * @var int

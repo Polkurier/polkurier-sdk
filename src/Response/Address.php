@@ -49,7 +49,7 @@ readonly class Address extends BaseAddress
      * @param string $country
      * @param string|null $pointId
      * @param string|null $id
-     * @param AddressTypeEnum $type
+     * @param AddressTypeEnum|null $type
      * @param string|null $flatNumber
      * @param bool $default
      * @param bool $shared
@@ -99,10 +99,10 @@ readonly class Address extends BaseAddress
         private ?string $id = null,
 
         /**
-         * @var AddressTypeEnum
+         * @var AddressTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private AddressTypeEnum $type = self::DEFAULT_TYPE,
+        private ?AddressTypeEnum $type = self::DEFAULT_TYPE,
 
         /**
          * @var string|null
@@ -169,9 +169,9 @@ readonly class Address extends BaseAddress
     }
 
     /**
-     * @return AddressTypeEnum
+     * @return AddressTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): AddressTypeEnum
+    public function getType(): ?AddressTypeEnum
     {
         return $this->type;
     }

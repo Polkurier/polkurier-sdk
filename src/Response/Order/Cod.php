@@ -38,9 +38,9 @@ readonly class Cod implements MessageInterface
      *
      * @param float $amount amount collected from the recipient, in PLN
      * @param string $bankAccount the account the money is returned to
-     * @param CodTypeEnum $type how quickly the collected money is settled
-     * @param CodReturnTypeEnum $returnType where it is sent
-     * @param CodStatusEnum $status where the money has got to
+     * @param CodTypeEnum|null $type how quickly the collected money is settled
+     * @param CodReturnTypeEnum|null $returnType where it is sent
+     * @param CodStatusEnum|null $status where the money has got to
      * @param ReturnDetails[] $returnDetails one entry per movement of the money
      */
     public function __construct(
@@ -57,22 +57,22 @@ readonly class Cod implements MessageInterface
         private string $bankAccount = '',
 
         /**
-         * @var CodTypeEnum
+         * @var CodTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private CodTypeEnum $type = CodTypeEnum::Standard,
+        private ?CodTypeEnum $type = CodTypeEnum::Standard,
 
         /**
-         * @var CodReturnTypeEnum
+         * @var CodReturnTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_RETURN_TYPE)]
-        private CodReturnTypeEnum $returnType = CodReturnTypeEnum::BankAccount,
+        private ?CodReturnTypeEnum $returnType = CodReturnTypeEnum::BankAccount,
 
         /**
-         * @var CodStatusEnum
+         * @var CodStatusEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private CodStatusEnum $status = CodStatusEnum::Waiting,
+        private ?CodStatusEnum $status = CodStatusEnum::Waiting,
 
         /**
          * @var ReturnDetails[]
@@ -82,9 +82,9 @@ readonly class Cod implements MessageInterface
     ) {}
 
     /**
-     * @return CodTypeEnum
+     * @return CodTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): CodTypeEnum
+    public function getType(): ?CodTypeEnum
     {
         return $this->type;
     }
@@ -106,9 +106,9 @@ readonly class Cod implements MessageInterface
     }
 
     /**
-     * @return CodReturnTypeEnum
+     * @return CodReturnTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getReturnType(): CodReturnTypeEnum
+    public function getReturnType(): ?CodReturnTypeEnum
     {
         return $this->returnType;
     }
@@ -116,9 +116,9 @@ readonly class Cod implements MessageInterface
     /**
      * Where the collected money has got to.
      *
-     * @return CodStatusEnum
+     * @return CodStatusEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getStatus(): CodStatusEnum
+    public function getStatus(): ?CodStatusEnum
     {
         return $this->status;
     }

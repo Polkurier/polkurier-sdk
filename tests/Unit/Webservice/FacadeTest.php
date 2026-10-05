@@ -48,7 +48,7 @@ final class FacadeTest extends TestCase
     }
 
     /**
-     * Every accessor the facade exposes.
+     * Every service accessor the facade exposes.
      *
      * @return array<string, array{string}>
      */
@@ -57,7 +57,12 @@ final class FacadeTest extends TestCase
         $accessors = [];
 
         foreach ((new \ReflectionClass(PolkurierWebservice::class))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->getName() === '__construct' || $method->getNumberOfParameters() > 0) {
+            $type = $method->getReturnType();
+            if (
+                $method->getNumberOfParameters() > 0
+                || !$type instanceof \ReflectionNamedType
+                || !\str_ends_with($type->getName(), 'ServiceInterface')
+            ) {
                 continue;
             }
             $accessors[$method->getName()] = [$method->getName()];

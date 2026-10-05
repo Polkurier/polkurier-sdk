@@ -45,8 +45,8 @@ readonly class PackTemplate extends BasePack
      * @param float $weight
      * @param string|null $id
      * @param string $name
-     * @param ShipmentTypeEnum $shipmentType
-     * @param PackTypeEnum $type
+     * @param ShipmentTypeEnum|null $shipmentType
+     * @param PackTypeEnum|null $type
      * @param float $cod
      * @param float $insurance
      * @param string $description
@@ -77,12 +77,12 @@ readonly class PackTemplate extends BasePack
         private string $name,
 
         /**
-         * @var ShipmentTypeEnum
+         * @var ShipmentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
-        private ShipmentTypeEnum $shipmentType,
+        private ?ShipmentTypeEnum $shipmentType,
 
-        PackTypeEnum $type = PackTypeEnum::Standard,
+        ?PackTypeEnum $type = PackTypeEnum::Standard,
 
         /**
          * @var float
@@ -140,9 +140,9 @@ readonly class PackTemplate extends BasePack
     }
 
     /**
-     * @return ShipmentTypeEnum
+     * @return ShipmentTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getShipmentType(): ShipmentTypeEnum
+    public function getShipmentType(): ?ShipmentTypeEnum
     {
         return $this->shipmentType;
     }

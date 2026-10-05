@@ -67,7 +67,7 @@ readonly class CourierPoint implements MessageInterface
      * @param bool $visible
      * @param bool $requireApp
      * @param string $requireAppMessage
-     * @param PointFunctionEnum[] $functions
+     * @param string[] $functions what the point can be used for, as the API sends it
      * @param string $countryIso
      * @param string $address postcode, city and street on one line
      * @param int $courierId Polkurier's numeric carrier id, not the API carrier code
@@ -188,7 +188,7 @@ readonly class CourierPoint implements MessageInterface
         private string $requireAppMessage = '',
 
         /**
-         * @var PointFunctionEnum[]
+         * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_FUNCTIONS)]
         private array $functions = [],
@@ -365,11 +365,24 @@ readonly class CourierPoint implements MessageInterface
     }
 
     /**
+     * What the point can be used for.
+     *
+     * A point can also list functions specific to its carrier. Those, and any other value the enum
+     * doesn't have, are left out. Each function appears once.
+     *
      * @return PointFunctionEnum[]
      */
     public function getFunctions(): array
     {
-        return $this->functions;
+        $functions = [];
+        foreach ($this->functions as $function) {
+            $case = \is_string($function) ? PointFunctionEnum::tryFrom($function) : null;
+            if ($case !== null && !\in_array($case, $functions, true)) {
+                $functions[] = $case;
+            }
+        }
+
+        return $functions;
     }
 
     /**

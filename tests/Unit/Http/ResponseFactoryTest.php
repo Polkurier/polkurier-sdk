@@ -11,13 +11,24 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
+use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
+use Polkurier\Webservice\Enum\Order\PackTypeEnum;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
+use Polkurier\Webservice\Response\BasePack;
+use Polkurier\Webservice\Response\CourierPoint;
 use Polkurier\Webservice\Response\Order;
+use Polkurier\Webservice\Response\PackTemplate;
+use Polkurier\Webservice\Response\TwoFactorToken;
 use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Serializer\UnknownEnumValue;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
 #[CoversClass(ResponseFactory::class)]
 final class ResponseFactoryTest extends TestCase
@@ -61,6 +72,82 @@ final class ResponseFactoryTest extends TestCase
      * The API emits `courierservice` without an underscore. The SDK read `courier_service` for a
      * long time and silently dropped the field.
      */
+    /**
+     * Filtered by order number, the list method answers with the order itself. It reads as a page
+     * with that one order, not as an empty page.
+     */
+    public function testASingleOrderWhereAPageIsExpectedReadsAsAOneRowPage(): void
+    {
+        $wrapper = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => $this->orderPayload()]),
+            OrderListMessage::class
+        );
+
+        $list = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(OrderListMessage::class, $list);
+        self::assertSame(1, $list->getTotalRows());
+        self::assertCount(1, $list->getResult());
+        self::assertSame($this->orderPayload()['number'], $list->getResult()[0]->getNumber());
+    }
+
+    /**
+     * Listed without the packs, items and files flags, orders come without those keys, and pickup
+     * dates can be null or an empty string.
+     */
+    public function testAnOrderFromAListWithoutOptionalKeysReads(): void
+    {
+        $payload = $this->orderPayload();
+        unset($payload['packs'], $payload['items'], $payload['files']);
+        $payload['pickup'] = ['pickupdate' => null, 'pickuptimefrom' => null, 'pickuptimeto' => null];
+        $payload['delivered_date'] = '';
+
+        $order = $this->deserializeOrder($payload);
+
+        self::assertSame([], $order->getPacks());
+        self::assertSame([], $order->getItems());
+        self::assertNull($order->getPickup()?->getPickupDate());
+        self::assertNull($order->getDeliveredDate());
+    }
+
+    /**
+     * A two-factor token says how its code was sent and how else it can be. The other methods can
+     * come back as an object with gaps in its keys, and a method type the SDK doesn't know reads
+     * as null.
+     */
+    public function testATwoFactorTokenReadsItsTransportMethods(): void
+    {
+        $method = static fn(string $id, string $type): array => [
+            'id' => $id, 'name' => '+48 *** *** 123', 'type' => $type, 'description' => 'Kod', 'type_name' => 'SMS',
+        ];
+        $wrapper = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => [
+                'id' => 't1',
+                'phone_number' => '',
+                'operation_title' => 'Wypłata',
+                'operation_number' => 1,
+                'operation_date' => '2026-10-05T10:00:00+02:00',
+                'sent_at' => null,
+                'expires_at' => '2026-10-05T10:05:00+02:00',
+                'transport_method' => $method('m1', 'SMS'),
+                'available_methods' => ['1' => $method('m2', 'EMAIL'), '3' => $method('m3', 'SOMETHING_NEW')],
+            ]]),
+            TwoFactorToken::class
+        );
+
+        $token = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(TwoFactorToken::class, $token);
+        $transport = $token->getTransportMethod();
+        self::assertNotNull($transport);
+        self::assertSame(TwoFactorTransportTypeEnum::Sms, $transport->getType());
+        self::assertSame('+48 *** *** 123', $transport->getName());
+        $methods = $token->getAvailableMethods();
+        self::assertSame(['m2', 'm3'], \array_map(static fn($m) => $m->getId(), $methods));
+        self::assertSame(TwoFactorTransportTypeEnum::Email, $methods[0]->getType());
+        self::assertNull($methods[1]->getType());
+    }
+
     public function testReadsTheCarrierServicesUnderTheKeyTheApiActuallySends(): void
     {
         $order = $this->deserializeOrder(
@@ -68,6 +155,136 @@ final class ResponseFactoryTest extends TestCase
         );
 
         self::assertSame(['Pobranie (COD)', 'Ubezpieczenie przesyłki'], $order->getCourierService());
+    }
+
+    /**
+     * A value added to the API after this SDK version was released must not make the whole list
+     * unreadable. It reads as null in a single field and is left out of a list.
+     */
+    public function testAnUnknownEnumValueReadsAsNullAndTheRestOfTheResponseStillReads(): void
+    {
+        $template = ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Nowy'];
+        $wrapper = $this->factory->create(
+            $this->jsonResponse([
+                'status' => 'success',
+                'response' => [
+                    $template + ['type' => 'SOMETHING_NEW', 'shipmenttype' => 'crate', 'services' => ['ROD', 'SOMETHING_NEW', 'TIRES']],
+                    $template + ['type' => 'ST', 'shipmenttype' => 'box', 'services' => []],
+                ],
+            ]),
+            PackTemplate::class . '[]'
+        );
+
+        /** @var PackTemplate[] $templates */
+        $templates = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertCount(2, $templates);
+        self::assertNull($templates[0]->getType());
+        self::assertNull($templates[0]->getShipmentType());
+        self::assertSame([AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires], $templates[0]->getServices());
+        self::assertSame(PackTypeEnum::Standard, $templates[1]->getType());
+        self::assertSame(ShipmentTypeEnum::Box, $templates[1]->getShipmentType());
+
+        $unknown = \array_map(
+            static fn(UnknownEnumValue $u) => [$u->getEnum(), $u->getValue(), $u->getPath()],
+            $wrapper->getUnknownEnumValues(),
+        );
+        self::assertEqualsCanonicalizing([
+            [PackTypeEnum::class, 'SOMETHING_NEW', '[0].type'],
+            [ShipmentTypeEnum::class, 'crate', '[0].shipmentType'],
+            [AdditionalServiceEnum::class, 'SOMETHING_NEW', '[0].services[1]'],
+        ], $unknown);
+    }
+
+    public function testAnEmptyEnumValueReadsAsNullWithoutBeingReported(): void
+    {
+        $wrapper = $this->factory->create(
+            $this->jsonResponse([
+                'status' => 'success',
+                'response' => [
+                    ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Stary', 'shipmenttype' => ''],
+                ],
+            ]),
+            PackTemplate::class . '[]'
+        );
+
+        /** @var PackTemplate[] $templates */
+        $templates = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertNull($templates[0]->getShipmentType());
+        self::assertSame([], $wrapper->getUnknownEnumValues());
+    }
+
+    /**
+     * A list can come back as a JSON object with numeric keys. It's still read as a plain list.
+     */
+    public function testAListOfEnumValuesSentAsAnObjectReadsAsAList(): void
+    {
+        $wrapper = $this->factory->create(
+            $this->jsonResponse([
+                'status' => 'success',
+                'response' => [
+                    ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Nowy', 'shipmenttype' => 'box', 'services' => ['1' => 'ROD', '3' => 'TIRES']],
+                ],
+            ]),
+            PackTemplate::class . '[]'
+        );
+
+        /** @var PackTemplate[] $templates */
+        $templates = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertSame([AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires], $templates[0]->getServices());
+    }
+
+    /**
+     * Only responses are lenient. Read without the response context, an unknown value still fails.
+     */
+    public function testAnUnknownEnumValueFailsOutsideAResponse(): void
+    {
+        $this->expectException(SerializerException::class);
+
+        (new SerializerProvider())->getSerializer()->deserialize(
+            (string)\json_encode(['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'type' => 'SOMETHING_NEW']),
+            BasePack::class,
+            'json'
+        );
+    }
+
+    /**
+     * A point's functions are an open list: carriers add their own. Only the known ones are kept,
+     * each once, and the others aren't reported as unknown.
+     */
+    public function testAPointKeepsItsKnownFunctionsOnceAndReportsNothing(): void
+    {
+        $wrapper = $this->factory->create(
+            $this->jsonResponse([
+                'status' => 'success',
+                'response' => ['id' => 'KRA423M', 'functions' => ['cod', 'parcel_collect_247', 'send', 'cod']],
+            ]),
+            CourierPoint::class
+        );
+
+        $point = $wrapper->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(CourierPoint::class, $point);
+        self::assertSame([PointFunctionEnum::Cod, PointFunctionEnum::Send], $point->getFunctions());
+        self::assertSame([], $wrapper->getUnknownEnumValues());
+    }
+
+    /**
+     * A nested object the order doesn't have can come back as `[]` or null. Either reads as null.
+     */
+    public function testAnAbsentNestedObjectSentAsAnEmptyArrayReadsAsNull(): void
+    {
+        $order = $this->deserializeOrder(
+            ['COD' => [], 'pickup' => [], 'cover_address' => null, 'sender' => [], 'recipient' => []] + $this->orderPayload()
+        );
+
+        self::assertNull($order->getSender());
+        self::assertNull($order->getRecipient());
+        self::assertNull($order->getCod());
+        self::assertNull($order->getPickup());
+        self::assertNull($order->getCoverAddress());
     }
 
     public function testDeserializesNestedCollectionsIntoObjects(): void

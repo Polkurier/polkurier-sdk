@@ -238,6 +238,30 @@ area. The ones you're most likely to use:
 | [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
 | [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
 | [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
+| [`TwoFactorToken\TwoFactorTransportTypeEnum`](../src/Enum/TwoFactorToken/TwoFactorTransportTypeEnum.php) | How a code reaches the customer |
+
+In a response, a value the SDK doesn't know reads as `null`, so every enum field in a response is
+nullable. In a list of enum values, unknown values are left out. A value added to the API after
+your SDK version was released then doesn't make the whole response unreadable. Requests stay strict:
+you can only send the cases the enum has.
+
+Nothing is lost, though. After a call, [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) lists each value
+the SDK couldn't read, with its enum and where in the response it was, and
+[`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php) returns the HTTP response exactly as the API sent it:
+
+```php
+$templates = $client->packTemplates()->getPackTemplates();
+
+foreach ($client->getLastUnknownEnumValues() as $unknown) {
+    // e.g. Polkurier\Webservice\Enum\Order\PackTypeEnum, "XX", "[0].type"
+    echo $unknown->getEnum(), ' ', $unknown->getValue(), ' ', $unknown->getPath(), "\n";
+}
+
+$json = (string) $client->getLastResponse()?->getBody();
+```
+
+With logging on, each unknown value is also logged as a warning, so you know the SDK needs
+updating. See [serialization](serialization.md#unknown-enum-values) for how it works.
 
 There are also three protocol-level enums under [`Enum\Http`](../src/Enum/Http/): [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) (every endpoint, see
 the [API method index](api-methods.md)), [`ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) and

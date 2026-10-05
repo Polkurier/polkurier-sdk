@@ -24,7 +24,7 @@ try {
             "%-14s %-40s %-12s %s\n",
             $ticket->getNumber(),
             $ticket->getSubject(),
-            $ticket->getStatus()->value,
+            $ticket->getStatus()->value ?? 'unknown',
             $ticket->isRead() ? '' : '(unread)'
         );
     }

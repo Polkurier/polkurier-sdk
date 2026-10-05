@@ -31,10 +31,13 @@ use Polkurier\Webservice\Http\ClientFactory;
 use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
+use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Psr\Http\Message\ResponseInterface;
+use Polkurier\Webservice\Serializer\UnknownEnumValue;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Service\AccountService;
 use Polkurier\Webservice\Service\AccountVerificationService;
@@ -109,6 +112,13 @@ final class PolkurierWebservice
     private readonly ValidatorInterface $validator;
 
     /**
+     * Shared by every service the facade builds.
+     *
+     * @var LastResponseHolder
+     */
+    private readonly LastResponseHolder $lastResponse;
+
+    /**
      * Services, keyed by class name: the ones handed in, and the ones built on first use.
      *
      * @var array<class-string, object>
@@ -151,6 +161,7 @@ final class PolkurierWebservice
         $this->responseFactory = $responseFactory ?? new ResponseFactory($serializerProvider);
         $this->validator = $validator ?? DefaultValidatorRegistryFactory::create();
         $this->services = $services;
+        $this->lastResponse = new LastResponseHolder();
     }
 
     /**
@@ -331,6 +342,40 @@ final class PolkurierWebservice
     }
 
     /**
+     * The HTTP response to the last call made through this client, exactly as the API sent it.
+     *
+     * Use it when a typed result isn't enough, e.g. to read a value the SDK doesn't know yet, which
+     * the result shows as null. The body has already been read once, so cast it to a string, which
+     * rewinds it: `(string) $client->getLastResponse()?->getBody()`.
+     *
+     * Only calls through services the client builds itself are tracked, not ones handed in through
+     * the constructor's `$services`.
+     *
+     * @return ResponseInterface|null null before the first call, or if the last call got no
+     *         response, e.g. the connection failed or the payload didn't pass validation
+     */
+    public function getLastResponse(): ?ResponseInterface
+    {
+        return $this->lastResponse->getResponse();
+    }
+
+    /**
+     * The enum values in the last response that the SDK doesn't know.
+     *
+     * Such a value reads as null, or is left out of a list, so the call succeeds. Each entry says
+     * which enum, the value as the API sent it, and where in the response it was. With logging on,
+     * each one is also logged as a warning.
+     *
+     * Tracked for the same calls as {@see self::getLastResponse()}.
+     *
+     * @return list<UnknownEnumValue> empty when every value was known
+     */
+    public function getLastUnknownEnumValues(): array
+    {
+        return $this->lastResponse->getUnknownEnumValues();
+    }
+
+    /**
      * Returns the service of the given class. That is the one passed in through $services, or
      * one built on first use and reused after that.
      *
@@ -350,6 +395,7 @@ final class PolkurierWebservice
             $this->clientFactory,
             $this->configProvider,
             $this->validator,
+            $this->lastResponse,
         );
     }
 }

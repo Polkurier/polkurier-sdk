@@ -37,7 +37,7 @@ readonly class Item implements MessageInterface
      * @param float $price
      * @param float $valueNet
      * @param float $valueGross
-     * @param OrderItemTypeEnum $type
+     * @param OrderItemTypeEnum|null $type
      * @param string|null $serviceId
      */
     public function __construct(
@@ -72,10 +72,10 @@ readonly class Item implements MessageInterface
         private float $valueGross,
 
         /**
-         * @var OrderItemTypeEnum
+         * @var OrderItemTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private OrderItemTypeEnum $type,
+        private ?OrderItemTypeEnum $type,
 
         /**
          * @var string|null
@@ -126,9 +126,9 @@ readonly class Item implements MessageInterface
     }
 
     /**
-     * @return OrderItemTypeEnum
+     * @return OrderItemTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): OrderItemTypeEnum
+    public function getType(): ?OrderItemTypeEnum
     {
         return $this->type;
     }

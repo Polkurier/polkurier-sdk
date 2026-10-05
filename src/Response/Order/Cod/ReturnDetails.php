@@ -31,7 +31,7 @@ readonly class ReturnDetails implements MessageInterface
     /**-@#*/
 
     /**
-     * @param CodReturnReasonEnum $reason
+     * @param CodReturnReasonEnum|null $reason
      * @param string $description
      * @param float $amount
      * @param string|null $documentNumber
@@ -40,10 +40,10 @@ readonly class ReturnDetails implements MessageInterface
      */
     public function __construct(
         /**
-         * @var CodReturnReasonEnum
+         * @var CodReturnReasonEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_REASON)]
-        private CodReturnReasonEnum $reason,
+        private ?CodReturnReasonEnum $reason,
 
         /**
          * @var string
@@ -80,9 +80,9 @@ readonly class ReturnDetails implements MessageInterface
     ) {}
 
     /**
-     * @return CodReturnReasonEnum
+     * @return CodReturnReasonEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getReason(): CodReturnReasonEnum
+    public function getReason(): ?CodReturnReasonEnum
     {
         return $this->reason;
     }

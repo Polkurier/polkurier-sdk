@@ -26,51 +26,51 @@ abstract readonly class PagedListMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param int $totalRows rows across all pages
-     * @param int $currentPage 1-based index of this page
-     * @param int $pageSize rows per page, as applied to this response
+     * @param int|null $totalRows rows across all pages
+     * @param int|null $currentPage 1-based index of this page
+     * @param int|null $pageSize rows per page, as applied to this response
      */
     public function __construct(
         /**
-         * @var int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_TOTAL_ROWS)]
-        private int $totalRows = 0,
+        private ?int $totalRows = 0,
 
         /**
-         * @var int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_CURRENT_PAGE)]
-        private int $currentPage = 0,
+        private ?int $currentPage = 0,
 
         /**
-         * @var int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        private int $pageSize = 0,
+        private ?int $pageSize = 0,
     ) {}
 
     /**
-     * @return int
+     * @return int 0 when the API sends none
      */
     public function getTotalRows(): int
     {
-        return $this->totalRows;
+        return $this->totalRows ?? 0;
     }
 
     /**
-     * @return int
+     * @return int 0 when the API sends none
      */
     public function getCurrentPage(): int
     {
-        return $this->currentPage;
+        return $this->currentPage ?? 0;
     }
 
     /**
-     * @return int
+     * @return int 0 when the API sends none
      */
     public function getPageSize(): int
     {
-        return $this->pageSize;
+        return $this->pageSize ?? 0;
     }
 }

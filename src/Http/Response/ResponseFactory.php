@@ -13,6 +13,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Serializer\UnknownEnumValues;
 use Psr\Http\Message\ResponseInterface;
 
 readonly class ResponseFactory implements ResponseFactoryInterface
@@ -99,9 +100,13 @@ readonly class ResponseFactory implements ResponseFactoryInterface
                 );
             }
 
+            $unknownEnumValues = new UnknownEnumValues();
+            $payload = $this->deserializePayload($responseData, $responseFormat, $unknownEnumValues);
+
             return new ResponseWrapper(
                 $httpResponse,
-                new ResponseMessage($status, $this->deserializePayload($responseData, $responseFormat))
+                new ResponseMessage($status, $payload),
+                $unknownEnumValues->all(),
             );
         } catch (SerializerException $e) {
             // Serializer exceptions are outside the SDK's hierarchy, so a caller catching the base
@@ -113,13 +118,18 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     /**
      * @param array<string, mixed> $responseData
      * @param string $responseFormat
+     * @param UnknownEnumValues $unknownEnumValues receives the enum values the payload had that the
+     *        SDK doesn't know
      *
      * @return mixed
      * @throws SerializerException when the payload doesn't map. create() turns it into a
      *         {@see MalformedResponseException}
      */
-    protected function deserializePayload(array $responseData, string $responseFormat): mixed
-    {
+    protected function deserializePayload(
+        array $responseData,
+        string $responseFormat,
+        UnknownEnumValues $unknownEnumValues = new UnknownEnumValues(),
+    ): mixed {
         $payload = $responseData[ResponseMessage::FIELD_RESPONSE] ?? null;
 
         // Acknowledge-only methods differ in what they put in `response`. Cancel-style calls
@@ -151,7 +161,11 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             );
         }
 
-        return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT);
+        // An enum value this version of the SDK doesn't know reads as null, and is left out of a
+        // list, so one new value doesn't make the whole response unreadable. Each one is recorded.
+        return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT, [
+            UnknownEnumValues::CONTEXT_KEY => $unknownEnumValues,
+        ]);
     }
 
     /**

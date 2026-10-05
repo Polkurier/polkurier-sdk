@@ -25,17 +25,17 @@ readonly class InvoiceListMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int $totalRows invoices matching the filter, across all pages
-     * @param int $currentPage 1-based index of this page
-     * @param int $pageSize invoices per page as the API applied it
+     * @param int|null $totalRows invoices matching the filter, across all pages
+     * @param int|null $currentPage 1-based index of this page
+     * @param int|null $pageSize invoices per page as the API applied it
      * @param InvoiceMessage[] $result the invoices on this page
      */
     public function __construct(
-        int $totalRows = 0,
+        ?int $totalRows = 0,
 
-        int $currentPage = 0,
+        ?int $currentPage = 0,
 
-        int $pageSize = 0,
+        ?int $pageSize = 0,
 
         /**
          * @var InvoiceMessage[]

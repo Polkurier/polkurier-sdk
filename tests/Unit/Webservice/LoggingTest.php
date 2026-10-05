@@ -61,6 +61,29 @@ final class LoggingTest extends TestCase
         self::assertSame(LogLevel::ERROR, $this->logger->records[0]['level']);
     }
 
+    public function testAnUnknownEnumValueIsLoggedAsAWarningAndTheCallSucceeds(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+
+        $addresses = $this->sdk()->addresses()->getAddresses();
+
+        self::assertCount(1, $addresses);
+        self::assertNull($addresses[0]->getType());
+        self::assertCount(1, $this->logger->records);
+        self::assertSame(LogLevel::WARNING, $this->logger->records[0]['level']);
+        self::assertStringContainsString('"SOMETHING_NEW"', $this->logger->records[0]['message']);
+        self::assertStringContainsString('[0].type', $this->logger->records[0]['message']);
+    }
+
+    public function testAnUnknownEnumValueIsNotLoggedWhenLoggingIsOff(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+
+        $this->sdk(loggingEnabled: false)->addresses()->getAddresses();
+
+        self::assertSame([], $this->logger->records);
+    }
+
     public function testASuccessIsNotLoggedUnlessTheMethodIsListed(): void
     {
         $this->client->willAnswerWith('{"status":"success","response":[]}');

@@ -36,8 +36,8 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param MoneyBoxPayoutTypeEnum $payoutType how payouts are delivered
-     * @param MoneyBoxFeePaymentTypeEnum $feePayment how the handling fee is settled by default
+     * @param MoneyBoxPayoutTypeEnum|null $payoutType how payouts are delivered
+     * @param MoneyBoxFeePaymentTypeEnum|null $feePayment how the handling fee is settled by default
      * @param MoneyBoxFeePaymentTypeEnum[] $feePaymentsTypesAvailable fee settlement options this account may choose from
      * @param string $bankAccountNumber destination account for bank transfers
      * @param string $company postal payout recipient
@@ -48,16 +48,16 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var MoneyBoxPayoutTypeEnum
+         * @var MoneyBoxPayoutTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
-        private MoneyBoxPayoutTypeEnum $payoutType = MoneyBoxPayoutTypeEnum::Account,
+        private ?MoneyBoxPayoutTypeEnum $payoutType = MoneyBoxPayoutTypeEnum::Account,
 
         /**
-         * @var MoneyBoxFeePaymentTypeEnum
+         * @var MoneyBoxFeePaymentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT)]
-        private MoneyBoxFeePaymentTypeEnum $feePayment = MoneyBoxFeePaymentTypeEnum::Invoice,
+        private ?MoneyBoxFeePaymentTypeEnum $feePayment = MoneyBoxFeePaymentTypeEnum::Invoice,
 
         /**
          * @var MoneyBoxFeePaymentTypeEnum[]
@@ -103,17 +103,17 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
     ) {}
 
     /**
-     * @return MoneyBoxPayoutTypeEnum
+     * @return MoneyBoxPayoutTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getPayoutType(): MoneyBoxPayoutTypeEnum
+    public function getPayoutType(): ?MoneyBoxPayoutTypeEnum
     {
         return $this->payoutType;
     }
 
     /**
-     * @return MoneyBoxFeePaymentTypeEnum
+     * @return MoneyBoxFeePaymentTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getFeePayment(): MoneyBoxFeePaymentTypeEnum
+    public function getFeePayment(): ?MoneyBoxFeePaymentTypeEnum
     {
         return $this->feePayment;
     }

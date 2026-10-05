@@ -23,6 +23,7 @@ use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ErrorMessage;
+use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
@@ -60,6 +61,8 @@ abstract class AbstractService
      * @param ConfigProviderInterface $configProvider
      * @param ValidatorInterface $validator checks payloads before they are sent. Defaults to one
      *        that accepts everything
+     * @param LastResponseHolder $lastResponse receives the response to each call. Share one between
+     *        services to see the last call made through any of them
      */
     public function __construct(
         /**
@@ -91,6 +94,11 @@ abstract class AbstractService
          * @var ValidatorInterface
          */
         protected readonly ValidatorInterface $validator = new NullValidator(),
+
+        /**
+         * @var LastResponseHolder
+         */
+        protected readonly LastResponseHolder $lastResponse = new LastResponseHolder(),
     ) {}
 
     /**
@@ -134,6 +142,8 @@ abstract class AbstractService
         ?MessageInterface $payload = null,
         AuthorizationMessage|bool|null $authorization = null,
     ): mixed {
+        $this->lastResponse->clear();
+
         if ($payload !== null && $this->config()->validatePayloads()) {
             $this->validator->validate($payload);
         }
@@ -143,7 +153,9 @@ abstract class AbstractService
 
         try {
             $response = $this->client()->sendRequest($request);
+            $this->lastResponse->setResponse($response);
             $wrapper = $this->responseFactory->create($response, $responseFormat);
+            $this->lastResponse->setUnknownEnumValues($wrapper->getUnknownEnumValues());
             $this->logResponse(
                 $apiMethod,
                 $wrapper,
@@ -151,6 +163,7 @@ abstract class AbstractService
                 $payload,
                 $wrapper->getParsedResponse()->getStatus() === ResponseStatusEnum::Error
             );
+            $this->logUnknownEnumValues($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
             $this->logClientError($e, $apiMethod, $request, $payload);
 
@@ -527,6 +540,44 @@ abstract class AbstractService
                 'response' => $responseWrapper->getHttpResponse(),
             ]
         );
+    }
+
+    /**
+     * Logs a warning for each enum value the response had that the SDK doesn't know, if logging is
+     * enabled.
+     *
+     * The SDK reads such a value as null, or leaves it out of a list, so the call still succeeds.
+     * The warning says which field to look at, and that this version of the SDK needs a new case.
+     *
+     * @param ApiMethodInterface $apiMethod
+     * @param ResponseWrapper $responseWrapper
+     *
+     * @return void
+     */
+    protected function logUnknownEnumValues(
+        ApiMethodInterface $apiMethod,
+        ResponseWrapper $responseWrapper,
+    ): void {
+        if (!$this->config()->isLoggingEnabled()) {
+            return;
+        }
+        foreach ($responseWrapper->getUnknownEnumValues() as $unknown) {
+            $value = $unknown->getValue();
+            $this->logger->warning(\sprintf(
+                'Unknown %s value %s at "%s" in the response from method: "%s". This version of the SDK'
+                . ' reads it as null, or leaves it out of a list.',
+                $unknown->getEnum(),
+                \is_string($value) ? '"' . $value . '"' : \get_debug_type($value),
+                $unknown->getPath() ?? '',
+                $apiMethod->value,
+            ), [
+                'method' => $apiMethod,
+                'sandbox' => $this->config()->isSandbox(),
+                'enum' => $unknown->getEnum(),
+                'value' => $value,
+                'path' => $unknown->getPath(),
+            ]);
+        }
     }
 
     /**

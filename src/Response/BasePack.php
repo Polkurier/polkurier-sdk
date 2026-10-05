@@ -35,7 +35,7 @@ readonly class BasePack implements MessageInterface
      * @param int $width
      * @param int $height
      * @param float $weight
-     * @param PackTypeEnum $type
+     * @param PackTypeEnum|null $type
      */
     public function __construct(
         /**
@@ -63,10 +63,10 @@ readonly class BasePack implements MessageInterface
         private float $weight,
 
         /**
-         * @var PackTypeEnum
+         * @var PackTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private PackTypeEnum $type = PackTypeEnum::Standard,
+        private ?PackTypeEnum $type = PackTypeEnum::Standard,
     ) {}
 
     /**
@@ -102,9 +102,9 @@ readonly class BasePack implements MessageInterface
     }
 
     /**
-     * @return PackTypeEnum
+     * @return PackTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): PackTypeEnum
+    public function getType(): ?PackTypeEnum
     {
         return $this->type;
     }

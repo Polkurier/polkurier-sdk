@@ -28,7 +28,7 @@ readonly class AdditionalField implements MessageInterface
      * @param string $name
      * @param string $label
      * @param string $description
-     * @param AdditionalFieldTypeEnum $type
+     * @param AdditionalFieldTypeEnum|null $type
      * @param bool $required
      * @param bool $enabled
      */
@@ -52,10 +52,10 @@ readonly class AdditionalField implements MessageInterface
         private string $description,
 
         /**
-         * @var AdditionalFieldTypeEnum
+         * @var AdditionalFieldTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private AdditionalFieldTypeEnum $type,
+        private ?AdditionalFieldTypeEnum $type,
 
         /**
          * @var bool
@@ -95,9 +95,9 @@ readonly class AdditionalField implements MessageInterface
     }
 
     /**
-     * @return AdditionalFieldTypeEnum
+     * @return AdditionalFieldTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): AdditionalFieldTypeEnum
+    public function getType(): ?AdditionalFieldTypeEnum
     {
         return $this->type;
     }

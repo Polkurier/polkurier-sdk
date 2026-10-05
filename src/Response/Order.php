@@ -67,10 +67,10 @@ readonly class Order implements MessageInterface
      * @param string $statusCode
      * @param \DateTimeInterface $date
      * @param \DateTimeInterface $statusDate
-     * @param ShipmentTypeEnum $shipmentType
+     * @param ShipmentTypeEnum|null $shipmentType
      * @param string $courier
-     * @param BaseAddress $sender
-     * @param BaseAddress $recipient
+     * @param BaseAddress|null $sender
+     * @param BaseAddress|null $recipient
      * @param Waybill[] $waybills
      * @param Item[] $items absent from the order list unless it was asked for them
      * @param Pack[] $packs absent from the order list unless it was asked for them
@@ -115,10 +115,10 @@ readonly class Order implements MessageInterface
         private \DateTimeInterface $statusDate,
 
         /**
-         * @var ShipmentTypeEnum
+         * @var ShipmentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
-        private ShipmentTypeEnum $shipmentType,
+        private ?ShipmentTypeEnum $shipmentType,
 
         /**
          * @var string
@@ -127,16 +127,16 @@ readonly class Order implements MessageInterface
         private string $courier,
 
         /**
-         * @var BaseAddress
+         * @var BaseAddress|null
          */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
-        private BaseAddress $sender,
+        private ?BaseAddress $sender,
 
         /**
-         * @var BaseAddress
+         * @var BaseAddress|null
          */
         #[Serializer\SerializedName(self::FIELD_RECIPIENT)]
-        private BaseAddress $recipient,
+        private ?BaseAddress $recipient,
 
         /**
          * @var Waybill[]
@@ -374,9 +374,9 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return ShipmentTypeEnum
+     * @return ShipmentTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getShipmentType(): ShipmentTypeEnum
+    public function getShipmentType(): ?ShipmentTypeEnum
     {
         return $this->shipmentType;
     }
@@ -398,17 +398,17 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return BaseAddress
+     * @return BaseAddress|null null if the order came back without one
      */
-    public function getSender(): BaseAddress
+    public function getSender(): ?BaseAddress
     {
         return $this->sender;
     }
 
     /**
-     * @return BaseAddress
+     * @return BaseAddress|null null if the order came back without one
      */
-    public function getRecipient(): BaseAddress
+    public function getRecipient(): ?BaseAddress
     {
         return $this->recipient;
     }

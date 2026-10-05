@@ -14,6 +14,7 @@ namespace Polkurier\Webservice\Enum\Courier;
  */
 enum CourierMessageSeverityEnum: string
 {
+    case Info = 'INFO';
     case Success = 'SUCCESS';
     case Warning = 'WARNING';
     case Danger = 'DANGER';

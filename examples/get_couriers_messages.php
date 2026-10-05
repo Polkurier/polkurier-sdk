@@ -21,7 +21,7 @@ try {
     foreach (polkurier()->system()->getCouriersMessages() as $message) {
         \printf(
             "[%s] %s: %s\n",
-            $message->getSeverity()->value,
+            $message->getSeverity()->value ?? 'unknown',
             $message->getCourier(),
             $message->getMessage()
         );

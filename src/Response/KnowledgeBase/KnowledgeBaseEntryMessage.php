@@ -39,7 +39,7 @@ readonly class KnowledgeBaseEntryMessage implements MessageInterface
      * @param ?string $parentId slug of the parent entry, null at the top level
      * @param string $slug URL-friendly name
      * @param string $title display title, in Polish
-     * @param KnowledgeBaseEntryTypeEnum $type whether this is an article or a category
+     * @param KnowledgeBaseEntryTypeEnum|null $type whether this is an article or a category
      * @param string $url public web address of the entry
      */
     public function __construct(
@@ -69,10 +69,10 @@ readonly class KnowledgeBaseEntryMessage implements MessageInterface
         private string $title = '',
 
         /**
-         * @var KnowledgeBaseEntryTypeEnum
+         * @var KnowledgeBaseEntryTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private KnowledgeBaseEntryTypeEnum $type = KnowledgeBaseEntryTypeEnum::Article,
+        private ?KnowledgeBaseEntryTypeEnum $type = KnowledgeBaseEntryTypeEnum::Article,
 
         /**
          * @var string
@@ -114,9 +114,9 @@ readonly class KnowledgeBaseEntryMessage implements MessageInterface
     }
 
     /**
-     * @return KnowledgeBaseEntryTypeEnum
+     * @return KnowledgeBaseEntryTypeEnum|null null for a value this version of the SDK doesn't know
      */
-    public function getType(): KnowledgeBaseEntryTypeEnum
+    public function getType(): ?KnowledgeBaseEntryTypeEnum
     {
         return $this->type;
     }
