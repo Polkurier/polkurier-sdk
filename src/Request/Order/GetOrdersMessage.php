@@ -23,6 +23,11 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
 #[Validate\InOrder(earlier: 'codMin', later: 'codMax')]
 #[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
+#[Validate\RequiredWith(
+    field: 'externalApplicationId',
+    with: 'externalOrderId',
+    because: 'is required to filter by external order id',
+)]
 readonly class GetOrdersMessage extends PagedMessage
 {
     /**+@#
@@ -56,8 +61,10 @@ readonly class GetOrdersMessage extends PagedMessage
      * @param string|null $searchPhrase
      * @param int|null $pageSize
      * @param int|null $page
-     * @param string|null $externalApplicationId
-     * @param string|null $externalOrderId
+     * @param string|null $externalApplicationId lists only orders placed with this application id,
+     *        exact match. Orders without one aren't listed
+     * @param string|null $externalOrderId lists only the order with this id of yours, exact match.
+     *        Needs $externalApplicationId as well, and the SDK refuses it without one
      * @param bool|null $packs
      * @param bool|null $items
      * @param bool|null $files

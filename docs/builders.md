@@ -84,6 +84,7 @@ messages: the parcel builders share the abstract [`Common\BasePackMessageBuilder
 | [`Order\CoverAddressMessageBuilder`](../src/Builder/Order/CoverAddressMessageBuilder.php) | [`Request\Order\CoverAddressMessage`](../src/Request/Order/CoverAddressMessage.php) |
 | [`Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) | [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) |
 | [`Order\GetOrdersMessageBuilder`](../src/Builder/Order/GetOrdersMessageBuilder.php) | [`Request\Order\GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php) |
+| [`Order\MultiPickupAvailabilityRequestMessageBuilder`](../src/Builder/Order/MultiPickupAvailabilityRequestMessageBuilder.php) | [`Request\Order\MultiPickupAvailabilityRequestMessage`](../src/Request/Order/MultiPickupAvailabilityRequestMessage.php) |
 | [`Order\MultiPickupRequestMessageBuilder`](../src/Builder/Order/MultiPickupRequestMessageBuilder.php) | [`Request\Order\MultiPickupRequestMessage`](../src/Request/Order/MultiPickupRequestMessage.php) |
 | [`Order\OrderAddressMessageBuilder`](../src/Builder/Order/OrderAddressMessageBuilder.php) | [`Request\Order\OrderAddressMessage`](../src/Request/Order/OrderAddressMessage.php) |
 | [`Order\PackMessageBuilder`](../src/Builder/Order/PackMessageBuilder.php) | [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) |

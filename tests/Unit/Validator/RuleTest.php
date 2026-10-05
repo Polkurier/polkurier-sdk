@@ -20,6 +20,7 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Request\Order\CodMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Validator\AttributeValidator;
 use Polkurier\Webservice\Validator\Rule\Email;
@@ -196,8 +197,21 @@ final class RuleTest extends TestCase
                 new CodMessage(amount: 100.0, returnType: CodReturnTypeEnum::cases()[1]),
                 [],
             ],
+            'RequiredWith: an external order id needs its application id' => [
+                new GetOrdersMessage(externalOrderId: 'SHOP-1001'),
+                ['external_application_id'],
+            ],
+            'RequiredWith: the application id works on its own' => [new GetOrdersMessage(externalApplicationId: 'app'), []],
+            'RequiredWith: both together pass' => [
+                new GetOrdersMessage(externalApplicationId: 'app', externalOrderId: 'SHOP-1001'),
+                [],
+            ],
             'IgnoredWhen: a zero amount skips the block' => [new CodMessage(amount: 0.0, bankAccount: 'not-an-iban'), []],
             'Each: every entry is checked' => [new MultiPickupRequestMessage(pickupDate: $day, pickupTimeFrom: $day, pickupTimeTo: $day, orders: ['1234-5', '']), ['orders[1]']],
+            'NotBlank and NotEmptyList: an availability check names a carrier and a parcel' => [
+                new MultiPickupAvailabilityRequestMessage(courier: '', packs: []),
+                ['courier', 'packs'],
+            ],
             'PostcodeForCountry: falls back to Polish postcodes' => [new FindCityMessage(postcode: '12345', country: ''), ['postcode']],
             'PostcodeForCountry: another country is not parsed' => [new FindCityMessage(postcode: '12345', country: 'DE'), []],
         ];

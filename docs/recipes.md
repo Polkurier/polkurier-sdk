@@ -267,10 +267,12 @@ For one shipment:
 $pickup = $client->courier()->pickupCourier($pickupMessage);
 ```
 
-For several at once, if multi-pickup is available:
+For several at once, if a collective pickup is available. Availability is decided per shipment,
+by its carrier and parcels, so check each one:
 
 ```php
-if ($client->orders()->isMultiPickupAvailable()->isAvailable()) {
+$check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
+if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
     $result = $client->orders()->createMultiOrderPickup($request);
 }
 ```

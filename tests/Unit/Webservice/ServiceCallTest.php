@@ -24,6 +24,7 @@ use Polkurier\Webservice\Request\Courier\PickupMessage;
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
@@ -186,7 +187,12 @@ final class ServiceCallTest extends TestCase
                 $ok('{"status":"W przewozie","status_code":"WP","url":"https://x","tracking":[]}'),
             ],
             'multi pickup availability' => [
-                static fn(PolkurierWebservice $s) => $s->orders()->isMultiPickupAvailable(),
+                static fn(PolkurierWebservice $s) => $s->orders()->isMultiPickupAvailable(
+                    new MultiPickupAvailabilityRequestMessage(
+                        courier: 'DPD',
+                        packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                    )
+                ),
                 ApiMethodEnum::IsMultiPickupAvailable,
                 $ok('{"isMultiPickupAvailable":true}'),
             ],

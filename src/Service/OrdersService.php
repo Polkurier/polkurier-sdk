@@ -20,6 +20,7 @@ use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Response\Order\CancellationMessage;
@@ -173,18 +174,23 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
     }
 
     /**
+     * @param MultiPickupAvailabilityRequestMessage $multiPickupAvailabilityRequestMessage
+     *
      * @return MultiPickupAvailabilityMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function isMultiPickupAvailable(): MultiPickupAvailabilityMessage
-    {
+    public function isMultiPickupAvailable(
+        MultiPickupAvailabilityRequestMessage $multiPickupAvailabilityRequestMessage
+    ): MultiPickupAvailabilityMessage {
         return $this->requestObject(
             ApiMethodEnum::IsMultiPickupAvailable,
             MultiPickupAvailabilityMessage::class,
+            $multiPickupAvailabilityRequestMessage,
         );
     }
 

@@ -31,8 +31,12 @@ use Polkurier\Webservice\Request\Order\CodMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Test\Support\Sample;
+use Polkurier\Webservice\Request\Order\OrderAddressMessage;
+use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Request\Order\PickupMessage;
 use Polkurier\Webservice\Request\PackTemplate\SaveMessage as PackTemplateSaveMessage;
@@ -117,6 +121,30 @@ final class SerializationTest extends TestCase
             'order id with tracking' => [
                 new GetStatusMessage('12345-678', tracking: true),
                 ['orderno' => '12345-678', 'tracking' => true],
+            ],
+            'multi pickup availability, camelCase keys' => [
+                new MultiPickupAvailabilityRequestMessage(
+                    courier: 'DPD',
+                    packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                    senderPostCode: '31-042',
+                    shipmentType: ShipmentTypeEnum::Box,
+                ),
+                [
+                    'courier' => 'DPD',
+                    'packs' => [['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1]],
+                    'senderPostCode' => '31-042',
+                    'shipmentType' => 'box',
+                ],
+            ],
+            'multi pickup availability without the optional fields' => [
+                new MultiPickupAvailabilityRequestMessage(
+                    courier: 'DPD',
+                    packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                ),
+                [
+                    'courier' => 'DPD',
+                    'packs' => [['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1]],
+                ],
             ],
             'document request takes a list' => [
                 new GetDocumentMessage(['12345-678', '12345-679']),
@@ -317,6 +345,36 @@ final class SerializationTest extends TestCase
         );
 
         self::assertSame(['page' => 2], $actual);
+    }
+
+    /**
+     * The external ids go out only when set, so an order placed without them looks as before.
+     */
+    public function testAnOrderSendsItsExternalIdsOnlyWhenTheyAreSet(): void
+    {
+        $order = static fn(?string $applicationId, ?string $orderId, ?string $orderNumber): CreateOrderMessage => new CreateOrderMessage(
+            courier: 'DPD',
+            shipmentType: ShipmentTypeEnum::Box,
+            packs: [Sample::of(PackMessage::class)],
+            sender: Sample::of(OrderAddressMessage::class),
+            recipient: Sample::of(OrderAddressMessage::class),
+            externalApplicationId: $applicationId,
+            externalOrderId: $orderId,
+            externalOrderNumber: $orderNumber,
+        );
+        $serializer = (new SerializerProvider())->getSerializer();
+
+        /** @var array<string, mixed> $without */
+        $without = \json_decode($serializer->serialize($order(null, null, null), 'json'), true);
+        /** @var array<string, mixed> $with */
+        $with = \json_decode($serializer->serialize($order('6f1c…-uuid', 'SHOP-1001', '1001'), 'json'), true);
+
+        self::assertArrayNotHasKey('external_application_id', $without);
+        self::assertArrayNotHasKey('external_order_id', $without);
+        self::assertArrayNotHasKey('external_order_number', $without);
+        self::assertSame('6f1c…-uuid', $with['external_application_id']);
+        self::assertSame('SHOP-1001', $with['external_order_id']);
+        self::assertSame('1001', $with['external_order_number']);
     }
 
     /**

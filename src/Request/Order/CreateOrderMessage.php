@@ -32,8 +32,15 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *   replaces its plain variant. {@see AdditionalServiceEnum} describes how the two kinds combine.
  * - `description` has a length limit of {@see self::DESCRIPTION_MAX_LENGTH}, and some carriers
  *   allow less. Keep it short.
+ *
+ * To find the order later by your own id, set `externalApplicationId` and `externalOrderId`
+ * together (the SDK refuses one without the other), then filter
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} by both. This is
+ * how to check whether an order was placed when its `create_order` call got no answer.
  */
 #[Validate\ValidatedBy(CreateOrderMessageValidator::class)]
+#[Validate\RequiredWith(field: 'externalApplicationId', with: 'externalOrderId')]
+#[Validate\RequiredWith(field: 'externalOrderId', with: 'externalApplicationId')]
 readonly class CreateOrderMessage implements MessageInterface
 {
     /**+@#
@@ -52,6 +59,9 @@ readonly class CreateOrderMessage implements MessageInterface
     public const string FIELD_ADDITIONAL_FIELDS = 'additional_fields';
     public const string FIELD_DESCRIPTION = 'description';
     public const string FIELD_COUPON_CODE = 'coupon_code';
+    public const string FIELD_EXTERNAL_APPLICATION_ID = 'external_application_id';
+    public const string FIELD_EXTERNAL_ORDER_ID = 'external_order_id';
+    public const string FIELD_EXTERNAL_ORDER_NUMBER = 'external_order_number';
     /**-@#*/
 
     /**
@@ -75,6 +85,10 @@ readonly class CreateOrderMessage implements MessageInterface
      * @param array<string, string> $additionalFields carrier-specific extra fields
      * @param string|null $description
      * @param string|null $couponCode
+     * @param string|null $externalApplicationId UUID of your application. Set it together with
+     *        $externalOrderId to link the order to your own record
+     * @param string|null $externalOrderId your own id for the order. Needs $externalApplicationId
+     * @param string|null $externalOrderNumber your own order number, e.g. the one the customer sees
      */
     public function __construct(
         /**
@@ -175,6 +189,27 @@ readonly class CreateOrderMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_COUPON_CODE)]
         #[OmitWhenEmpty]
         private ?string $couponCode = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
+        #[OmitWhenEmpty]
+        private ?string $externalApplicationId = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_ID)]
+        #[OmitWhenEmpty]
+        private ?string $externalOrderId = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_NUMBER)]
+        #[OmitWhenEmpty]
+        private ?string $externalOrderNumber = null,
     ) {}
 
     /**
@@ -298,5 +333,29 @@ readonly class CreateOrderMessage implements MessageInterface
     public function getCouponCode(): ?string
     {
         return $this->couponCode;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExternalApplicationId(): ?string
+    {
+        return $this->externalApplicationId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExternalOrderId(): ?string
+    {
+        return $this->externalOrderId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExternalOrderNumber(): ?string
+    {
+        return $this->externalOrderNumber;
     }
 }

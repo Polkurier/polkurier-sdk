@@ -118,7 +118,7 @@ $times  = $client->courier()->getCourierPickupTime($whenMessage);  // available 
 ```
 
 To book one collection for *several* shipments, use
-[`orders()->createMultiOrderPickup()`](#orders). Check [`$client->orders()->isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) first.
+[`orders()->createMultiOrderPickup()`](#orders). Check [`$client->orders()->isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) for each shipment first.
 
 ### Country coverage
 
@@ -143,7 +143,7 @@ orders()
 | [`OrdersServiceInterface::getLabel(GetDocumentMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`DocumentMessage`](../src/Response/Order/DocumentMessage.php) |
 | [`OrdersServiceInterface::getProtocol(GetDocumentMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`DocumentMessage`](../src/Response/Order/DocumentMessage.php) |
 | [`OrdersServiceInterface::getStatus(GetStatusMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderStatusMessage`](../src/Response/Order/OrderStatusMessage.php) |
-| [`OrdersServiceInterface::isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) | [`MultiPickupAvailabilityMessage`](../src/Response/Order/MultiPickupAvailabilityMessage.php) |
+| [`OrdersServiceInterface::isMultiPickupAvailable(MultiPickupAvailabilityRequestMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`MultiPickupAvailabilityMessage`](../src/Response/Order/MultiPickupAvailabilityMessage.php) |
 | [`OrdersServiceInterface::createMultiOrderPickup(MultiPickupRequestMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`MultiPickupResultMessage`](../src/Response/Order/MultiPickupResultMessage.php) |
 | [`OrdersServiceInterface::getOrderFile(GetOrderFileMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderFileMessage`](../src/Response/Order/OrderFileMessage.php) |
 
@@ -212,12 +212,14 @@ carrier supports them.
 ### Collections for several orders
 
 ```php
-if ($client->orders()->isMultiPickupAvailable()->isAvailable()) {
+$check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
+if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
     $result = $client->orders()->createMultiOrderPickup($request);
 }
 ```
 
-Not every account can book these, so check availability first. For a single shipment, use
+Availability depends on the shipment, chiefly its carrier and parcels, so check it for each one
+first. The API answers false rather than an error for a request it can't evaluate. For a single shipment, use
 [`courier()->pickupCourier()`](#courier).
 
 addresses()

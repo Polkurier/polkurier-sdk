@@ -19,6 +19,7 @@ use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Response\Order\CancellationMessage;
@@ -557,10 +558,14 @@ interface OrdersServiceInterface
     public function getStatus(GetStatusMessage $getStatusMessage): OrderStatusMessage;
 
     /**
-     * Checks whether this account can book one collection for several shipments.
+     * Checks whether a collective pickup can be booked for a shipment.
      *
-     * The answer depends on the account and on any order details sent with the request, so it can
-     * differ between two sets of orders. Check it before each booking.
+     * The answer depends on the shipment, chiefly its carrier and parcels, so ask for each shipment
+     * before offering one collection for several. Which carriers and shipments qualify can change.
+     *
+     * The API answers false, not an error, when it can't evaluate the request. So false can also
+     * mean the request was incomplete. The SDK checks that the carrier and at least one parcel are
+     * set before sending.
      *
      * Endpoint: `is_multi_pickup_available`
      *
@@ -569,7 +574,12 @@ interface OrdersServiceInterface
      * {
      *     "apimethod": "is_multi_pickup_available",
      *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "data": {
+     *         "courier": "DPD",
+     *         "senderPostCode": "31-042",
+     *         "shipmentType": "box",
+     *         "packs": [{"length": 40, "width": 30, "height": 20, "weight": 0.55, "type": "ST", "amount": 1}]
+     *     }
      * }
      * ```
      *
@@ -581,15 +591,20 @@ interface OrdersServiceInterface
      * }
      * ```
      *
+     * @param MultiPickupAvailabilityRequestMessage $multiPickupAvailabilityRequestMessage
+     *
      * @return MultiPickupAvailabilityMessage the payload, see
      *         {@see \Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function isMultiPickupAvailable(): MultiPickupAvailabilityMessage;
+    public function isMultiPickupAvailable(
+        MultiPickupAvailabilityRequestMessage $multiPickupAvailabilityRequestMessage
+    ): MultiPickupAvailabilityMessage;
 
     /**
      * Books one courier collection covering several shipments.

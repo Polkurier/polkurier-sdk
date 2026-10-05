@@ -157,6 +157,43 @@ class CreateOrderMessageBuilder extends AbstractBuilder
     }
 
     /**
+     * UUID of your application. Set it together with externalOrderId() to link the order to your
+     * own record.
+     *
+     * @param string|null $externalApplicationId
+     *
+     * @return static
+     */
+    public function externalApplicationId(?string $externalApplicationId): static
+    {
+        return $this->set('externalApplicationId', $externalApplicationId);
+    }
+
+    /**
+     * Your own id for the order. Needs externalApplicationId().
+     *
+     * @param string|null $externalOrderId
+     *
+     * @return static
+     */
+    public function externalOrderId(?string $externalOrderId): static
+    {
+        return $this->set('externalOrderId', $externalOrderId);
+    }
+
+    /**
+     * Your own order number, e.g. the one the customer sees.
+     *
+     * @param string|null $externalOrderNumber
+     *
+     * @return static
+     */
+    public function externalOrderNumber(?string $externalOrderNumber): static
+    {
+        return $this->set('externalOrderNumber', $externalOrderNumber);
+    }
+
+    /**
      * @return CreateOrderMessage
      * @throws InvalidArgumentException
      */
