@@ -22,7 +22,7 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$id = arguments()[0] ?? '42';
+$id = arguments()[0] ?? 'id-from-get_bank_accounts';
 
 try {
     $deleted = polkurier()->bankAccounts()->deleteBankAccount(

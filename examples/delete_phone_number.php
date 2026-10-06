@@ -22,7 +22,7 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$id = arguments()[0] ?? '12';
+$id = arguments()[0] ?? 'id-from-get_phone_numbers';
 $number = arguments()[1] ?? '500600700';
 
 try {

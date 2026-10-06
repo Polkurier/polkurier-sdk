@@ -11,6 +11,7 @@ use Polkurier\Webservice\Builder\AbstractBuilder;
 use Polkurier\Webservice\Enum\Ticket\TicketOriginEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 /**
  * Assembles a support ticket.
@@ -58,7 +59,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param array<string, string> $files
+     * @param TicketAttachmentMessage[] $files up to 5
      *
      * @return static
      */

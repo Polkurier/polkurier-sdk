@@ -23,7 +23,7 @@ readonly class GetContactFormMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $category category slug
+     * @param string $category the id of a topic from getContactTopics() that has a form
      */
     public function __construct(
         /**

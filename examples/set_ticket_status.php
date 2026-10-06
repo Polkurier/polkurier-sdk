@@ -23,7 +23,7 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$ticketId = arguments()[0] ?? '1';
+$ticketId = arguments()[0] ?? 'ticket-id-from-get_tickets';
 
 try {
     $ticket = polkurier()->tickets()->setTicketStatus(

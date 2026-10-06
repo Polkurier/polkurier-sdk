@@ -118,7 +118,8 @@ $times  = $client->courier()->getCourierPickupTime($whenMessage);  // available 
 ```
 
 To book one collection for *several* shipments, use
-[`orders()->createMultiOrderPickup()`](#orders). Check [`$client->orders()->isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) for each shipment first.
+[`orders()->createMultiOrderPickup()`](#orders). Check [`$client->orders()->isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) for each shipment, and place the
+orders with `PickupMessage(multiPickup: true)`.
 
 ### Country coverage
 
@@ -219,10 +220,19 @@ carrier supports them.
 ### Collections for several orders
 
 ```php
+// 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
 if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
-    $result = $client->orders()->createMultiOrderPickup($request);
+    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
 }
+
+// 3. Later, book one collection for the order numbers placed that way.
+$result = $client->orders()->createMultiOrderPickup(new MultiPickupRequestMessage(
+    pickupDate: new DateTimeImmutable('+1 weekday'),
+    pickupTimeFrom: new DateTimeImmutable('10:00'),
+    pickupTimeTo: new DateTimeImmutable('14:00'),
+    orders: ['12345-678', '12345-679'],
+));
 ```
 
 Availability depends on the shipment, chiefly its carrier and parcels, so check it for each one
@@ -443,6 +453,18 @@ Open it with [`TicketsServiceInterface::createTicket()`](../src/Api/Service/Tick
 API. [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) returns the form definition and [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) submits it. Pass the answers in
 [`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the field names in the definition. Use a
 ticket if you want to get the answer back in your own system.
+
+Use the ticket's id, not its number, in the calls that take a ticket. The conversation is a list of
+[`TicketTimelineItemMessage`](../src/Response/Ticket/TicketTimelineItemMessage.php) entries, newest first: messages, and actions such as closing the ticket. A reply
+returns the new entry.
+
+Attachments are [`TicketAttachmentMessage`](../src/Request/Ticket/TicketAttachmentMessage.php) entries: a file name with an accepted extension,
+its media type and its contents in base64. A message carries up to 5. The API stores each one under
+a name of its own, which the timeline gives and
+[`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) takes.
+
+A contact form's category is the id of a topic that has a form. The form id and nonce change on
+every fetch, so fetch the form right before submitting.
 
 [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) is the other endpoint whose response shape depends on the request, so it also
 returns a decoded array.

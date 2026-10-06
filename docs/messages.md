@@ -4,7 +4,7 @@ Messages and models
 Everything sent to or received from the API lives in one of two namespaces:
 
 ```
-Request/    71 classes: everything you send
+Request/    72 classes: everything you send
 Response/   85 classes: everything you get back
 ```
 

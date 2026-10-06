@@ -6,8 +6,9 @@
 /**
  * create_ticket — open a support ticket.
  *
- * The topic comes from get_contact_topics. Files can be attached at creation, and the answer is
- * the ticket as opened, with the number to quote afterwards.
+ * The topic comes from get_contact_topics. Files can be attached at creation: pass their paths
+ * after the topic id. The answer is the ticket as opened, with the number to quote afterwards and
+ * the id the other ticket examples take.
  */
 declare(strict_types=1);
 
@@ -25,13 +26,19 @@ if (!hasFlag('--confirm')) {
 
 try {
     $ticket = polkurier()->tickets()->createTicket(new CreateTicketMessage(
-        topicId: arguments()[0] ?? '1',
+        topicId: arguments()[0] ?? 'topic-id-from-get_contact_topics',
         content: 'Przesyłka nie została odebrana w deklarowanym terminie.',
-        name: 'Nieodebrana przesyłka',
+        name: 'Jan Kowalski',
         origin: TicketOriginEnum::Api,
+        files: attachments(\array_slice(arguments(), 1)),
     ));
 
-    \printf("Ticket %s opened (%s)\n", $ticket->getNumber(), $ticket->getStatus()->value ?? 'unknown');
+    \printf(
+        "Ticket %s opened (%s). Its id, for the other ticket examples: %s\n",
+        $ticket->getNumber(),
+        $ticket->getStatus()->value ?? 'unknown',
+        $ticket->getId()
+    );
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

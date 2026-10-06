@@ -19,6 +19,7 @@ declare(strict_types=1);
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -73,6 +74,30 @@ function arguments(): array
         $argv,
         static fn(string $argument): bool => !\str_starts_with($argument, '--')
     ));
+}
+
+/**
+ * Ticket attachments read from the given files.
+ *
+ * The media type is detected when the fileinfo extension is loaded. Without it the API is told
+ * nothing, which only means the smaller size limit applies.
+ *
+ * @param list<string> $paths
+ *
+ * @return list<TicketAttachmentMessage>
+ */
+function attachments(array $paths): array
+{
+    return \array_map(static function (string $path): TicketAttachmentMessage {
+        $contents = \file_get_contents($path);
+        if ($contents === false) {
+            \fwrite(STDERR, "Cannot read {$path}.\n");
+            exit(1);
+        }
+        $type = \function_exists('mime_content_type') ? (string)\mime_content_type($path) : '';
+
+        return TicketAttachmentMessage::fromContents(\basename($path), $contents, $type);
+    }, $paths);
 }
 
 /**

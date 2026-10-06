@@ -6,7 +6,7 @@
 /**
  * get_knowledge_base_article — read one help article.
  *
- * The id comes from the index or from a search. The content is HTML, and any files the article
+ * The slug comes from the index or from a search. The content is HTML, and any files the article
  * references come with it.
  */
 declare(strict_types=1);
@@ -17,7 +17,7 @@ use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
 
 require __DIR__ . '/bootstrap.php';
 
-$id = arguments()[0] ?? '1';
+$id = arguments()[0] ?? 'slug-from-get_knowledge_base_index';
 
 try {
     $article = polkurier()->knowledgeBase()->getArticle(

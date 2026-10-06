@@ -63,9 +63,11 @@ readonly class SavePayerAddressMessage implements MessageInterface
      * @param string $postCode
      * @param string $city
      * @param string $country ISO country code
-     * @param string $nipPrefix country prefix of the tax number, e.g. "PL"
+     * @param string $nipPrefix country prefix of the tax number, e.g. "PL". Send it explicitly: it
+     *        decides whether a company needs a REGON
      * @param string $nip tax identification number, digits only
-     * @param string $regon Polish statistical number
+     * @param string $regon Polish statistical number. Required for a company whose tax number
+     *        prefix is "PL": 9 or 14 digits with a valid check digit
      */
     public function __construct(
         /**

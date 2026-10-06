@@ -18,7 +18,7 @@ use Polkurier\Webservice\Request\Contact\GetContactFormMessage;
 
 require __DIR__ . '/bootstrap.php';
 
-$category = arguments()[0] ?? '1';
+$category = arguments()[0] ?? 'topic-id-from-get_contact_topics';
 
 try {
     dumpResponse(polkurier()->tickets()->getContactForm(

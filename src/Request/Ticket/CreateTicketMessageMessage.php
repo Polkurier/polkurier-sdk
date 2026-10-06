@@ -30,7 +30,7 @@ readonly class CreateTicketMessageMessage implements MessageInterface
     /**
      * @param string $ticketId the ticket UUID
      * @param string $content the message body
-     * @param array<string, string> $files attachments, base64-encoded and keyed by filename
+     * @param TicketAttachmentMessage[] $files attachments, up to 5
      */
     public function __construct(
         /**
@@ -48,11 +48,12 @@ readonly class CreateTicketMessageMessage implements MessageInterface
         private string $content,
 
         /**
-         * @var array<string, string>
+         * @var TicketAttachmentMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
-        #[Validate\Each(Validate\OfType::class, 'string')]
+        #[Validate\Valid]
+        #[Validate\Each(Validate\OfType::class, TicketAttachmentMessage::class)]
         private array $files = [],
     ) {}
 
@@ -73,7 +74,7 @@ readonly class CreateTicketMessageMessage implements MessageInterface
     }
 
     /**
-     * @return array<string, string>
+     * @return TicketAttachmentMessage[]
      */
     public function getFiles(): array
     {

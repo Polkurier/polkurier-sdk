@@ -6,7 +6,8 @@
 /**
  * create_multi_order_pickup — book one collection covering several orders.
  *
- * One courier visit for a batch of orders rather than one per order. The result reports each order
+ * One courier visit for a batch of orders rather than one per order. Takes order numbers, of orders
+ * placed for a collective pickup (PickupMessage's multiPickup). The result reports each order
  * separately: some can be added to the collection and others refused in the same call, so read
  * both lists rather than treating the call as all-or-nothing.
  */
@@ -27,14 +28,16 @@ $orderNumbers = arguments();
 
 try {
     $result = polkurier()->orders()->createMultiOrderPickup(new MultiPickupRequestMessage(
-        pickupDate: new DateTimeImmutable('tomorrow'),
-        pickupTimeFrom: new DateTimeImmutable('tomorrow 10:00'),
-        pickupTimeTo: new DateTimeImmutable('tomorrow 16:00'),
+        pickupDate: new DateTimeImmutable('+1 weekday'),
+        pickupTimeFrom: new DateTimeImmutable('10:00'),
+        pickupTimeTo: new DateTimeImmutable('16:00'),
         orders: $orderNumbers ?: ['12345-678'],
     ));
 
     \printf("Booked:  %s\n", \implode(', ', $result->getSuccess()) ?: '(none)');
-    \printf("Refused: %s\n", \implode(', ', $result->getFailed()) ?: '(none)');
+    foreach ($result->getFailed() as $orderNumber => $reason) {
+        \printf("Refused: %s: %s\n", $orderNumber, $reason);
+    }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

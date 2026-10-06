@@ -101,8 +101,8 @@ interface TicketsServiceInterface
      * The topic must come from getContactTopics() and have `has_form` set. Any other topic is
      * rejected.
      *
-     * Attachments go inline as base64, keyed by filename. They must fit the limits `get_system_info`
-     * reports under `tickets`. Check them before sending.
+     * Attachments go inline as a list of files, each with its name, media type and base64 contents.
+     * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API accepts.
      *
      * `origin` says which channel opened the ticket and defaults to API. A mobile client should send
      * its own origin.
@@ -119,12 +119,14 @@ interface TicketsServiceInterface
      *         "name": "Jan Kowalski",
      *         "content": "Przesyłka 12345-678 nie dotarła.",
      *         "origin": "API",
-     *         "files": {"zdjecie.jpg": "/9j/4AAQSkZJRgABAQ…"}
+     *         "files": [
+     *             {"name": "zdjecie.jpg", "type": "image/jpeg", "file": "/9j/4AAQSkZJRgABAQ…"}
+     *         ]
      *     }
      * }
      * ```
      *
-     * Response: the created ticket, in the same shape getTickets() returns.
+     * Response: the created ticket with its timeline, in the same shape getTickets() returns.
      *
      * Common errors:
      * ```json
@@ -132,9 +134,12 @@ interface TicketsServiceInterface
      *  "response": "Błędna wartość parametru [origin]. Musi zawierać się w zbiorze [API, MOBILE_ANDROID, MOBILE_IOS]"}
      * ```
      * ```json
-     * {"status": "error", "status_code": 27, "error_code": "FILE_UPLOAD_FAIL", "response": "…"}
+     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
+     *  "response": "Dozwolone są tylko pliki png, pdf, jpg, jpeg, gif, doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, csv, txt [files[type]]",
+     *  "validation_errors": {"files[type]": ["…"]}}
      * ```
-     * Thrown when attachments are too large, too many, or of a type that isn't accepted.
+     * An attachment was refused: its name's extension under `files[type]`, its size under
+     * `files[file]`, too many files under `files`.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"content": ["…"]}}
@@ -303,7 +308,7 @@ interface TicketsServiceInterface
      *     "data": {
      *         "ticket_id": "8f3c1e2a-…",
      *         "content": "Przesyłka nadal nie dotarła.",
-     *         "files": {}
+     *         "files": []
      *     }
      * }
      * ```
@@ -444,7 +449,11 @@ interface TicketsServiceInterface
      *
      * Contact forms are a simpler alternative to tickets, for enquiries that aren't about a specific
      * shipment. The definition lists the fields to render. It also has a form id and a nonce, which
-     * you must send back with the submission.
+     * you must send back with the submission. Both change on every fetch.
+     *
+     * The category is the id of a topic from getContactTopics() that has a form. Any other
+     * category, including an unknown one, answers with `{"has_form": false}` instead of a form,
+     * not with an error.
      *
      * Endpoint: `get_contact_form`
      *
@@ -453,7 +462,7 @@ interface TicketsServiceInterface
      * {
      *     "apimethod": "get_contact_form",
      *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {"category": "wspolpraca"}
+     *     "data": {"category": "fc8db0b4-acad-4f15-b2af-a066629bc002"}
      * }
      * ```
      *
@@ -465,10 +474,6 @@ interface TicketsServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [category]"}
      * ```
-     * ```json
-     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
-     * ```
-     * Thrown for a category that has no form.
      *
      * @param GetContactFormMessage $getContactFormMessage
      *
@@ -497,18 +502,27 @@ interface TicketsServiceInterface
      *     "apimethod": "save_contact_form",
      *     "authorization": {"login": "12345", "token": "…"},
      *     "data": {
-     *         "category": "wspolpraca",
+     *         "category": "fc8db0b4-acad-4f15-b2af-a066629bc002",
      *         "form_id": "…",
      *         "nonce": "…",
-     *         "email": "jan@example.com"
+     *         "name": "Jan Kowalski",
+     *         "phone": "500600700",
+     *         "rules_accept": true,
+     *         "marketing_consent": true
      *     }
      * }
      * ```
      *
      * Response:
      * ```json
-     * {"status": "success", "response": []}
+     * {
+     *     "status": "success",
+     *     "response": {"status": "SUCCESS", "action": "SHOW_MESSAGE", "message": "Twoja wiadomość została wysłana. …"}
+     * }
      * ```
+     *
+     * A rejected submission comes with the status in capitals, `"status": "ERROR"`, which the SDK
+     * reads like any other error. Its `validation_errors` name each answer to fix.
      *
      * Common errors:
      * ```json
@@ -517,7 +531,8 @@ interface TicketsServiceInterface
      * Thrown when the nonce is stale. Fetch the form again and resubmit.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
-     *  "response": "…", "validation_errors": {"email": ["…"]}}
+     *  "response": "Należy wyrazić zgodę [marketing_consent]",
+     *  "validation_errors": {"marketing_consent": ["Należy wyrazić zgodę"]}}
      * ```
      *
      * @param SaveContactFormMessage $saveContactFormMessage

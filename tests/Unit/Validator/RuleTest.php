@@ -212,6 +212,10 @@ final class RuleTest extends TestCase
                 new MultiPickupAvailabilityRequestMessage(courier: '', packs: []),
                 ['courier', 'packs'],
             ],
+            'Each: a collective pickup takes order numbers, not waybills' => [
+                new MultiPickupRequestMessage(pickupDate: $day, pickupTimeFrom: $day, pickupTimeTo: $day, orders: ['711400-30', '3301791288655']),
+                ['orders[1]'],
+            ],
             'PostcodeForCountry: falls back to Polish postcodes' => [new FindCityMessage(postcode: '12345', country: ''), ['postcode']],
             'PostcodeForCountry: another country is not parsed' => [new FindCityMessage(postcode: '12345', country: 'DE'), []],
         ];

@@ -21,7 +21,9 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  *
  * The times are wall-clock values. Only the time part of those objects is read, and the day comes
  * from the date field alone. Set `noCourierOrder` when the sender will drop the parcel off at a
- * branch or drop-off point and no collection should be booked.
+ * branch or drop-off point and no collection should be booked. Set `multiPickup` to have the order
+ * collected together with others, booked later with
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::createMultiOrderPickup()}.
  *
  * The carrier's reference for a booked collection is returned on the order, see
  * {@see \Polkurier\Webservice\Response\Order\Pickup}.
@@ -49,7 +51,9 @@ readonly class PickupMessage implements MessageInterface
      * @param \DateTimeInterface|null $pickupTimeTo end of the window, time part only
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
-     * @param bool $multiPickup whether this collection covers several orders
+     * @param bool $multiPickup place the order for a collective pickup, booked later for several
+     *        orders at once with createMultiOrderPickup(). Not together with $noCourierOrder, which
+     *        wins when both are set
      */
     public function __construct(
         /**

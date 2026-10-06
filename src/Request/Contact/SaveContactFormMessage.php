@@ -32,7 +32,7 @@ readonly class SaveContactFormMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $category category slug, matching the form that was fetched
+     * @param string $category the topic id the form was fetched for
      * @param string $formId from the form definition
      * @param string $nonce from the form definition
      * @param array<string, scalar> $fields the answers, keyed by the form's field names

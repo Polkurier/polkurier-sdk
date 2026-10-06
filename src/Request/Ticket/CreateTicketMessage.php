@@ -19,9 +19,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Only topics returned by
  * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()} are accepted.
  *
- * Attachments are sent inline as base64. `get_system_info` reports the limits under `tickets`:
- * maximum file size, maximum image size and how many files can be attached at once. Check them
- * before sending.
+ * Attachments are sent inline as base64, see {@see TicketAttachmentMessage} for what the API
+ * accepts. `get_system_info` reports the limits under `tickets`: maximum file size, maximum image
+ * size and how many files can be attached at once.
  */
 readonly class CreateTicketMessage implements MessageInterface
 {
@@ -40,7 +40,7 @@ readonly class CreateTicketMessage implements MessageInterface
      * @param string $content the message body
      * @param string $name the sender's name, where it differs from the account holder
      * @param ?TicketOriginEnum $origin which channel created it, defaults to API
-     * @param array<string, string> $files attachments, base64-encoded and keyed by filename
+     * @param TicketAttachmentMessage[] $files attachments, up to 5
      */
     public function __construct(
         /**
@@ -71,11 +71,12 @@ readonly class CreateTicketMessage implements MessageInterface
         private ?TicketOriginEnum $origin = null,
 
         /**
-         * @var array<string, string>
+         * @var TicketAttachmentMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
-        #[Validate\Each(Validate\OfType::class, 'string')]
+        #[Validate\Valid]
+        #[Validate\Each(Validate\OfType::class, TicketAttachmentMessage::class)]
         private array $files = [],
     ) {}
 
@@ -112,7 +113,7 @@ readonly class CreateTicketMessage implements MessageInterface
     }
 
     /**
-     * @return array<string, string>
+     * @return TicketAttachmentMessage[]
      */
     public function getFiles(): array
     {

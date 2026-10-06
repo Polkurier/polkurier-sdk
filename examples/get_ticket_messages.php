@@ -29,7 +29,8 @@ try {
             $entry->getAuthorName(),
             $entry->getType()->value ?? 'unknown',
             $entry->getContent(),
-            $entry->getFiles() === [] ? '' : \count($entry->getFiles()) . " file(s) attached\n"
+            $entry->getFiles() === [] ? '' : "Attached (entry {$entry->getId()}): "
+                . \implode(', ', \array_map(static fn($file) => $file->getName(), $entry->getFiles())) . "\n"
         );
     }
 } catch (Exception $e) {

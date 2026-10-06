@@ -276,10 +276,19 @@ For several at once, if a collective pickup is available. Availability is decide
 by its carrier and parcels, so check each one:
 
 ```php
+// 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
 if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
-    $result = $client->orders()->createMultiOrderPickup($request);
+    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
 }
+
+// 3. Later, book one collection for the order numbers placed that way.
+$result = $client->orders()->createMultiOrderPickup(new MultiPickupRequestMessage(
+    pickupDate: new DateTimeImmutable('+1 weekday'),
+    pickupTimeFrom: new DateTimeImmutable('10:00'),
+    pickupTimeTo: new DateTimeImmutable('14:00'),
+    orders: ['12345-678', '12345-679'],
+));
 ```
 
 To find out when a carrier can come:

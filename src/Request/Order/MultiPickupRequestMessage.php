@@ -13,10 +13,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * Books one courier pickup for several shipments.
+ * Books one courier pickup for several orders.
  *
  * All 3 scheduling fields are required. (For a per-order pickup it depends on the carrier.) The API
  * rejects a missing or unparseable date or time.
+ *
+ * Only orders placed for a collective pickup can join, see {@see PickupMessage::$multiPickup}.
  */
 #[Validate\InOrder(
     earlier: 'pickupTimeFrom',
@@ -38,8 +40,7 @@ readonly class MultiPickupRequestMessage implements MessageInterface
      * @param \DateTimeInterface $pickupDate the day the courier should call
      * @param \DateTimeInterface $pickupTimeFrom start of the window, only the time is sent
      * @param \DateTimeInterface $pickupTimeTo end of the window, only the time is sent
-     * @param string[] $orders waybill numbers to collect. At least one non-empty entry is
-     *                         required
+     * @param string[] $orders order numbers, not waybill numbers. At least one is required
      */
     public function __construct(
         /**
@@ -67,8 +68,9 @@ readonly class MultiPickupRequestMessage implements MessageInterface
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
-        #[Validate\Each(Validate\NotBlank::class)]
         #[Validate\NotEmptyList]
+        #[Validate\Each(Validate\NotBlank::class)]
+        #[Validate\Each(Validate\OrderNumber::class)]
         #[Validate\Each(Validate\OfType::class, 'string')]
         private array $orders,
     ) {}

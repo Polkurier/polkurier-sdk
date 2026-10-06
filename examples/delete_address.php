@@ -23,7 +23,7 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$id = arguments()[0] ?? 'ySf';
+$id = arguments()[0] ?? 'id-from-get_addresses';
 
 try {
     $deleted = polkurier()->addresses()->deleteAddress(

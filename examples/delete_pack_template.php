@@ -22,7 +22,7 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$id = arguments()[0] ?? '7';
+$id = arguments()[0] ?? 'id-from-get_pack_templates';
 
 try {
     $deleted = polkurier()->packTemplates()->deletePackTemplates(new DeleteMessage(id: $id));

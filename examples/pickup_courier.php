@@ -19,16 +19,29 @@ use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 require __DIR__ . '/bootstrap.php';
 
+if (!hasFlag('--confirm')) {
+    echo "This example books a real collection. Re-run with --confirm to do it for real.\n";
+    exit(0);
+}
+
+$day = new DateTimeImmutable('+1 weekday');
+
 try {
     $pickup = polkurier()->courier()->pickupCourier(new PickupMessage(
         courier: 'UPS',
         shipFrom: '61-001',
         parcel: ShipmentTypeEnum::Box,
-        pickupDate: new DateTimeImmutable('tomorrow'),
+        pickupDate: $day,
     ));
 
+    if (!$pickup->isPickupDate()) {
+        \printf("The carrier refused a collection on %s.\n", $day->format('Y-m-d'));
+        exit(1);
+    }
+
+    \printf("Collection booked for %s.\n", $day->format('Y-m-d'));
     foreach ($pickup->getTime() as $window) {
-        \printf("Collection booked between %s and %s\n", $window->getTimeFrom()->format('H:i'), $window->getTimeTo()->format('H:i'));
+        \printf("  window offered: %s–%s\n", $window->getTimeFrom()->format('H:i'), $window->getTimeTo()->format('H:i'));
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

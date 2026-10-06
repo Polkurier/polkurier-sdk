@@ -21,6 +21,7 @@ use Polkurier\Webservice\Exception\Exception;
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Request\Order\PickupMessage;
 
 require __DIR__ . '/bootstrap.php';
 
@@ -53,9 +54,18 @@ $order = new CreateOrderMessage(
     ),
     // Declared value in PLN. Zero means no insurance.
     insurance: 500.0,
+    // Some carriers need a collection date, some also a time window: available_carriers says which.
+    pickup: new PickupMessage(
+        pickupDate: new DateTimeImmutable('+1 weekday'),
+        pickupTimeFrom: new DateTimeImmutable('10:00'),
+        pickupTimeTo: new DateTimeImmutable('14:00'),
+    ),
     courierService: [AdditionalServiceEnum::SmsOnDispatch],
     // Keep it short: see CreateOrderMessage::DESCRIPTION_MAX_LENGTH, and carriers may be stricter.
     description: 'Books',
+    // Your own ids for the order, to find it again with get_orders, e.g. after a timeout.
+    externalApplicationId: '6f1c2b9e-0d4a-4c3e-9b8f-1a2b3c4d5e6f',
+    externalOrderId: 'EXAMPLE-' . \date('YmdHis'),
 );
 
 $sdk = polkurier();

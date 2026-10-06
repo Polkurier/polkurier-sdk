@@ -21,7 +21,8 @@ try {
 
     foreach ($list->getResult() as $ticket) {
         \printf(
-            "%-14s %-40s %-12s %s\n",
+            "%-36s %-14s %-40s %-12s %s\n",
+            $ticket->getId(),
             $ticket->getNumber(),
             $ticket->getSubject(),
             $ticket->getStatus()->value ?? 'unknown',

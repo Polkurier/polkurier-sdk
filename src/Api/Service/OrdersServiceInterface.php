@@ -590,6 +590,10 @@ interface OrdersServiceInterface
      * The answer depends on the shipment, chiefly its carrier and parcels, so ask for each shipment
      * before offering one collection for several. Which carriers and shipments qualify can change.
      *
+     * It describes a shipment, not an order you've already placed. To book a collective pickup,
+     * place the order with {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup}
+     * set, then pass its number to createMultiOrderPickup().
+     *
      * The API answers false, not an error, when it can't evaluate the request. So false can also
      * mean the request was incomplete. The SDK checks that the carrier and at least one parcel are
      * set before sending.
@@ -634,19 +638,30 @@ interface OrdersServiceInterface
     ): MultiPickupAvailabilityMessage;
 
     /**
-     * Books one courier collection covering several shipments.
+     * Books one courier collection covering several orders.
+     *
+     * Pass order numbers, not waybill numbers. An order can join only if it was placed for a
+     * collective pickup, with {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup}
+     * set, has been accepted, and has no collection booked yet. Use isMultiPickupAvailable() to see
+     * whether a shipment can be placed that way.
      *
      * Unlike a per-order pickup, the date and both ends of the time window are always required,
-     * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM.
+     * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM. They apply to
+     * every order in the call.
      *
-     * Send each waybill number once. The list must not be empty or hold blank entries, and the SDK
-     * checks this before sending.
+     * The list must not be empty, and every entry must be an order number. The SDK checks this
+     * before sending. Duplicates are ignored.
      *
-     * Expect partial success. Each waybill can be refused on its own (e.g. unknown order, not
-     * eligible for a collective pickup, pickup already booked) while the others go through. Check
-     * both lists. The API reports success even when the success list is empty.
+     * Expect partial success. Each order can be refused on its own while the others go through, so
+     * check both lists. The API reports success even when the success list is empty. Successes are
+     * listed by order number. Failures are keyed by the order number, usually as you sent it, with
+     * one of these messages:
      *
-     * Successes are listed by order number, but failures are keyed by the waybill number you sent.
+     * - "Nie znaleziono zamówienia": no such order on this account, or it wasn't placed for a
+     *   collective pickup
+     * - "Nie można zamówić podjazdu zbiorczo dla tego zamówienia": not placed for a collective
+     *   pickup, or not accepted yet
+     * - "Podjazd już został zamówiony": its collection is already booked
      *
      * Endpoint: `create_multi_order_pickup`
      *
@@ -659,7 +674,7 @@ interface OrdersServiceInterface
      *         "pickupdate": "2026-09-24",
      *         "pickuptimefrom": "10:00",
      *         "pickuptimeto": "14:00",
-     *         "orders": ["6211000015757", "6211000015758"]
+     *         "orders": ["12345-678", "12345-679"]
      *     }
      * }
      * ```
@@ -671,7 +686,7 @@ interface OrdersServiceInterface
      *     "response": {
      *         "success": ["12345-678"],
      *         "failed": {
-     *             "6211000015758": "Podjazd już został zamówiony"
+     *             "12345-679": "Podjazd już został zamówiony"
      *         }
      *     }
      * }

@@ -21,7 +21,7 @@ $query = arguments()[0] ?? 'paczkomat';
 
 try {
     foreach (polkurier()->knowledgeBase()->search(new SearchKnowledgeBaseMessage(query: $query)) as $entry) {
-        \printf("%-8s %s\n", $entry->getId(), $entry->getTitle());
+        \printf("%-50s %s\n", $entry->getSlug(), $entry->getTitle());
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

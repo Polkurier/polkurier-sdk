@@ -37,6 +37,8 @@ try {
         country: 'PL',
         nipPrefix: 'PL',
         nip: '7792308650',
+        // With a Polish tax number prefix, a company needs a valid REGON as well.
+        regon: '631189204',
     ));
 
     echo $saved ? "Billing details saved.\n" : "They were not saved.\n";

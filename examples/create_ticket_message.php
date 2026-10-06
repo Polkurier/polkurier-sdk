@@ -6,8 +6,8 @@
 /**
  * create_ticket_message — reply to a ticket.
  *
- * Adds a message to an existing ticket's timeline, optionally with files. Answers with the new
- * timeline entry.
+ * Adds a message to an existing ticket's timeline. Files can be attached: pass their paths after
+ * the ticket id. Answers with the new timeline entry.
  */
 declare(strict_types=1);
 
@@ -28,6 +28,7 @@ try {
     $entry = polkurier()->tickets()->createTicketMessage(new CreateTicketMessageMessage(
         ticketId: $ticketId,
         content: 'Dziękuję za odpowiedź, przesyłka dotarła.',
+        files: attachments(\array_slice(arguments(), 1)),
     ));
 
     \printf("Replied at %s as entry %s.\n", $entry->getDate()?->format('Y-m-d H:i') ?? '', $entry->getId());
