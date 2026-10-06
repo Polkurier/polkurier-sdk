@@ -31,6 +31,8 @@ use Polkurier\Webservice\Request\Order\CodMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
+use Polkurier\Webservice\Enum\Invoice\InvoiceSummaryFormatEnum;
 use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
@@ -145,6 +147,14 @@ final class SerializationTest extends TestCase
                     'courier' => 'DPD',
                     'packs' => [['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1]],
                 ],
+            ],
+            'invoice summary, PDF unless told otherwise' => [
+                new GetInvoiceSummaryListMessage('2520/06/2026/POL'),
+                ['number' => '2520/06/2026/POL', 'format' => 'PDF'],
+            ],
+            'invoice summary as CSV' => [
+                new GetInvoiceSummaryListMessage('2520/06/2026/POL', InvoiceSummaryFormatEnum::Csv),
+                ['number' => '2520/06/2026/POL', 'format' => 'CSV'],
             ],
             'document request takes a list' => [
                 new GetDocumentMessage(['12345-678', '12345-679']),

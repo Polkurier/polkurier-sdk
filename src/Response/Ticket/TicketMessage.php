@@ -218,6 +218,11 @@ readonly class TicketMessage implements MessageInterface
     }
 
     /**
+     * The timeline, as createTicket() and setTicketStatus() return it, and getTickets() when asked
+     * for one ticket by id. A list of tickets leaves it out, and
+     * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessages()}
+     * returns it on its own.
+     *
      * @return TicketTimelineItemMessage[]
      */
     public function getMessages(): array

@@ -368,11 +368,12 @@ invoices()
 |--------|---------|
 | [`InvoicesServiceInterface::getInvoices(GetInvoicesMessage)`](../src/Api/Service/InvoicesServiceInterface.php) | [`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php) |
 | [`InvoicesServiceInterface::getInvoicePdf(GetInvoiceDocumentMessage)`](../src/Api/Service/InvoicesServiceInterface.php) | [`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php) |
-| [`InvoicesServiceInterface::getInvoiceSummaryList(GetInvoiceDocumentMessage)`](../src/Api/Service/InvoicesServiceInterface.php) | [`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php) |
+| [`InvoicesServiceInterface::getInvoiceSummaryList(GetInvoiceSummaryListMessage)`](../src/Api/Service/InvoicesServiceInterface.php) | [`InvoiceSummaryListMessage`](../src/Response/Invoice/InvoiceSummaryListMessage.php) |
 
 [`InvoicesServiceInterface::getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) returns the invoice document. [`InvoicesServiceInterface::getInvoiceSummaryList()`](../src/Api/Service/InvoicesServiceInterface.php) returns its itemised
-summary, which is more useful for reconciling line by line. Both take the same message and return
-base64, like order documents.
+summary, which is more useful for reconciling line by line, as a PDF or a CSV file
+([`InvoiceSummaryFormatEnum`](../src/Enum/Invoice/InvoiceSummaryFormatEnum.php)). Both take the invoice number and return base64, like order
+documents.
 
 ---
 
@@ -429,8 +430,8 @@ tickets()
 | [`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | `ContactTopicMessage[]` |
 | [`TicketsServiceInterface::createTicket(CreateTicketMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketMessage`](../src/Response/Ticket/TicketMessage.php) |
 | [`TicketsServiceInterface::getTickets(?GetTicketsMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php) |
-| [`TicketsServiceInterface::getTicketMessages(TicketIdMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketMessage`](../src/Response/Ticket/TicketMessage.php) |
-| [`TicketsServiceInterface::createTicketMessage(CreateTicketMessageMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketMessage`](../src/Response/Ticket/TicketMessage.php) |
+| [`TicketsServiceInterface::getTicketMessages(TicketIdMessage)`](../src/Api/Service/TicketsServiceInterface.php) | `TicketTimelineItemMessage[]` |
+| [`TicketsServiceInterface::createTicketMessage(CreateTicketMessageMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketTimelineItemMessage`](../src/Response/Ticket/TicketTimelineItemMessage.php) |
 | [`TicketsServiceInterface::setTicketStatus(SetTicketStatusMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketMessage`](../src/Response/Ticket/TicketMessage.php) |
 | [`TicketsServiceInterface::getTicketMessageFile(GetTicketMessageFileMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php) |
 | [`TicketsServiceInterface::getContactForm(GetContactFormMessage)`](../src/Api/Service/TicketsServiceInterface.php) | `array<array-key, mixed>` |

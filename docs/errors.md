@@ -165,10 +165,11 @@ function fieldErrors(\Throwable $e): array
 
 ### The code enums
 
-[`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) holds the 34 conditions the API is known to report. Each case's
+[`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) holds the 44 conditions the API is known to report. Each case's
 value is the `error_code` string, [`ApiErrorCodeEnum::statusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) gives the numeric `status_code`,
-and [`ApiErrorCodeEnum::fromStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. Compare against them instead of
-literals:
+and [`ApiErrorCodeEnum::fromStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. A few status codes stand for more
+than one condition (the two-factor 506006, for one), and those map back to null, so prefer the
+`error_code`. Compare against the enum instead of literals:
 
 ```php
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;

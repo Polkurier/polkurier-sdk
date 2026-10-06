@@ -37,6 +37,8 @@ readonly class BaseAddress implements MessageInterface
     public const string FIELD_STREET_NAME = 'streetname';
     public const string FIELD_MACHINE_NAME = 'machinename';
     public const string FIELD_POINT = 'point';
+    public const string FIELD_HOUSE_NUMBER = 'housenumber';
+    public const string FIELD_FLAT_NUMBER = 'flatnumber';
     /**-@#*/
 
     /**
@@ -44,15 +46,18 @@ readonly class BaseAddress implements MessageInterface
      * @param string $street
      * @param string $city
      * @param string $postcode
-     * @param string $email
+     * @param string $email empty when the address has none, as on an order's cover address
      * @param string $phone
      * @param string|null $company
      * @param string|null $province
      * @param string $country
      * @param string|null $pointId
-     * @param string|null $streetName
+     * @param string|null $streetName the street without the house and flat number, split from
+     *        $street. Empty when the street can't be split
      * @param string|null $machineName
      * @param CourierPoint|null $point
+     * @param string|null $houseNumber split from $street, like $streetName
+     * @param string|null $flatNumber split from $street, like $streetName
      */
     public function __construct(
         /**
@@ -83,13 +88,13 @@ readonly class BaseAddress implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
-        private string $email,
+        private string $email = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PHONE)]
-        private string $phone,
+        private string $phone = '',
 
         /**
          * @var string|null
@@ -139,6 +144,20 @@ readonly class BaseAddress implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_POINT)]
         #[OmitWhenEmpty]
         private ?CourierPoint $point = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
+        #[OmitWhenEmpty]
+        private ?string $houseNumber = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
+        #[OmitWhenEmpty]
+        private ?string $flatNumber = null,
     ) {}
 
     /**
@@ -150,7 +169,7 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return string|null empty or null when the address has none
      */
     public function getCompany(): ?string
     {
@@ -182,7 +201,7 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getProvince(): ?string
     {
@@ -198,7 +217,8 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return string|null empty or null when the address isn't a pickup point. Always empty on an
+     *         order's cover address
      */
     public function getPointId(): ?string
     {
@@ -206,7 +226,7 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * @return string
+     * @return string empty when the address has none, as on an order's cover address
      */
     public function getEmail(): string
     {
@@ -222,9 +242,12 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * The street name without the house number.
+     * The street name without the house and flat number, split from {@see self::getStreet()}.
      *
-     * @return string|null
+     * The split doesn't always succeed. When it doesn't, this, the house number and the flat number
+     * are empty while the street still holds the full text, so rely on the street.
+     *
+     * @return string|null null if the response leaves it out
      */
     public function getStreetName(): ?string
     {
@@ -232,9 +255,31 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
+     * The house number, split from {@see self::getStreet()}. See {@see self::getStreetName()}.
+     *
+     * @return string|null null if the response leaves it out
+     */
+    public function getHouseNumber(): ?string
+    {
+        return $this->houseNumber;
+    }
+
+    /**
+     * The flat number, split from {@see self::getStreet()}. See {@see self::getStreetName()}.
+     *
+     * @return string|null null if the response leaves it out, empty when the address has none
+     */
+    public function getFlatNumber(): ?string
+    {
+        return $this->flatNumber;
+    }
+
+    /**
      * Name of the parcel machine, for carriers that identify machines by name instead of by code.
      *
-     * @return string|null
+     * On an order's sender and recipient, it holds the same value as {@see self::getPointId()}.
+     *
+     * @return string|null null if the response leaves it out
      */
     public function getMachineName(): ?string
     {
@@ -245,7 +290,7 @@ readonly class BaseAddress implements MessageInterface
      * The pickup point this address resolves to, in full.
      *
      * Set when the address names a point that is still known. Null for an ordinary street address,
-     * and also when the point could not be resolved. A point id with no point here means the point
+     * and also when the point could not be resolved. A point id with no point here may mean the point
      * has been withdrawn.
      *
      * @return CourierPoint|null

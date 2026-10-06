@@ -16,7 +16,9 @@ namespace Polkurier\Webservice\Enum\Http;
  * spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. The high-numbered
  * status codes reuse HTTP status numbers, but they arrive in the JSON body, not as the HTTP status.
  *
- * Both fields are optional in an error payload, so don't assume either is present.
+ * Both fields are optional in an error payload, so don't assume either is present. Compare
+ * `error_code` where you can: a status code can stand for more than one condition, e.g. 506006.
+ * The two-factor conditions use the 506xxx numbers, except TWO_FACTOR_ALREADY_SENT.
  */
 enum ApiErrorCodeEnum: string
 {
@@ -54,6 +56,16 @@ enum ApiErrorCodeEnum: string
     case Forbidden = 'FORBIDDEN';
     case InternalServerError = 'INTERNAL_SERVER_ERROR';
     case InvalidOrderNumber = 'INVALID_ORDER_NUMBER';
+    case TwoFactorCodeRequired = 'TWO_FACTOR_CODE_REQUIRED';
+    case TwoFactorCodeExpired = 'TWO_FACTOR_CODE_EXPIRED';
+    case TwoFactorSmsTemporarilyUnavailable = 'TWO_FACTOR_CANNOT_SEND_SMS_MESSAGE_TEMPORARY';
+    case TwoFactorPhoneNumberNotValid = 'TWO_FACTOR_NUMBER_NOT_VALID_FOR_TWO_FACTOR';
+    case TwoFactorInvalidCode = 'TWO_FACTOR_INVALID_CODE';
+    case TwoFactorEmailNotValid = 'TWO_FACTOR_EMAIL_NOT_VALID_FOR_TWO_FACTOR';
+    case TwoFactorInvalidMethod = 'TWO_FACTOR_INVALID_METHOD';
+    case TwoFactorMaxTokensExceeded = 'TWO_FACTOR_MAX_TOKENS_EXCEEDED';
+    case TwoFactorTransportMethodDoesNotExist = 'TWO_FACTOR_TRANSPORT_METHOD_DOES_NOT_EXIST';
+    case TwoFactorNoValidSmsPhoneNumber = 'TWO_FACTOR_NO_VALID_SMS_PHONE_NUMBER_EXCEPTION';
 
     /**
      * The numeric `status_code` for this condition.
@@ -97,24 +109,34 @@ enum ApiErrorCodeEnum: string
             self::UnsupportedMediaType => 415,
             self::TooManyRequests => 429,
             self::InternalServerError => 500,
+            self::TwoFactorCodeRequired => 506001,
+            self::TwoFactorCodeExpired => 506002,
+            self::TwoFactorSmsTemporarilyUnavailable => 506003,
+            self::TwoFactorPhoneNumberNotValid => 506004,
+            self::TwoFactorInvalidCode => 506005,
+            self::TwoFactorEmailNotValid => 506006,
+            self::TwoFactorInvalidMethod => 506006,
+            self::TwoFactorMaxTokensExceeded => 506006,
+            self::TwoFactorTransportMethodDoesNotExist => 506007,
+            self::TwoFactorNoValidSmsPhoneNumber => 506012,
         };
     }
 
     /**
-     * The case for a numeric `status_code`, or null for a code this SDK doesn't know.
+     * The case for a numeric `status_code`.
      *
      * @param int $statusCode
      *
-     * @return self|null
+     * @return self|null null for a code this SDK doesn't know, and for one that stands for more than
+     *         one condition. Use the `error_code` then
      */
     public static function fromStatusCode(int $statusCode): ?self
     {
-        foreach (self::cases() as $case) {
-            if ($case->statusCode() === $statusCode) {
-                return $case;
-            }
-        }
+        $matches = \array_values(\array_filter(
+            self::cases(),
+            static fn(self $case): bool => $case->statusCode() === $statusCode,
+        ));
 
-        return null;
+        return \count($matches) === 1 ? $matches[0] : null;
     }
 }

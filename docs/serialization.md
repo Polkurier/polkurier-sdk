@@ -47,7 +47,7 @@ takes a while, so share a single instance. The facade already does.
 ```php
 new Serializer(
     normalizers: [
-        new OrderListDenormalizer(),
+        new SingleRowPageDenormalizer(),
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
         new AbsentDateNormalizer(),
@@ -63,8 +63,8 @@ new Serializer(
 ```
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
-first one to say yes handles it. [`OrderListDenormalizer`](../src/Serializer/OrderListDenormalizer.php) comes first: where a page of orders is
-expected but a single order arrives, it reads the order as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
+first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer/SingleRowPageDenormalizer.php) comes first: where a page of orders or
+tickets is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
 response, an enum value the SDK doesn't know reads as null or is left out of its list (see

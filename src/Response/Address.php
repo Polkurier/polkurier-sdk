@@ -26,8 +26,6 @@ readonly class Address extends BaseAddress
     public const string FIELD_ID = 'id';
     public const string FIELD_NAME = 'name';
     public const string FIELD_TYPE = 'type';
-    public const string FIELD_HOUSE_NUMBER = 'housenumber';
-    public const string FIELD_FLAT_NUMBER = 'flatnumber';
     public const string FIELD_DEFAULT = 'default';
     public const string FIELD_SHARED = 'shared';
     public const string FIELD_COVER_ADDRESS = 'is_cover_address';
@@ -77,11 +75,7 @@ readonly class Address extends BaseAddress
         #[Serializer\SerializedName(self::FIELD_NAME)]
         private string $name,
 
-        /**
-         * @var string
-         */
-        #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
-        private string $houseNumber,
+        string $houseNumber,
 
         ?string $company = null,
 
@@ -104,12 +98,7 @@ readonly class Address extends BaseAddress
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         private ?AddressTypeEnum $type = self::DEFAULT_TYPE,
 
-        /**
-         * @var string|null
-         */
-        #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
-        #[OmitWhenEmpty]
-        private ?string $flatNumber = null,
+        ?string $flatNumber = null,
 
         /**
          * @var bool
@@ -149,11 +138,13 @@ readonly class Address extends BaseAddress
             streetName: $streetName,
             machineName: $machineName,
             point: $point,
+            houseNumber: $houseNumber,
+            flatNumber: $flatNumber,
         );
     }
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getId(): ?string
     {
@@ -181,15 +172,7 @@ readonly class Address extends BaseAddress
      */
     public function getHouseNumber(): string
     {
-        return $this->houseNumber;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getFlatNumber(): ?string
-    {
-        return $this->flatNumber;
+        return parent::getHouseNumber() ?? '';
     }
 
     /**

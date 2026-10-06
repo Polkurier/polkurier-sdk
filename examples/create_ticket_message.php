@@ -6,8 +6,8 @@
 /**
  * create_ticket_message — reply to a ticket.
  *
- * Adds a message to an existing ticket's timeline, optionally with files. Answers with the ticket
- * as it now stands rather than with the message alone.
+ * Adds a message to an existing ticket's timeline, optionally with files. Answers with the new
+ * timeline entry.
  */
 declare(strict_types=1);
 
@@ -22,16 +22,15 @@ if (!hasFlag('--confirm')) {
     exit(0);
 }
 
-$ticketId = arguments()[0] ?? '1';
+$ticketId = arguments()[0] ?? 'ticket-id-from-get_tickets';
 
 try {
-    $ticket = polkurier()->tickets()->createTicketMessage(new CreateTicketMessageMessage(
+    $entry = polkurier()->tickets()->createTicketMessage(new CreateTicketMessageMessage(
         ticketId: $ticketId,
         content: 'Dziękuję za odpowiedź, przesyłka dotarła.',
     ));
 
-    \printf("Replied to %s; it now has %d messages.\n",
-        $ticket->getNumber(), \count($ticket->getMessages()));
+    \printf("Replied at %s as entry %s.\n", $entry->getDate()?->format('Y-m-d H:i') ?? '', $entry->getId());
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -15,8 +15,10 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
 use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
 use Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage;
 use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 
 /**
  * Invoices issued to the account, and the documents behind them.
@@ -151,7 +153,9 @@ interface InvoicesServiceInterface
      * This is the breakdown of the shipments an invoice covers. Use it to reconcile a monthly
      * invoice against individual orders.
      *
-     * Pass the invoice number, as for getInvoicePdf().
+     * Pass the invoice number, as for getInvoicePdf(), and the format: PDF to read or print, CSV to
+     * import. The format is required and goes out in capitals. The SDK sends PDF unless you choose
+     * otherwise.
      *
      * Endpoint: `get_invoice_summary_list`
      *
@@ -160,7 +164,7 @@ interface InvoicesServiceInterface
      * {
      *     "apimethod": "get_invoice_summary_list",
      *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {"number": "2520/06/2026/POL", "format": "pdf"}
+     *     "data": {"number": "2520/06/2026/POL", "format": "PDF"}
      * }
      * ```
      *
@@ -169,11 +173,17 @@ interface InvoicesServiceInterface
      * {
      *     "status": "success",
      *     "response": {
-     *         "faktura_nr": "2520/06/2026/POL",
      *         "filename": "zestawienie_2520_06_2026.pdf",
-     *         "type": "pdf",
+     *         "type": "application/pdf",
      *         "file": "JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…"
      *     }
+     * }
+     * ```
+     *
+     * Unlike getInvoicePdf(), the media type comes as `type` (`application/pdf` or `text/csv`) and
+     * there is no invoice number in the response:
+     * ```json
+     * {"status": "success", "response": {"filename": "…", "type": "text/csv", "file": "…"}}
      * }
      * ```
      *
@@ -184,10 +194,10 @@ interface InvoicesServiceInterface
      * ```
      * A missing `number` gives the same error.
      *
-     * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
+     * @param GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
      *
-     * @return InvoiceDocumentMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
+     * @return InvoiceSummaryListMessage payload:
+     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -196,6 +206,6 @@ interface InvoicesServiceInterface
      * @throws WebserviceException
      */
     public function getInvoiceSummaryList(
-        GetInvoiceDocumentMessage $getInvoiceDocumentMessage
-    ): InvoiceDocumentMessage;
+        GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
+    ): InvoiceSummaryListMessage;
 }

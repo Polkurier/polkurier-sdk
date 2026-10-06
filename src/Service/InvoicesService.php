@@ -17,8 +17,10 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
 use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
 use Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage;
 use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 
 /**
  * @see InvoicesServiceInterface
@@ -66,9 +68,9 @@ class InvoicesService extends AbstractService implements InvoicesServiceInterfac
     }
 
     /**
-     * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
+     * @param GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
      *
-     * @return InvoiceDocumentMessage
+     * @return InvoiceSummaryListMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -77,12 +79,12 @@ class InvoicesService extends AbstractService implements InvoicesServiceInterfac
      * @throws WebserviceException
      */
     public function getInvoiceSummaryList(
-        GetInvoiceDocumentMessage $getInvoiceDocumentMessage
-    ): InvoiceDocumentMessage {
+        GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
+    ): InvoiceSummaryListMessage {
         return $this->requestObject(
             ApiMethodEnum::GetInvoiceSummaryList,
-            InvoiceDocumentMessage::class,
-            $getInvoiceDocumentMessage,
+            InvoiceSummaryListMessage::class,
+            $getInvoiceSummaryListMessage,
         );
     }
 }

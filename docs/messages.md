@@ -4,8 +4,8 @@ Messages and models
 Everything sent to or received from the API lives in one of two namespaces:
 
 ```
-Request/    70 classes: everything you send
-Response/   84 classes: everything you get back
+Request/    71 classes: everything you send
+Response/   85 classes: everything you get back
 ```
 
 Both sit at the root of [`Polkurier\Webservice`](../src/), not under a shared `Model` namespace. They hold
@@ -133,8 +133,9 @@ page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows
 
 A paging field the API sends as null reads as `0`.
 
-Filtered down to one order by its number, `get_orders` answers with that order alone. The SDK reads
-it as a page with one row, so [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) returns the same shape either way.
+Filtered down to one record, `get_orders` (by order number) and `get_tickets` (by id) answer with
+that record alone. The SDK reads it as a page with one row, so
+[`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) and [`TicketsServiceInterface::getTickets()`](../src/Api/Service/TicketsServiceInterface.php) return the same shape either way.
 
 ### The two unmapped responses
 

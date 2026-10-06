@@ -47,15 +47,17 @@ final class ApiCodeEnumTest extends TestCase
         }
     }
 
-    public function testEveryCaseHasItsOwnStatusCodeAndMapsBack(): void
+    public function testEveryCaseMapsBackFromItsStatusCodeUnlessTheCodeIsShared(): void
     {
-        $statusCodes = \array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases());
-        self::assertSame(\array_values(\array_unique($statusCodes)), $statusCodes);
+        $counts = \array_count_values(\array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases()));
 
         foreach (ApiErrorCodeEnum::cases() as $case) {
-            self::assertSame($case, ApiErrorCodeEnum::fromStatusCode($case->statusCode()));
+            $expected = $counts[$case->statusCode()] === 1 ? $case : null;
+            self::assertSame($expected, ApiErrorCodeEnum::fromStatusCode($case->statusCode()));
         }
         self::assertSame(15, ApiErrorCodeEnum::ParamsIsEmpty->statusCode());
+        self::assertSame(ApiErrorCodeEnum::TwoFactorCodeRequired, ApiErrorCodeEnum::fromStatusCode(506001));
+        self::assertNull(ApiErrorCodeEnum::fromStatusCode(506006));
         self::assertNull(ApiErrorCodeEnum::fromStatusCode(999));
     }
 }

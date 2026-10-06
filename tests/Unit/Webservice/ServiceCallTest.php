@@ -29,6 +29,8 @@ use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Testing\RecordingClient;
 
@@ -196,6 +198,19 @@ final class ServiceCallTest extends TestCase
                 ApiMethodEnum::IsMultiPickupAvailable,
                 $ok('{"isMultiPickupAvailable":true}'),
             ],
+            'ticket messages, a list of timeline entries' => [
+                static fn(PolkurierWebservice $s) => $s->tickets()->getTicketMessages(new TicketIdMessage(ticketId: 'b379362e')),
+                ApiMethodEnum::GetTicketMessages,
+                $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
+                    . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięto zgłoszenie","date_read":"2026-10-06T14:00:35+02:00"}]'),
+            ],
+            'ticket reply, the new timeline entry' => [
+                static fn(PolkurierWebservice $s) => $s->tickets()->createTicketMessage(
+                    new CreateTicketMessageMessage(ticketId: 'b379362e', content: 'Dziękuję')
+                ),
+                ApiMethodEnum::CreateTicketMessage,
+                $ok('{"id":"54a8","type":"MESSAGE","date":"2026-10-06T14:01:00+02:00","origin":"CUSTOMER","author_name":"Max","content":"Dziękuję","date_read":null,"files":[]}'),
+            ],
             'system info' => [
                 static fn(PolkurierWebservice $s) => $s->system()->getSystemInfo(),
                 ApiMethodEnum::GetSystemInfo,
@@ -307,6 +322,18 @@ final class ServiceCallTest extends TestCase
         $this->client->willAnswerWith('{"status":"success","response":[]}');
 
         self::assertNull($this->sdk->accountVerification()->getInfo());
+    }
+
+    public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":['
+            . '{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE",'
+            . '"author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},{}]}');
+
+        $timeline = $this->sdk->tickets()->getTicketMessages(new TicketIdMessage(ticketId: 'b379362e'));
+
+        self::assertCount(1, $timeline);
+        self::assertSame('94a7', $timeline[0]->getId());
     }
 
     private static function createOrderMessage(): CreateOrderMessage

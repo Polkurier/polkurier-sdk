@@ -109,13 +109,13 @@ Invoices
 | Route | Gives you |
 |-------|-----------|
 | [`InvoicesServiceInterface::getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) | The document, for filing |
-| [`InvoicesServiceInterface::getInvoiceSummaryList()`](../src/Api/Service/InvoicesServiceInterface.php) | The itemised summary, for reconciling line by line |
+| [`InvoicesServiceInterface::getInvoiceSummaryList()`](../src/Api/Service/InvoicesServiceInterface.php) | The itemised summary, as a PDF or a CSV file, for reconciling line by line |
 
 Documents in general
 --------------------
 
 Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Response/Order/OrderFileMessage.php),
-[`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php) and
+[`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Response/Invoice/InvoiceSummaryListMessage.php) and
 [`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
 
 | Route | Gives you |

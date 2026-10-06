@@ -4,10 +4,10 @@
  * All Rights Reserved
  */
 /**
- * get_ticket_messages — read one ticket and its conversation.
+ * get_ticket_messages — read a ticket's conversation.
  *
- * The ticket with its timeline: messages from both sides, status changes, and the files attached to
- * each.
+ * The timeline, newest first: messages from both sides, status changes, and the files attached to
+ * each message.
  */
 declare(strict_types=1);
 
@@ -17,19 +17,19 @@ use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 
 require __DIR__ . '/bootstrap.php';
 
-$ticketId = arguments()[0] ?? '1';
+$ticketId = arguments()[0] ?? 'ticket-id-from-get_tickets';
 
 try {
-    $ticket = polkurier()->tickets()->getTicketMessages(new TicketIdMessage(ticketId: $ticketId));
+    $timeline = polkurier()->tickets()->getTicketMessages(new TicketIdMessage(ticketId: $ticketId));
 
-    \printf("%s — %s\n\n", $ticket->getNumber(), $ticket->getSubject());
-
-    foreach ($ticket->getMessages() as $message) {
+    foreach ($timeline as $entry) {
         \printf(
-            "[%s] %s:\n%s\n\n",
-            $message->getDate()?->format('Y-m-d H:i') ?? '',
-            $message->getAuthorName(),
-            $message->getContent()
+            "[%s] %s (%s):\n%s\n%s\n",
+            $entry->getDate()?->format('Y-m-d H:i') ?? '',
+            $entry->getAuthorName(),
+            $entry->getType()->value ?? 'unknown',
+            $entry->getContent(),
+            $entry->getFiles() === [] ? '' : \count($entry->getFiles()) . " file(s) attached\n"
         );
     }
 } catch (Exception $e) {

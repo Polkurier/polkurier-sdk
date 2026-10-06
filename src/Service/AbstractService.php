@@ -274,7 +274,8 @@ abstract class AbstractService
     }
 
     /**
-     * Returns the payload for an endpoint that returns a list. An empty list is valid.
+     * Returns the payload for an endpoint that returns a list. An empty list is valid, and an entry
+     * sent as an empty object is left out.
      *
      * @template T of object
      *
@@ -312,6 +313,10 @@ abstract class AbstractService
                 $value,
             );
         }
+
+        // An entry sent as an empty object reads as null. It carries nothing, so it is left out
+        // rather than failing the whole list.
+        $value = \array_filter($value, static fn(mixed $item): bool => $item !== null);
 
         foreach ($value as $item) {
             if (!$item instanceof $itemClass) {

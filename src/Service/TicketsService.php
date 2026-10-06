@@ -27,6 +27,7 @@ use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
 
 /**
  * @see TicketsServiceInterface
@@ -89,7 +90,7 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
     /**
      * @param TicketIdMessage $ticketIdMessage
      *
-     * @return TicketMessage
+     * @return TicketTimelineItemMessage[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -97,11 +98,11 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getTicketMessages(TicketIdMessage $ticketIdMessage): TicketMessage
+    public function getTicketMessages(TicketIdMessage $ticketIdMessage): array
     {
-        return $this->requestObject(
+        return $this->requestList(
             ApiMethodEnum::GetTicketMessages,
-            TicketMessage::class,
+            TicketTimelineItemMessage::class,
             $ticketIdMessage,
         );
     }
@@ -109,7 +110,7 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
     /**
      * @param CreateTicketMessageMessage $createTicketMessageMessage
      *
-     * @return TicketMessage
+     * @return TicketTimelineItemMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -119,10 +120,10 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
      */
     public function createTicketMessage(
         CreateTicketMessageMessage $createTicketMessageMessage
-    ): TicketMessage {
+    ): TicketTimelineItemMessage {
         return $this->requestObject(
             ApiMethodEnum::CreateTicketMessage,
-            TicketMessage::class,
+            TicketTimelineItemMessage::class,
             $createTicketMessageMessage,
         );
     }

@@ -10,6 +10,13 @@ namespace Polkurier\Webservice\Response\Carrier\AdditionalData;
 use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * How a carrier treats one of the pickup fields of an order: the date or an end of the time window.
+ *
+ * The API sends 2 flags, `status` and `required`, and they mean the same thing: the carrier takes
+ * this field, and an order with a booked collection needs it. Not every carrier sends both, so
+ * {@see self::isStatus()} and {@see self::isRequired()} each read whichever is present.
+ */
 readonly class Option implements MessageInterface
 {
     /**+@#
@@ -50,19 +57,24 @@ readonly class Option implements MessageInterface
     ) {}
 
     /**
+     * Whether the carrier takes this field. The same as {@see self::isRequired()}.
+     *
      * @return bool
      */
     public function isStatus(): bool
     {
-        return $this->status;
+        return $this->status || $this->required;
     }
 
     /**
+     * Whether an order with a booked collection needs this field. The same as
+     * {@see self::isStatus()}.
+     *
      * @return bool
      */
     public function isRequired(): bool
     {
-        return $this->required;
+        return $this->required || $this->status;
     }
 
     /**

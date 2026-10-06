@@ -19,13 +19,16 @@ use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Response\BasePack;
+use Polkurier\Webservice\Response\Carrier;
 use Polkurier\Webservice\Response\CourierPoint;
+use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 use Polkurier\Webservice\Response\Order;
 use Polkurier\Webservice\Response\PackTemplate;
 use Polkurier\Webservice\Response\TwoFactorToken;
 use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\UnknownEnumValue;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
@@ -95,6 +98,22 @@ final class ResponseFactoryTest extends TestCase
      * Listed without the packs, items and files flags, orders come without those keys, and pickup
      * dates can be null or an empty string.
      */
+    public function testASingleTicketWhereAPageIsExpectedReadsAsAOneRowPage(): void
+    {
+        $list = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => [
+                'id' => 'ade25fef', 'number' => '202610-000009', 'subject' => 'Współpraca', 'status' => 'OPENED',
+                'has_employee_responses' => false, 'is_read' => false, 'date_created' => '2026-10-06T14:05:00+02:00',
+                'employee_name' => '', 'orders' => [], 'complaints' => [], 'invoices' => [], 'messages' => [],
+            ]]),
+            TicketListMessage::class
+        )->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(TicketListMessage::class, $list);
+        self::assertSame(1, $list->getTotalRows());
+        self::assertSame('202610-000009', $list->getResult()[0]->getNumber());
+    }
+
     public function testAnOrderFromAListWithoutOptionalKeysReads(): void
     {
         $payload = $this->orderPayload();
@@ -155,6 +174,77 @@ final class ResponseFactoryTest extends TestCase
         );
 
         self::assertSame(['Pobranie (COD)', 'Ubezpieczenie przesyłki'], $order->getCourierService());
+    }
+
+    public function testAnOrderAddressReadsTheStreetSplitIntoItsParts(): void
+    {
+        $sender = ['streetname' => 'Długa', 'housenumber' => '1', 'flatnumber' => '2'] + $this->addressPayload('Jan Kowalski');
+
+        $order = $this->deserializeOrder(['sender' => $sender] + $this->orderPayload());
+
+        $address = $order->getSender();
+        self::assertNotNull($address);
+        self::assertSame('Długa', $address->getStreetName());
+        self::assertSame('1', $address->getHouseNumber());
+        self::assertSame('2', $address->getFlatNumber());
+    }
+
+    /**
+     * A cover address comes without an email address, which a sender or recipient always has.
+     */
+    public function testAnOrderWithACoverAddressReads(): void
+    {
+        $cover = [
+            'company' => 'Sklep', 'person' => 'Jan Kowalski', 'street' => 'Rynek 1', 'streetname' => 'Rynek',
+            'housenumber' => '1', 'flatnumber' => '', 'postcode' => '61-001', 'city' => 'Poznań',
+            'phone' => '500600700', 'country' => 'PL', 'point_id' => '',
+        ];
+
+        $order = $this->deserializeOrder(['cover_address' => $cover] + $this->orderPayload());
+
+        $address = $order->getCoverAddress();
+        self::assertNotNull($address);
+        self::assertSame('Rynek 1', $address->getStreet());
+        self::assertSame('', $address->getEmail());
+    }
+
+    public function testAnInvoiceSummaryReadsItsMediaType(): void
+    {
+        $summary = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => [
+                'filename' => 'zestawienie.csv', 'type' => 'text/csv', 'file' => \base64_encode("a;b\n"),
+            ]]),
+            InvoiceSummaryListMessage::class
+        )->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(InvoiceSummaryListMessage::class, $summary);
+        self::assertSame('text/csv', $summary->getFileType());
+        self::assertSame("a;b\n", $summary->getDecodedFile());
+    }
+
+    /**
+     * A carrier's pickup fields carry 2 flags with one meaning, and not every carrier sends both.
+     */
+    public function testAPickupFieldWithOnlyOneOfItsFlagsReadsAsBoth(): void
+    {
+        $carriers = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => [[
+                'servicecode' => 'INPOST_PACZKOMAT_ECONOMY', 'name' => 'InPost', 'foreign_shipments' => false,
+                'additional_data' => ['pickup' => [
+                    'pickupdate' => ['status' => true, 'description' => ''],
+                    'pickuptimeto' => ['required' => true, 'description' => ''],
+                ]],
+            ]]]),
+            Carrier::class . '[]'
+        )->getParsedResponse()->getResponse();
+
+        self::assertIsArray($carriers);
+        self::assertInstanceOf(Carrier::class, $carriers[0]);
+        $pickup = $carriers[0]->getAdditionalData()?->getPickup();
+        self::assertNotNull($pickup);
+        self::assertTrue($pickup->getPickupDate()?->isRequired());
+        self::assertTrue($pickup->getPickupTimeTo()?->isStatus());
+        self::assertNull($pickup->getPickupTimeFrom());
     }
 
     /**
@@ -411,6 +501,26 @@ final class ResponseFactoryTest extends TestCase
         $this->expectException(MalformedResponseException::class);
 
         $this->factory->create($this->jsonResponse(['response' => []]), ResponseFactory::FORMAT_BOOLEAN);
+    }
+
+    /**
+     * A rejected contact form answers with the status in capitals.
+     */
+    public function testReadsAStatusSentInCapitals(): void
+    {
+        $wrapper = $this->factory->create(
+            $this->jsonResponse([
+                'status' => 'ERROR', 'status_code' => 26, 'error_code' => 'VALIDATION_ERROR',
+                'response' => 'Należy wyrazić zgodę [marketing_consent]',
+                'validation_errors' => ['marketing_consent' => ['Należy wyrazić zgodę']],
+                'nonce' => 'eyJ0eXAi…',
+            ]),
+            ResponseFactory::FORMAT_BOOLEAN
+        );
+
+        $error = $wrapper->getParsedResponse();
+        self::assertInstanceOf(ErrorMessage::class, $error);
+        self::assertSame(['marketing_consent' => ['Należy wyrazić zgodę']], $error->getValidationErrors());
     }
 
     public function testRejectsAnUnknownStatusValue(): void

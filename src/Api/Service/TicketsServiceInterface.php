@@ -25,6 +25,7 @@ use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
 
 /**
  * Support tickets and the contact forms that feed them.
@@ -158,10 +159,12 @@ interface TicketsServiceInterface
      * Page size must be 1–250 and defaults to 100. The SDK checks the range before sending. The order
      * list allows a narrower range. As with the invoice list, there is no `totalpages`.
      *
-     * Pass an id to get just that ticket. The envelope stays the same, so the ticket is still inside
-     * `result`.
+     * Pass an id to get just that ticket. The API then answers with the ticket alone, with its
+     * timeline, instead of a page. The SDK reads it as a page with that one ticket, so the result
+     * has the same shape either way.
      *
-     * Tickets come back without their timeline. Use getTicketMessages() for the conversation.
+     * Otherwise tickets come back without their timeline. Use getTicketMessages() for the
+     * conversation.
      *
      * Endpoint: `get_tickets`
      *
@@ -217,10 +220,11 @@ interface TicketsServiceInterface
     public function getTickets(?GetTicketsMessage $getTicketsMessage = null): TicketListMessage;
 
     /**
-     * Fetches one ticket with its full conversation.
+     * Fetches a ticket's conversation, newest entry first.
      *
      * The timeline has 2 kinds of entry, told apart by `type`: messages someone wrote, and actions
-     * on the ticket such as a status change. For an action, `content` describes the event.
+     * on the ticket such as a status change. For an action, `content` describes the event, and it
+     * comes without files. Use getTickets() for the ticket itself.
      *
      * Endpoint: `get_ticket_messages`
      *
@@ -233,40 +237,34 @@ interface TicketsServiceInterface
      * }
      * ```
      *
-     * Response, abridged to the timeline:
+     * Response:
      * ```json
      * {
      *     "status": "success",
-     *     "response": {
-     *         "id": "8f3c1e2a-…",
-     *         "number": "ZG/2026/00123",
-     *         "status": "IN_PROGRESS",
-     *         "messages": [
-     *             {
-     *                 "id": "…",
-     *                 "type": "MESSAGE",
-     *                 "date": "2026-09-23T09:10:13+02:00",
-     *                 "origin": "CUSTOMER",
-     *                 "author_name": "Jan",
-     *                 "content": "Przesyłka nie dotarła.",
-     *                 "date_read": null,
-     *                 "files": [
-     *                     {"name": "zdjecie.jpg", "type": "image/jpeg", "size": 102400,
-     *                      "date_created": "2026-09-23T09:10:13+02:00"}
-     *                 ]
-     *             },
-     *             {
-     *                 "id": "…",
-     *                 "type": "ACTION",
-     *                 "date": "2026-09-23T10:00:00+02:00",
-     *                 "origin": "EMPLOYEE",
-     *                 "author_name": "Anna",
-     *                 "content": "Zgłoszenie przypisane",
-     *                 "date_read": null,
-     *                 "files": []
-     *             }
-     *         ]
-     *     }
+     *     "response": [
+     *         {
+     *             "id": "…",
+     *             "type": "ACTION",
+     *             "date": "2026-09-23T10:00:00+02:00",
+     *             "origin": "EMPLOYEE",
+     *             "author_name": "Anna",
+     *             "content": "Zgłoszenie przypisane",
+     *             "date_read": null
+     *         },
+     *         {
+     *             "id": "…",
+     *             "type": "MESSAGE",
+     *             "date": "2026-09-23T09:10:13+02:00",
+     *             "origin": "CUSTOMER",
+     *             "author_name": "Jan",
+     *             "content": "Przesyłka nie dotarła.",
+     *             "date_read": null,
+     *             "files": [
+     *                 {"name": "zdjecie.jpg", "type": "image/jpeg", "size": 102400,
+     *                  "date_created": "2026-09-23T09:10:13+02:00"}
+     *             ]
+     *         }
+     *     ]
      * }
      * ```
      *
@@ -278,8 +276,8 @@ interface TicketsServiceInterface
      *
      * @param TicketIdMessage $ticketIdMessage
      *
-     * @return TicketMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}, with its timeline
+     * @return TicketTimelineItemMessage[] the timeline, see
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -287,7 +285,7 @@ interface TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getTicketMessages(TicketIdMessage $ticketIdMessage): TicketMessage;
+    public function getTicketMessages(TicketIdMessage $ticketIdMessage): array;
 
     /**
      * Adds a reply to an existing ticket.
@@ -310,7 +308,22 @@ interface TicketsServiceInterface
      * }
      * ```
      *
-     * Response: the ticket with the new entry on its timeline.
+     * Response: the new timeline entry.
+     * ```json
+     * {
+     *     "status": "success",
+     *     "response": {
+     *         "id": "…",
+     *         "type": "MESSAGE",
+     *         "date": "2026-09-23T11:00:00+02:00",
+     *         "origin": "CUSTOMER",
+     *         "author_name": "Jan",
+     *         "content": "Przesyłka nadal nie dotarła.",
+     *         "date_read": null,
+     *         "files": []
+     *     }
+     * }
+     * ```
      *
      * Common errors:
      * ```json
@@ -323,8 +336,8 @@ interface TicketsServiceInterface
      *
      * @param CreateTicketMessageMessage $createTicketMessageMessage
      *
-     * @return TicketMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
+     * @return TicketTimelineItemMessage the new entry, see
+     *         {@see \Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -334,7 +347,7 @@ interface TicketsServiceInterface
      */
     public function createTicketMessage(
         CreateTicketMessageMessage $createTicketMessageMessage
-    ): TicketMessage;
+    ): TicketTimelineItemMessage;
 
     /**
      * Changes a ticket's status.

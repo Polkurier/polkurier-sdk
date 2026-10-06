@@ -82,7 +82,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
             normalizers: [
                 // Must come before the object normalizer, which would read a single order as an
                 // empty page.
-                new OrderListDenormalizer(),
+                new SingleRowPageDenormalizer(),
                 // Must come before the enum normalizer, so responses read unknown values as null.
                 new LenientEnumDenormalizer(),
                 new BackedEnumNormalizer(),

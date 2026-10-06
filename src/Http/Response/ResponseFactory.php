@@ -97,10 +97,12 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             throw MalformedResponseException::missingStatus($httpResponse, $this->excerpt($rawResponse));
         }
 
-        $status = ResponseStatusEnum::tryFrom($rawStatus);
+        // Some methods send the status in capitals, e.g. `ERROR` for a rejected contact form.
+        $status = ResponseStatusEnum::tryFrom(\strtolower($rawStatus));
         if ($status === null) {
             throw MalformedResponseException::unknownStatus($httpResponse, $rawStatus);
         }
+        $responseData[ResponseMessage::FIELD_STATUS] = $status->value;
 
         try {
             if ($status === ResponseStatusEnum::Error) {
