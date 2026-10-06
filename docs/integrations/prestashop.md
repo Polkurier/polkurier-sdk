@@ -425,5 +425,6 @@ new Config(
 );
 ```
 
-This logs full request bodies, which contain the API token. Turn it off when you're done, and keep
-the log file outside the web root.
+This logs full request and response bodies. The token and personal data are hidden unless you
+allow them, but the bodies still describe your orders. Turn it off when you're done, and keep the
+log file outside the web root.

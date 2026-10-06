@@ -11,6 +11,9 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Courier\PointRequirementEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * Whether a carrier works with pickup points, and which point providers its map shows.
+ */
 readonly class PointsMap implements MessageInterface
 {
     /**+@#
@@ -50,7 +53,8 @@ readonly class PointsMap implements MessageInterface
     }
 
     /**
-     * @return PointRequirementEnum|null
+     * @return PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
+     *         this version of the SDK doesn't know
      */
     public function getSenderPoint(): ?PointRequirementEnum
     {
@@ -58,7 +62,8 @@ readonly class PointsMap implements MessageInterface
     }
 
     /**
-     * @return PointRequirementEnum|null
+     * @return PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
+     *         this version of the SDK doesn't know
      */
     public function getRecipientPoint(): ?PointRequirementEnum
     {

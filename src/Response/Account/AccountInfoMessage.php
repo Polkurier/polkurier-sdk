@@ -535,7 +535,7 @@ readonly class AccountInfoMessage implements MessageInterface
     }
 
     /**
-     * @return PinLocksMessage|null
+     * @return PinLocksMessage|null null if the response leaves it out
      */
     public function getPinLocks(): ?PinLocksMessage
     {
@@ -543,7 +543,7 @@ readonly class AccountInfoMessage implements MessageInterface
     }
 
     /**
-     * @return AccountSettingsMessage|null
+     * @return AccountSettingsMessage|null null if the response leaves it out
      */
     public function getSettings(): ?AccountSettingsMessage
     {

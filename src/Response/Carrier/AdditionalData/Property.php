@@ -11,6 +11,9 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * Whether a carrier offers something, such as insurance or an additional service.
+ */
 readonly class Property implements MessageInterface
 {
     /**+@#
@@ -48,6 +51,8 @@ readonly class Property implements MessageInterface
     ) {}
 
     /**
+     * Whether the carrier offers it.
+     *
      * @return bool
      */
     public function isAvailable(): bool
@@ -64,6 +69,8 @@ readonly class Property implements MessageInterface
     }
 
     /**
+     * Whether this is on by default for the carrier. False when the carrier doesn't say.
+     *
      * @return bool
      */
     public function isDefault(): bool

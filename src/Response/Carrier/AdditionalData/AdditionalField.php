@@ -11,6 +11,10 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Courier\AdditionalFieldTypeEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * A carrier-specific field an order can carry, sent in
+ * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage}'s additional fields under its name.
+ */
 readonly class AdditionalField implements MessageInterface
 {
     /**+@#

@@ -28,7 +28,9 @@ readonly class GetDocumentMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string[] $orderNo
+     * @param string[] $orderNo order numbers, at least one
+     * @param LabelFileFormatEnum|null $fileFormat printer language for labels instead of PDF. Only
+     *        `get_label` uses it
      */
     public function __construct(
         /**

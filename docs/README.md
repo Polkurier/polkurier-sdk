@@ -23,7 +23,7 @@ Start here
 | [Testing](testing.md) | Testing your integration against the SDK, and running the SDK's own tests |
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
-| [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, Magento, PrestaShop, WooCommerce, Shopware, Sylius |
+| [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
 
 Quick example
 -------------

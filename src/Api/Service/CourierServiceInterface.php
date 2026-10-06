@@ -28,8 +28,8 @@ use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
  * Carriers, pickups, pickup points and supported countries.
  *
  * Start with availableCarriers(). The order methods expect the carrier codes it returns. Its
- * additional data lists the services, pack types and pickup rules each carrier supports, which the
- * API enforces when an order is placed.
+ * additional data describes the services, pack types and pickup rules each carrier supports. Treat
+ * it as a guide for your shipping form: whether an order is accepted is decided when it's placed.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
  * status. `status_code` and `error_code` are both optional. An error may have one, both or
@@ -55,9 +55,10 @@ interface CourierServiceInterface
      * Pass an entry's `servicecode` as `courier` in the other methods.
      *
      * With the additional data, each carrier also lists the services it sells, the pack and shipment
-     * types it accepts, its pickup rules, its points map and its own additional fields. The API
-     * enforces these when an order is placed. The response gets several times larger, so fetch it
-     * when you build a shipping form, not on every request. Only the additional data tells you
+     * types it accepts, its pickup rules, its points map and its own additional fields. Treat it as a
+     * guide for your shipping form: whether an order is accepted is decided when it's placed. The
+     * response gets several times larger, so fetch it when you build a shipping form, not on every
+     * request. Only the additional data tells you
      * whether the carrier requires insurance with cash on delivery.
      *
      * An unknown code in the carrier filter gives an empty list, not an error.
@@ -84,7 +85,9 @@ interface CourierServiceInterface
      * ```
      *
      * With `additional_data: true`, each entry also has an `additional_data` object with `COD`,
-     * `pickup`, `shipment_type`, `options`, `points_map` and `additional_fields`.
+     * `insurance`, `courierservice`, `shipmenttype`, `pickup`, `points_map` and `additional_fields`.
+     * `points_map` can be null. Some keys inside `pickup` aren't sent for every carrier, see
+     * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\Option}.
      *
      * @param AvailableCarriersMessage|null $availableCarriersMessage null lists every carrier
      *        without the additional data

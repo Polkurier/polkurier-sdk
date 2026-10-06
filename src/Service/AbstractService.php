@@ -44,9 +44,9 @@ use Psr\Log\LogLevel;
  * an API error into the matching exception. Subclasses only supply the method, the type to
  * deserialize into and the payload.
  *
- * Logging: request and response bodies are logged as is, and a request body contains the API
- * token. Configure your logger with that in mind. Extended logging is enabled per method, while
- * error logging follows the basic logging flag.
+ * Logging: request and response bodies are prepared by the {@see LogSanitizer} first, which hides
+ * secrets and personal data and takes files out unless the configuration allows them. Extended
+ * logging is enabled per method, while error logging follows the basic logging flag.
  */
 abstract class AbstractService
 {

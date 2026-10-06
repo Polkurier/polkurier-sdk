@@ -18,6 +18,13 @@ use Polkurier\Webservice\Response\Order\Waybill;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * An order as the API reports it, from {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()}
+ * or after accepting an individual price.
+ *
+ * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} writes it. Parcels, items and files
+ * are only filled in when the order list asked for them.
+ */
 readonly class Order implements MessageInterface
 {
     /**+@#
@@ -334,7 +341,7 @@ readonly class Order implements MessageInterface
     ) {}
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getNumber(): ?string
     {
@@ -390,7 +397,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return string|null null when the order has none
      */
     public function getDescription(): ?string
     {
@@ -414,7 +421,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return BaseAddress|null
+     * @return BaseAddress|null null when the order has no cover address
      */
     public function getCoverAddress(): ?BaseAddress
     {
@@ -430,7 +437,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return Cod|null
+     * @return Cod|null null when the order has no cash on delivery
      */
     public function getCod(): ?Cod
     {
@@ -494,7 +501,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return float|null
+     * @return float|null null if the response leaves it out
      */
     public function getInsuranceAmount(): ?float
     {
@@ -522,7 +529,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getTrackingUri(): ?string
     {
@@ -530,7 +537,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null until the order is delivered
      */
     public function getDeliveredDate(): ?\DateTimeInterface
     {

@@ -26,7 +26,7 @@ use Polkurier\Webservice\Api\MessageInterface;
  * Per-carrier and per-account rules are not checked here. That covers which services a carrier
  * offers, whether it needs a collection date, an account's PIN locks and the required PIN length.
  * You can read all of that from `available_carriers`, `get_account_info` and `get_system_info`,
- * and the API enforces it.
+ * and the API checks these rules itself.
  *
  * To add your own rules, register them in the registry or pass your own validator to the client.
  */

@@ -41,8 +41,9 @@ The full documentation is in [`./docs`](docs/README.md). There are pages on
 [configuration](docs/configuration.md), [every service](docs/services.md),
 [validation](docs/validation.md), [errors](docs/errors.md), [serialization](docs/serialization.md)
 and [architecture](docs/architecture.md), plus [worked recipes](docs/recipes.md) and
-[integration guides](docs/integrations/README.md) for Symfony, Laravel, Magento, PrestaShop,
-WooCommerce, Shopware and Sylius.
+[integration guides](docs/integrations/README.md) for Symfony, Laravel, PrestaShop, WooCommerce,
+Shopware and Sylius. For Magento, Polkurier has its own module, described in the
+[Magento page](docs/integrations/magento2.md).
 
 `./examples` has one runnable script per API method, named after the method it calls. Each script
 runs on its own:
@@ -134,9 +135,14 @@ integration. The rest is optional:
 | `loggingEnabled`           | `true`           | Enables error logging                                |
 | `methodsToLog`             | `[]`             | Methods whose requests and responses are logged      |
 | `validatePayloads`         | `true`           | Check payloads before sending them                   |
+| `logSensitiveData`         | `false`          | Log secrets such as the API token as they are        |
+| `logPersonalData`          | `false`          | Log names, addresses and the like as they are        |
+| `logFiles`                 | `false`          | Save files such as labels, and point to them         |
+| `logFilesDirectory`        | temp directory   | Where `logFiles` saves them                          |
 
-Nothing is logged unless you pass a PSR-3 logger as the second constructor argument. Request bodies
-include the API token, so send that logger's output somewhere you are OK with storing credentials.
+Nothing is logged unless you pass a PSR-3 logger as the second constructor argument. Before
+anything is logged, secrets and personal data are hidden and files are left out, unless the options
+above allow them. See [Configuration: logging](docs/configuration.md#logging).
 
 The serializer has its own configuration. Pass a `SerializerProvider` built with a
 `SerializerConfig`:
@@ -215,7 +221,8 @@ All problems with a payload are reported together.
 
 The SDK doesn't check anything that depends on the carrier or the account: which services a carrier
 offers, whether it needs a collection date, or what PIN locks an account has. That data comes from
-`available_carriers`, `get_account_info` and `get_system_info`, and the API enforces it.
+`available_carriers`, `get_account_info` and `get_system_info`, and the API checks these rules
+itself.
 
 The SDK should never reject a payload the API would accept. If it does, please report it as a bug.
 Until it's fixed, `validatePayloads: false` turns off all checks.
@@ -321,10 +328,10 @@ new PolkurierWebservice(
 
 Services you don't pass are created on first use.
 
-Only the facade and the JSON envelope classes are final. Everything else can be subclassed: the
-configuration, the serializer wiring, the client, request and response factories, the services, all
-request and response classes, and the validation layer including the individual rules. Most of them
-also implement an interface, so you can replace them outright.
+Only the facade, the JSON envelope classes and a few small helpers are final. Everything else can
+be subclassed: the configuration, the serializer wiring, the client, request and response
+factories, the services, all request and response classes, and the validation layer including the
+individual rules. Most of them also implement an interface, so you can replace them outright.
 
 Development
 -----------

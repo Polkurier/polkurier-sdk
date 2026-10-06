@@ -4,8 +4,8 @@ Messages and models
 Everything sent to or received from the API lives in one of two namespaces:
 
 ```
-Request/    65 classes: everything you send
-Response/   81 classes: everything you get back
+Request/    70 classes: everything you send
+Response/   84 classes: everything you get back
 ```
 
 Both sit at the root of [`Polkurier\Webservice`](../src/), not under a shared `Model` namespace. They hold
@@ -35,7 +35,7 @@ between being validated and being serialized.
 **1. The constructor, with named arguments.** This is the default and works best when you have
 every value up front. You can skip optional parameters in any order.
 
-**2. A [builder](builders.md).** The 22 larger messages have one. Use it when the payload is put
+**2. A [builder](builders.md).** The 23 larger messages have one. Use it when the payload is put
 together over several steps or many of its fields are conditional:
 
 ```php
@@ -130,6 +130,11 @@ you write a paging loop:
 
 For the three without a page count, work it out from the row count and page size, or stop when a
 page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows both loops.
+
+A paging field the API sends as null reads as `0`.
+
+Filtered down to one order by its number, `get_orders` answers with that order alone. The SDK reads
+it as a page with one row, so [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) returns the same shape either way.
 
 ### The two unmapped responses
 
@@ -279,16 +284,9 @@ use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 $order->getStatusCode() === OrderStatusCodeEnum::Delivered->value
 ```
 
-If the API adds a new value to a field typed as an enum, the whole response fails to map. On a
-string field, the new value just doesn't match any enum case, and your code can handle that.
-
-### Handling an unknown enum value
-
-If the API sends a value that isn't in an enum the SDK uses as a property type, denormalization
-fails and you get the error during mapping. This is intended, since it is a real incompatibility.
-If you need to keep working until a fix is released, register a custom normalizer ahead of
-`BackedEnumNormalizer`. See
-[Serialization: replacing a normalizer](serialization.md#2-replace-or-add-a-normalizer).
+On a string field, a new value just doesn't match any enum case. On an enum field, it reads as
+`null`, as described above. Either way the response still maps, and your code decides what to do
+with a value it doesn't recognise.
 
 No interfaces on models
 -----------------------

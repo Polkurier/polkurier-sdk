@@ -103,7 +103,7 @@ readonly class OrderStatusMessage implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null if the response leaves it out
      */
     public function getStatusDate(): ?\DateTimeInterface
     {

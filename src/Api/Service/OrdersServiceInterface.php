@@ -90,7 +90,9 @@ interface OrdersServiceInterface
      * Places an order.
      *
      * Not idempotent. Each accepted call books a separate shipment. If the call times out, treat the
-     * result as unknown (not as failed) and check with getOrders() before retrying.
+     * result as unknown (not as failed) and check with getOrders() before retrying. An order sent
+     * with `external_application_id` and `external_order_id` can be looked up by them. The SDK
+     * refuses one without the other.
      *
      * The API does not always report every fault in a payload at once. A rejection lists at least
      * one problem, but maybe not all of them.
@@ -147,10 +149,23 @@ interface OrdersServiceInterface
      *         "codbankaccount": "34102010260000000000000001",
      *         "return_cod": "BA"
      *     },
+     *     "cover_address": {
+     *         "person": "Jan Kowalski",
+     *         "company": "Acme Store",
+     *         "street": "Rynek 1",
+     *         "flat_number": "",
+     *         "postcode": "61-001",
+     *         "city": "Poznań",
+     *         "email": "sklep@example.com",
+     *         "phone": "500600700"
+     *     },
      *     "pickup": {"pickupdate": "2026-09-24", "pickuptimefrom": "10:00", "pickuptimeto": "14:00"},
-     *     "courierservice": {"SMS_NOTIFICATION_RECIPIENT": true},
+     *     "courierservice": {"SMS_NOTIFICATION_RECIPIENT": true, "COVER_ADDRESS_SENDER": true},
      *     "additional_fields": {},
-     *     "coupon_code": ""
+     *     "coupon_code": "",
+     *     "external_application_id": "6f1c2b9e-…",
+     *     "external_order_id": "SHOP-1001",
+     *     "external_order_number": "1001"
      * }
      * ```
      *
@@ -223,6 +238,15 @@ interface OrdersServiceInterface
      * Filters combine with AND. The date range applies to the order's creation date. The free-text
      * search matches order numbers, waybills and party names.
      *
+     * Each address has `streetname`, `housenumber` and `flatnumber` split from `street`. They're
+     * empty when the street can't be split, so rely on `street`. A cover address, when the order has
+     * one, has no `email`, `machinename` or `point`, and its `point_id` is always empty.
+     *
+     * `external_application_id` lists only the orders placed with that application id, and
+     * `external_order_id` narrows it to the one with your id. Both match exactly. The order id only
+     * works together with the application id, and the SDK refuses it alone. No match gives an empty
+     * page.
+     *
      * Endpoint: `get_orders`
      *
      * Request:
@@ -241,6 +265,7 @@ interface OrdersServiceInterface
      *         "search": "",
      *         "pagesize": 100,
      *         "page": 1,
+     *         "external_application_id": "6f1c2b9e-…",
      *         "packs": true,
      *         "items": true,
      *         "files": false
@@ -276,9 +301,11 @@ interface OrdersServiceInterface
      *                 "is_paid": true, "has_invoice": true, "unpaid_amount": 0,
      *                 "label": ["6211000015757"],
      *                 "waybills": [{"number": "6211000015757", "is_default": true}],
-     *                 "sender": {"person": "…", "street": "Testowa 1", "streetname": "Testowa",
-     *                            "housenumber": "1", "postcode": "98-270", "city": "Złoczew",
-     *                            "country": "PL", "point_id": "", "point": null},
+     *                 "sender": {"company": "", "person": "…", "street": "Testowa 1",
+     *                            "streetname": "Testowa", "housenumber": "1", "flatnumber": "",
+     *                            "postcode": "98-270", "city": "Złoczew", "phone": "…",
+     *                            "email": "…", "country": "PL", "machinename": "",
+     *                            "point_id": "", "point": null},
      *                 "recipient": {"…": "same shape as sender"},
      *                 "cover_address": null,
      *                 "COD": {"codtype": "S", "codamount": 420, "status": "PAID",

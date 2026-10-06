@@ -61,7 +61,7 @@ final readonly class ErrorMessage extends ResponseMessage
     }
 
     /**
-     * @return int|null
+     * @return int|null null when the error doesn't carry one. Either code can be missing
      */
     public function getStatusCode(): ?int
     {
@@ -69,7 +69,7 @@ final readonly class ErrorMessage extends ResponseMessage
     }
 
     /**
-     * @return string|null
+     * @return string|null null when the error doesn't carry one. Either code can be missing
      */
     public function getErrorCode(): ?string
     {

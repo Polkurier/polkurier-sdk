@@ -11,6 +11,11 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Response\Order\Pickup as OrderPickup;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * A carrier's rules for the collection booked with an order.
+ *
+ * Each part is null when the carrier's entry leaves it out.
+ */
 readonly class Pickup implements MessageInterface
 {
     /**+@#
@@ -55,7 +60,7 @@ readonly class Pickup implements MessageInterface
     ) {}
 
     /**
-     * @return Option|null
+     * @return Option|null null if the carrier's entry leaves it out
      */
     public function getPickupDate(): ?Option
     {
@@ -63,7 +68,7 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * @return Option|null
+     * @return Option|null null if the carrier's entry leaves it out
      */
     public function getPickupTimeFrom(): ?Option
     {
@@ -71,7 +76,7 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * @return Option|null
+     * @return Option|null null if the carrier's entry leaves it out
      */
     public function getPickupTimeTo(): ?Option
     {
@@ -79,7 +84,11 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * Whether the parcel can be dropped off at a sending point or handed to a courier instead of
+     * booking a collection. {@see Property::isDefault()} says whether that's the usual way for this
+     * carrier, as for parcel lockers.
+     *
+     * @return Property|null null if the carrier's entry leaves it out
      */
     public function getNoCourierOrder(): ?Property
     {

@@ -3,17 +3,20 @@ Integrations
 
 How to set up the SDK in the frameworks and shop platforms it is most often used with.
 
+Polkurier's own Magento module is built on this SDK, so the [Magento page](magento2.md) describes
+that module instead of the wiring.
+
 | Frameworks | Platforms |
 |------------|-----------|
-| [Symfony](symfony.md) | [Magento 2 / Adobe Commerce](magento2.md) |
+| [Symfony](symfony.md) | [Magento 2 / Adobe Commerce](magento2.md) (Polkurier's module) |
 | [Laravel](laravel.md) | [PrestaShop](prestashop.md) |
 | [Laminas MVC and Mezzio](laminas-mezzio.md) | [WooCommerce / WordPress](woocommerce.md) |
 | [Slim, PHP-DI and any PSR-11 container](psr-11.md) | [Shopware 6](shopware.md) |
 | [Plain PHP, no container](psr-11.md#no-container-at-all) | [Sylius](sylius.md) |
 
-None of these pages ships a package. This repository has no `polkurier/polkurier-sdk-bundle` and
-no Magento module. Each page shows the wiring in the host's own style, for you to copy into your
-project or module.
+Apart from the Magento page, none of these pages ships a package. This repository has no
+`polkurier/polkurier-sdk-bundle`. Each page shows the wiring in the host's own style, for you to
+copy into your project or module.
 
 ---
 
@@ -35,7 +38,7 @@ because it varies the most between hosts.
 - your own [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php), when the values are only known at call time (per shop, per
   tenant or per sales channel)
 
-Multi-store platforms (Magento, Shopware, PrestaShop multistore, Sylius channels) usually need the
+Multi-store platforms (Shopware, PrestaShop multistore, Sylius channels) usually need the
 third one.
 
 ### 2. Share one serializer
@@ -77,8 +80,9 @@ should inject one interface, while an admin panel that uses 9 services is simple
 
 ### 4. Give it the host's logger
 
-All the frameworks here provide a PSR-3 logger, so pass it in. Be careful: request bodies contain
-the API token. See [Configuration: logging](../configuration.md#logging).
+All the frameworks here provide a PSR-3 logger, so pass it in. The SDK hides secrets and personal
+data in what it logs, and leaves files out, unless you allow them. See
+[Configuration: logging](../configuration.md#logging).
 
 ```php
 new Config(/* … */, methodsToLog: [ApiMethodEnum::CreateOrder]);
@@ -90,8 +94,8 @@ With `methodsToLog` left empty, only errors are logged. Use that in production.
 
 By default the SDK builds its own Guzzle client, and that works fine. Replace
 [`ClientFactoryInterface`](../../src/Http/ClientFactoryInterface.php) if the host already has a client you want to use, e.g. for its
-instrumentation, proxy settings or retry policy. On Magento and Shopware there are good reasons
-to. A plain Symfony application usually doesn't need to.
+instrumentation, proxy settings or retry policy. On Shopware there are good reasons to. A plain
+Symfony application usually doesn't need to.
 
 ---
 
@@ -102,16 +106,17 @@ This applies to every platform below. People get it wrong more often than the wi
 
 **Don't call the API while rendering a page.** Placing an order, fetching a label and booking a
 collection are calls to a third party that can take seconds. Put them on the platform's queue
-(Symfony Messenger, Laravel queues, Magento consumers, the Shopware message bus, WordPress Action
-Scheduler) and show a pending state in the storefront.
+(Symfony Messenger, Laravel queues, the Shopware message bus, WordPress Action Scheduler) and show
+a pending state in the storefront.
 
 **Cache the reads that rarely change.** Pickup point lists, supported countries, contact topics and
 system limits change over hours. [Recipes: caching](../recipes.md#caching-what-does-not-change)
 lists them with typical lifetimes. Loading 30,000 InPost lockers on the checkout page is the most
 common reason an integration feels broken.
 
-**Reconcile before you retry.** `create_order` has no idempotency key. If a create times out, check
-`get_orders` before sending it again (see
+**Reconcile before you retry.** `create_order` has no idempotency key. Place each order with your
+own external ids, and if a create times out, look it up by them with `get_orders` before sending
+it again (see
 [Errors: retrying safely](../errors.md#retrying-safely)). In a queue-based integration, write the
 job so it checks first and then acts. Setting `retry: 3` in the worker configuration is not enough.
 

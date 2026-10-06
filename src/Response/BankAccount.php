@@ -62,7 +62,7 @@ readonly class BankAccount implements MessageInterface
     ) {}
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getId(): ?string
     {

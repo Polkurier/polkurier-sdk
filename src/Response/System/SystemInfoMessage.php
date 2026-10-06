@@ -86,7 +86,7 @@ readonly class SystemInfoMessage implements MessageInterface
     }
 
     /**
-     * @return CouponLimitsMessage|null
+     * @return CouponLimitsMessage|null null if the response leaves it out
      */
     public function getCoupons(): ?CouponLimitsMessage
     {
@@ -94,7 +94,7 @@ readonly class SystemInfoMessage implements MessageInterface
     }
 
     /**
-     * @return TicketLimitsMessage|null
+     * @return TicketLimitsMessage|null null if the response leaves it out
      */
     public function getTickets(): ?TicketLimitsMessage
     {
@@ -102,7 +102,7 @@ readonly class SystemInfoMessage implements MessageInterface
     }
 
     /**
-     * @return SecurityLimitsMessage|null
+     * @return SecurityLimitsMessage|null null if the response leaves it out
      */
     public function getSecurity(): ?SecurityLimitsMessage
     {

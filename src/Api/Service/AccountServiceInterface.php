@@ -63,6 +63,9 @@ interface AccountServiceInterface
      * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw
      * now, and the part already committed to a payout.
      *
+     * With `external_application_id`, the response also has `external_application_settings`: that
+     * application's settings for this account.
+     *
      * Endpoint: `get_account_info`
      *
      * Request:

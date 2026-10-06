@@ -18,6 +18,13 @@ use Polkurier\Webservice\Response\Carrier\AdditionalData\ShipmentType;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * What a carrier accepts, from `available_carriers` with the additional data requested.
+ *
+ * Each part is null when the carrier's entry leaves it out. Treat it as a guide for building a
+ * shipping form: whether an order is accepted is decided when it's placed. The SDK doesn't check
+ * an order against it.
+ */
 readonly class AdditionalData implements MessageInterface
 {
     /**+@#
@@ -86,7 +93,7 @@ readonly class AdditionalData implements MessageInterface
     ) {}
 
     /**
-     * @return Cod|null
+     * @return Cod|null null if the carrier's entry leaves it out
      */
     public function getCod(): ?Cod
     {
@@ -94,7 +101,7 @@ readonly class AdditionalData implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier's entry leaves it out
      */
     public function getInsurance(): ?Property
     {
@@ -102,7 +109,7 @@ readonly class AdditionalData implements MessageInterface
     }
 
     /**
-     * @return CourierService|null
+     * @return CourierService|null null if the carrier's entry leaves it out
      */
     public function getCourierService(): ?CourierService
     {
@@ -110,7 +117,7 @@ readonly class AdditionalData implements MessageInterface
     }
 
     /**
-     * @return ShipmentType|null
+     * @return ShipmentType|null null if the carrier's entry leaves it out
      */
     public function getShipmentType(): ?ShipmentType
     {
@@ -118,7 +125,7 @@ readonly class AdditionalData implements MessageInterface
     }
 
     /**
-     * @return Pickup|null
+     * @return Pickup|null null if the carrier's entry leaves it out
      */
     public function getPickup(): ?Pickup
     {
@@ -126,7 +133,7 @@ readonly class AdditionalData implements MessageInterface
     }
 
     /**
-     * @return PointsMap|null
+     * @return PointsMap|null null if the carrier's entry leaves it out
      */
     public function getPointsMap(): ?PointsMap
     {

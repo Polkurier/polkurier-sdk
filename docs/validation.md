@@ -183,6 +183,10 @@ rule that depends on a sibling field, write a message validator.
 [`#[RequiredWhen(field: 'twoFactorCode', property: 'default', equals: true)]`](../src/Validator/Rule/RequiredWhen.php): a field becomes
 required based on the value of another.
 
+[`#[RequiredWith(field: 'externalApplicationId', with: 'externalOrderId')]`](../src/Validator/Rule/RequiredWith.php): a field becomes
+required once another one is set, for 2 fields that only work as a pair. Declared once in each
+direction when each needs the other, as on an order's external ids.
+
 [`#[InOrder(earlier: 'dateFrom', later: 'dateTo')]`](../src/Validator/Rule/InOrder.php): a range that must run forwards. Works for
 dates and numbers. If either end is missing there's no range to check, so it passes.
 

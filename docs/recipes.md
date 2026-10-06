@@ -62,6 +62,8 @@ $order = new CreateOrderMessage(
     insurance: 500.0,
     courierService: [AdditionalServiceEnum::SmsOnDispatch],
     description: 'Books',
+    externalApplicationId: $myApplicationId,   // your application's UUID
+    externalOrderId: 'SHOP-1001',              // your own id for this order
 );
 
 $quote   = $client->orders()->orderValuation($order);   // array, no stable shape
@@ -81,6 +83,9 @@ The SDK cannot check these for you:
   window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` has a length limit. [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) is the general
   one, and a carrier may set a lower one. Keep it short.
+- `externalApplicationId` and `externalOrderId` are optional, but set them. They let you find the
+  order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
+  SDK refuses one without the other.
 - Some additional services have prerequisites. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists them
   per carrier, and they vary by carrier and by account. Not every service is listed there. The rules
   for the others, such as the recipient SMS notifications, are documented on [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
@@ -206,7 +211,7 @@ what to collect.
 $cod = $order->getCod();   // ?Cod, null when the order had none
 
 if ($cod !== null) {
-    echo $cod->getStatus();
+    echo $cod->getStatus()?->value ?? 'unknown';   // ?CodStatusEnum
 }
 ```
 
@@ -467,7 +472,7 @@ $token = $client->twoFactorToken()->twoFactorTokenRegister(
 );
 
 printf("Code sent to %s, valid until %s\n",
-    $token->getPhoneNumber(),
+    $token->getTransportMethod()?->getName() ?? 'your phone',   // e.g. a masked phone number
     $token->getExpiresAt()->format('H:i'),
 );
 
@@ -481,13 +486,22 @@ $validity = $client->twoFactorToken()->twoFactorTokenVerify(
 // … or pass the token and code into the guarded call itself.
 ```
 
-If the code does not arrive, you can resend it or switch the delivery method:
+If the code does not arrive, you can resend it, or switch to one of the other delivery methods the
+token lists:
 
 ```php
 use Polkurier\Webservice\Request\Common\TokenMessage;
+use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
 
 $client->twoFactorToken()->twoFactorTokenResend(new TokenMessage($token->getId()));
-$client->twoFactorToken()->twoFactorTokenChangeTransportMethod($changeMessage);
+
+foreach ($token->getAvailableMethods() as $method) {   // TransportMethodMessage[]
+    // Offer $method->getName(). getType() is a TwoFactorTransportTypeEnum for your own labels.
+}
+
+$token = $client->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+    new ChangeTransportMethodMessage(token: $token->getId(), method: $chosen->getId()),
+);
 ```
 
 Whether a call needs this depends on the account settings. Read
@@ -535,7 +549,8 @@ reconcile-then-retry pattern for [`OrdersServiceInterface::createOrder()`](../sr
 
 - Reads: retry freely.
 - [`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php), [`AuthorizationException`](../src/Exception/AuthorizationException.php): never.
-- Writes after a [`ConnectionException`](../src/Exception/ConnectionException.php): reconcile first. There is no idempotency key.
+- Writes after a [`ConnectionException`](../src/Exception/ConnectionException.php): reconcile first. There is no idempotency key, but an order
+  placed with your own external ids can be looked up by them.
 
 To retry at the transport level instead of around each call, use a
 [custom `ClientFactory`](architecture.md#clientfactoryinterface-your-own-http-client). A retry

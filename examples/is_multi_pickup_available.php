@@ -7,9 +7,8 @@
  * is_multi_pickup_available — check whether a shipment can join a collective pickup.
  *
  * A precondition for create_multi_order_pickup, and worth asking before offering the option. The
- * answer depends on the shipment, chiefly its carrier and parcels, so ask for each one.
- *
- * Usage: php is_multi_pickup_available.php [carrier]
+ * answer depends on the shipment, chiefly its carrier and parcels, so ask for each one. Takes a
+ * carrier code as the first argument.
  */
 declare(strict_types=1);
 

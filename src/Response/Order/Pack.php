@@ -75,7 +75,7 @@ readonly class Pack extends BasePack
     }
 
     /**
-     * @return float|null
+     * @return float|null null if the response leaves it out
      */
     public function getPriceNet(): ?float
     {
@@ -83,7 +83,7 @@ readonly class Pack extends BasePack
     }
 
     /**
-     * @return float|null
+     * @return float|null null if the response leaves it out
      */
     public function getPriceGross(): ?float
     {

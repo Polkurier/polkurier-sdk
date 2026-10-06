@@ -30,7 +30,7 @@ try {
     foreach ($status->getTracking() as $event) {
         \printf(
             "  %-18s %-24s %s\n",
-            $event->getStatusDate()->format('Y-m-d H:i'),
+            $event->getStatusDate()?->format('Y-m-d H:i') ?? '-',
             $event->getLocation(),
             $event->getDescription()
         );

@@ -75,7 +75,7 @@ readonly class TrackingEventMessage implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null if the event comes without a date
      */
     public function getStatusDate(): ?\DateTimeInterface
     {

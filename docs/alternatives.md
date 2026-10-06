@@ -174,7 +174,8 @@ Logging
 |-------|------|
 | No logger | Nothing |
 | A PSR-3 logger, `loggingEnabled: true` | Errors and transport failures |
-| The same, plus `methodsToLog: [...]` | The full request and response of those methods, **including the token** |
+| The same, plus `methodsToLog: [...]` | The full request and response of those methods |
+| The same, plus `logSensitiveData`, `logPersonalData` or `logFiles` | Also the secrets, personal data or files that are otherwise left out |
 
 Testing
 -------

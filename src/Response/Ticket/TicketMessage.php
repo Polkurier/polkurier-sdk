@@ -178,7 +178,7 @@ readonly class TicketMessage implements MessageInterface
     }
 
     /**
-     * @return ?\DateTimeInterface
+     * @return ?\DateTimeInterface null if the response leaves it out
      */
     public function getDateCreated(): ?\DateTimeInterface
     {

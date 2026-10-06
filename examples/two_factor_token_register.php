@@ -7,8 +7,8 @@
  * two_factor_token_register — ask for a confirmation code.
  *
  * The first step of any operation the API guards. The namespace says which operation the code is
- * for, and a code issued for one will not confirm another. The answer carries the number it was
- * sent to and when it expires.
+ * for, and a code issued for one will not confirm another. The answer says where the code went,
+ * when it expires, and the other ways it can be sent.
  */
 declare(strict_types=1);
 
@@ -30,9 +30,13 @@ try {
     );
 
     \printf("Code sent to %s, valid until %s\n",
-        $token->getPhoneNumber(),
+        $token->getTransportMethod()?->getName() ?? '(unknown)',
         $token->getExpiresAt()->format('H:i'));
     \printf("Token: %s\n", $token->getId());
+
+    foreach ($token->getAvailableMethods() as $method) {
+        \printf("Can also send it to %s (method id %s)\n", $method->getName(), $method->getId());
+    }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

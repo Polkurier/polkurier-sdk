@@ -64,7 +64,7 @@ have no builder.
 Available builders
 ------------------
 
-There are 22 builders. Every message with four or more fields has one. Builders inherit like their
+There are 23 builders. Every message with four or more fields has one. Builders inherit like their
 messages: the parcel builders share the abstract [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php), and
 [`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) extends [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php).
 

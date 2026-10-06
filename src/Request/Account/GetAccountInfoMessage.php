@@ -25,7 +25,8 @@ readonly class GetAccountInfoMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param ?string $externalApplicationId UUID of an external application. When set, the application's settings for this account are included
+     * @param ?string $externalApplicationId UUID of an external application. When set, the
+     *        application's settings for this account are included
      */
     public function __construct(
 

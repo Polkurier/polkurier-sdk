@@ -121,7 +121,8 @@ monolog:
 ```
 
 > Leave this handler at `error` unless the log goes somewhere safe. If you set `methodsToLog` on
-> [`Config`](../../src/Config.php), full request bodies are logged, and they contain the API token.
+> [`Config`](../../src/Config.php), full request and response bodies are logged. Secrets and personal data in them are
+> hidden unless you allow them, but exceptions in the context hold the full request.
 
 Autowiring
 ----------
@@ -323,8 +324,9 @@ Two things to note. [`Symfony\Component\Messenger\Exception\UnrecoverableMessage
 that will never be accepted. Without it, a bad postcode uses up 3 retries and ends up in the
 failure transport, where it looks like an outage. Second, the guard at the top of `PlaceShipmentHandler::__invoke()`
 makes it safe to retry after a [`ConnectionException`](../../src/Exception/ConnectionException.php). There's no idempotency key, so your own
-record of the placed order is the only protection. For a stricter version, reconcile against
-`get_orders` instead (see [Errors](../errors.md#retrying-safely)).
+record of the placed order is the only protection. For a stricter version, place the order with
+your own external ids and look it up by them with `get_orders` (see
+[Errors](../errors.md#retrying-safely)).
 
 Set the retry policy to match:
 

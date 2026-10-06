@@ -27,7 +27,7 @@ You need two values from the customer panel at <https://www.polkurier.pl>:
 - `token`: generate one under *Settings > API token*.
 
 Both go into an [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php), which is included in every authenticated request. Don't
-commit them to version control, and be careful where request bodies get logged. See
+commit them to version control. The SDK hides the token in its logs unless you allow it, see
 [Configuration](configuration.md#logging).
 
 Your first call

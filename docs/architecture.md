@@ -16,7 +16,9 @@ The source is organised by role:
 | `Response` | Everything you get back |
 | `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the hand-written builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
-| `Serializer` | Serializer wiring, 2 custom normalizers and 1 attribute |
+| `Serializer` | Serializer wiring, the SDK's own normalizers and 2 attributes |
+| `Log` | Preparing request and response bodies for the log |
+| `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |
 | [`Exception`](../src/Exception/Exception.php) | Everything the SDK throws |
@@ -44,15 +46,22 @@ $client->orders()->createOrder($message)
               ├─ b. RequestFactoryInterface::create()  build the envelope, serialize it
               ├─ c. LoggerInterface                    if this method is in methodsToLog
               ├─ d. ClientInterface::sendRequest()     ← ConnectionException
-              ├─ e. ResponseFactoryInterface::create() decode, read status, denormalize
+              ├─ e. ResponseFactoryInterface::create() decode, read status, denormalize,
+              │                                        note enum values the SDK doesn't know
               │                                        ← MalformedResponseException
-              ├─ f. LoggerInterface                    on error, or if extended logging is on
+              ├─ f. LoggerInterface                    on error, or if extended logging is on,
+              │                                        and a warning per unknown enum value
               ├─ g. is it an ErrorMessage?             ← Authorization/WebserviceException
               └─ h. type-check the payload             ← MalformedResponseException
 ```
 
 There are 7 collaborators, each behind an interface you can replace. Steps (a) to (h) happen in
 [`AbstractService`](../src/Service/AbstractService.php). Every service extends it, and it is the only place a request is sent.
+
+Two more objects take part. Before anything is logged, [`LogSanitizer`](../src/Log/LogSanitizer.php) prepares each body as the
+configuration says. After (e), the HTTP response and the unknown enum values go into a
+[`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php), which [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php) and
+[`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) read.
 
 ### The request helpers
 
@@ -93,10 +102,12 @@ Which classes are final
 -----------------------
 
 **Final:** [`PolkurierWebservice`](../src/PolkurierWebservice.php), and the JSON envelope: [`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) and
-[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php). [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) is final as well, being an attribute.
+[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php). So are the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and
+[`InlineFields`](../src/Serializer/Attribute/InlineFields.php), the test double [`RecordingClient`](../src/Testing/RecordingClient.php), and [`LogJson`](../src/Log/LogJson.php), a small helper.
 
 **Open:** everything else. That covers [`Config`](../src/Config.php) and [`ConfigProvider`](../src/ConfigProvider.php), the serializer wiring
-([`SerializerProvider`](../src/Serializer/SerializerProvider.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) and the two normalizers), the three factories
+([`SerializerProvider`](../src/Serializer/SerializerProvider.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) and the normalizers), the log preparation
+([`LogSanitizer`](../src/Log/LogSanitizer.php) and the redactors), the three factories
 ([`ClientFactory`](../src/Http/ClientFactory.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php), [`ResponseFactory`](../src/Http/Response/ResponseFactory.php)), every service, request and response class and
 builder, and the validation layer down to the individual rules. Subclass one to change a single
 step, or implement its interface (where it has one) to replace it outright. A broken change to the
@@ -257,7 +268,11 @@ $orders = new OrdersService(
 $orders->getOrders($filter);
 ```
 
-Every service takes the same 6 arguments in the same order. Note: the default `validator` on
+Every service takes the same arguments in the same order. The 6 above are the ones to pass. Two
+more are optional: `lastResponse`, a [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) that keeps the last response, and
+`logSanitizer`, the [`LogSanitizer`](../src/Log/LogSanitizer.php) that prepares bodies for the log. Pass one
+[`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) to several services if you want to see the last call made through any of
+them. Note: the default `validator` on
 [`AbstractService`](../src/Service/AbstractService.php) is [`NullValidator`](../src/Validator/NullValidator.php). A service you build by hand validates nothing unless you pass
 a validator, which is the opposite of the facade's default. Pass
 [`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php) unless you want validation off.
@@ -287,6 +302,13 @@ The SDK holds no connection state and does no I/O until you call a service metho
 - The reflection caches in [`AttributeValidator`](../src/Validator/AttributeValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) and
   [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) are `static` and keyed by class name, so they fill once per process.
 
-[`AbstractService::$lastHttpResponse`](../src/Service/AbstractService.php) is the only mutable per-call state. The exception factories use
-it to report what came back. In a normal shared-nothing PHP process this does not matter. In a
-long-running worker, do not share one service instance across concurrent coroutines.
+Some state does change with each call:
+
+- [`AbstractService::$lastHttpResponse`](../src/Service/AbstractService.php), which the exception factories use to report what came back.
+- The [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php), which every service the facade builds shares. Each call replaces
+  what it holds.
+- [`LogSanitizer`](../src/Log/LogSanitizer.php) remembers each body it has prepared while the message exists, so a body that is logged
+  twice is only prepared once.
+
+In a normal shared-nothing PHP process this does not matter. In a long-running worker, do not
+share one client or service instance across concurrent coroutines.

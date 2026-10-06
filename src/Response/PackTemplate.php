@@ -124,7 +124,7 @@ readonly class PackTemplate extends BasePack
     }
 
     /**
-     * @return string|null
+     * @return string|null null if the response leaves it out
      */
     public function getId(): ?string
     {
@@ -172,7 +172,7 @@ readonly class PackTemplate extends BasePack
     }
 
     /**
-     * @return string|null
+     * @return string|null null when the template isn't tied to a carrier
      */
     public function getCourier(): ?string
     {

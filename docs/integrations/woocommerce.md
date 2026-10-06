@@ -248,8 +248,8 @@ final class WooLogger extends AbstractLogger
 }
 ```
 
-Note that `$context` is not logged. The SDK puts the full request there, and the request body
-contains the API token. Log only the message.
+Note that `$context` is not logged. The request and response in it are prepared like the message,
+but the exceptions in it hold the full request, API token included. Log only the message.
 
 Placing the shipment
 --------------------

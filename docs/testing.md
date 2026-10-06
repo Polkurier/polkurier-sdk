@@ -162,8 +162,11 @@ them in step with the code they demonstrate.
 | `Serializer/ResponseConstructionTest` | Every response class builds in full or refuses, naming what it could not fill |
 | `Serializer/AbsentValueTest` | The 3 empty forms: `[]` for an object, `""` for a date, absent keys |
 | `Serializer/SerializerConfigTest` | The JSON flags actually reach the encoder |
+| `Serializer/RequestFieldRoundTripTest` | Every request field constant comes out as a key on the wire |
 | `SerializationTest` | Round-tripping, wire names, omitted-when-empty behaviour |
-| `Http/ResponseFactoryTest` | Envelope parsing, the 5 response formats, malformed bodies |
+| `Http/ResponseFactoryTest` | Envelope parsing, the 5 response formats, malformed bodies, unknown enum values |
+| `Http/ResponseShapeTest` | Responses with keys left out, nulls, empty strings or new keys still read |
+| `Http/ClientFactoryTest` | One HTTP client per configuration |
 | `Message/RequestMessageConstructionTest` | Requests can be constructed as documented |
 | `Validator/RuleTest` | Each rule in isolation |
 | `Validator/ValidationTest` | Whole payloads, and the pooled reports |
@@ -172,6 +175,12 @@ them in step with the code they demonstrate.
 | `Builder/BuilderDriftTest` | Every builder still matches its message's constructor |
 | `Webservice/FacadeTest` | Lazy construction and reuse of services |
 | `Webservice/ServiceCallTest` | End-to-end through the fake transport |
+| `Webservice/EveryServiceMethodTest` | Every service method parses a response of the shape it expects |
+| `Webservice/ErrorPathTest` | How a call fails, for each kind of failure |
+| `Webservice/ConfigProviderTest` | The provider is asked on every call |
+| `Webservice/LastResponseTest` | The last response and its unknown enum values |
+| `Webservice/LoggingTest` | What reaches the logger, and what is hidden or left out |
+| `Log/SensitiveDataRedactorTest`, `Log/LoggedFileWriterTest` | Hiding secrets and personal data, and taking files out |
 | `Webservice/ServiceSubstitutionTest` | Handing in your own service works |
 | `Entity/AddressTest` | The one entity with enough behaviour to test |
 | `ApiCodeEnumTest` | Status and error code enums stay in step |

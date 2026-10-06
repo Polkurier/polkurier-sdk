@@ -9,6 +9,9 @@ namespace Polkurier\Webservice\Response\Carrier\AdditionalData;
 
 use Symfony\Component\Serializer\Attribute as Serializer;
 
+/**
+ * Whether a carrier offers cash on delivery, and whether it then requires insurance.
+ */
 readonly class Cod extends Property
 {
     /**+@#

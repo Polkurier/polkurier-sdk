@@ -87,7 +87,7 @@ readonly class Carrier implements MessageInterface
     }
 
     /**
-     * @return AdditionalData|null
+     * @return AdditionalData|null null unless the listing asked for the additional data
      */
     public function getAdditionalData(): ?AdditionalData
     {

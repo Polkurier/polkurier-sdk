@@ -60,7 +60,7 @@ readonly class IndividualPricing implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null if the offer hasn't been sent yet
      */
     public function getOfferSentDate(): ?\DateTimeInterface
     {
@@ -68,7 +68,7 @@ readonly class IndividualPricing implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null if the response leaves it out
      */
     public function getOfferValidDate(): ?\DateTimeInterface
     {
@@ -76,7 +76,7 @@ readonly class IndividualPricing implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null null until the customer confirms the offer
      */
     public function getCustomerConfirmedDate(): ?\DateTimeInterface
     {

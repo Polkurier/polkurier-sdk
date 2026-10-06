@@ -28,8 +28,9 @@ readonly class AvailableCarriersMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param bool|null $additionalData
-     * @param string|null $returnCarrier
+     * @param bool|null $additionalData also describe what each carrier supports. Makes the response
+     *        several times larger
+     * @param string|null $returnCarrier list only this carrier, by its service code
      */
     public function __construct(
         /**

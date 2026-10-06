@@ -51,23 +51,24 @@ readonly class GetOrdersMessage extends PagedMessage
     public const int MAX_PAGE_SIZE = 100;
 
     /**
-     * @param string|null $orderNo
-     * @param OrderStatusCodeEnum|null $status
-     * @param string|null $courier
-     * @param float|null $codMin
-     * @param float|null $codMax
-     * @param \DateTimeInterface|null $dateFrom
-     * @param \DateTimeInterface|null $dateTo
-     * @param string|null $searchPhrase
-     * @param int|null $pageSize
-     * @param int|null $page
+     * @param string|null $orderNo one order, by its number. The result is still a page
+     * @param OrderStatusCodeEnum|null $status orders in this delivery state
+     * @param string|null $courier orders with this carrier, by its service code
+     * @param float|null $codMin smallest cash-on-delivery amount, in PLN
+     * @param float|null $codMax largest cash-on-delivery amount, in PLN
+     * @param \DateTimeInterface|null $dateFrom earliest creation date
+     * @param \DateTimeInterface|null $dateTo latest creation date
+     * @param string|null $searchPhrase free text, matched against order numbers, waybills and party
+     *        names
+     * @param int|null $pageSize 1 to {@see self::MAX_PAGE_SIZE}
+     * @param int|null $page starts at 1
      * @param string|null $externalApplicationId lists only orders placed with this application id,
      *        exact match. Orders without one aren't listed
      * @param string|null $externalOrderId lists only the order with this id of yours, exact match.
      *        Needs $externalApplicationId as well, and the SDK refuses it without one
-     * @param bool|null $packs
-     * @param bool|null $items
-     * @param bool|null $files
+     * @param bool|null $packs include each order's parcels
+     * @param bool|null $items include each order's priced items
+     * @param bool|null $files include each order's attached files
      */
     public function __construct(
         /**

@@ -20,7 +20,7 @@ return [
     'platform' => env('APP_NAME', 'laravel'),
     'version'  => '1.0.0',
 
-    // Methods whose full request and response are logged. Bodies contain the API token.
+    // Methods whose full request and response are logged. Secrets and personal data are hidden.
     'log_methods' => [],
 ];
 ```

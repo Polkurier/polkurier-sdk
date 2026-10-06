@@ -159,6 +159,10 @@ orders()
 structure, so the SDK returns it as received. It is one of two such endpoints. See
 [Messages: unmapped responses](messages.md#the-two-unmapped-responses).
 
+To find an order again by your own id, place it with `externalApplicationId` (your application's
+UUID) and `externalOrderId` (your id for the order). The SDK refuses one without the other.
+`externalOrderNumber` can carry the number your customer sees.
+
 Full example: [Recipes: placing an order](recipes.md#placing-an-order).
 
 ### Reading orders back
@@ -170,7 +174,10 @@ $status = $client->orders()->getStatus($statusMessage); // OrderStatusMessage: o
 
 [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) is the general query. It filters by date, status, carrier, cash-on-delivery range,
 free text and your own external identifiers, and can optionally include `packs`, `items` and
-`files`. Results are paged (see [Recipes: paging](recipes.md#paging-through-a-list)). The maximum
+`files`. The application id filters on its own. The order id only works together with it, which
+the SDK checks before sending. Both match exactly, and no match is an empty page. This is how to
+check whether an order was placed when [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) got no answer, see
+[Errors: retrying safely](errors.md#retrying-safely). Results are paged (see [Recipes: paging](recipes.md#paging-through-a-list)). The maximum
 page size is [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Request/Order/GetOrdersMessage.php) (100), and the SDK rejects anything larger before
 sending it.
 
@@ -219,8 +226,8 @@ if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
 ```
 
 Availability depends on the shipment, chiefly its carrier and parcels, so check it for each one
-first. The API answers false rather than an error for a request it can't evaluate. For a single shipment, use
-[`courier()->pickupCourier()`](#courier).
+first. The API answers false rather than an error for a request it can't evaluate. For a single
+shipment, use [`courier()->pickupCourier()`](#courier).
 
 addresses()
 -----------
@@ -476,6 +483,10 @@ Register a token with the [`TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/
 a code. You then either verify it here, or pass the token and code to the operation itself. If the
 code doesn't arrive, [`TwoFactorTokenServiceInterface::twoFactorTokenResend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) sends it again on the same channel, and
 [`TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) switches to another channel.
+
+The [`TwoFactorToken`](../src/Response/TwoFactorToken.php) says how the code was sent: [`TwoFactorToken::getTransportMethod()`](../src/Response/TwoFactorToken.php) names where it
+went, e.g. a masked phone number, so show that to the customer. [`TwoFactorToken::getAvailableMethods()`](../src/Response/TwoFactorToken.php) lists the
+other channels. Pass one's id to switch to it.
 
 Full example: [Recipes: two-factor confirmation](recipes.md#two-factor-confirmation).
 

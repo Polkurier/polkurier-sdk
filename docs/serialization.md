@@ -47,6 +47,7 @@ takes a while, so share a single instance. The facade already does.
 ```php
 new Serializer(
     normalizers: [
+        new OrderListDenormalizer(),
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
         new AbsentDateNormalizer(),
@@ -62,7 +63,8 @@ new Serializer(
 ```
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
-first one to say yes handles it. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
+first one to say yes handles it. [`OrderListDenormalizer`](../src/Serializer/OrderListDenormalizer.php) comes first: where a page of orders is
+expected but a single order arrives, it reads the order as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before `DateTimeNormalizer` so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
 response, an enum value the SDK doesn't know reads as null or is left out of its list (see
@@ -295,6 +297,7 @@ Common symptoms and where to look:
 |---------|---------|
 | A nested object arrives as a plain `array` | The `@var` docblock on the property. The extractor reads that, not the PHP type |
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
+| An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) names it |
 | "Failed to parse time string" | An empty-string date reaching `DateTimeNormalizer`. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
 | A required-field error on a response | An empty array arrived where an object was expected, or a key with no default was absent |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
@@ -303,7 +306,8 @@ Common symptoms and where to look:
 Two quick ways to see what happened:
 
 ```php
-// Log the full exchange for one method.
+// Log the full exchange for one method. Secrets, personal data and files are left out of the log
+// unless you allow them, see Configuration: logging.
 new Config(/* … */, methodsToLog: [ApiMethodEnum::CreateOrder]);
 ```
 

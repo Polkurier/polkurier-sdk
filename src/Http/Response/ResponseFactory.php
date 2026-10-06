@@ -16,6 +16,16 @@ use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Serializer\UnknownEnumValues;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Turns an HTTP response from the API into a {@see ResponseWrapper}.
+ *
+ * Decodes the body, reads the envelope's status, and maps the payload into the type the service
+ * asked for, or into an {@see ErrorMessage} for an error. A body that isn't an API envelope, or a
+ * payload that doesn't map, throws a {@see \Polkurier\Webservice\Exception\MalformedResponseException}.
+ *
+ * Enum values the SDK doesn't know read as null, or are left out of a list, and are recorded on the
+ * wrapper (see {@see ResponseWrapper::getUnknownEnumValues()}).
+ */
 readonly class ResponseFactory implements ResponseFactoryInterface
 {
     /**

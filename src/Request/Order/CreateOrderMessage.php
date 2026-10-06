@@ -78,7 +78,8 @@ readonly class CreateOrderMessage implements MessageInterface
      * @param CodMessage|null $cod cash on delivery. An amount of zero means no
      *                                      collection, and the other fields are then not needed
      * @param float|null $insurance declared value in PLN, zero for no insurance
-     * @param CoverAddressMessage|null $coverAddress alternative return address
+     * @param CoverAddressMessage|null $coverAddress alternative sender address to print on the
+     *        label, see {@see AdditionalServiceEnum::CoverSenderAddress}
      * @param PickupMessage|null $pickup
      * @param AdditionalServiceEnum[] $courierService services to order, sent as the flag map the
      *                                                API expects

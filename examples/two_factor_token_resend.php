@@ -27,7 +27,7 @@ $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 try {
     $resent = polkurier()->twoFactorToken()->twoFactorTokenResend(new TokenMessage(token: $token));
 
-    \printf("Code re-sent to %s\n", $resent->getPhoneNumber());
+    \printf("Code re-sent to %s\n", $resent->getTransportMethod()?->getName() ?? '(unknown)');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

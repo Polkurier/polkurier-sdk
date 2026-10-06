@@ -124,7 +124,7 @@ readonly class CourierService implements MessageInterface
     ) {}
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getReturnOfDocuments(): ?Property
     {
@@ -132,7 +132,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getCoverSenderAddress(): ?Property
     {
@@ -140,7 +140,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getCarryIn(): ?Property
     {
@@ -148,7 +148,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getCourierBringsLabel(): ?Property
     {
@@ -156,7 +156,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getSaturdayDelivery(): ?Property
     {
@@ -164,7 +164,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getPhoneCallBeforeDelivery(): ?Property
     {
@@ -172,7 +172,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getTires(): ?Property
     {
@@ -180,7 +180,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getHandDelivery(): ?Property
     {
@@ -188,7 +188,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getWeekendDelivery(): ?Property
     {
@@ -196,7 +196,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getLabelless(): ?Property
     {
@@ -204,7 +204,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getHandleWithCare(): ?Property
     {
@@ -212,7 +212,7 @@ readonly class CourierService implements MessageInterface
     }
 
     /**
-     * @return Property|null
+     * @return Property|null null if the carrier doesn't list this service
      */
     public function getDeliveryByTime(): ?Property
     {

@@ -219,45 +219,49 @@ The risky case is a [`ConnectionException`](../src/Exception/ConnectionException
 [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php), [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) or [`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) without an id may already have gone through,
 and the SDK can't tell you whether it did.
 
-**There is no idempotency key.** [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) has no field for one. [`GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php) can
-*filter* on `externalApplicationId` and `externalOrderId`, and [`Order`](../src/Response/Order.php) returns them, but
-[`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) has no way to set them. A blind retry can create a second shipment, and nothing
-will stop it.
+**There is no idempotency key.** A blind retry can create a second shipment. Reconcile before
+retrying instead: look for the order you tried to place, and only send it again if it isn't there.
 
-Instead, reconcile before retrying. Look for an order that matches the one you tried to place, and
-only send it again if you don't find one:
+The reliable way is to give the order your own identifiers when you place it.
+[`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) takes `externalApplicationId` (your application's UUID) and `externalOrderId`
+(your id for the order), and the SDK refuses one without the other. Filter
+[`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) by both to find the order. The match is exact:
 
 ```php
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 
+// $order was built with externalApplicationId: $myApplicationId, externalOrderId: $myOrderId
 try {
     $created = $client->orders()->createOrder($order);
 } catch (ConnectionException) {
-    $recent = $client->orders()->getOrders(new GetOrdersMessage(
-        courier: $order->getCourier(),
-        dateFrom: new DateTimeImmutable('-10 minutes'),
-        pageSize: 100,
+    $existing = $client->orders()->getOrders(new GetOrdersMessage(
+        externalApplicationId: $myApplicationId,
+        externalOrderId: $myOrderId,
     ));
 
-    $match = $this->findMatchingOrder($recent->getResult(), $order);   // your comparison
-
-    $created = $match ?? $client->orders()->createOrder($order);
+    if ($existing->getTotalRows() === 0) {
+        $created = $client->orders()->createOrder($order);
+    }
 }
+```
+
+An order placed without those identifiers can only be found by comparing. List the recent orders
+for the carrier and look for one that matches:
+
+```php
+$recent = $client->orders()->getOrders(new GetOrdersMessage(
+    courier: $order->getCourier(),
+    dateFrom: new DateTimeImmutable('-10 minutes'),
+    pageSize: 100,
+));
+
+$match = $this->findMatchingOrder($recent->getResult(), $order);   // your comparison
 ```
 
 You have to write the comparison yourself, since only you know what makes two of your orders the
 same. Usually that's the recipient, weight and value. Keep it strict. A false match means a
 shipment is never sent. A missed match means a duplicate, which at least you'll notice.
-
-If your orders have those external identifiers, you can look the order up directly:
-
-```php
-$existing = $client->orders()->getOrders(new GetOrdersMessage(
-    externalApplicationId: $myApplicationId,
-    externalOrderId: $myOrderId,
-));
-```
 
 Payouts have nothing similar. Check [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) before retrying, and preferably
 have a person make the call.
@@ -272,7 +276,17 @@ as the API token, personal data and file contents are left out unless you turn t
 
 If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
 whose body contains the API token. Log [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) instead, unless you need the
-payload. If you do, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives you a copy with the secrets hidden.
+payload. If you do, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives you a copy with the secrets hidden, and
+[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Apply both to hide both:
+
+```php
+use Polkurier\Webservice\Log\PersonalDataRedactor;
+use Polkurier\Webservice\Log\SensitiveDataRedactor;
+
+$request = (new PersonalDataRedactor())->message((new SensitiveDataRedactor())->message($e->getRequest()));
+```
+
+Files in the body, such as a label, are left in.
 
 A complete handler
 ------------------
