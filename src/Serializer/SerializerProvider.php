@@ -88,7 +88,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 new BackedEnumNormalizer(),
                 // Must come before the date normalizer, so empty strings never reach it.
                 new AbsentDateNormalizer(),
-                new DateTimeNormalizer($dateTimeContext),
+                new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext)),
                 // Must come before the array normalizer, so unknown enum values never reach it.
                 new EnumListDenormalizer(),
                 new ArrayDenormalizer(),

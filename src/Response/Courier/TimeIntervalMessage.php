@@ -49,7 +49,7 @@ readonly class TimeIntervalMessage
     ) {}
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface the time of day, on 1 January 1970
      */
     public function getTimeFrom(): \DateTimeInterface
     {
@@ -57,7 +57,7 @@ readonly class TimeIntervalMessage
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface the time of day, on 1 January 1970
      */
     public function getTimeTo(): \DateTimeInterface
     {

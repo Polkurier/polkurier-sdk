@@ -43,7 +43,7 @@ readonly class PickupTimeMessage implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface
+     * @return \DateTimeInterface the day, at midnight
      */
     public function getPickupDate(): \DateTimeInterface
     {

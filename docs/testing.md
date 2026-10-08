@@ -160,6 +160,7 @@ them in step with the code they demonstrate.
 | Test | Guards |
 |------|--------|
 | `Serializer/ResponseConstructionTest` | Every response class builds in full or refuses, naming what it could not fill |
+| `Serializer/ExactDateTest` | A date or time reads from its own fields, the same every time |
 | `Serializer/AbsentValueTest` | The 3 empty forms: `[]` for an object, `""` for a date, absent keys |
 | `Serializer/SerializerConfigTest` | The JSON flags actually reach the encoder |
 | `Serializer/RequestFieldRoundTripTest` | Every request field constant comes out as a key on the wire |

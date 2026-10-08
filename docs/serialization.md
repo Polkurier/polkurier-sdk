@@ -51,7 +51,7 @@ new Serializer(
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
         new AbsentDateNormalizer(),
-        new DateTimeNormalizer($dateTimeContext),
+        new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext)),
         new EnumListDenormalizer(),
         new ArrayDenormalizer(),
         new OmitEmptyNormalizer($objectNormalizer),
@@ -198,6 +198,11 @@ private ?\DateTimeInterface $dateFrom = null,
 
 The `timezone` setting in [`SerializerConfig`](../src/Serializer/SerializerConfig.php) only affects *reading*. The formats used for writing
 are fixed by the protocol.
+
+When reading, [`ExactDateTimeNormalizer`](../src/Serializer/ExactDateTimeNormalizer.php) takes only the fields the format has and sets the others to
+zero. A `Y-m-d` date reads as midnight, and an `H:i` time reads as that time on 1 January 1970.
+Without it, PHP fills the missing fields from the moment of reading, so the same response read
+twice would give different dates.
 
 ### JSON flags
 

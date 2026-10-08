@@ -40,8 +40,8 @@ readonly class Pickup implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $pickupDate the day of collection
-     * @param \DateTimeInterface|null $pickupTimeFrom start of the window (time part only)
-     * @param \DateTimeInterface|null $pickupTimeTo end of the window (time part only)
+     * @param \DateTimeInterface|null $pickupTimeFrom start of the window, as a time of day
+     * @param \DateTimeInterface|null $pickupTimeTo end of the window, as a time of day
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
      * @param bool $multiPickup whether this collection covers several orders
@@ -93,7 +93,7 @@ readonly class Pickup implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null the day of collection, at midnight
      */
     public function getPickupDate(): ?\DateTimeInterface
     {
@@ -101,9 +101,9 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * Start of the collection window (time part only).
+     * Start of the collection window.
      *
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null the time of day, on 1 January 1970
      */
     public function getPickupTimeFrom(): ?\DateTimeInterface
     {
@@ -111,9 +111,9 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * End of the collection window (time part only).
+     * End of the collection window.
      *
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null the time of day, on 1 January 1970
      */
     public function getPickupTimeTo(): ?\DateTimeInterface
     {

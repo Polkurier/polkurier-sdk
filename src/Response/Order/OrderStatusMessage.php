@@ -111,7 +111,7 @@ readonly class OrderStatusMessage implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null
+     * @return \DateTimeInterface|null the day, at midnight
      */
     public function getDeliveredDate(): ?\DateTimeInterface
     {

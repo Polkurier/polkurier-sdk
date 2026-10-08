@@ -100,7 +100,7 @@ readonly class InvoiceMessage implements MessageInterface
     }
 
     /**
-     * @return ?\DateTimeInterface
+     * @return ?\DateTimeInterface the day, at midnight
      */
     public function getDate(): ?\DateTimeInterface
     {
@@ -108,7 +108,7 @@ readonly class InvoiceMessage implements MessageInterface
     }
 
     /**
-     * @return ?\DateTimeInterface
+     * @return ?\DateTimeInterface the day, at midnight
      */
     public function getPaymentDeadline(): ?\DateTimeInterface
     {

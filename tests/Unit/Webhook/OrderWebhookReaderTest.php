@@ -32,9 +32,7 @@ final class OrderWebhookReaderTest extends TestCase
         $event = (new OrderWebhookReader())->read(self::body(['type' => 'UPDATED', 'data' => $order]));
 
         self::assertSame(OrderWebhookTypeEnum::Updated, $event->getType());
-        // Compared in wire form: a date-only field gets the time of reading, which differs between
-        // two reads.
-        self::assertSame(self::wire(self::fromJson($order)), self::wire($event->getOrder()));
+        self::assertEquals(self::fromJson($order), $event->getOrder());
     }
 
     public function testAnOrderWithoutWaybillsOrSenderStillReads(): void
@@ -114,17 +112,6 @@ final class OrderWebhookReaderTest extends TestCase
         self::assertIsArray($order);
 
         return $order;
-    }
-
-    /**
-     * @return mixed
-     */
-    private static function wire(Order $order): mixed
-    {
-        $serializer = (new SerializerProvider())->getSerializer();
-        self::assertInstanceOf(NormalizerInterface::class, $serializer);
-
-        return $serializer->normalize($order, 'json');
     }
 
     /**
