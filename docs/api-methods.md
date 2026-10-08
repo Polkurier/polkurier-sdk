@@ -97,32 +97,9 @@ take it as the first argument.
 | [`ApiMethodEnum::GetMoneyBoxConfig`](../src/Enum/Http/ApiMethodEnum.php) | `get_money_box_config` | [`$client->moneyBox()->getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `get_money_box_config.php` |
 | [`ApiMethodEnum::GetMoneyBoxPayouts`](../src/Enum/Http/ApiMethodEnum.php) | `get_money_box_payouts` | [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `get_money_box_payouts.php` |
 
-Grouped by service
-------------------
+[`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php) and [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php) both send `get_courier_point`: one
+searches for points and the other looks one up by id.
 
-There are 75 client methods and 74 endpoints. [`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php) and [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php) both
-send `get_courier_point`: one searches for points and the other looks one up by id. The table above
-lists both against that endpoint.
-
-| Service | Client methods |
-|---------|----------------|
-| [`CourierServiceInterface`](../src/Api/Service/CourierServiceInterface.php) | 7 |
-| [`OrdersServiceInterface`](../src/Api/Service/OrdersServiceInterface.php) | 10 |
-| [`AccountServiceInterface`](../src/Api/Service/AccountServiceInterface.php) | 13 |
-| [`TicketsServiceInterface`](../src/Api/Service/TicketsServiceInterface.php) | 9 |
-| [`MoneyBoxServiceInterface`](../src/Api/Service/MoneyBoxServiceInterface.php) | 5 |
-| [`TwoFactorTokenServiceInterface`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | 4 |
-| [`AddressesServiceInterface`](../src/Api/Service/AddressesServiceInterface.php) | 3 |
-| [`BankAccountsServiceInterface`](../src/Api/Service/BankAccountsServiceInterface.php) | 3 |
-| [`PackTemplatesServiceInterface`](../src/Api/Service/PackTemplatesServiceInterface.php) | 3 |
-| [`InvoicesServiceInterface`](../src/Api/Service/InvoicesServiceInterface.php) | 3 |
-| [`PaymentsServiceInterface`](../src/Api/Service/PaymentsServiceInterface.php) | 3 |
-| [`SystemServiceInterface`](../src/Api/Service/SystemServiceInterface.php) | 3 |
-| [`KnowledgeBaseServiceInterface`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | 3 |
-| [`GeoServiceInterface`](../src/Api/Service/GeoServiceInterface.php) | 2 |
-| [`AccountVerificationServiceInterface`](../src/Api/Service/AccountVerificationServiceInterface.php) | 2 |
-| [`UtilsServiceInterface`](../src/Api/Service/UtilsServiceInterface.php) | 2 |
-
-[Services](services.md) describes what each method does and returns. The docblock on each
+[Services](services.md) describes what each method does, grouped by task. The docblock on each
 interface method has the details: the payload it sends, the success responses and their variants,
 and the most common errors.

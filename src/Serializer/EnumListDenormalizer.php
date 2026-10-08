@@ -12,9 +12,9 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * Reads a list of enum values, leaving out and recording the values the enum doesn't know.
  *
- * It only acts when the context holds an {@see UnknownEnumValues} collector, and runs before the
- * array normalizer, so the list only holds enum cases. Without a collector it steps aside, and an
- * unknown value fails as usual.
+ * It only acts when the context holds an {@see \Polkurier\Webservice\Serializer\UnknownEnumValues}
+ * collector, and runs before the array normalizer, so the list only holds enum cases. Without a
+ * collector it steps aside, and an unknown value fails as usual.
  *
  * A list can also arrive as a JSON object with numeric keys, e.g. `{"1": "ROD"}`. Numeric keys are
  * dropped, so the result is a plain list either way. String keys are kept.

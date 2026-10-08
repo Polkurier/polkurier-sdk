@@ -49,9 +49,9 @@ use Polkurier\Webservice\Validator\Rule\Postcode;
  * As with the message rules, the accepting cases matter more than the rejecting ones: a value
  * rejected here is a call the SDK refuses to make.
  *
- * Note that a format rule accepts an absent value. Whether a field is required is decided by the
- * message that declares it, through NotBlank, so that the same format can be optional in one place
- * and mandatory in another.
+ * A format rule accepts an absent value. Whether a field is required is decided by the message that
+ * declares it, through {@see NotBlank}, so that the same format can be optional in one place and
+ * mandatory in another.
  */
 #[CoversNothing]
 final class RuleTest extends TestCase
@@ -84,7 +84,7 @@ final class RuleTest extends TestCase
             'a value inside the range' => [new IntegerRange(1, 100), 100],
             'a non-empty string' => [new NotBlank(), 'x'],
             'a list with an entry' => [new NotEmptyList(), ['x']],
-            // Presence is NotBlank's business, so a format rule passes on an absent value.
+            // Presence is {@see NotBlank}'s business, so a format rule passes on an absent value.
             // Without that, every optional field carrying one would become mandatory.
             'an empty postcode, which NotBlank judges' => [new Postcode(), ''],
             'an empty account number, likewise' => [new Iban(), ''],
@@ -159,7 +159,7 @@ final class RuleTest extends TestCase
     }
 
     /**
-     * Each names its rule by class, so a class that isn't a value rule is refused up front.
+     * {@see Each} names its rule by class, so a class that isn't a value rule is refused up front.
      */
     public function testEachRefusesAClassThatIsNotAValueRule(): void
     {
@@ -191,8 +191,14 @@ final class RuleTest extends TestCase
 
         return [
             'InOrder: equal ends pass' => [new GetOrdersMessage(dateFrom: $day, dateTo: $day), []],
-            'InOrder: a reversed range fails' => [new GetOrdersMessage(dateFrom: $day, dateTo: $day->modify('-1 day')), ['date_from']],
-            'RequiredWhen: a bank account is needed for a bank transfer' => [new CodMessage(amount: 100.0), ['codbankaccount']],
+            'InOrder: a reversed range fails' => [
+                new GetOrdersMessage(dateFrom: $day, dateTo: $day->modify('-1 day')),
+                ['date_from'],
+            ],
+            'RequiredWhen: a bank account is needed for a bank transfer' => [
+                new CodMessage(amount: 100.0),
+                ['codbankaccount'],
+            ],
             'RequiredWhen: not needed for another return type' => [
                 new CodMessage(amount: 100.0, returnType: CodReturnTypeEnum::cases()[1]),
                 [],
@@ -201,23 +207,48 @@ final class RuleTest extends TestCase
                 new GetOrdersMessage(externalOrderId: 'SHOP-1001'),
                 ['external_application_id'],
             ],
-            'RequiredWith: the application id works on its own' => [new GetOrdersMessage(externalApplicationId: 'app'), []],
+            'RequiredWith: the application id works on its own' => [
+                new GetOrdersMessage(externalApplicationId: 'app'),
+                [],
+            ],
             'RequiredWith: both together pass' => [
                 new GetOrdersMessage(externalApplicationId: 'app', externalOrderId: 'SHOP-1001'),
                 [],
             ],
-            'IgnoredWhen: a zero amount skips the block' => [new CodMessage(amount: 0.0, bankAccount: 'not-an-iban'), []],
-            'Each: every entry is checked' => [new MultiPickupRequestMessage(pickupDate: $day, pickupTimeFrom: $day, pickupTimeTo: $day, orders: ['1234-5', '']), ['orders[1]']],
+            'IgnoredWhen: a zero amount skips the block' => [
+                new CodMessage(amount: 0.0, bankAccount: 'not-an-iban'),
+                [],
+            ],
+            'Each: every entry is checked' => [
+                new MultiPickupRequestMessage(
+                    pickupDate: $day,
+                    pickupTimeFrom: $day,
+                    pickupTimeTo: $day,
+                    orders: ['1234-5', ''],
+                ),
+                ['orders[1]'],
+            ],
             'NotBlank and NotEmptyList: an availability check names a carrier and a parcel' => [
                 new MultiPickupAvailabilityRequestMessage(courier: '', packs: []),
                 ['courier', 'packs'],
             ],
             'Each: a collective pickup takes order numbers, not waybills' => [
-                new MultiPickupRequestMessage(pickupDate: $day, pickupTimeFrom: $day, pickupTimeTo: $day, orders: ['711400-30', '3301791288655']),
+                new MultiPickupRequestMessage(
+                    pickupDate: $day,
+                    pickupTimeFrom: $day,
+                    pickupTimeTo: $day,
+                    orders: ['711400-30', '3301791288655'],
+                ),
                 ['orders[1]'],
             ],
-            'PostcodeForCountry: falls back to Polish postcodes' => [new FindCityMessage(postcode: '12345', country: ''), ['postcode']],
-            'PostcodeForCountry: another country is not parsed' => [new FindCityMessage(postcode: '12345', country: 'DE'), []],
+            'PostcodeForCountry: falls back to Polish postcodes' => [
+                new FindCityMessage(postcode: '12345', country: ''),
+                ['postcode'],
+            ],
+            'PostcodeForCountry: another country is not parsed' => [
+                new FindCityMessage(postcode: '12345', country: 'DE'),
+                [],
+            ],
         ];
     }
 

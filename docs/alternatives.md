@@ -1,9 +1,6 @@
 Alternatives
 ============
 
-Where the SDK offers several ways to do the same thing, this page lists them and says when to use
-each. Most rows link to the full description.
-
 Building the client
 -------------------
 
@@ -13,9 +10,6 @@ Building the client
 | Facade with substituted collaborators | You need your own HTTP client, serializer or validator | [Architecture](architecture.md#extension-points) |
 | Facade with `services: [Foo::class => $bar]` | One service needs to behave differently | [Architecture](architecture.md#substituting-a-service) |
 | Wiring a service by hand, no facade | A container is doing the wiring | [Architecture](architecture.md#not-using-the-facade-at-all) |
-
-Whichever you choose, type-hint `Api\Service\*Interface` in your own code. Your code should not
-depend on the facade.
 
 Supplying configuration
 -----------------------
@@ -120,8 +114,8 @@ Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessa
 
 | Route | Gives you |
 |-------|-----------|
-| [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received. Use it for a `data:` URI or to pass the file on |
-| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFile.php) and the same on the others | The raw bytes. Use it to write to disk or stream to a browser |
+| [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
+| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFile.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
 
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.

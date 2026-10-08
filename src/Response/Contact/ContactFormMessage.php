@@ -114,7 +114,8 @@ readonly class ContactFormMessage implements MessageInterface
 
     /**
      * Named values the fields' conditions and choices refer to, e.g. the list a drop-down field's
-     * {@see ContactFormFieldMessage::getOptionsSource()} names.
+     * {@see \Polkurier\Webservice\Response\Contact\ContactFormFieldMessage::getOptionsSource()}
+     * names.
      *
      * @return list<ContactFormValueMessage>
      */

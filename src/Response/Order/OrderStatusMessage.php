@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * Current delivery state of one order, with its tracking history.
  *
- * Note: `get_status` returns an API error for a cancelled order instead of a cancelled status, so a
+ * `get_status` returns an API error for a cancelled order instead of a cancelled status, so a
  * successful response always describes a live order.
  *
  * The response uses 3 date formats, and they differ from the ones `get_orders` uses. The status

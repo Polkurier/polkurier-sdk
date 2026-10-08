@@ -17,14 +17,16 @@ use Polkurier\Webservice\Serializer\UnknownEnumValues;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Turns an HTTP response from the API into a {@see ResponseWrapper}.
+ * Turns an HTTP response from the API into a
+ * {@see \Polkurier\Webservice\Http\Response\ResponseWrapper}.
  *
  * Decodes the body, reads the envelope's status, and maps the payload into the type the service
- * asked for, or into an {@see ErrorMessage} for an error. A body that isn't an API envelope, or a
- * payload that doesn't map, throws a {@see \Polkurier\Webservice\Exception\MalformedResponseException}.
+ * asked for, or into an {@see \Polkurier\Webservice\Http\Response\ErrorMessage} for an error. A
+ * body that isn't an API envelope, or a payload that doesn't map, throws a
+ * {@see \Polkurier\Webservice\Exception\MalformedResponseException}.
  *
  * Enum values the SDK doesn't know read as null, or are left out of a list, and are recorded on the
- * wrapper (see {@see ResponseWrapper::getUnknownEnumValues()}).
+ * wrapper (see {@see \Polkurier\Webservice\Http\Response\ResponseWrapper::getUnknownEnumValues()}).
  */
 readonly class ResponseFactory implements ResponseFactoryInterface
 {
@@ -58,8 +60,9 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     public const string FORMAT_STRING_LIST = 'string[]';
 
     /**
-     * Maximum length of the raw body quoted in a MalformedResponseException, so a proxy's HTML
-     * error page doesn't end up in the logs in full.
+     * Maximum length of the raw body quoted in a
+     * {@see \Polkurier\Webservice\Exception\MalformedResponseException}, so a proxy's HTML error
+     * page doesn't end up in the logs in full.
      */
     protected const int EXCERPT_LENGTH = 512;
 

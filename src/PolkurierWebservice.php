@@ -61,8 +61,8 @@ use Psr\Log\NullLogger;
  * Entry point to the Polkurier web API.
  *
  * The SDK is made of small parts: a serializer, request and response factories, an HTTP client
- * factory and one service per API area. You can replace any of them. If you don't need to, this
- * class wires them up for you:
+ * factory and one service per API area. Any of them can be replaced, and this class wires up the
+ * rest:
  *
  * ```php
  * $client = new PolkurierWebservice(new Config(

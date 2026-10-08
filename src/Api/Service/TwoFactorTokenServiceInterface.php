@@ -198,7 +198,7 @@ interface TwoFactorTokenServiceInterface
     /**
      * Switches a pending confirmation to a different delivery channel.
      *
-     * Use this when the customer can't receive the code on the first channel. The token returned by
+     * For a customer who can't receive the code on the first channel. The token returned by
      * registration lists their channels under `available_methods`.
      *
      * Switching resends the code on the new channel, so the same throttle as twoFactorTokenResend()

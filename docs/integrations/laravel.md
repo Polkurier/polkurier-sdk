@@ -158,8 +158,8 @@ final class PolkurierServiceProvider extends ServiceProvider
 Register the provider in `bootstrap/providers.php` (Laravel 11+) or `config/app.php` (Laravel 10).
 
 > `Psr16Adapter` comes from `symfony/cache`. It wraps Laravel's PSR-16 cache in the PSR-6 pool that
-> [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) expects. If you don't want that dependency, pass `metadataCache: null`.
-> Everything still works, just without the metadata cache.
+> [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) expects. Without that dependency, `metadataCache: null` works, just
+> without the metadata cache.
 
 Using it
 --------
@@ -211,8 +211,7 @@ final class Polkurier extends Facade
 Polkurier::orders()->getStatus(new GetStatusMessage(orderNo: 'POL123456789'));
 ```
 
-A facade is convenient but harder to test than constructor injection. It's fine in Artisan
-commands and one-off scripts. In classes with logic you want to test, inject the interface.
+A facade is convenient but harder to test than constructor injection.
 
 Jobs: placing orders off the request
 ------------------------------------
@@ -265,9 +264,9 @@ final class PlaceShipment implements ShouldQueue
 }
 ```
 
-Note the [`Illuminate\Queue\InteractsWithQueue::fail()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Queue/InteractsWithQueue.php) call in place of a rethrow. A rejected payload will be rejected again.
-If you rethrow, the job uses up all its retries and ends up in `failed_jobs`, where it looks like
-an outage.
+The job calls [`Illuminate\Queue\InteractsWithQueue::fail()`](https://github.com/laravel/framework/blob/12.x/src/Illuminate/Queue/InteractsWithQueue.php) in place of a rethrow, because a rejected payload will
+be rejected again. Rethrown, it would use up all its retries and end up in `failed_jobs`, where it
+looks like an outage.
 
 Caching stable reads
 --------------------
@@ -315,7 +314,7 @@ Per-tenant credentials
 Bind [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) to a class that reads the current tenant:
 
 ```php
-$this->app->singleton(ConfigProviderInterface::class, static fn($app) => new class($app) implements ConfigProviderInterface {
+$provider = static fn($app) => new class($app) implements ConfigProviderInterface {
     public function __construct(private readonly $app) {}
 
     public function getConfig(): ConfigInterface
@@ -328,14 +327,16 @@ $this->app->singleton(ConfigProviderInterface::class, static fn($app) => new cla
             platformVersion: config('polkurier.version'),
         );
     }
-});
+};
+
+$this->app->singleton(ConfigProviderInterface::class, $provider);
 ```
 
 > **The provider is asked on every call.** The services can be singletons: each request reads the
 > configuration from [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) again, so a provider that
-> looks up the current tenant each time keeps working. Just don't let the provider cache the first
-> tenant it sees. [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) should be a singleton too, since it is stateless and
-> expensive to build. Under Octane, also reset anything tenant-scoped between requests.
+> looks up the current tenant each time keeps working, as long as it doesn't cache the first tenant
+> it sees. [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) can be a singleton too, since it is stateless and expensive to
+> build. Under Octane, tenant-scoped state outlives the request unless something resets it.
 
 Artisan commands
 ----------------

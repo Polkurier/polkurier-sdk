@@ -65,7 +65,11 @@ readonly class RequestFactory implements RequestFactoryInterface
         AuthorizationMessage|bool|null $authorization = null,
     ): RequestInterface {
         $config = $this->configProvider->getConfig();
-        $requestMessage = new RequestMessage($apiMethod, $this->resolveAuthorization($authorization, $config), $payload);
+        $requestMessage = new RequestMessage(
+            $apiMethod,
+            $this->resolveAuthorization($authorization, $config),
+            $payload,
+        );
 
         try {
             $body = $this->serializer->serialize($requestMessage, Config::SERIALIZATION_FORMAT);
@@ -105,10 +109,11 @@ readonly class RequestFactory implements RequestFactoryInterface
     }
 
     /**
-     * Converts the authorization argument into what RequestMessage accepts.
+     * Converts the authorization argument into what
+     * {@see \Polkurier\Webservice\Http\Request\RequestMessage} accepts.
      *
-     * `null` means "use the configured credentials" and `false` means "send none". RequestMessage
-     * takes no bool, so `false` becomes null here.
+     * `null` means "use the configured credentials" and `false` means "send none". The request
+     * message takes no bool, so `false` becomes null here.
      *
      * @param AuthorizationMessage|bool|null $authorization
      * @param ConfigInterface $config

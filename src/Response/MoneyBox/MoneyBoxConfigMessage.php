@@ -38,7 +38,8 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
     /**
      * @param MoneyBoxPayoutTypeEnum|null $payoutType how payouts are delivered
      * @param MoneyBoxFeePaymentTypeEnum|null $feePayment how the handling fee is settled by default
-     * @param MoneyBoxFeePaymentTypeEnum[] $feePaymentsTypesAvailable fee settlement options this account may choose from
+     * @param MoneyBoxFeePaymentTypeEnum[] $feePaymentsTypesAvailable fee settlement options this account may
+     *        choose from
      * @param string $bankAccountNumber destination account for bank transfers
      * @param string $company postal payout recipient
      * @param string $person postal payout recipient

@@ -33,8 +33,8 @@ interface AccountVerificationServiceInterface
     /**
      * Starts an identity verification and returns the token needed to complete it.
      *
-     * The provider's flow needs the access token, and only this response contains it. Treat it as a
-     * one-time secret: pass it on and don't store it.
+     * The provider's flow needs the access token, and only this response contains it. It is a
+     * one-time secret.
      *
      * You can pass an order number to tie the verification to a shipment. Without one, a general
      * account verification starts.

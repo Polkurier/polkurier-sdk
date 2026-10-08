@@ -42,8 +42,7 @@ interface SystemServiceInterface
      *
      * This covers PIN lengths, the two-factor code length and resend window, attachment size limits,
      * the minimum coupon length, the bank verification transfer amount, and how long a customer has
-     * to accept revised terms. These values can change without an API version bump. Read them at
-     * start-up instead of hard-coding them.
+     * to accept revised terms. These values can change without an API version bump.
      *
      * The response has no account data, so you can cache it and share it across a process.
      *
@@ -146,7 +145,8 @@ interface SystemServiceInterface
      * order you pass. Without an order it is always false, meaning "not checked".
      *
      * Send the carrier, shipment type and parcels together or not at all. With payload validation
-     * on (the default), the SDK throws ValidationException for a partial set before sending the
+     * on (the default), the SDK throws {@see \Polkurier\Webservice\Exception\ValidationException}
+     * for a partial set before sending the
      * request, listing every missing field.
      *
      * Endpoint: `validate_coupon_code`

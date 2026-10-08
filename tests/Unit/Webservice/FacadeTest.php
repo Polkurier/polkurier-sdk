@@ -56,7 +56,8 @@ final class FacadeTest extends TestCase
     {
         $accessors = [];
 
-        foreach ((new \ReflectionClass(PolkurierWebservice::class))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        $methods = (new \ReflectionClass(PolkurierWebservice::class))->getMethods(\ReflectionMethod::IS_PUBLIC);
+        foreach ($methods as $method) {
             $type = $method->getReturnType();
             if (
                 $method->getNumberOfParameters() > 0

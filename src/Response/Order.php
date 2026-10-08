@@ -20,8 +20,9 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * An order as the API reports it, from {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()}
- * or after accepting an individual price.
+ * An order as the API reports it, from
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} or after accepting
+ * an individual price.
  *
  * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} writes it. Parcels, items and files
  * are only filled in when the order list asked for them.
@@ -546,7 +547,8 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * Carrier-specific extra fields, keyed by field name. Not returned by getOrders().
+     * Carrier-specific extra fields, keyed by field name. Not returned by
+     * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()}.
      *
      * @return array<string, scalar>|null
      */
@@ -597,8 +599,8 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * Waybill numbers as a flat list. getWaybills() returns the same numbers as objects and also
-     * marks the primary waybill.
+     * Waybill numbers as a flat list. {@see self::getWaybills()} returns the same numbers as
+     * objects and also marks the primary waybill.
      *
      * @return string[]|null
      */

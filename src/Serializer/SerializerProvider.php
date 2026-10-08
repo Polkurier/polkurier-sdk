@@ -44,7 +44,8 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Building the serializer is slow, so share one instance across the factories.
  * {@see \Polkurier\Webservice\PolkurierWebservice} does this. Metadata caching, JSON flags, the
  * timezone for dates and whether unknown response fields are an error are set through
- * {@see SerializerConfigInterface}. Everything else is fixed by the API.
+ * {@see \Polkurier\Webservice\Serializer\SerializerConfigInterface}. Everything else is fixed by
+ * the API.
  */
 readonly class SerializerProvider implements SerializerProviderInterface
 {

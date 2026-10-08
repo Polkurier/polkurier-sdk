@@ -8,7 +8,7 @@ ServiceManager can cache them, and they are easier to test than closures.
 Configuration
 -------------
 
-In Mezzio, put the non-secret settings in `config/autoload/polkurier.global.php` and the
+In Mezzio, the non-secret settings go in `config/autoload/polkurier.global.php` and the
 credentials in `polkurier.local.php`, which is git-ignored.
 
 ```php
@@ -162,7 +162,7 @@ final class ServiceMap
 Dependency configuration
 ------------------------
 
-In Mezzio this goes in `config/autoload/dependencies.global.php`. In Laminas MVC, use the
+In Mezzio this goes in `config/autoload/dependencies.global.php`. In Laminas MVC, it goes under the
 `service_manager` key of `module.config.php`.
 
 ```php
@@ -193,7 +193,9 @@ return [
             SerializerProviderInterface::class => SerializerProviderFactory::class,
 
             ConfigProviderInterface::class => static fn($c) => new ConfigProvider($c->get(ConfigInterface::class)),
-            ClientFactoryInterface::class  => static fn($c) => new ClientFactory($c->get(ConfigProviderInterface::class)),
+            ClientFactoryInterface::class  => static fn($c) => new ClientFactory(
+                $c->get(ConfigProviderInterface::class),
+            ),
             RequestFactoryInterface::class => static fn($c) => new RequestFactory(
                 $c->get(SerializerProviderInterface::class),
                 $c->get(ConfigProviderInterface::class),
@@ -241,12 +243,12 @@ final readonly class TrackHandler implements RequestHandlerInterface
 }
 ```
 
-For its factory, use a one-line [`Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory`](https://docs.laminas.dev/laminas-servicemanager/v4/config-abstract-factory/) entry or write a small class.
+Its factory can be a one-line [`Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory`](https://docs.laminas.dev/laminas-servicemanager/v4/config-abstract-factory/) entry or a small class.
 
 Error handling middleware
 -------------------------
 
-In Mezzio, convert SDK exceptions into responses in the middleware pipeline:
+In Mezzio, the middleware pipeline can convert SDK exceptions into responses:
 
 ```php
 namespace App\Middleware;
@@ -283,8 +285,8 @@ final class PolkurierErrorMiddleware implements MiddlewareInterface
 }
 ```
 
-Pipe it only in front of the routes that call the SDK. A 502 makes sense for a shipping endpoint,
-but you don't want it on every other route.
+It is piped only in front of the routes that call the SDK. A 502 suits a shipping endpoint, not
+every other route.
 
 Laminas MVC specifics
 ---------------------
@@ -299,8 +301,8 @@ return [
 ];
 ```
 
-Controllers get their dependencies through `controllers.factories`. To add behaviour around a
-service (e.g. logging or timing every call) without wrapping it by hand, use a delegator:
+Controllers get their dependencies through `controllers.factories`. A delegator adds behaviour
+around a service (e.g. logging or timing every call) without wrapping it by hand:
 
 ```php
 'delegators' => [
@@ -353,5 +355,5 @@ Override one entry in the test container:
 $container->setService(ClientFactoryInterface::class, new RecordingClient($cannedBody));
 ```
 
-ServiceManager allows overrides by default, so this works on the existing container. If yours
-doesn't, build a second container from the same config with that one key replaced.
+ServiceManager allows overrides by default, so this works on the existing container. Where it
+doesn't, a second container built from the same config with that one key replaced does the same.

@@ -12,14 +12,14 @@ use Polkurier\Webservice\Api\MessageInterface;
 /**
  * Builds the validator the SDK checks payloads with by default.
  *
- * The registry has a single entry, the {@see AttributeValidator}, because each message declares
- * its own rules. It runs the field rules, the class-level rules, and any validator the message
- * names with {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy}. Those validators hold the
- * logic that doesn't fit an attribute, e.g. an address that needs an email because it is the
- * sender, or an amount that is required because the payment is a top-up.
+ * The registry has a single entry, the {@see \Polkurier\Webservice\Validator\AttributeValidator},
+ * because each message declares its own rules. It runs the field rules, the class-level rules, and
+ * any validator the message names with {@see \Polkurier\Webservice\Validator\Rule\ValidatedBy}.
+ * Those validators hold the logic that doesn't fit an attribute, e.g. an address that needs an
+ * email because it is the sender, or an amount that is required because the payment is a top-up.
  *
- * The rules should never reject a payload the API would accept. They follow what the API is
- * documented to require, plus a few checks for payloads that are well-formed but can't do what
+ * The rules follow what the API is documented to require, so a payload the API would accept
+ * passes. On top of that come a few checks for payloads that are well-formed but can't do what
  * the caller meant: a date range that runs backwards and so matches nothing, a page size above
  * the documented maximum, a malformed order number in a batch.
  *

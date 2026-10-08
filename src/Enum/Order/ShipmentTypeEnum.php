@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * The broad shape of a shipment, sent as `shipmenttype` when pricing or placing an order.
  *
- * {@see PackTypeEnum} describes a single parcel. An order has one shipment type and one pack type
- * entry per parcel.
+ * {@see \Polkurier\Webservice\Enum\Order\PackTypeEnum} describes a single parcel. An order has one
+ * shipment type and one pack type entry per parcel.
  */
 enum ShipmentTypeEnum: string
 {

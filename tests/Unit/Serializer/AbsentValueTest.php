@@ -22,9 +22,9 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
  *
  * Neither is null. A block that does not apply is an empty array — an order without cash on
  * delivery carries `"COD": []` — and a date it does not have is an empty string, which is what
- * `delivered_date` holds while a parcel is in transit. Both were found by mapping real orders:
- * the first refused to construct, the second failed inside the date normalizer with a message
- * about parse formats that named neither the field nor the reason.
+ * `delivered_date` holds while a parcel is in transit. Unhandled, the first refuses to construct,
+ * and the second fails inside the date normalizer with a message about parse formats that names
+ * neither the field nor the reason.
  */
 #[CoversClass(OmitEmptyNormalizer::class)]
 #[CoversClass(AbsentDateNormalizer::class)]
@@ -97,8 +97,8 @@ final class AbsentValueTest extends TestCase
     }
 
     /**
-     * The address shape the order list carries. Populated, because an empty one would now be
-     * read as absent — which is the behaviour under test, not the fixture's job to exercise.
+     * The address shape the order list carries. Populated, because an empty one is read as absent,
+     * which is the behaviour under test, not the fixture's job to exercise.
      *
      * @return array<string, string>
      */

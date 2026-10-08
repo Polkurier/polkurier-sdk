@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * How quickly collected cash-on-delivery funds are paid out.
  *
- * Faster payout costs more. The options an account can use depend on its agreement, so check
- * `available_carriers` instead of assuming all 4 are available.
+ * Faster payout costs more. The options an account can use depend on its agreement, and
+ * `available_carriers` lists them.
  */
 enum CodTypeEnum: string
 {

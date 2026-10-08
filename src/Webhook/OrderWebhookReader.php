@@ -78,7 +78,9 @@ class OrderWebhookReader
     public function read(string $body): OrderWebhookMessage
     {
         $fields = $this->decode($body);
-        if (!isset($fields[OrderWebhookMessage::FIELD_TYPE]) || !\is_array($fields[OrderWebhookMessage::FIELD_DATA] ?? null)) {
+        if (!isset($fields[OrderWebhookMessage::FIELD_TYPE])
+            || !\is_array($fields[OrderWebhookMessage::FIELD_DATA] ?? null)
+        ) {
             throw new InvalidArgumentException('The body is not a Polkurier order event: it has no type or no order.');
         }
 
@@ -97,7 +99,11 @@ class OrderWebhookReader
                 ],
             );
         } catch (ExceptionInterface $e) {
-            throw new InvalidArgumentException('The order in the Polkurier order event could not be read: ' . $e->getMessage(), 0, $e);
+            throw new InvalidArgumentException(
+                'The order in the Polkurier order event could not be read: ' . $e->getMessage(),
+                0,
+                $e,
+            );
         }
 
         if (!$message instanceof OrderWebhookMessage) {

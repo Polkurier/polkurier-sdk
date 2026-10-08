@@ -150,8 +150,8 @@ interface InvoicesServiceInterface
     /**
      * Downloads the itemised summary behind one invoice.
      *
-     * This is the breakdown of the shipments an invoice covers. Use it to reconcile a monthly
-     * invoice against individual orders.
+     * This is the breakdown of the shipments an invoice covers, for reconciling a monthly invoice
+     * against individual orders.
      *
      * Pass the invoice number, as for getInvoicePdf(), and the format: PDF to read or print, CSV to
      * import. The format is required and goes out in capitals. The SDK sends PDF unless you choose
@@ -184,7 +184,6 @@ interface InvoicesServiceInterface
      * there is no invoice number in the response:
      * ```json
      * {"status": "success", "response": {"filename": "…", "type": "text/csv", "file": "…"}}
-     * }
      * ```
      *
      * Common errors:

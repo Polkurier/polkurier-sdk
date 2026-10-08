@@ -13,7 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A knowledge base article with its body and attachments.
  *
- * The content is an HTML fragment in Polish. Embed it in a page instead of showing it as text.
+ * The content is an HTML fragment in Polish, meant to be embedded in a page rather than shown as
+ * text.
  */
 readonly class KnowledgeBaseArticleMessage implements MessageInterface
 {

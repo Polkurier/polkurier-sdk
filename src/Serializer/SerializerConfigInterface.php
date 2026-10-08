@@ -17,8 +17,9 @@ use Psr\Cache\CacheItemPoolInterface;
  * depend on your application, and that often differ between a long-running worker and a CLI
  * script, or between CI and production.
  *
- * Implement it, or construct {@see SerializerConfig} with the arguments you want, and pass the
- * result to {@see SerializerProvider}.
+ * Implement it, or construct {@see \Polkurier\Webservice\Serializer\SerializerConfig} with the
+ * arguments you want, and pass the result to
+ * {@see \Polkurier\Webservice\Serializer\SerializerProvider}.
  */
 interface SerializerConfigInterface
 {
@@ -41,10 +42,10 @@ interface SerializerConfigInterface
      * as it is instead of becoming `Pozna\u0144`. That is shorter and readable in a log. Both forms
      * are valid JSON and the API accepts either.
      *
-     * Add `JSON_PRETTY_PRINT` while debugging. Add flags to
-     * {@see SerializerConfig::DEFAULT_JSON_OPTIONS} instead of replacing it. It includes
-     * `JSON_PRESERVE_ZERO_FRACTION`, without which an amount of 250.0 is written as `250`. Don't
-     * add `JSON_NUMERIC_CHECK`, which would turn a postcode into a number.
+     * `JSON_PRETTY_PRINT` helps while debugging. The value replaces
+     * {@see \Polkurier\Webservice\Serializer\SerializerConfig::DEFAULT_JSON_OPTIONS}, which
+     * includes `JSON_PRESERVE_ZERO_FRACTION`, without which an amount of 250.0 is written as `250`.
+     * `JSON_NUMERIC_CHECK` would turn a postcode into a number.
      *
      * @return int
      */
@@ -63,8 +64,8 @@ interface SerializerConfigInterface
     /**
      * Whether an unknown field in the response is an error.
      *
-     * Off by default. Keep it off in production: the API can add fields at any time, and a new
-     * field shouldn't break a working integration.
+     * Off by default, because the API can add fields at any time, and a new field would otherwise
+     * break a working integration.
      *
      * Turn it on in CI against a staging API to find out when the response gets a new field, so
      * the SDK can be updated.

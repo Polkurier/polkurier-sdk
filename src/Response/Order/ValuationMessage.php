@@ -14,12 +14,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * One carrier's price for an order, as quoted before placing it.
  *
  * The net and gross prices are the totals the order would be charged, with the promotion and the
- * rebate already taken off. The promotion and rebate amounts only say how much that saved, so
- * don't subtract them again.
+ * rebate already taken off. The promotion and rebate amounts only say how much that saved.
  *
- * Check {@see self::isShipment()} before using a price: a carrier that can't carry the shipment
- * is quoted at 0. A conditional price of 0 likewise means no conditional offer applies, not that
- * the order is free.
+ * A price means something only when {@see self::isShipment()} is true: a carrier that can't carry
+ * the shipment is quoted at 0. A conditional price of 0 likewise means no conditional offer
+ * applies, not that the order is free.
  */
 readonly class ValuationMessage implements MessageInterface
 {

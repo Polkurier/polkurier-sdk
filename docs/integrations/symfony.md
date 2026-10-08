@@ -1,7 +1,7 @@
 Symfony
 =======
 
-For Symfony 6.4 and 7.x. There's no bundle to install: everything below is ordinary service
+For Symfony 6.4, 7.4 and 8.x. There's no bundle to install: everything below is ordinary service
 configuration.
 
 Configuration
@@ -14,8 +14,6 @@ POLKURIER_LOGIN=12345
 POLKURIER_TOKEN=
 POLKURIER_SANDBOX=1
 ```
-
-Put the real token in `.env.local` or your secrets vault. Don't commit it to `.env`.
 
 ```bash
 php bin/console secrets:set POLKURIER_TOKEN
@@ -100,8 +98,8 @@ framework:
                 default_lifetime: 0
 ```
 
-The metadata is cached per class and the key doesn't include a version, so clear the pool when you
-deploy:
+The metadata is cached per class and the key doesn't include a version, so a deploy clears the
+pool:
 
 ```bash
 php bin/console cache:pool:clear cache.polkurier
@@ -120,9 +118,9 @@ monolog:
             channels: ['polkurier']
 ```
 
-> Leave this handler at `error` unless the log goes somewhere safe. If you set `methodsToLog` on
-> [`Config`](../../src/Config.php), full request and response bodies are logged. Secrets and personal data in them are
-> hidden unless you allow them, but exceptions in the context hold the full request.
+> With `methodsToLog` set on [`Config`](../../src/Config.php), full request and response bodies are logged. Secrets and
+> personal data in them are hidden unless allowed, but exceptions in the context hold the full
+> request.
 
 Autowiring
 ----------
@@ -147,13 +145,11 @@ final readonly class ShipmentDispatcher
 }
 ```
 
-Aim for this: each class depends on one interface and doesn't know the facade exists.
-
 Using the facade
 ----------------
 
-If you prefer one service to 16, register [`PolkurierWebservice`](../../src/PolkurierWebservice.php) and leave out the per-service
-aliases:
+For one service instead of 16, [`PolkurierWebservice`](../../src/PolkurierWebservice.php) is registered and the per-service
+aliases are left out:
 
 ```yaml
     Polkurier\Webservice\PolkurierWebservice:
@@ -163,8 +159,7 @@ aliases:
             $serializerProvider: '@Polkurier\Webservice\Serializer\SerializerProviderInterface'
 ```
 
-Its other dependencies are optional and it builds them itself. The facade makes sense for an
-application that uses most of the API. For a module that only places orders, inject the interface.
+Its other dependencies are optional and it builds them itself.
 
 Moving the wiring into a bundle
 -------------------------------
@@ -237,7 +232,7 @@ final readonly class TenantConfigProvider implements ConfigProviderInterface
 The SDK asks the provider for its configuration on every call (see
 [Configuration](../configuration.md#per-tenant-credentials)), so this works for as long as
 `TenantContext` knows the current tenant. In a Messenger handler there is no current request, so
-it usually doesn't. Build the client for each message instead, from the tenant the message
+it usually doesn't. The client is then built for each message, from the tenant the message
 carries:
 
 ```php
@@ -320,15 +315,15 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-Two things to note. [`Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Messenger/Exception/UnrecoverableMessageHandlingException.php) stops Messenger from retrying a payload
+[`Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Messenger/Exception/UnrecoverableMessageHandlingException.php) stops Messenger from retrying a payload
 that will never be accepted. Without it, a bad postcode uses up 3 retries and ends up in the
-failure transport, where it looks like an outage. Second, the guard at the top of `PlaceShipmentHandler::__invoke()`
-makes it safe to retry after a [`ConnectionException`](../../src/Exception/ConnectionException.php). There's no idempotency key, so your own
-record of the placed order is the only protection. For a stricter version, place the order with
-your own external ids and look it up by them with `get_orders` (see
+failure transport, where it looks like an outage. The guard at the top of
+`PlaceShipmentHandler::__invoke()` makes it safe to retry after a [`ConnectionException`](../../src/Exception/ConnectionException.php). There's no idempotency key, so your own
+record of the placed order is the only protection. A stricter version places the order with your
+own external ids and looks it up by them with `get_orders` (see
 [Errors](../errors.md#retrying-safely)).
 
-Set the retry policy to match:
+A retry policy to match:
 
 ```yaml
 framework:
@@ -400,8 +395,8 @@ the token is valid.
 Validation errors in a form
 ---------------------------
 
-[`ValidationException`](../../src/Exception/ValidationException.php) uses the wire field names, which won't match the fields in your form. Map
-them in one place:
+[`ValidationException`](../../src/Exception/ValidationException.php) uses the wire field names, which won't match the fields in your form. One
+function can map them:
 
 ```php
 use Polkurier\Webservice\Exception\ValidationException;

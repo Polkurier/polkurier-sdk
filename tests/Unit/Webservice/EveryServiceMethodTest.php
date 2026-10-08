@@ -37,7 +37,8 @@ final class EveryServiceMethodTest extends TestCase
     public static function serviceMethods(): array
     {
         $accessors = [];
-        foreach ((new \ReflectionClass(PolkurierWebservice::class))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        $methods = (new \ReflectionClass(PolkurierWebservice::class))->getMethods(\ReflectionMethod::IS_PUBLIC);
+        foreach ($methods as $method) {
             $type = $method->getReturnType();
             if ($type instanceof \ReflectionNamedType && \str_ends_with($type->getName(), 'ServiceInterface')) {
                 $accessors[$type->getName()] = $method->getName();
@@ -123,7 +124,8 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
     {
         return match (true) {
             $format === '' || $format === ResponseFactory::FORMAT_BOOLEAN => true,
-            $format === ResponseFactory::FORMAT_RAW_ARRAY, $format === ResponseFactory::FORMAT_STRING_LIST => ['a' => 'b'],
+            $format === ResponseFactory::FORMAT_RAW_ARRAY,
+            $format === ResponseFactory::FORMAT_STRING_LIST => ['a' => 'b'],
             \str_ends_with($format, '[]') => [self::payload(\substr($format, 0, -2))],
             default => self::normalized($format),
         };

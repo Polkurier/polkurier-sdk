@@ -5,8 +5,8 @@ HTTP status is always 200
 -------------------------
 
 **The API answers HTTP 200 for everything.** A bad token, a rejected payload and a nonexistent
-order all come back as 200. Don't branch on the transport status. The SDK doesn't, and your code
-shouldn't either.
+order all come back as 200. The transport status says nothing about the outcome, and the SDK
+doesn't look at it.
 
 The actual outcome is in the envelope's `status` field. The SDK reads it and throws an exception
 for each failure case. A method that returns an [`Order`](../src/Response/Order.php) either returns one or throws.
@@ -35,8 +35,9 @@ Catch [`Exception`](../src/Exception/Exception.php) to handle any SDK failure in
 | [`AuthorizationException`](../src/Exception/AuthorizationException.php) | Credentials missing, wrong, or inactive | Yes | No |
 | [`WebserviceException`](../src/Exception/WebserviceException.php) | Any other error the API reported | Yes | Depends on the error |
 
-Put the subclasses first in your catch blocks: [`AuthorizationException`](../src/Exception/AuthorizationException.php) before
-[`WebserviceException`](../src/Exception/WebserviceException.php), and [`ValidationException`](../src/Exception/ValidationException.php) before [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php).
+PHP uses the first catch block that matches, so a subclass gets its own handling only when its block
+comes first: [`AuthorizationException`](../src/Exception/AuthorizationException.php) before [`WebserviceException`](../src/Exception/WebserviceException.php), and [`ValidationException`](../src/Exception/ValidationException.php) before
+[`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php).
 
 ```php
 use Polkurier\Webservice\Exception\AuthorizationException;
@@ -144,9 +145,8 @@ $error->getErrorCode();         // ?string
 $error->getValidationErrors();  // ?array<string, string[]>
 ```
 
-> **Both codes are nullable, so treat them that way.** Either one can be missing from an error
-> response. Calling a method on the result of [`ErrorMessage::getStatusCode()`](../src/Http/Response/ErrorMessage.php) without a null check is a
-> fatal error. Check for null, or use `?->`.
+> **Both codes are nullable.** Either one can be missing from an error response. Calling a method on
+> the result of [`ErrorMessage::getStatusCode()`](../src/Http/Response/ErrorMessage.php) without a null check is a fatal error.
 
 [`ErrorMessage::getValidationErrors()`](../src/Http/Response/ErrorMessage.php) is only set when the API rejects a payload during validation. The main
 message only names the first failing field, but this array has every failure. It uses the same
@@ -168,8 +168,8 @@ function fieldErrors(\Throwable $e): array
 [`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) holds the 44 conditions the API is known to report. Each case's
 value is the `error_code` string, [`ApiErrorCodeEnum::statusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) gives the numeric `status_code`,
 and [`ApiErrorCodeEnum::fromStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. A few status codes stand for more
-than one condition (the two-factor 506006, for one), and those map back to null, so prefer the
-`error_code`. Compare against the enum instead of literals:
+than one condition (the two-factor 506006, for one), and those map back to null, so the
+`error_code` is the more precise of the two. Compared against the enum:
 
 ```php
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
@@ -198,8 +198,8 @@ AuthorizationException::isAuthorizationErrorStatus($status);
 AuthorizationException::isAuthorizationErrorCode($code);
 ```
 
-Retrying won't help until the credentials change. Treat it as a configuration problem that needs
-an alert, not as a transient fault.
+Retrying won't help until the credentials change. It is a configuration problem, not a transient
+fault.
 
 ---
 
@@ -208,20 +208,23 @@ Retrying safely
 
 Which failures to retry:
 
-| Exception | Retry |
-|-----------|-------|
-| [`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) | No. The payload is wrong. |
-| [`AuthorizationException`](../src/Exception/AuthorizationException.php) | No. Raise an alert instead. |
-| [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) | Rarely. Maybe after a proxy glitch, never for an unexpected payload. |
-| [`ConnectionException`](../src/Exception/ConnectionException.php) | **Only for reads, unless you can check first.** |
-| [`WebserviceException`](../src/Exception/WebserviceException.php) | Depends on the error code. |
+```
+ValidationException, InvalidArgumentException ... no: the payload is wrong
+AuthorizationException .......................... no: raise an alert instead
+MalformedResponseException ...................... rarely: maybe after a proxy glitch, never for
+                                                  an unexpected payload
+WebserviceException ............................. depends on the error code
+ConnectionException
+├── on a read ................................... yes
+└── on a write .................................. only after checking it didn't go through
+```
 
-The risky case is a [`ConnectionException`](../src/Exception/ConnectionException.php) on a write. You can retry reads freely. A write such as
+The risky case is a [`ConnectionException`](../src/Exception/ConnectionException.php) on a write. A write such as
 [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php), [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) or [`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) without an id may already have gone through,
 and the SDK can't tell you whether it did.
 
-**There is no idempotency key.** A blind retry can create a second shipment. Reconcile before
-retrying instead: look for the order you tried to place, and only send it again if it isn't there.
+**There is no idempotency key.** A blind retry can create a second shipment. A safe retry first
+looks for the order it tried to place, and sends it again only if it isn't there.
 
 The reliable way is to give the order your own identifiers when you place it.
 [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) takes `externalApplicationId` (your application's UUID) and `externalOrderId`
@@ -260,12 +263,12 @@ $recent = $client->orders()->getOrders(new GetOrdersMessage(
 $match = $this->findMatchingOrder($recent->getResult(), $order);   // your comparison
 ```
 
-You have to write the comparison yourself, since only you know what makes two of your orders the
-same. Usually that's the recipient, weight and value. Keep it strict. A false match means a
-shipment is never sent. A missed match means a duplicate, which at least you'll notice.
+The comparison is your own, since only you know what makes two of your orders the same. Usually
+that's the recipient, weight and value. A false match means a shipment is never sent. A missed
+match means a duplicate, which at least shows.
 
-Payouts have nothing similar. Check [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) before retrying, and preferably
-have a person make the call.
+Payouts have nothing similar. Only [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) shows whether a payout went
+through.
 
 Logging a failure
 -----------------
@@ -276,9 +279,9 @@ as the API token, personal data and file contents are left out unless you turn t
 [Configuration: logging](configuration.md#logging) and [secrets, personal data and files](configuration.md#secrets-personal-data-and-files).
 
 If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
-whose body contains the API token. Log [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) instead, unless you need the
-payload. If you do, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives you a copy with the secrets hidden, and
-[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Apply both to hide both:
+whose body contains the API token. [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) has the error without the request.
+For the payload, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives a copy with the secrets hidden, and
+[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Both together hide both:
 
 ```php
 use Polkurier\Webservice\Log\PersonalDataRedactor;
@@ -298,21 +301,21 @@ use Polkurier\Webservice\Exception as Polkurier;
 try {
     $created = $client->orders()->createOrder($order);
 } catch (Polkurier\ValidationException $e) {
-    // Rejected locally. Show the field errors to whoever filled in the form.
+    // Rejected locally, with nothing sent. The field errors are keyed by wire name.
     return $this->rejectWithFieldErrors($e->getValidationErrors());
 } catch (Polkurier\AuthorizationException $e) {
-    // Configuration problem. Alert someone, don't retry.
+    // A configuration problem. Retrying won't help until the credentials change.
     $this->alerts->credentialsRejected($e->getErrorMessage()->getResponse());
     throw $e;
 } catch (Polkurier\WebserviceException $e) {
     $error = $e->getErrorMessage();
 
-    // Rejected by the API. Use the field errors if it was a validation failure.
+    // Rejected by the API. A validation failure also has field errors.
     return $this->rejectWithFieldErrors(
         $error->getValidationErrors() ?? ['_' => [$error->getResponse()]],
     );
 } catch (Polkurier\ConnectionException $e) {
-    // Unknown outcome. Reconcile later instead of guessing.
+    // Unknown outcome: the order may or may not have been placed.
     $this->queue->reconcileLater($myOrderId);
     throw $e;
 } catch (Polkurier\MalformedResponseException $e) {

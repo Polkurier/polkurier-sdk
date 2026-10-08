@@ -43,7 +43,10 @@ final class ResponseShapeTest extends TestCase
      */
     public static function shapes(): array
     {
-        $without = static fn(string ...$keys) => static fn(array $data): array => \array_diff_key($data, \array_flip($keys));
+        $without = static fn(string ...$keys) => static fn(array $data): array => \array_diff_key(
+            $data,
+            \array_flip($keys),
+        );
         $with = static fn(array $values) => static fn(array $data): array => $values + $data;
         $inList = static fn(\Closure $change) => static fn(array $data): array => [$change($data)];
 
@@ -62,7 +65,9 @@ final class ResponseShapeTest extends TestCase
             ],
             'a carrier without a points map' => [
                 Carrier::class . '[]',
-                $inList(static fn(array $c): array => ['additional_data' => \array_diff_key((array)$c['additional_data'], ['points_map' => 0])] + $c),
+                $inList(static fn(array $c): array => [
+                    'additional_data' => \array_diff_key((array)$c['additional_data'], ['points_map' => 0]),
+                ] + $c),
             ],
             'a ticket list without a page count' => [
                 TicketListMessage::class,
@@ -94,7 +99,9 @@ final class ResponseShapeTest extends TestCase
             ],
             'a scan event with no location or description' => [
                 OrderStatusMessage::class,
-                static fn(array $s): array => ['tracking' => [['location' => null, 'description' => null] + (array)$s['tracking'][0]]] + $s,
+                static fn(array $s): array => [
+                    'tracking' => [['location' => null, 'description' => null] + (array)$s['tracking'][0]],
+                ] + $s,
             ],
             'a pickup time dated without a time' => [
                 PickupTimeMessage::class . '[]',
@@ -106,11 +113,16 @@ final class ResponseShapeTest extends TestCase
             ],
             'a carrier notice of the message kind' => [
                 CourierMessage::class . '[]',
-                $inList(static fn(array $m): array => ['type' => 'MESSAGE'] + \array_diff_key($m, ['hide_timeout' => 0])),
+                $inList(
+                    static fn(array $m): array => ['type' => 'MESSAGE'] + \array_diff_key($m, ['hide_timeout' => 0]),
+                ),
             ],
             'a carrier notice of the alert kind' => [
                 CourierMessage::class . '[]',
-                $inList(static fn(array $m): array => ['type' => 'ALERT'] + \array_diff_key($m, ['title' => 0, 'priority' => 0])),
+                $inList(static fn(array $m): array => ['type' => 'ALERT'] + \array_diff_key($m, [
+                    'title' => 0,
+                    'priority' => 0,
+                ])),
             ],
             'account balances as whole numbers' => [
                 AccountInfoMessage::class,
@@ -122,7 +134,11 @@ final class ResponseShapeTest extends TestCase
             ],
             'an account without an invoice limit or payment account' => [
                 AccountInfoMessage::class,
-                $with(['invoice_limit' => null, 'invoice_limit_used' => null, 'invoice_payment_account_number' => null]),
+                $with([
+                    'invoice_limit' => null,
+                    'invoice_limit_used' => null,
+                    'invoice_payment_account_number' => null,
+                ]),
             ],
             'account settings and PIN locks the SDK doesn\'t know' => [
                 AccountInfoMessage::class,
@@ -133,7 +149,11 @@ final class ResponseShapeTest extends TestCase
             ],
             'a money box with no payout or fee type and an empty fee option' => [
                 MoneyBoxConfigMessage::class,
-                $with(['payout_type' => null, 'fee_payment' => null, 'fee_payments_types_available' => ['INVOICE', '']]),
+                $with([
+                    'payout_type' => null,
+                    'fee_payment' => null,
+                    'fee_payments_types_available' => ['INVOICE', ''],
+                ]),
             ],
         ];
     }
@@ -170,7 +190,13 @@ final class ResponseShapeTest extends TestCase
     {
         $body = \json_encode([
             'status' => 'success',
-            'response' => ['totalrows' => null, 'currentpage' => null, 'pagesize' => null, 'totalpages' => null, 'result' => []],
+            'response' => [
+                'totalrows' => null,
+                'currentpage' => null,
+                'pagesize' => null,
+                'totalpages' => null,
+                'result' => [],
+            ],
         ], \JSON_THROW_ON_ERROR);
 
         $list = (new ResponseFactory(new SerializerProvider()))
@@ -207,7 +233,10 @@ final class ResponseShapeTest extends TestCase
         $wire = $serializer->normalize(Sample::of($class), 'json');
         self::assertIsArray($wire);
 
-        $body = \json_encode(['status' => 'success', 'response' => $change($wire)], \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION);
+        $body = \json_encode(
+            ['status' => 'success', 'response' => $change($wire)],
+            \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION,
+        );
         $result = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $format)
             ->getParsedResponse()

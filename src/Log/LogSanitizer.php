@@ -90,8 +90,11 @@ class LogSanitizer
      *
      * @return T
      */
-    public function message(MessageInterface $message, ConfigInterface $config, ApiMethodInterface $apiMethod): MessageInterface
-    {
+    public function message(
+        MessageInterface $message,
+        ConfigInterface $config,
+        ApiMethodInterface $apiMethod,
+    ): MessageInterface {
         /** @var T */
         return $message->withBody(Utils::streamFor($this->body($message, $config, $apiMethod)));
     }
@@ -125,7 +128,12 @@ class LogSanitizer
             return $body;
         }
 
-        $data = $this->files->process($data, $config->isFileLoggingEnabled(), $config->getLogFilesDirectory(), $apiMethod);
+        $data = $this->files->process(
+            $data,
+            $config->isFileLoggingEnabled(),
+            $config->getLogFilesDirectory(),
+            $apiMethod,
+        );
         if (!$config->isSensitiveDataLoggingEnabled()) {
             $data = $this->sensitiveData->redact($data, $apiMethod);
         }

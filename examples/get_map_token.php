@@ -7,7 +7,7 @@
  * get_map_token — get a short-lived token for the pickup-point map.
  *
  * The map widget authenticates with its own token rather than with the API token, so that the API
- * token never reaches the browser. Fetch one per page load and hand it to the widget.
+ * token never reaches the browser. The token is short-lived and goes to the widget.
  */
 declare(strict_types=1);
 

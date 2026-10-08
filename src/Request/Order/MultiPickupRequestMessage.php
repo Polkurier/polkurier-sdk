@@ -18,7 +18,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  * All 3 scheduling fields are required. (For a per-order pickup it depends on the carrier.) The API
  * rejects a missing or unparseable date or time.
  *
- * Only orders placed for a collective pickup can join, see {@see PickupMessage::$multiPickup}.
+ * Only orders placed for a collective pickup can join, see
+ * {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup}.
  */
 #[Validate\InOrder(
     earlier: 'pickupTimeFrom',

@@ -103,10 +103,11 @@ interface TicketsServiceInterface
      * rejected.
      *
      * Attachments go inline as a list of files, each with its name, media type and base64 contents.
-     * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API accepts.
+     * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API
+     * accepts.
      *
-     * `origin` says which channel opened the ticket and defaults to API. A mobile client should send
-     * its own origin.
+     * `origin` says which channel opened the ticket and defaults to API. A mobile client sends its
+     * own origin.
      *
      * Endpoint: `create_ticket`
      *
@@ -509,8 +510,7 @@ interface TicketsServiceInterface
     /**
      * Submits a completed contact form.
      *
-     * Take the form id and nonce from the getContactForm() response. Fetch the form just before
-     * submitting. Don't cache it.
+     * The form id and nonce come from the getContactForm() response, and change on every fetch.
      *
      * Endpoint: `save_contact_form`
      *

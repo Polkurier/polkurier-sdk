@@ -36,8 +36,8 @@ interface UtilsServiceInterface
     /**
      * Confirms the API is reachable and reports its clock.
      *
-     * It needs no credentials. Use it to check connectivity, or to test a
-     * configured API URL before you have credentials. The SDK leaves out the authorization block
+     * It needs no credentials, so it checks connectivity, or a configured API URL before there are
+     * credentials. The SDK leaves out the authorization block
      * entirely.
      *
      * The returned time is the server's. Compare it with your own clock to catch clock skew, which
@@ -74,11 +74,11 @@ interface UtilsServiceInterface
     /**
      * Verifies a set of credentials without doing anything else.
      *
-     * Takes the credentials as an argument instead of using the configured ones. You can use it to
-     * check a token a customer has just pasted in, before you store it.
+     * Takes the credentials as an argument instead of using the configured ones, e.g. to check a token
+     * a customer has just pasted in, before it is stored.
      *
-     * Bad credentials throw an AuthorizationException. The `authorization` flag in a successful
-     * response is therefore always true.
+     * Bad credentials throw an {@see \Polkurier\Webservice\Exception\AuthorizationException}. The
+     * `authorization` flag in a successful response is therefore always true.
      *
      * Endpoint: `test_auth_api`
      *

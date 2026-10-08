@@ -8,7 +8,7 @@ PHP 8.3, 8.4 or 8.5. The SDK uses readonly classes, backed enums, attributes, na
 typed class constants, and there is no polyfill for older versions.
 
 Composer installs the dependencies: Guzzle for HTTP, `symfony/serializer` with `property-info` and
-`property-access` for mapping, `psr/cache` for the optional metadata cache, and the PSR interfaces
+`property-access` for mapping (Symfony 6.4, 7.4 or 8.x), `psr/cache` for the optional metadata cache, and the PSR interfaces
 for HTTP clients, HTTP messages and logging. Any PSR-3 logger works.
 
 Installation
@@ -26,9 +26,8 @@ You need two values from the customer panel at <https://www.polkurier.pl>:
 - `login`: your numeric customer id (not your email address).
 - `token`: generate one under *Settings > API token*.
 
-Both go into an [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php), which is included in every authenticated request. Don't
-commit them to version control. The SDK hides the token in its logs unless you allow it, see
-[Configuration](configuration.md#logging).
+Both go into an [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php), which is included in every authenticated request. The SDK
+hides the token in its logs unless you allow it, see [Configuration](configuration.md#logging).
 
 Your first call
 ---------------
@@ -56,8 +55,7 @@ foreach ($client->courier()->availableCarriers() as $carrier) {
 }
 ```
 
-`platform` and `platformVersion` identify your integration, e.g. when you contact support. Use a
-stable name that support will recognise.
+`platform` and `platformVersion` identify your integration, e.g. when you contact support.
 
 Checking the connection
 -----------------------
@@ -75,8 +73,6 @@ $client->utils()->testAuthApi($auth); // are these credentials good?
 Making a call
 -------------
 
-Every call follows the same steps.
-
 **1. Pick a service.** There is one accessor per functional area:
 
 ```php
@@ -86,7 +82,7 @@ $client->addresses()
 ```
 
 The full list is in [Services](services.md). Each accessor returns an interface from
-`Api\Service\`. Type-hint the interface in your code.
+`Api\Service\`.
 
 **2. Build a message.** Request payloads are readonly classes that take named arguments:
 
@@ -166,11 +162,3 @@ as the first argument:
 ```bash
 php examples/get_status.php POL123456789
 ```
-
-Where to go next
-----------------
-
-- Placing an order end to end: [Recipes](recipes.md#placing-an-order)
-- What each method does: [Services](services.md)
-- Setting up the client for a long-running process: [Configuration](configuration.md)
-- Local validation and rejections: [Validation](validation.md)

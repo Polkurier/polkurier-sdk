@@ -2,8 +2,7 @@ Slim, PHP-DI and any PSR-11 container
 =====================================
 
 The SDK doesn't need a container integration. Each class is a plain object with an explicit
-constructor. This page covers containers configured with PHP definitions, and then shows how to
-use the SDK with no container.
+constructor.
 
 PHP-DI
 ------
@@ -57,7 +56,7 @@ return [
 
     ConfigProviderInterface::class => autowire(ConfigProvider::class),
 
-    // One serializer. This is the expensive object, so never make it a transient.
+    // One serializer. This is the expensive object, so it is shared.
     SerializerProviderInterface::class => factory(
         static fn(ContainerInterface $c): SerializerProviderInterface => new SerializerProvider(
             new SerializerConfig(metadataCache: $c->get(CacheItemPoolInterface::class)),
@@ -87,7 +86,7 @@ return [
 ```
 
 PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services because each constructor parameter is an interface bound
-above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/). Bind it to your application's logger, otherwise PHP-DI
+above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/): unless it is bound to the application's logger, PHP-DI
 tries to instantiate the interface and fails.
 
 Slim
@@ -118,8 +117,11 @@ final readonly class TrackAction
 {
     public function __construct(private OrdersServiceInterface $orders) {}
 
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
-    {
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $args,
+    ): ResponseInterface {
         $status = $this->orders->getStatus(new GetStatusMessage(orderNo: $args['number']));
 
         $response->getBody()->write(json_encode(['status' => $status->getStatus()]));
@@ -129,11 +131,11 @@ final readonly class TrackAction
 }
 ```
 
-> With compilation enabled, PHP-DI freezes the definitions, so clear `var/cache` when you deploy.
-> Also, [`DI\factory()`](https://php-di.org/doc/php-definitions.html) closures can't be compiled. Either accept the small cost or move them into
-> invokable factory classes.
+> With compilation enabled, PHP-DI freezes the definitions, so a deploy clears `var/cache`.
+> [`DI\factory()`](https://php-di.org/doc/php-definitions.html) closures can't be compiled, while invokable factory classes can.
 
-To keep error handling out of the actions, convert SDK exceptions into responses in a middleware:
+A middleware can convert SDK exceptions into responses, which keeps error handling out of the
+actions:
 
 ```php
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -175,7 +177,8 @@ services.
 No container at all
 -------------------
 
-For a cron script, a small CLI tool or a legacy application, just construct the facade:
+For a cron script, a small CLI tool or a legacy application, the facade can be constructed
+directly:
 
 ```php
 require __DIR__ . '/vendor/autoload.php';
@@ -225,23 +228,22 @@ $orders = new OrdersService(
 );
 ```
 
-> **Pass the validator explicitly.** [`AbstractService`](../../src/Service/AbstractService.php) defaults it to [`NullValidator`](../../src/Validator/NullValidator.php), so a service
-> you construct by hand doesn't validate anything. The facade does validate by default. The
-> [`NullValidator`](../../src/Validator/NullValidator.php) default keeps older code that builds services by hand working, but you'll want
-> the real validator.
+> [`AbstractService`](../../src/Service/AbstractService.php) defaults the validator to [`NullValidator`](../../src/Validator/NullValidator.php), so a service constructed by hand
+> doesn't validate anything, while the facade validates by default.
 
 Long-running processes
 ----------------------
 
 This covers Swoole, RoadRunner, FrankenPHP, ReactPHP and any worker that handles more than one job.
 
-**Share the serializer and give it a cache pool.** Reading the attributes of about 150 classes is
-the SDK's biggest start-up cost. In a worker you pay it once, as long as the same provider instance
-is kept between requests.
+**The serializer is the start-up cost.** Reading the attributes of about 150 classes is the SDK's
+biggest start-up cost. In a worker it is paid once, as long as the same provider instance is kept
+between requests, and a cache pool keeps it across restarts.
 
-**Watch where the tenant comes from.** The SDK calls [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) on
+**The tenant has to be known per job.** The SDK calls [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) on
 every request, so a per-tenant provider works in a long-lived worker, as long as it can tell which
-tenant the current job belongs to. If it can't, build the client per job and share the serializer:
+tenant the current job belongs to. Where it can't, the client is built per job with a shared
+serializer:
 
 ```php
 $client = new PolkurierWebservice(
@@ -250,9 +252,9 @@ $client = new PolkurierWebservice(
 );
 ```
 
-**Don't share a service between concurrent coroutines.** [`AbstractService::$lastHttpResponse`](../../src/Service/AbstractService.php) is
-mutable state set on each call, so that exceptions can report the response that came back. In a
-shared-nothing process that's harmless. With real concurrency, give each coroutine its own client.
+**Services hold per-call state.** [`AbstractService::$lastHttpResponse`](../../src/Service/AbstractService.php) is mutable state set on each
+call, so that exceptions can report the response that came back. In a shared-nothing process that's
+harmless. With real concurrency, coroutines that share a client overwrite it for each other.
 
 **Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFields`](../../src/Validator/MessageFields.php),
 [`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php) and [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php) each keep a static reflection cache keyed by class

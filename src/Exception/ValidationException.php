@@ -12,8 +12,8 @@ namespace Polkurier\Webservice\Exception;
  *
  * Holds the failures per field, in the same shape the API uses when it rejects a payload, so the
  * same code can display both. The difference is where it came from. This exception means nothing
- * was sent and nothing changed. A {@see WebserviceException} with validation errors means the
- * request was sent and refused.
+ * was sent and nothing changed. A {@see \Polkurier\Webservice\Exception\WebserviceException} with
+ * validation errors means the request was sent and refused.
  *
  * Field names are the API's wire names, not SDK property names, so they match the API's own
  * reports and the request that would have been sent.

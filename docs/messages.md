@@ -1,15 +1,8 @@
 Messages and models
 ===================
 
-Everything sent to or received from the API lives in one of two namespaces:
-
-```
-Request/    72 classes: everything you send
-Response/   94 classes: everything you get back
-```
-
-Both sit at the root of [`Polkurier\Webservice`](../src/), not under a shared `Model` namespace. They hold
-payload classes only. The validator, the serializer and the HTTP envelope live elsewhere.
+Everything you send to the API is under [`Request`](../src/Request/), and everything you get back is under
+[`Response`](../src/Response/). Both hold payload classes only.
 
 Requests
 --------
@@ -35,8 +28,8 @@ between being validated and being serialized.
 **1. The constructor, with named arguments.** This is the default and works best when you have
 every value up front. You can skip optional parameters in any order.
 
-**2. A [builder](builders.md).** The 23 larger messages have one. Use it when the payload is put
-together over several steps or many of its fields are conditional:
+**2. A [builder](builders.md).** The 23 larger messages have one. It suits a payload put together
+over several steps, or one with many conditional fields:
 
 ```php
 use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
@@ -58,9 +51,8 @@ $message = new GetPointMessage(...$validatedInput);
 ```
 
 PHP matches string keys to parameter names, and a key with no matching parameter throws an
-`Error` instead of being ignored. That's fine for input you have already validated. Don't do it
-with raw input. Messages have no `fromArray()`, and the serializer only maps responses into
-objects, never requests.
+`Error` instead of being ignored, so this suits input that has already been checked. Messages have
+no `fromArray()`, and the serializer only maps responses into objects, never requests.
 
 ### Extending a message
 
@@ -83,8 +75,7 @@ class ExtendedOrderMessage extends CreateOrderMessage
 }
 ```
 
-Class-level validation rules are inherited, so the parent's cross-field rules still apply. Treat
-this as a stopgap and report the missing field so it can be added to the SDK.
+Class-level validation rules are inherited, so the parent's cross-field rules still apply.
 
 Responses
 ---------
@@ -117,8 +108,7 @@ $list->getCurrentPage();
 $list->getPageSize();
 ```
 
-Five endpoints return pages, and they do **not** all have the same fields. Check this table before
-you write a paging loop:
+Five endpoints return pages, and they do **not** all have the same fields:
 
 | Class | `getResult()` | Rows | Pages | Current page | Page size |
 |-------|---------------|------|-------|--------------|-----------|
@@ -208,8 +198,8 @@ private ShipmentTypeEnum $shipmentType,
 ```
 
 Names like `codbankaccount`, `is_cover_address`, `shipmenttype` and `value_nett` never show up in
-your code. This is a firm rule in the SDK. The wire names are inconsistent, and keeping them in an
-attribute means they can change without a breaking release. [Serialization](serialization.md)
+your code. The wire names are inconsistent, and keeping them in an attribute means they can change
+without a breaking release. [Serialization](serialization.md)
 explains how it works.
 
 Each wire name is also a class constant:
@@ -218,15 +208,15 @@ Each wire name is also a class constant:
 CreateOrderMessage::FIELD_SHIPMENT_TYPE;   // 'shipmenttype'
 ```
 
-The attribute references the constant, so each wire name is written in one place only. Use the
-constants when you need the API's own field names, e.g. when reading a [`ValidationException`](../src/Exception/ValidationException.php),
-matching a field in an error from the API, or building a raw request for debugging.
+The attribute references the constant, so each wire name is written in one place only. The constants
+give the API's own field names, e.g. for reading a [`ValidationException`](../src/Exception/ValidationException.php), matching a field in an error from
+the API, or building a raw request for debugging.
 
 Enums
 -----
 
 Values the API accepts and returns are backed enums under [`Polkurier\Webservice\Enum`](../src/Enum/), grouped by
-area. The ones you're most likely to use:
+area:
 
 | Enum | Used for |
 |------|----------|
@@ -246,6 +236,7 @@ area. The ones you're most likely to use:
 | [`Payment\PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) | What a payment settles |
 | [`MoneyBox\MoneyBoxPayoutTypeEnum`](../src/Enum/MoneyBox/MoneyBoxPayoutTypeEnum.php), [`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php) | Payouts |
 | [`Invoice\InvoiceTypeEnum`](../src/Enum/Invoice/InvoiceTypeEnum.php) | Invoice kind |
+| [`Invoice\InvoiceSummaryFormatEnum`](../src/Enum/Invoice/InvoiceSummaryFormatEnum.php) | PDF or CSV, for an invoice's itemised summary |
 | [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
 | [`Contact\ContactFormFieldTypeEnum`](../src/Enum/Contact/ContactFormFieldTypeEnum.php), [`ContactFormSeverityEnum`](../src/Enum/Contact/ContactFormSeverityEnum.php) | Contact form fields |
 | [`Webhook\OrderWebhookTypeEnum`](../src/Enum/Webhook/OrderWebhookTypeEnum.php) | What a webhook event says happened to an order |
@@ -258,7 +249,7 @@ nullable. In a list of enum values, unknown values are left out. A value added t
 your SDK version was released then doesn't make the whole response unreadable. Requests stay strict:
 you can only send the cases the enum has.
 
-Nothing is lost, though. After a call, [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) lists each value
+After a call, [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) lists each value
 the SDK couldn't read, with its enum and where in the response it was, and
 [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php) returns the HTTP response exactly as the API sent it:
 
@@ -299,9 +290,8 @@ with a value it doesn't recognise.
 No interfaces on models
 -----------------------
 
-Request and response classes have no interfaces, and won't get any. Wire names, formats and dates
+Request and response classes have no interfaces. Wire names, formats and dates
 are defined in serializer attributes on the classes themselves, so a different implementation of
 an interface wouldn't serialize.
 
-Type-hint the classes directly. The interfaces under `Api` are the ones where your own
-implementation actually changes something.
+The interfaces under `Api` are the ones where your own implementation changes something.

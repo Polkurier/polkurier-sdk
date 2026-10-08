@@ -26,8 +26,8 @@ readonly class TimeIntervalMessage
     /**-@#*/
 
     /**
-     * Pickup windows arrive as wall-clock times ("H:i") with no date, so ignore the date part of these
-     * objects. The owning message carries the pickup date.
+     * Pickup windows arrive as wall-clock times ("H:i") with no date, so the times read as that time
+     * on 1 January 1970. The owning message carries the pickup date.
      *
      * @param \DateTimeInterface $timeFrom
      * @param \DateTimeInterface $timeTo

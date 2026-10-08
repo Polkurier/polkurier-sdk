@@ -85,8 +85,9 @@ readonly class Pickup implements MessageInterface
 
     /**
      * Whether the parcel can be dropped off at a sending point or handed to a courier instead of
-     * booking a collection. {@see Property::isDefault()} says whether that's the usual way for this
-     * carrier, as for parcel lockers.
+     * booking a collection.
+     * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\Property::isDefault()} says
+     * whether that's the usual way for this carrier, as for parcel lockers.
      *
      * @return Property|null null if the carrier's entry leaves it out
      */

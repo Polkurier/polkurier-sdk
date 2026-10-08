@@ -29,7 +29,12 @@ final class LoggedFileWriterTest extends TestCase
 
     public function testAValueThatIsNotBase64IsKept(): void
     {
-        $processed = (new LoggedFileWriter())->process(['file' => 'label.pdf?'], false, '/unused', ApiMethodEnum::GetLabel);
+        $processed = (new LoggedFileWriter())->process(
+            ['file' => 'label.pdf?'],
+            false,
+            '/unused',
+            ApiMethodEnum::GetLabel,
+        );
 
         self::assertSame(['file' => 'label.pdf?'], $processed);
     }
@@ -87,7 +92,13 @@ final class LoggedFileWriterTest extends TestCase
         $redactor = new PersonalDataRedactor();
         $data = ['number' => '61109010140000071219812874', 'email' => 'jan@example.com'];
 
-        self::assertSame(['number' => '***', 'email' => '***'], $redactor->redact($data, ApiMethodEnum::GetBankAccounts));
-        self::assertSame(['number' => '61109010140000071219812874', 'email' => '***'], $redactor->redact($data, ApiMethodEnum::GetOrders));
+        self::assertSame(
+            ['number' => '***', 'email' => '***'],
+            $redactor->redact($data, ApiMethodEnum::GetBankAccounts),
+        );
+        self::assertSame(
+            ['number' => '61109010140000071219812874', 'email' => '***'],
+            $redactor->redact($data, ApiMethodEnum::GetOrders),
+        );
     }
 }

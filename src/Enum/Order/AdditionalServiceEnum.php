@@ -19,8 +19,8 @@ namespace Polkurier\Webservice\Enum\Order;
  *
  * The recipient SMS notifications come in 2 independent kinds: one when the parcel is dispatched
  * and one when it goes out for delivery. You can order either or both. Each has a variant sent
- * under the account's default SMS sender name. The named variant replaces the plain one, so don't
- * order both. If the account has no default sender name, the order is refused with PARAMS_NOT_SET.
+ * under the account's default SMS sender name. The named variant replaces the plain one, so an
+ * order has one or the other. If the account has no default sender name, the order is refused with PARAMS_NOT_SET.
  * If you order the named dispatch notification, an out-for-delivery notification you also ordered
  * is sent under that name too. It doesn't work the other way round. Not every UPS service supports
  * SMS notifications.

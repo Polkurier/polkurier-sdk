@@ -64,8 +64,8 @@ Config::API_URL         // https://api.polkurier.pl
 Config::SANDBOX_API_URL // https://api-sandbox.polkurier.pl
 ```
 
-For development, use `sandbox: true`. Use `apiUrl` for any other host, such as a local mirror or
-a staging server.
+`sandbox: true` points the client at the sandbox. `apiUrl` points it at any other host, such as a
+local mirror or a staging server.
 
 ```php
 new Config(
@@ -77,7 +77,7 @@ new Config(
 );
 ```
 
-Note: every log record the SDK writes includes `sandbox`, so you can see in the log which
+Every log record the SDK writes includes `sandbox`, so you can see in the log which
 endpoint a request went to.
 
 ### Timeouts
@@ -85,7 +85,7 @@ endpoint a request went to.
 `apiTimeout` is passed to Guzzle as its `timeout` option and covers the whole request. 30 seconds
 is enough for most calls, but a few can take longer. `get_label` with 12 order numbers renders 12
 labels into one PDF, and `get_orders` with `packs`, `items` and `files` requested returns a large
-response. Raise the timeout if you send batches like these.
+response. Batches like these may need a longer timeout.
 
 A timeout throws a [`ConnectionException`](../src/Exception/ConnectionException.php), the same class as DNS and TLS failures. The SDK can't
 tell whether the order was placed before the timeout, only that no answer arrived. See
@@ -98,8 +98,6 @@ Nothing is logged unless you pass a PSR-3 logger:
 ```php
 $client = new PolkurierWebservice($config, $logger);
 ```
-
-There are two levels of logging, each with its own setting.
 
 Error logging is controlled by `loggingEnabled`. It logs API errors and transport failures: the
 failed request, its body, and the response, if any. It also logs a warning for each enum value in
@@ -131,7 +129,8 @@ Requests and responses carry things that don't belong in a log by default. Befor
 logged, the SDK prepares each body:
 
 - **Secrets** are hidden: the API token, which is in every authenticated request, and passwords,
-  PINs, two-factor codes and access tokens. The fields are [`SensitiveDataRedactor::FIELDS`](../src/Log/SensitiveDataRedactor.php).
+  PINs, two-factor codes and access tokens. The fields are [`SensitiveDataRedactor::FIELDS`](../src/Log/SensitiveDataRedactor.php), and
+  any key named `pin` or ending in `_pin`.
 - **Personal data** is hidden: names, street addresses, email addresses, phone numbers, tax and
   company registration numbers, and bank account numbers. The fields are
   [`PersonalDataRedactor::FIELDS`](../src/Log/PersonalDataRedactor.php), plus a few generic keys that only hold personal data in some methods,
@@ -161,7 +160,7 @@ With `logFiles` on, each file is saved in `logFilesDirectory` under a name made 
 method and a random part, e.g. `20261005T101500-get_label-1a2b3c4d-file.pdf`. The log entry says
 where: `[file saved to /var/log/my-shop/polkurier-files/20261005T101500-get_label-1a2b3c4d-file.pdf: 48213 bytes]`.
 The directory is created if it doesn't exist. If a file can't be saved, the note says so and the
-entry is logged anyway. The SDK never deletes saved files, so clean the directory up yourself.
+entry is logged anyway. The SDK never deletes saved files.
 Every saved file's name matches [`LoggedFileWriter::FILE_NAME_PATTERN`](../src/Log/LoggedFileWriter.php), so a cleanup job can recognise them
 without touching anything else in the directory:
 
@@ -178,7 +177,7 @@ foreach (new DirectoryIterator($directory) as $file) {
 }
 ```
 
-Keep such logs and files as safe as what's in them. A label, for example, shows the recipient's
+Such logs and files are as sensitive as what's in them. A label, for example, shows the recipient's
 name and address even with `logPersonalData` off. Exceptions in the context (`exception`,
 `client_exception`) are never altered, and some of them hold the full request or response, so a
 logger that serializes exceptions in depth can still record what was hidden.
@@ -188,8 +187,8 @@ logger that serializes exceptions in depth can still record what was hidden.
 `validatePayloads` controls whether the SDK checks a message before sending it. It is on by
 default. When it is off, the validator isn't called at all.
 
-Only turn it off if the SDK rejects a payload that the API would accept. Please report that as a
-bug. To drop a single rule instead of all of them, see
+It exists for the case where the SDK rejects a payload that the API would accept, which is a bug in
+the SDK. A single rule can be dropped instead of all of them, see
 [Validation: changing the rules](validation.md#changing-the-rules).
 
 [`SerializerConfig`](../src/Serializer/SerializerConfig.php)
@@ -228,10 +227,11 @@ use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 new SerializerConfig(metadataCache: new PhpFilesAdapter('polkurier', 0, $cacheDir));
 ```
 
-Clear the cache on deploy. The metadata is keyed by class, not by version.
+The metadata is keyed by class, not by version, so a deploy that changes the classes needs the cache
+cleared.
 
 Short-lived requests benefit much less, because metadata is only loaded for the classes a request
-uses. Measure before adding a cache to a classic PHP-FPM setup.
+uses.
 
 ### jsonEncodeOptions
 
@@ -243,8 +243,8 @@ The default is [`SerializerConfig::DEFAULT_JSON_OPTIONS`](../src/Serializer/Seri
 
 > **Your options replace the default. They are not merged with it.** The first two flags only make
 > logged payloads easier to read. The third one matters: without `JSON_PRESERVE_ZERO_FRACTION`, a
-> cash-on-delivery amount of `250.0` is written as `250`. Floats must stay floats on the wire, so
-> keep this flag. To add flags, OR them onto the constant:
+> cash-on-delivery amount of `250.0` is written as `250`, an integer where the API expects a float.
+> Flags are added by ORing them onto the constant:
 >
 > ```php
 > new SerializerConfig(
@@ -269,11 +269,11 @@ which is fixed by the protocol.
 
 ### rejectUnknownFields
 
-By default, unknown fields in a response are ignored. That is the right setting for production,
-where a new field in the API shouldn't break your integration.
+By default, unknown fields in a response are ignored, so a field added to the API doesn't break a
+working integration.
 
-When this option is on, an unknown field throws an exception. Turn it on in CI against a staging
-API to find out when a response gains a field the SDK doesn't read.
+When this option is on, an unknown field throws an exception. Against a staging API in CI, that
+shows when a response gains a field the SDK doesn't read.
 
 ```php
 new SerializerConfig(rejectUnknownFields: (bool)getenv('CI'));
@@ -320,9 +320,8 @@ $client = new PolkurierWebservice(
 
 If you pass a provider, the `config` argument is ignored.
 
-The provider is asked on every call. [`AbstractService`](../src/Service/AbstractService.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php) and
-[`ClientFactory`](../src/Http/ClientFactory.php) all call [`ConfigProviderInterface::getConfig()`](../src/Api/ConfigProviderInterface.php) when a request is made and
-don't keep the result. One client can serve every tenant, as long as the provider can tell which
+The SDK calls [`ConfigProviderInterface::getConfig()`](../src/Api/ConfigProviderInterface.php) each time it makes a request, and doesn't keep the
+result. One client can serve every tenant, as long as the provider can tell which
 tenant the current call is for. Where it can't (e.g. in a queue worker with no current request),
 build a client per tenant instead. Clients are inexpensive to create. The serializer is the costly
 part, and you can share it between clients.

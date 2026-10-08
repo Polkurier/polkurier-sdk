@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The account's profile, balances and outstanding obligations.
  *
- * Use it to decide what an integration may do next. Treat these fields as preconditions:
+ * These fields decide what an integration may do next:
  *
  * - Acceptance flags. Orders are refused for a customer who has not accepted the current terms, the
  *   price list or the carriers' terms. `is_new_regulations` means revised terms are waiting to be

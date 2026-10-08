@@ -16,8 +16,8 @@ use Polkurier\Webservice\Response\BaseAddress;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
 /**
- * These classes previously declared optional constructor parameters before required ones, which
- * PHP 8 deprecates and which made construction by named arguments fail outright.
+ * Optional constructor parameters declared before required ones are deprecated in PHP 8 and break
+ * construction by named arguments, so these classes take every required parameter first.
  */
 #[CoversClass(Address::class)]
 #[CoversClass(BaseAddress::class)]
@@ -44,8 +44,8 @@ final class AddressTest extends TestCase
     }
 
     /**
-     * Address passes its own arguments down to BaseAddress. When BaseAddress's parameter order
-     * changed, a positional hand-off silently mapped $company onto $street.
+     * {@see Address} passes its own arguments down to {@see BaseAddress} by name. A positional
+     * hand-off would map $company onto $street whenever the parent's parameter order differs.
      */
     public function testPassesEveryFieldThroughToTheParentInTheRightOrder(): void
     {

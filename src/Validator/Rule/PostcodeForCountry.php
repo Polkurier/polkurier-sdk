@@ -18,8 +18,8 @@ use Polkurier\Webservice\Validator\ViolationPool;
  *
  * The postcode format depends on the country, so the rule reads 2 fields and goes on the class.
  *
- * If there is no country field, put {@see Postcode} on the property instead. It checks against
- * Poland unless given another country.
+ * If there is no country field, put {@see \Polkurier\Webservice\Validator\Rule\Postcode} on the
+ * property instead. It checks against Poland unless given another country.
  *
  * ```php
  * #[PostcodeForCountry(postcode: 'postcode', country: 'country')]

@@ -16,8 +16,8 @@ namespace Polkurier\Webservice\Enum\Http;
  * spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. The high-numbered
  * status codes reuse HTTP status numbers, but they arrive in the JSON body, not as the HTTP status.
  *
- * Both fields are optional in an error payload, so don't assume either is present. Compare
- * `error_code` where you can: a status code can stand for more than one condition, e.g. 506006.
+ * Both fields are optional in an error payload. `error_code` is the more precise of the two: a
+ * status code can stand for more than one condition, e.g. 506006.
  * The two-factor conditions use the 506xxx numbers, except TWO_FACTOR_ALREADY_SENT.
  */
 enum ApiErrorCodeEnum: string

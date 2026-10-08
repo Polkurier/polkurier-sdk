@@ -87,7 +87,10 @@ final class LastResponseTest extends TestCase
         } catch (WebserviceException) {
         }
 
-        self::assertSame('{"status":"error","response":"Nieznany błąd"}', (string)$this->sdk->getLastResponse()?->getBody());
+        self::assertSame(
+            '{"status":"error","response":"Nieznany błąd"}',
+            (string)$this->sdk->getLastResponse()?->getBody(),
+        );
     }
 
     public function testACallThatSendsNothingClearsIt(): void

@@ -18,7 +18,8 @@ namespace Polkurier\Webservice\Api\Validation;
  * It returns what it found and the caller decides which field that belongs to.
  * {@see \Polkurier\Webservice\Validator\ViolationPool::check()} handles the usual case.
  *
- * Rules that depend on more than one value go in a {@see ValidatorInterface} for the whole message.
+ * Rules that depend on more than one value go in a
+ * {@see \Polkurier\Webservice\Api\Validation\ValidatorInterface} for the whole message.
  */
 interface ValueValidatorInterface
 {

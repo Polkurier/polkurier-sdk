@@ -178,7 +178,8 @@ final class ResponseFactoryTest extends TestCase
 
     public function testAnOrderAddressReadsTheStreetSplitIntoItsParts(): void
     {
-        $sender = ['streetname' => 'Długa', 'housenumber' => '1', 'flatnumber' => '2'] + $this->addressPayload('Jan Kowalski');
+        $street = ['streetname' => 'Długa', 'housenumber' => '1', 'flatnumber' => '2'];
+        $sender = $street + $this->addressPayload('Jan Kowalski');
 
         $order = $this->deserializeOrder(['sender' => $sender] + $this->orderPayload());
 
@@ -258,7 +259,11 @@ final class ResponseFactoryTest extends TestCase
             $this->jsonResponse([
                 'status' => 'success',
                 'response' => [
-                    $template + ['type' => 'SOMETHING_NEW', 'shipmenttype' => 'crate', 'services' => ['ROD', 'SOMETHING_NEW', 'TIRES']],
+                    $template + [
+                        'type' => 'SOMETHING_NEW',
+                        'shipmenttype' => 'crate',
+                        'services' => ['ROD', 'SOMETHING_NEW', 'TIRES'],
+                    ],
                     $template + ['type' => 'ST', 'shipmenttype' => 'box', 'services' => []],
                 ],
             ]),
@@ -271,7 +276,10 @@ final class ResponseFactoryTest extends TestCase
         self::assertCount(2, $templates);
         self::assertNull($templates[0]->getType());
         self::assertNull($templates[0]->getShipmentType());
-        self::assertSame([AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires], $templates[0]->getServices());
+        self::assertSame(
+            [AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires],
+            $templates[0]->getServices(),
+        );
         self::assertSame(PackTypeEnum::Standard, $templates[1]->getType());
         self::assertSame(ShipmentTypeEnum::Box, $templates[1]->getShipmentType());
 
@@ -292,7 +300,14 @@ final class ResponseFactoryTest extends TestCase
             $this->jsonResponse([
                 'status' => 'success',
                 'response' => [
-                    ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Stary', 'shipmenttype' => ''],
+                    [
+                        'length' => 60,
+                        'width' => 40,
+                        'height' => 30,
+                        'weight' => 10,
+                        'name' => 'Stary',
+                        'shipmenttype' => '',
+                    ],
                 ],
             ]),
             PackTemplate::class . '[]'
@@ -314,7 +329,15 @@ final class ResponseFactoryTest extends TestCase
             $this->jsonResponse([
                 'status' => 'success',
                 'response' => [
-                    ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Nowy', 'shipmenttype' => 'box', 'services' => ['1' => 'ROD', '3' => 'TIRES']],
+                    [
+                        'length' => 60,
+                        'width' => 40,
+                        'height' => 30,
+                        'weight' => 10,
+                        'name' => 'Nowy',
+                        'shipmenttype' => 'box',
+                        'services' => ['1' => 'ROD', '3' => 'TIRES'],
+                    ],
                 ],
             ]),
             PackTemplate::class . '[]'
@@ -323,7 +346,10 @@ final class ResponseFactoryTest extends TestCase
         /** @var PackTemplate[] $templates */
         $templates = $wrapper->getParsedResponse()->getResponse();
 
-        self::assertSame([AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires], $templates[0]->getServices());
+        self::assertSame(
+            [AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires],
+            $templates[0]->getServices(),
+        );
     }
 
     /**
@@ -334,7 +360,9 @@ final class ResponseFactoryTest extends TestCase
         $this->expectException(SerializerException::class);
 
         (new SerializerProvider())->getSerializer()->deserialize(
-            (string)\json_encode(['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'type' => 'SOMETHING_NEW']),
+            (string)\json_encode(
+                ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'type' => 'SOMETHING_NEW'],
+            ),
             BasePack::class,
             'json'
         );
@@ -367,7 +395,8 @@ final class ResponseFactoryTest extends TestCase
     public function testAnAbsentNestedObjectSentAsAnEmptyArrayReadsAsNull(): void
     {
         $order = $this->deserializeOrder(
-            ['COD' => [], 'pickup' => [], 'cover_address' => null, 'sender' => [], 'recipient' => []] + $this->orderPayload()
+            ['COD' => [], 'pickup' => [], 'cover_address' => null, 'sender' => [], 'recipient' => []]
+                + $this->orderPayload()
         );
 
         self::assertNull($order->getSender());

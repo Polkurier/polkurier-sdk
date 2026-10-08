@@ -17,11 +17,13 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Creates a support ticket.
  *
  * Only topics returned by
- * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()} are accepted.
+ * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()} are
+ * accepted.
  *
- * Attachments are sent inline as base64, see {@see TicketAttachmentMessage} for what the API
- * accepts. `get_system_info` reports the limits under `tickets`: maximum file size, maximum image
- * size and how many files can be attached at once.
+ * Attachments are sent inline as base64, see
+ * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} for what the API accepts.
+ * `get_system_info` reports the limits under `tickets`: maximum file size, maximum image size and
+ * how many files can be attached at once.
  */
 readonly class CreateTicketMessage implements MessageInterface
 {

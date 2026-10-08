@@ -13,8 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Limits and policy to validate input against.
  *
- * Fetch this once at start-up and reuse it. Do not hard-code the numbers: they are policy and can
- * change without an API version bump.
+ * The numbers are policy and can change without an API version bump.
  */
 readonly class SystemInfoMessage implements MessageInterface
 {

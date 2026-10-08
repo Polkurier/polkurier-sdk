@@ -7,15 +7,14 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
-use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Reads an enum value as null when the enum doesn't have it, and records it.
  *
- * It only acts when the context holds an {@see UnknownEnumValues} collector, and runs before
- * {@see BackedEnumNormalizer}. Without a collector it steps aside, and an unknown value fails as
- * usual.
+ * It only acts when the context holds an {@see \Polkurier\Webservice\Serializer\UnknownEnumValues}
+ * collector, and runs before {@see \Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer}.
+ * Without a collector it steps aside, and an unknown value fails as usual.
  */
 class LenientEnumDenormalizer implements DenormalizerInterface
 {

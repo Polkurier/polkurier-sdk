@@ -75,15 +75,15 @@ final class ExactDateTest extends TestCase
     public function testATimestampAndAFormatThatAlreadyResetsAreReadAsTheyAre(): void
     {
         $normalizer = new ExactDateTimeNormalizer();
+        $read = static fn(int|string $value, string $format): \DateTimeInterface => $normalizer->denormalize(
+            $value,
+            \DateTimeImmutable::class,
+            null,
+            [DateTimeNormalizer::FORMAT_KEY => $format],
+        );
 
-        self::assertSame(
-            1791460800,
-            $normalizer->denormalize(1791460800, \DateTimeImmutable::class, null, [DateTimeNormalizer::FORMAT_KEY => 'U'])->getTimestamp(),
-        );
-        self::assertSame(
-            '2026-10-08 00:00:00',
-            $normalizer->denormalize('2026-10-08', \DateTimeImmutable::class, null, [DateTimeNormalizer::FORMAT_KEY => 'Y-m-d|'])->format('Y-m-d H:i:s'),
-        );
+        self::assertSame(1791460800, $read(1791460800, 'U')->getTimestamp());
+        self::assertSame('2026-10-08 00:00:00', $read('2026-10-08', 'Y-m-d|')->format('Y-m-d H:i:s'));
     }
 
     private static function pickup(): Pickup

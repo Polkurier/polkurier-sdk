@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A successful API response: the envelope status and the decoded payload.
  *
- * Not final, because {@see ErrorMessage} extends it with the error fields. Nothing else should
- * extend it.
+ * Not final, because {@see \Polkurier\Webservice\Http\Response\ErrorMessage} extends it with the
+ * error fields.
  */
 readonly class ResponseMessage implements MessageInterface
 {
@@ -38,8 +38,9 @@ readonly class ResponseMessage implements MessageInterface
         private ResponseStatusEnum $status,
 
         /**
-         * On success, ResponseFactory builds the payload without the serializer. Only errors are
-         * mapped, and for those the API sends a plain message string.
+         * On success, {@see \Polkurier\Webservice\Http\Response\ResponseFactory} builds the payload
+         * without the serializer. Only errors are mapped, and for those the API sends a plain
+         * message string.
          *
          * @var mixed
          */

@@ -41,7 +41,11 @@ try {
 
     \printf("Collection booked for %s.\n", $day->format('Y-m-d'));
     foreach ($pickup->getTime() as $window) {
-        \printf("  window offered: %s–%s\n", $window->getTimeFrom()->format('H:i'), $window->getTimeTo()->format('H:i'));
+        \printf(
+            "  window offered: %s–%s\n",
+            $window->getTimeFrom()->format('H:i'),
+            $window->getTimeTo()->format('H:i'),
+        );
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

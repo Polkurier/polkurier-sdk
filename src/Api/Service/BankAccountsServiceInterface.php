@@ -20,7 +20,7 @@ use Polkurier\Webservice\Response\BankAccount;
 /**
  * Bank accounts that collected cash-on-delivery funds are paid into.
  *
- * Register an account here before an order can use it for COD settlement.
+ * An order can use an account for COD settlement once it is registered here.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:

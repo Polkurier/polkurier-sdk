@@ -13,7 +13,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
@@ -35,8 +34,8 @@ use Polkurier\Webservice\Response\Order\ValuationMessage;
 /**
  * Placing, pricing, tracking and cancelling orders.
  *
- * Every method returns a {@see ResponseWrapper}. Get the parsed payload with
- * `getParsedResponse()->getResponse()`. Each method names its payload type.
+ * Every method returns a {@see \Polkurier\Webservice\Http\Response\ResponseWrapper}. Get the parsed
+ * payload with `getParsedResponse()->getResponse()`. Each method names its payload type.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
  * status. `status_code` and `error_code` are both optional. An error may have one, both or
@@ -58,7 +57,7 @@ interface OrdersServiceInterface
      *
      * Takes the same payload as createOrder(). A payload that gets a price can still be rejected by
      * createOrder(), usually because the carrier will not accept the pickup or cannot route the
-     * address. Don't use this to check whether an order can be placed.
+     * address. So a price doesn't show whether an order can be placed.
      *
      * Endpoint: `order_valuation_v2`
      *
@@ -152,11 +151,11 @@ interface OrdersServiceInterface
      * The API does not always report every fault in a payload at once. A rejection lists at least
      * one problem, but maybe not all of them.
      *
-     * Keep the description short. A cash-on-delivery amount of zero means the order ships with no
-     * collection.
+     * The description has a length limit. A cash-on-delivery amount of zero means the order ships
+     * with no collection.
      *
-     * Some requirements depend on the carrier: whether a pickup date or a time window is needed, and
-     * whether either address needs a pickup point. `available_carriers` reports them.
+     * Some requirements depend on the carrier: whether a pickup date or a time window is needed,
+     * and whether either address needs a pickup point. `available_carriers` reports them.
      * {@see CreateOrderMessage} documents the rules for services that depend on other fields.
      *
      * The response is a short receipt. Use getOrders() to read the full order. The waybill list can
@@ -533,7 +532,7 @@ interface OrdersServiceInterface
      * Fetches the handover protocol (the list the courier signs on collection).
      *
      * Takes several order numbers, with the same rules as getLabel(). Always returns a base64-encoded
-     * PDF, so don't set a file format here.
+     * PDF, whatever file format is set.
      *
      * Endpoint: `get_protocol`
      *
@@ -570,8 +569,8 @@ interface OrdersServiceInterface
     /**
      * Current delivery status of one order, optionally with its scan history.
      *
-     * A cancelled order gets an error instead of a status. Use getOrders() to read the state of a
-     * cancelled order.
+     * A cancelled order gets an error instead of a status. getOrders() reads the state of a cancelled
+     * order.
      *
      * The scan history is off by default. Asking for it makes the call slower.
      *
@@ -696,9 +695,10 @@ interface OrdersServiceInterface
      * Books one courier collection covering several orders.
      *
      * Pass order numbers, not waybill numbers. An order can join only if it was placed for a
-     * collective pickup, with {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup}
-     * set, has been accepted, and has no collection booked yet. Use isMultiPickupAvailable() to see
-     * whether a shipment can be placed that way.
+     * collective pickup, with
+     * {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup} set, has been
+     * accepted, and has no collection booked yet. Use isMultiPickupAvailable() to see whether a
+     * shipment can be placed that way.
      *
      * Unlike a per-order pickup, the date and both ends of the time window are always required,
      * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM. They apply to
@@ -784,8 +784,8 @@ interface OrdersServiceInterface
      * paperwork, proof of delivery or correspondence. Get the filenames from getOrders() with the
      * file flag turned on.
      *
-     * The content hash stays the same across downloads, so you can use it to skip fetching a file you
-     * have already cached.
+     * The content hash stays the same across downloads, so it tells a file you already have from a
+     * changed one.
      *
      * Endpoint: `get_order_file`
      *

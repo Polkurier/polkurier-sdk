@@ -48,7 +48,12 @@ final class SensitiveDataRedactorTest extends TestCase
 
     public function testACopyOfTheMessageHasTheSecretHiddenAndTheOriginalIsUntouched(): void
     {
-        $request = new Request('POST', 'https://api.example.test', [], '{"authorization":{"login":"1","token":"t0k3n"}}');
+        $request = new Request(
+            'POST',
+            'https://api.example.test',
+            [],
+            '{"authorization":{"login":"1","token":"t0k3n"}}',
+        );
 
         $copy = (new SensitiveDataRedactor())->message($request);
 

@@ -2,8 +2,7 @@ Shopware 6
 ==========
 
 For Shopware 6.5 and 6.6, as a plugin. Shopware runs on Symfony, so most of
-[the Symfony page](symfony.md) applies here too. This page covers the parts specific to Shopware:
-plugin configuration, sales channel scoping, the message bus and the Flow Builder.
+[the Symfony page](symfony.md) applies here too.
 
 The plugin
 ----------
@@ -37,11 +36,9 @@ custom/plugins/PolkurierShipping/
 }
 ```
 
-Shopware merges plugin dependencies into the project's Composer tree, so you don't need to prefix
-anything. Do check that the project's `symfony/serializer` satisfies `^7.2`, though. Shopware 6.6
-ships Symfony 6.4, and the SDK requires 7.x components. If they conflict, run
-`composer require symfony/serializer:^7.2` at project level, if Shopware's own constraints allow
-it. If they don't, run the SDK behind an HTTP service of your own.
+Shopware merges plugin dependencies into the project's Composer tree, so nothing needs prefixing.
+The SDK's Symfony components accept 6.4, 7.4 and 8.x, which covers both Shopware 6.5 (Symfony 6.4)
+and 6.6 (Symfony 7.4).
 
 Configuration
 -------------
@@ -77,8 +74,8 @@ channel by default:
 </config>
 ```
 
-The values differ per sales channel, so implement [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) instead of using a
-fixed [`Config`](../../src/Config.php):
+The values differ per sales channel, so the plugin implements [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) instead of
+using a fixed [`Config`](../../src/Config.php):
 
 ```php
 <?php declare(strict_types=1);
@@ -195,19 +192,18 @@ Services
 </container>
 ```
 
-Define `polkurier.metadata_cache` as a Symfony cache pool and `polkurier.logger` as a Monolog
-channel in the plugin's `packages` configuration. Both are standard Symfony configuration, and
+`polkurier.metadata_cache` is a Symfony cache pool and `polkurier.logger` a Monolog channel, both
+defined in the plugin's `packages` configuration. Both are standard Symfony configuration, and
 Shopware loads the plugin's `Resources/config/packages/*.yaml` files.
 
 Sales-channel scoping
 ---------------------
 
-Shopware integrations most often go wrong here. The SDK asks the provider for its configuration
-on every call, and the provider above reads the current sales channel. In a storefront request
-that's what you want. In a **message handler or a scheduled task** there is no current channel at
-all.
+The SDK asks the provider for its configuration on every call, and the provider above reads the
+current sales channel. In a storefront request that is the right channel. In a **message handler or
+a scheduled task** there is no current channel at all.
 
-In those cases, build the client for each message:
+There, the client is built for each message:
 
 ```php
 <?php declare(strict_types=1);
@@ -242,13 +238,14 @@ final class PlaceShipmentHandler
 }
 ```
 
-The serializer is expensive to build and keeps no state between calls, so share it. The client is
-quick to build and belongs to one channel, so create it per message.
+The serializer is expensive to build and keeps no state between calls, so one is shared. The client
+is quick to build and belongs to one channel, so there is one per message.
 
 Placing the shipment from the message bus
 -----------------------------------------
 
-Subscribe to the order transaction state change, not to order placement, and dispatch a message:
+The plugin subscribes to the order transaction state change, not to order placement, and
+dispatches a message:
 
 ```php
 <?php declare(strict_types=1);
@@ -278,8 +275,7 @@ final readonly class OrderSubscriber implements EventSubscriberInterface
 }
 ```
 
-In practice you'll usually trigger it from the **Flow Builder** instead, so the merchant decides
-when a shipment is created. Register a flow action:
+A **Flow Builder** action lets the merchant decide when a shipment is created instead:
 
 ```php
 <?php declare(strict_types=1);
@@ -314,8 +310,8 @@ Polkurier shipment" in the administration, without writing code.
 Idempotency
 -----------
 
-Shopware's message bus delivers at least once, and the SDK has no idempotency key. Check your own
-record first:
+Shopware's message bus delivers at least once, and the SDK has no idempotency key. The handler
+checks its own record first:
 
 ```php
 if ($order->getCustomFields()['polkurier_number'] ?? null) {
@@ -323,8 +319,8 @@ if ($order->getCustomFields()['polkurier_number'] ?? null) {
 }
 ```
 
-Store the number in a custom field, or preferably in a plugin entity keyed by order ID. Custom
-fields are convenient but not indexed. Once you have more than one field to store, use an entity.
+The number can live in a custom field or in a plugin entity keyed by order ID. Custom fields are
+convenient but not indexed.
 
 Error handling in a handler
 ---------------------------
@@ -335,7 +331,7 @@ use Shopware\Core\Framework\MessageQueue\Handler\RetryableMessageHandlerInterfac
 try {
     $created = $client->orders()->createOrder($this->mapper->toMessage($order));
 } catch (ValidationException | WebserviceException $e) {
-    // A rejected payload will be rejected again. Record it and stop. Don't rethrow.
+    // A rejected payload will be rejected again, so it is recorded and not rethrown.
     $this->recordFailure($order, $e->getMessage());
 
     return;
@@ -345,15 +341,15 @@ try {
 }
 ```
 
-By default, Shopware retries anything that throws. Catch the permanent failures and don't
-rethrow them. Otherwise a bad postcode ends up in the dead-letter queue and looks like an outage.
+By default, Shopware retries anything that throws. A permanent failure that is rethrown ends up in
+the dead-letter queue, where a bad postcode looks like an outage, so the handler catches those.
 
 A shipping method
 -----------------
 
-Register a `shipping_method` on install and price it with a Shopware rule-based price matrix.
-Avoid live quotes: calling [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from the cart means a third-party request on every
-line item change.
+The plugin registers a `shipping_method` on install and prices it with a Shopware rule-based price
+matrix. Calling [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from the cart would mean a third-party request on
+every line item change.
 
 ```php
 public function install(InstallContext $context): void
@@ -373,7 +369,7 @@ public function install(InstallContext $context): void
 Scheduled tasks
 ---------------
 
-The API has no callbacks, so poll for status changes in a scheduled task:
+Besides [webhooks](../webhooks.md), status changes can be polled in a scheduled task:
 
 ```php
 <?php declare(strict_types=1);
@@ -397,14 +393,13 @@ final class SyncStatusesTask extends ScheduledTask
 ```
 
 For each sales channel, the handler builds a client and pages through [`OrdersServiceInterface::getOrders()`](../../src/Api/Service/OrdersServiceInterface.php) filtered to a
-recent date range. Don't call [`OrdersServiceInterface::getStatus()`](../../src/Api/Service/OrdersServiceInterface.php) for each order. One paged query covers hundreds of
-orders.
+recent date range. One paged query covers hundreds of orders, where
+[`OrdersServiceInterface::getStatus()`](../../src/Api/Service/OrdersServiceInterface.php) would take a call per order.
 
 Caching
 -------
 
-Keep pickup point lists, supported countries and system limits in Shopware's cache pool instead
-of fetching them live:
+Pickup point lists, supported countries and system limits can live in Shopware's cache pool:
 
 ```php
 $item = $this->cache->getItem('polkurier.inpost.lockers');
@@ -416,13 +411,13 @@ if (!$item->isHit()) {
 }
 ```
 
-Tag the entries so `cache:clear` removes them. Give the serializer's metadata its own pool and
-clear it on deploy, because the metadata cache key doesn't include a version.
+Tagged entries are removed by `cache:clear`. The serializer's metadata has its own pool, cleared on
+deploy, because the metadata cache key doesn't include a version.
 
 Administration module
 ---------------------
 
-To print labels, add an administration extension that calls an API controller in your plugin:
+Labels can be printed from an administration extension that calls an API controller in the plugin:
 
 ```php
 #[Route(defaults: ['_routeScope' => ['api']])]

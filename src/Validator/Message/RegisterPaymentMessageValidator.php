@@ -20,8 +20,8 @@ use Polkurier\Webservice\Validator\ViolationPool;
  * modes the amount follows from what is being paid (outstanding invoices, unpaid orders). So the
  * field is required in one mode only, and the rule lives here instead of on the field.
  *
- * Zero counts as missing and gets the same message as an absent amount. NotBlank alone would
- * accept zero.
+ * Zero counts as missing and gets the same message as an absent amount.
+ * {@see \Polkurier\Webservice\Validator\Rule\NotBlank} alone would accept zero.
  *
  * The minimum top-up depends on the account and is not checked here.
  *

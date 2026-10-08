@@ -23,10 +23,8 @@ use Polkurier\Webservice\Validator\ViolationPool;
 /**
  * A message is checked by what it declares, and by nothing it does not.
  *
- * The validators used to be paired with their messages in a registry, which meant the pairing was
- * written twice — once there, once on the validator — with nothing keeping the two in step. A
- * validator registered against the wrong message simply stopped running, silently. These cover
- * the wiring that replaced it.
+ * Each message names its validators, so the pairing is written once. A validator attached to the
+ * wrong message would stop running without a sound. These cover that wiring.
  */
 #[CoversClass(ValidatedBy::class)]
 #[CoversClass(AttributeValidator::class)]

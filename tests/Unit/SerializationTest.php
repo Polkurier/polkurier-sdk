@@ -55,9 +55,8 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
  * The keys and values the SDK actually puts on the wire.
  *
  * The API matches field names exactly and silently ignores anything it does not recognise, so a
- * renamed key is not an error — it is a parameter that quietly never arrives. That is how `orderno`
- * went out as `order_no` and broke four methods at once without a single failing assertion
- * anywhere. Every message whose keys matter is therefore asserted against the literal JSON.
+ * renamed key is not an error — it is a parameter that quietly never arrives, e.g. `orderno` sent
+ * as `order_no`. Every message whose keys matter is therefore asserted against the literal JSON.
  */
 #[CoversNothing]
 final class SerializationTest extends TestCase
@@ -111,10 +110,21 @@ final class SerializationTest extends TestCase
                     nonce: 'n-1',
                     fields: ['email' => 'jan@example.com', 'consent' => true],
                 ),
-                ['category' => 'wspolpraca', 'form_id' => 'f-1', 'nonce' => 'n-1', 'email' => 'jan@example.com', 'consent' => true],
+                [
+                    'category' => 'wspolpraca',
+                    'form_id' => 'f-1',
+                    'nonce' => 'n-1',
+                    'email' => 'jan@example.com',
+                    'consent' => true,
+                ],
             ],
             'a contact form answer never replaces a fixed key' => [
-                new SaveContactFormMessage(category: 'wspolpraca', formId: 'f-1', nonce: 'n-1', fields: ['nonce' => 'forged']),
+                new SaveContactFormMessage(
+                    category: 'wspolpraca',
+                    formId: 'f-1',
+                    nonce: 'n-1',
+                    fields: ['nonce' => 'forged'],
+                ),
                 ['category' => 'wspolpraca', 'form_id' => 'f-1', 'nonce' => 'n-1'],
             ],
             'order id' => [
@@ -134,7 +144,9 @@ final class SerializationTest extends TestCase
                 ),
                 [
                     'courier' => 'DPD',
-                    'packs' => [['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1]],
+                    'packs' => [
+                        ['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1],
+                    ],
                     'senderPostCode' => '31-042',
                     'shipmentType' => 'box',
                 ],
@@ -146,7 +158,9 @@ final class SerializationTest extends TestCase
                 ),
                 [
                     'courier' => 'DPD',
-                    'packs' => [['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1]],
+                    'packs' => [
+                        ['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1],
+                    ],
                 ],
             ],
             'invoice summary, PDF unless told otherwise' => [
@@ -163,7 +177,12 @@ final class SerializationTest extends TestCase
                     content: 'Hi',
                     files: [TicketAttachmentMessage::fromContents('notatka.txt', "hello\n", 'text/plain')],
                 ),
-                ['topic_id' => '5', 'content' => 'Hi', 'name' => '', 'files' => [['name' => 'notatka.txt', 'file' => 'aGVsbG8K', 'type' => 'text/plain']]],
+                [
+                    'topic_id' => '5',
+                    'content' => 'Hi',
+                    'name' => '',
+                    'files' => [['name' => 'notatka.txt', 'file' => 'aGVsbG8K', 'type' => 'text/plain']],
+                ],
             ],
             'document request takes a list' => [
                 new GetDocumentMessage(['12345-678', '12345-679']),
@@ -371,7 +390,11 @@ final class SerializationTest extends TestCase
      */
     public function testAnOrderSendsItsExternalIdsOnlyWhenTheyAreSet(): void
     {
-        $order = static fn(?string $applicationId, ?string $orderId, ?string $orderNumber): CreateOrderMessage => new CreateOrderMessage(
+        $order = static fn(
+            ?string $applicationId,
+            ?string $orderId,
+            ?string $orderNumber,
+        ): CreateOrderMessage => new CreateOrderMessage(
             courier: 'DPD',
             shipmentType: ShipmentTypeEnum::Box,
             packs: [Sample::of(PackMessage::class)],
@@ -417,7 +440,9 @@ final class SerializationTest extends TestCase
     {
         /** @var BasePack $pack */
         $pack = (new SerializerProvider())->getSerializer()->deserialize(
-            (string)\json_encode(['length' => 120, 'width' => 80, 'height' => 100, 'weight' => 50, 'type' => $type->value]),
+            (string)\json_encode(
+                ['length' => 120, 'width' => 80, 'height' => 100, 'weight' => 50, 'type' => $type->value],
+            ),
             BasePack::class,
             'json'
         );

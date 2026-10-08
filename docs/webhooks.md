@@ -33,8 +33,8 @@ http_response_code(200);
 echo OrderWebhookReader::ACKNOWLEDGEMENT;   // "OK"
 ```
 
-Answer with HTTP 200 and `OK` as the whole body. `examples/order_webhook.php` does the same with a
-body saved to a file.
+Polkurier expects HTTP 200 with `OK` as the whole body. `examples/order_webhook.php` does the same
+with a body saved to a file.
 
 What an event looks like
 ------------------------
@@ -51,26 +51,23 @@ The order comes as nested form fields, e.g. `data[number]` and `data[sender][cit
 is a string, and values that are null or empty lists aren't sent at all.
 [`OrderWebhookReader::read()`](../src/Webhook/OrderWebhookReader.php) reads them into the same [`Order`](../src/Response/Order.php) a call to the API would give.
 
-Pass the request body, not `$_POST`. PHP fills `$_POST` only up to its `max_input_vars` setting,
-1000 fields by default, and an order with many items has more. The reader decodes the body itself,
-without that limit.
+The reader takes the request body, not `$_POST`. PHP fills `$_POST` only up to its
+`max_input_vars` setting, 1000 fields by default, and an order with many items has more. The reader
+decodes the body itself, without that limit.
 
 Checking the hash
 -----------------
 
 [`OrderWebhookReader::isAuthentic()`](../src/Webhook/OrderWebhookReader.php) computes the hash the way the Polkurier panel describes it, from the
 event's fields without `hash`, and compares it in constant time. It returns false for a body with
-no hash, or for an empty secret. Keep the secret out of your code and logs, like the API token.
+no hash, or for an empty secret.
 
 Handling events
 ---------------
 
-Treat an event as a sign that the order changed, not as the full story:
-
-- The same event can arrive more than once. Make handling it safe to repeat.
-- Read the order's status from the order, not only from the event's type.
-- To be sure you have the latest state, fetch the order with
-  [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) by its number.
+An event is a sign that the order changed rather than the full story. The same event can arrive
+more than once, and the order's status is in the order, not only in the event's type. The latest
+state comes from [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) by the order's number.
 
 A type the SDK doesn't know yet reads as null, and the event still reads.
 [`OrderWebhookReader::read()`](../src/Webhook/OrderWebhookReader.php) throws [`Exception\InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) for a body that isn't an

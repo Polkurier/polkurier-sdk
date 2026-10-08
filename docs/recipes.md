@@ -82,8 +82,8 @@ The SDK cannot check these for you:
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
   window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` has a length limit. [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) is the general
-  one, and a carrier may set a lower one. Keep it short.
-- `externalApplicationId` and `externalOrderId` are optional, but set them. They let you find the
+  one, and a carrier may set a lower one.
+- `externalApplicationId` and `externalOrderId` are optional. They let you find the
   order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
   SDK refuses one without the other.
 - Some additional services have prerequisites. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists them
@@ -123,7 +123,7 @@ $created = $client->orders()->createOrder($builder->build());
 Choosing a carrier
 ------------------
 
-There are 2 approaches. Most integrations use both.
+There are 2 approaches.
 
 ### Let the customer choose
 
@@ -148,8 +148,8 @@ foreach ($carriers as $carrier) {
 
 With `additionalData: true`, each [`Carrier`](../src/Response/Carrier.php) also describes what it supports: shipment types, pack
 limits, pickup requirements, the additional services it offers (except the SMS notifications) and
-which point map it uses. The SDK does not validate against this data. Use it to build your
-shipping form.
+which point map it uses. The SDK does not validate against this data. It describes what a shipping
+form can offer.
 
 ### Let the price decide
 
@@ -175,8 +175,8 @@ usort($quotes, static fn(ValuationMessage $a, ValuationMessage $b) => $a->getGro
 $cheapest = $quotes[0] ?? null;   // place the order with $cheapest->getServiceCode() as the courier
 ```
 
-Filter on [`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) first. A carrier that can't carry the shipment is
-quoted at 0, and would otherwise come out cheapest.
+A carrier that can't carry the shipment is quoted at 0, so without the filter on
+[`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) it would come out cheapest.
 
 ---
 
@@ -215,7 +215,7 @@ if ($cod !== null) {
 }
 ```
 
-Expect null often: an order placed without cash on delivery has nothing to report. See
+It is often null: an order placed without cash on delivery has nothing to report. See
 [Serialization: empty values](serialization.md#empty-values-on-the-way-in) for how the SDK detects
 an absent nested object.
 
@@ -224,8 +224,7 @@ an absent nested object.
 Pickup points
 -------------
 
-There are 3 ways to do this. [Services: finding a pickup point](services.md#finding-a-pickup-point)
-covers them in full. In short:
+[Services: finding a pickup point](services.md#finding-a-pickup-point) says which way suits which case.
 
 ```php
 // Searching, across carriers
@@ -297,8 +296,7 @@ To find out when a carrier can come:
 $days = $client->courier()->getCourierPickupTime($whenMessage);   // PickupTimeMessage[]
 ```
 
-Each entry is a day with its available time windows. Offer these to the customer, so they cannot
-pick a time the carrier will refuse.
+Each entry is a day with its available time windows. The carrier refuses a time outside them.
 
 You can also book the collection as part of the order, through [`CreateOrderMessage::$pickup`](../src/Request/Order/CreateOrderMessage.php). Which
 option to use depends on the carrier. Some require the pickup on the order, others accept a separate
@@ -309,8 +307,8 @@ booking later. [`CourierServiceInterface::availableCarriers(additionalData: true
 Labels and protocols
 --------------------
 
-[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns a single PDF with all their labels. You
-do not need one call per order:
+[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns a single PDF with all their labels, so
+one call covers them all:
 
 ```php
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
@@ -371,8 +369,7 @@ $status = $client->orders()->getStatus(new GetStatusMessage(
 ));
 ```
 
-> `tracking: true` is much slower than the plain call. Leave it off when you only need the current
-> state.
+> `tracking: true` is much slower than the plain call.
 
 To compare against known states:
 
@@ -513,8 +510,8 @@ $token = $client->twoFactorToken()->twoFactorTokenChangeTransportMethod(
 );
 ```
 
-Whether a call needs this depends on the account settings. Read
-[`$client->account()->getAccountInfo()->getPinLocks()`](../src/Api/Service/AccountServiceInterface.php). The SDK does not guess: a wrong guess means either a
+Whether a call needs this depends on the account settings, which
+[`$client->account()->getAccountInfo()->getPinLocks()`](../src/Api/Service/AccountServiceInterface.php) reports. The SDK does not guess: a wrong guess means either a
 refused call or a code sent to the customer for no reason.
 
 ---
@@ -522,7 +519,7 @@ refused call or a code sent to the customer for no reason.
 Paying out collected money
 --------------------------
 
-Check the fee first, then request the payout:
+The fee can be checked before the payout is requested:
 
 ```php
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
@@ -542,7 +539,8 @@ printf("Payout %s for %.2f PLN is %s\n",
 ```
 
 > This moves real money, and there is no idempotency key. If [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) throws a
-> [`ConnectionException`](../src/Exception/ConnectionException.php), check [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) before you do anything else. Do not just retry.
+> [`ConnectionException`](../src/Exception/ConnectionException.php), only [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) shows whether the payout was made, and a
+> blind retry can pay out twice.
 
 [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while the payout has not been sent. Current balances are on
 [`$client->account()->getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::getMoneyBoxBalance()`](../src/Response/Account/AccountInfoMessage.php), [`AccountInfoMessage::getMoneyBoxPayoutAvailableBalance()`](../src/Response/Account/AccountInfoMessage.php) and
@@ -554,17 +552,14 @@ Retrying safely
 ---------------
 
 [Errors](errors.md#retrying-safely) lists which failures can be retried, and shows the
-reconcile-then-retry pattern for [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). In short:
+reconcile-then-retry pattern for [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). In short, reads can be repeated, and a
+[`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) or [`AuthorizationException`](../src/Exception/AuthorizationException.php) comes back the same way
+on a retry. A write that ended in a [`ConnectionException`](../src/Exception/ConnectionException.php) may have gone through. There is no idempotency
+key, but an order placed with your own external ids can be looked up by them.
 
-- Reads: retry freely.
-- [`ValidationException`](../src/Exception/ValidationException.php), [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php), [`AuthorizationException`](../src/Exception/AuthorizationException.php): never.
-- Writes after a [`ConnectionException`](../src/Exception/ConnectionException.php): reconcile first. There is no idempotency key, but an order
-  placed with your own external ids can be looked up by them.
-
-To retry at the transport level instead of around each call, use a
-[custom `ClientFactory`](architecture.md#clientfactoryinterface-your-own-http-client). A retry
-policy there applies to writes as well, so limit it to idempotent methods or to connection-level
-failures.
+A retry policy can also sit at the transport level, in a
+[custom `ClientFactory`](architecture.md#clientfactoryinterface-your-own-http-client). It then
+applies to writes as well as reads.
 
 ---
 
@@ -595,8 +590,8 @@ $lockers = $cache->get('polkurier.inpost.lockers', function (ItemInterface $item
 Or around a whole service, which keeps caching out of your call sites. See
 [Architecture: substituting a service](architecture.md#substituting-a-service).
 
-Separately, set `metadataCache` on [`SerializerConfig`](../src/Serializer/SerializerConfig.php) in a long-running process. This caches the
-serializer's reflection data, not API responses, and it is the SDK's biggest start-up cost. See
+`metadataCache` on [`SerializerConfig`](../src/Serializer/SerializerConfig.php) is a different cache. It holds the serializer's reflection data, not
+API responses, and saves the SDK's biggest start-up cost in a long-running process. See
 [Configuration](configuration.md#metadatacache).
 
 ---
@@ -605,7 +600,7 @@ Health checks
 -------------
 
 [`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) sends no credentials, so it tells you whether the API is reachable regardless of
-your token. Use it as the health probe.
+your token, which makes it a fit for a health probe.
 
 ```php
 try {

@@ -44,7 +44,8 @@ readonly class TicketTimelineItemMessage implements MessageInterface
      * @param TicketAuthorEnum|null $origin which side it came from
      * @param string $authorName first name only
      * @param string $content the message text, or a description of the event
-     * @param ?\DateTimeInterface $dateRead when the customer read it, null while unread. Ignore it on the customer's own entries
+     * @param ?\DateTimeInterface $dateRead when the customer read it, null while unread. Ignore it on the
+     *        customer's own entries
      * @param TicketFileMessage[] $files attachments on this entry
      */
     public function __construct(

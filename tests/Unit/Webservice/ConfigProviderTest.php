@@ -48,7 +48,11 @@ final class ConfigProviderTest extends TestCase
     {
         $provider = new SwitchingConfigProvider(self::config('11111', 'shop-a', validatePayloads: false));
         $client = new RecordingClient('{"status":"success","response":{"orders":[]}}');
-        $sdk = new PolkurierWebservice(config: self::config('00000', 'unused'), configProvider: $provider, clientFactory: $client);
+        $sdk = new PolkurierWebservice(
+            config: self::config('00000', 'unused'),
+            configProvider: $provider,
+            clientFactory: $client,
+        );
         $tooLarge = new GetOrdersMessage(pageSize: GetOrdersMessage::MAX_PAGE_SIZE + 1);
 
         try {

@@ -152,7 +152,9 @@ final class LoggingTest extends TestCase
     {
         $this->client->willAnswerWith('{"status":"success","response":true}');
 
-        $this->sdk(methodsToLog: [ApiMethodEnum::ChangePhonePin])->account()->changePhonePin(new ChangePinMessage(pin: '1234'));
+        $this->sdk(methodsToLog: [ApiMethodEnum::ChangePhonePin])
+            ->account()
+            ->changePhonePin(new ChangePinMessage(pin: '1234'));
 
         $logged = \implode("\n", \array_column($this->logger->records, 'message'));
         self::assertStringNotContainsString('1234', $logged);
@@ -210,7 +212,9 @@ final class LoggingTest extends TestCase
 
         $this->logger->records = [];
         $this->client->willAnswerWith($answer);
-        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts], logPersonalData: true)->bankAccounts()->getBankAccounts();
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts], logPersonalData: true)
+            ->bankAccounts()
+            ->getBankAccounts();
         $shown = \implode("\n", \array_column($this->logger->records, 'message'));
 
         self::assertStringNotContainsString('61109010140000071219812874', $hidden);
@@ -224,7 +228,9 @@ final class LoggingTest extends TestCase
         $pdf = \base64_encode("%PDF-1.4\nlabel");
         $this->client->willAnswerWith('{"status":"success","response":{"file":"' . $pdf . '"}}');
 
-        $this->sdk(methodsToLog: [ApiMethodEnum::GetLabel])->orders()->getLabel(new GetDocumentMessage(orderNo: ['12345-1']));
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetLabel])
+            ->orders()
+            ->getLabel(new GetDocumentMessage(orderNo: ['12345-1']));
 
         $logged = \implode("\n", \array_column($this->logger->records, 'message'));
         self::assertStringNotContainsString($pdf, $logged);

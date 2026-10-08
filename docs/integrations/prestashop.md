@@ -40,11 +40,11 @@ modules/polkurier/
 require_once __DIR__ . '/vendor/autoload.php';
 ```
 
-> Don't drop `prepend-autoloader: false`. PrestaShop and each module have their own Composer tree,
-> and if yours is prepended it can shadow a class the core expects. Check the Symfony components
-> for conflicts in particular. The SDK needs `symfony/serializer` 7.x, and some PrestaShop 8 builds
-> ship an older version. In that case, prefix the module's vendor tree at build time, as
-> [Mozart](https://github.com/coenjacobs/mozart) does.
+> `prepend-autoloader: false` keeps the module's autoloader behind the shop's. PrestaShop and each
+> module have their own Composer tree, and a prepended one can shadow a class the core expects. The
+> Symfony components are where conflicts usually show: the SDK needs Symfony 6.4 or newer, while
+> PrestaShop 1.7 ships Symfony 3.4 and PrestaShop 8 ships 4.4. Prefixing the module's vendor tree at build time,
+> as [Mozart](https://github.com/coenjacobs/mozart) does, avoids the clash.
 
 Configuration
 -------------
@@ -129,9 +129,9 @@ class Polkurier extends Module
 [`UtilsServiceInterface::testAuthApi()`](../../src/Api/Service/UtilsServiceInterface.php) takes the credentials as an argument and ignores the configured ones. In a
 settings form, that lets you check what the merchant just typed before you rely on it.
 
-> PrestaShop stores `Configuration` values in plain text. If that's a concern for the shop, encrypt
-> the token before storing it (e.g. with [`sodium_crypto_secretbox()`](https://www.php.net/manual/en/function.sodium-crypto-secretbox.php) and a key kept outside the
-> database), and decrypt it in the client factory below. `Hashing` won't do: it's one-way.
+> PrestaShop stores `Configuration` values in plain text. A token encrypted before it is stored
+> (e.g. with [`sodium_crypto_secretbox()`](https://www.php.net/manual/en/function.sodium-crypto-secretbox.php) and a key kept outside the database) can be decrypted in the
+> client factory below. `Hashing` is one-way, so it can't be used for this.
 
 Building the client
 -------------------
@@ -193,7 +193,7 @@ This keeps one client per shop and one serializer per process. The clients have 
 shop for multistore to work. A single cached client would keep the credentials of whichever shop it
 was first built for.
 
-The serializer metadata cache key doesn't include a version, so have your deploy clear
+The serializer metadata cache key doesn't include a version, so a deploy clears
 `_PS_CACHE_DIR_ . 'polkurier'`.
 
 Symfony services in the back office
@@ -222,8 +222,8 @@ This needs a matching static `Client::orders()` method on `Client`. Front-office
 Placing the shipment
 --------------------
 
-`actionValidateOrder` runs inside the order placement transaction. **Don't call the API there.** If
-the API is slow or fails, the checkout fails with it. Record the order and process it later:
+`actionValidateOrder` runs inside the order placement transaction. A call to the API there makes the
+checkout wait on it, and fail with it. The module records the order and processes it later:
 
 ```php
 public function hookActionValidateOrder(array $params): void
@@ -239,7 +239,7 @@ public function hookActionValidateOrder(array $params): void
 }
 ```
 
-Then process the queue from a cron controller, or when the merchant clicks a button in
+The queue is then processed from a cron controller, or when the merchant clicks a button in
 `displayAdminOrderMain`. PrestaShop has no general job queue, so a table and a cron controller is
 the usual approach:
 
@@ -281,7 +281,7 @@ final class ShipmentDispatcher
                 $error->getValidationErrors() ?? ['' => [$error->getResponse()]],
             )];
         } catch (ConnectionException) {
-            // Unknown outcome. Leave it queued and don't send it again in this pass.
+            // Unknown outcome. It stays queued and isn't sent again in this pass.
             return [false, 'Polkurier did not answer. The shipment stays queued.'];
         }
 
@@ -333,16 +333,14 @@ if ($address->company) {
 }
 ```
 
-Addresses need some care. PrestaShop doesn't keep the house number separate from the street, so
-`address2` contains whatever the customer typed there. The API needs a number, so pick a convention
-and validate it at checkout. Also, both phone fields are optional in PrestaShop, but most carriers
-require a phone number. Make one of them mandatory in the address format for the countries you ship
-to.
+PrestaShop doesn't keep the house number separate from the street, so `address2` contains
+whatever the customer typed there, while the API needs a number. Both phone fields are optional in
+PrestaShop, but most carriers require a phone number.
 
 A carrier in checkout
 ---------------------
 
-Register a PrestaShop [`Carrier`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/Carrier.php) on install and price it with your own rules:
+The module registers a PrestaShop [`Carrier`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/Carrier.php) on install and prices it with its own rules:
 
 ```php
 $carrier = new Carrier();
@@ -355,25 +353,21 @@ $carrier->add();
 ```
 
 PrestaShop calls [`CarrierModule::getOrderShippingCost()`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/module/CarrierModule.php) on every cart change. If you call [`OrdersServiceInterface::orderValuation()`](../../src/Api/Service/OrdersServiceInterface.php) from
-there, every cart update waits on a third-party request, and the shop feels slow. Price from a
-cached table instead, and compare with the real quote when the merchant dispatches the order.
-
-If you do want live quotes, cache them by destination and weight, and fall back to a fixed price if
-the call fails.
+there, every cart update waits on a third-party request, and the shop feels slow. The example prices
+from a table, and the real quote comes when the merchant dispatches the order.
 
 Pickup point selection
 ----------------------
 
-There are two options:
+- The map widget, using [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php), embedded in the carrier's extra content.
+- A search with [`$client->courier()->findCourierPoints()`](../../src/Api/Service/CourierServiceInterface.php) by the customer's postcode or city, behind
+  an autocomplete field.
 
-- The map widget, using [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php), embedded in the carrier's extra content. This gives
-  the best experience for customers.
-
-Either way, store the selected point ID against the cart and set it on the order address with
+Either way, the selected point ID is stored against the cart and set on the order address with
 [`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
 
-Cache the lists. There are tens of thousands of lockers, and fetching them on every page load makes
-the shop look broken.
+Without a search query, [`CourierServiceInterface::findCourierPoints()`](../../src/Api/Service/CourierServiceInterface.php) returns every point of a carrier,
+tens of thousands for InPost, so such a list is cached instead of fetched on every page load.
 
 Labels in the order screen
 --------------------------
@@ -410,13 +404,13 @@ Multistore
 ----------
 
 All the code above is keyed by `id_shop`. [`Configuration::get()`](https://github.com/PrestaShop/PrestaShop/blob/8.2.x/classes/Configuration.php) takes it, and `Client::build()`
-caches one client per shop. Avoid a single static client built on first use. Under multistore it
-quietly sends shop B's orders on shop A's account.
+caches one client per shop. A single static client built on first use would, under multistore,
+quietly send shop B's orders on shop A's account.
 
 Debug and support
 -----------------
 
-Give the module its own log file. Turn on extended logging only while you are debugging a problem:
+Extended logging into the module's own log file, for debugging a problem:
 
 ```php
 new Config(
@@ -426,5 +420,4 @@ new Config(
 ```
 
 This logs full request and response bodies. The token and personal data are hidden unless you
-allow them, but the bodies still describe your orders. Turn it off when you're done, and keep the
-log file outside the web root.
+allow them, but the bodies still describe your orders.

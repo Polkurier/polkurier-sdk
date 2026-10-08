@@ -75,8 +75,10 @@ final class ErrorPathTest extends TestCase
                 static fn(PolkurierWebservice $s) => $s->courier()->getCountries(new GetCountriesMessage(couriers: 'DHL')),
                 'null',
             ],
-            'a free-form array expected, a number received' => [
-                static fn(PolkurierWebservice $s) => $s->tickets()->getContactForm(new GetContactFormMessage(category: 'wspolpraca')),
+            'an object expected, a number received' => [
+                static fn(PolkurierWebservice $s) => $s->tickets()->getContactForm(
+                    new GetContactFormMessage(category: 'wspolpraca'),
+                ),
                 '42',
             ],
         ];

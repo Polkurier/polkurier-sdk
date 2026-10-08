@@ -3,7 +3,7 @@ WooCommerce / WordPress
 
 For WooCommerce 8+ on PHP 8.3+, as a plugin. Of all the hosts here, WordPress is the hardest fit
 for the SDK. It has no container and no autoloader of its own, and it does very little type
-checking. Most of this page is about keeping your plugin code and WordPress separate.
+checking.
 
 Autoloading, and the dependency problem
 ---------------------------------------
@@ -12,9 +12,8 @@ WordPress loads all active plugins into one process that shares one global class
 plugins ship different versions of `symfony/serializer`, the site hits a fatal error, and you can't
 control what else the merchant has installed.
 
-**Prefix your dependencies.** At build time, use [PHP-Scoper](https://github.com/humbug/php-scoper)
-or [Mozart](https://github.com/coenjacobs/mozart) to move the SDK and its dependencies into your own
-namespace:
+At build time, [PHP-Scoper](https://github.com/humbug/php-scoper) or [Mozart](https://github.com/coenjacobs/mozart)
+can move the SDK and its dependencies into your own namespace:
 
 ```json
 {
@@ -55,8 +54,8 @@ return [
 ];
 ```
 
-You must do this for any plugin you distribute. Without it, the plugin works on your machine and
-breaks on any site that also runs a plugin with an older Symfony.
+Without it, a distributed plugin works on your machine and breaks on any site that also runs a
+plugin with an older Symfony.
 
 Plugin bootstrap
 ----------------
@@ -169,8 +168,8 @@ add_filter('woocommerce_integrations', static function (array $integrations): ar
 });
 ```
 
-> WordPress stores options in plain text. Secrets usually go in `wp-config.php`, so support a
-> constant that overrides the setting. That way a site can keep the token out of the database:
+> WordPress stores options in plain text. Secrets usually go in `wp-config.php`, and a constant that
+> overrides the setting lets a site keep the token out of the database:
 >
 > ```php
 > $token = defined('POLKURIER_TOKEN') ? POLKURIER_TOKEN : $settings['token'];
@@ -179,7 +178,7 @@ add_filter('woocommerce_integrations', static function (array $integrations): ar
 Building the client
 -------------------
 
-WordPress has no container, so use a lazy singleton:
+WordPress has no container, so the client is a lazy singleton:
 
 ```php
 <?php
@@ -248,14 +247,14 @@ final class WooLogger extends AbstractLogger
 }
 ```
 
-Note that `$context` is not logged. The request and response in it are prepared like the message,
-but the exceptions in it hold the full request, API token included. Log only the message.
+`$context` is not logged. The request and response in it are prepared like the message, but the
+exceptions in it hold the full request, API token included.
 
 Placing the shipment
 --------------------
 
-Don't place it on `woocommerce_checkout_order_processed`, which runs during the customer's
-request. Use Action Scheduler, which comes with WooCommerce:
+`woocommerce_checkout_order_processed` runs during the customer's request, so the shipment is
+placed from Action Scheduler, which comes with WooCommerce:
 
 ```php
 add_action('woocommerce_order_status_processing', static function (int $order_id): void {
@@ -320,7 +319,7 @@ The two catch blocks handle different cases. If you retry a rejected payload 5 t
 identical failures and a confused merchant. After a lost connection, retrying is correct, and it's
 safe only because of the meta check at the top.
 
-Use [`WC_Data::update_meta_data()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html) and [`WC_Data::get_meta()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html), not
+The code uses [`WC_Data::update_meta_data()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html) and [`WC_Data::get_meta()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html), not
 [`update_post_meta()`](https://developer.wordpress.org/reference/functions/update_post_meta/). WooCommerce HPOS
 (High-Performance Order Storage) moves orders out of `wp_posts`, and the CRUD methods work with both
 storage types.
@@ -397,8 +396,8 @@ final class OrderMapper
 }
 ```
 
-Don't skip [`wc_get_weight()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html). WooCommerce stores weights in the unit the shop has configured, and
-the API expects kilograms. Convert dimensions the same way with [`wc_get_dimension()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html).
+[`wc_get_weight()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html) converts the weight: WooCommerce stores weights in the unit the shop has
+configured, and the API expects kilograms. [`wc_get_dimension()`](https://woocommerce.github.io/code-reference/files/woocommerce-includes-wc-formatting-functions.html) converts dimensions the same way.
 
 A shipping method
 -----------------
@@ -418,8 +417,8 @@ final class ShippingMethod extends \WC_Shipping_Method
 
     public function calculate_shipping($package = []): void
     {
-        // Price from your own table. Do NOT call orderValuation() here. This runs on
-        // every cart change, and a third-party request here makes the cart feel broken.
+        // Priced from the shop's own table. This runs on every cart change, so a call to
+        // orderValuation() here would make every cart update wait on a third-party request.
         $this->add_rate([
             'id'    => $this->id,
             'label' => $this->title,
@@ -429,14 +428,13 @@ final class ShippingMethod extends \WC_Shipping_Method
 }
 ```
 
-If you need live quotes, cache them by destination and weight with a short TTL, and fall back to a
-fixed cost when the API is slow or returns an error. If a shipping method throws, the cart page
-breaks.
+A live quote makes the cart wait on the API, and a shipping method that throws breaks the cart
+page.
 
 Pickup points at checkout
 -------------------------
 
-Fetch the list once and keep it in a transient:
+The list is fetched once and kept in a transient:
 
 ```php
 function polkurier_lockers(): array
@@ -459,10 +457,10 @@ function polkurier_lockers(): array
 }
 ```
 
-There are tens of thousands of lockers, far too many for a `<select>`. Put them behind an AJAX
-autocomplete, or use the map widget with [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php).
+There are tens of thousands of lockers, far too many for a `<select>`. An AJAX autocomplete or the
+map widget with [`$client->geo()->getMapToken()`](../../src/Api/Service/GeoServiceInterface.php) handles that many.
 
-Save the selected ID as order meta and read it back in the mapper, as shown above.
+The selected ID is saved as order meta and read back in the mapper, as shown above.
 
 Labels from the orders list
 ---------------------------
@@ -476,7 +474,11 @@ add_filter('bulk_actions-woocommerce_page_wc-orders', static function (array $ac
     return $actions;
 });
 
-add_filter('handle_bulk_actions-woocommerce_page_wc-orders', static function (string $redirect, string $action, array $ids): string {
+add_filter('handle_bulk_actions-woocommerce_page_wc-orders', static function (
+    string $redirect,
+    string $action,
+    array $ids,
+): string {
     if ($action !== 'polkurier_labels') {
         return $redirect;
     }
@@ -499,13 +501,12 @@ add_filter('handle_bulk_actions-woocommerce_page_wc-orders', static function (st
 }, 10, 3);
 ```
 
-`wc-orders` is the HPOS screen ID. If you support legacy storage, also add the `edit-shop_order`
-variants.
+`wc-orders` is the HPOS screen ID. Legacy storage uses the `edit-shop_order` variants.
 
 Site Health
 -----------
 
-Show the API status in Site Health, where the merchant will see it:
+The API status can be shown in Site Health, where the merchant sees it:
 
 ```php
 add_filter('site_status_tests', static function (array $tests): array {
@@ -527,15 +528,3 @@ add_filter('site_status_tests', static function (array $tests): array {
 ```
 
 [`UtilsServiceInterface::heartbeat()`](../../src/Api/Service/UtilsServiceInterface.php) doesn't send credentials, so this test checks the connection and ignores the token.
-
-What to watch out for
----------------------
-
-- **Prefix the vendor tree.** If a plugin works on its own but causes a fatal error next to another
-  plugin, this is usually why.
-- **Don't call the API during checkout.** Use Action Scheduler.
-- **Use [`WC_Data::get_meta()`](https://woocommerce.github.io/code-reference/classes/WC-Data.html), not [`get_post_meta()`](https://developer.wordpress.org/reference/functions/get_post_meta/),** so the code works with HPOS.
-- **Don't log the SDK's context array.** It contains the request body, and the body contains the
-  token.
-- **Use `declare(strict_types=1)` only in your own files.** WordPress often passes strings where
-  integers are expected, so cast values where they cross into your code.

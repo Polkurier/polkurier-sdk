@@ -15,8 +15,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An identity verification attempt and where it has got to.
  *
  * The access token is present only in the response that starts a verification, never when you read
- * one back. The external verification provider's flow needs it. Treat it as a one-time secret: pass
- * it straight on and do not store it.
+ * one back. It is a one-time secret for the external verification provider's flow.
  */
 readonly class AccountVerificationMessage implements MessageInterface
 {

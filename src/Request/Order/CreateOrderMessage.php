@@ -31,7 +31,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *   separately. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
  *   replaces its plain variant. {@see AdditionalServiceEnum} describes how the two kinds combine.
  * - `description` has a length limit of {@see self::DESCRIPTION_MAX_LENGTH}, and some carriers
- *   allow less. Keep it short.
+ *   allow less.
  *
  * To find the order later by your own id, set `externalApplicationId` and `externalOrderId`
  * together (the SDK refuses one without the other), then filter

@@ -44,7 +44,7 @@ interface PaymentsServiceInterface
      * it is required and must be greater than zero. The SDK checks this before sending. The
      * verification mode has a fixed amount, which `get_system_info` reports.
      *
-     * Keep the transaction id. You need it to look the payment up later.
+     * The transaction id is what looks the payment up later.
      *
      * Endpoint: `register_payment`
      *
@@ -92,10 +92,10 @@ interface PaymentsServiceInterface
     /**
      * Reports the current state of a registered payment.
      *
-     * Use this to check the result after the customer returns from the provider. Don't treat the
-     * return redirect as proof of success: it can be forged or reached too early.
+     * This is the reliable result after the customer returns from the provider. The return redirect
+     * is not proof of success: it can be forged or reached too early.
      *
-     * The hash is the provider's signature over the transaction. Use it to reconcile against a
+     * The hash is the provider's signature over the transaction, for reconciling against a
      * provider-side callback. It isn't meant for display.
      *
      * Endpoint: `get_payment_info`

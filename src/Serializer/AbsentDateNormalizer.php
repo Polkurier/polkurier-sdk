@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
@@ -17,7 +16,8 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * and the error talks about parse formats without saying which field failed.
  *
  * This normalizer runs first and returns null for the empty string. Any other date string goes to
- * {@see DateTimeNormalizer} unchanged. Whether null is allowed is up to the receiving property.
+ * {@see \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer} unchanged. Whether null is
+ * allowed is up to the receiving property.
  */
 class AbsentDateNormalizer implements DenormalizerInterface
 {

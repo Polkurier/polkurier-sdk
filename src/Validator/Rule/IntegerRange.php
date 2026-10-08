@@ -15,7 +15,7 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  *
  * Mostly used for paging, to keep a page size within the documented maximum.
  *
- * Null passes. Use {@see NotBlank} to make the field required.
+ * Null passes. Use {@see \Polkurier\Webservice\Validator\Rule\NotBlank} to make the field required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class IntegerRange implements ValueValidatorInterface

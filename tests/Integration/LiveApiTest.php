@@ -65,8 +65,9 @@ final class LiveApiTest extends TestCase
     }
 
     /**
-     * An unauthenticated call to an authenticated method must surface as an AuthorizationException
-     * rather than as a generic failure — and must do so even though the API answers HTTP 200.
+     * An unauthenticated call to an authenticated method must surface as an
+     * {@see AuthorizationException} rather than as a generic failure — and must do so even though
+     * the API answers HTTP 200.
      */
     public function testMissingCredentialsRaiseAnAuthorizationException(): void
     {

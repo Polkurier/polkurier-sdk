@@ -61,7 +61,7 @@ $order = new CreateOrderMessage(
         pickupTimeTo: new DateTimeImmutable('14:00'),
     ),
     courierService: [AdditionalServiceEnum::SmsOnDispatch],
-    // Keep it short: see CreateOrderMessage::DESCRIPTION_MAX_LENGTH, and carriers may be stricter.
+    // Limited by {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH}, and carriers may be stricter.
     description: 'Books',
     // Your own ids for the order, to find it again with get_orders, e.g. after a timeout.
     externalApplicationId: '6f1c2b9e-0d4a-4c3e-9b8f-1a2b3c4d5e6f',

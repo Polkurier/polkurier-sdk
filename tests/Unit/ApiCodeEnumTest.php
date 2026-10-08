@@ -14,8 +14,8 @@ use Polkurier\Webservice\Exception\AuthorizationException;
 
 /**
  * The enum backing values are the literal strings and numbers the API emits. A typo in one of them
- * silently misclassifies errors, which is how `TOKEN_IS_NO_ACTIVE` (with a trailing E the API never
- * sends) stopped expired tokens being recognised as authorization failures.
+ * silently misclassifies errors, e.g. `TOKEN_IS_NO_ACTIVE` with a trailing E the API never sends
+ * would stop expired tokens being recognised as authorization failures.
  */
 #[CoversClass(ApiErrorCodeEnum::class)]
 #[CoversClass(AuthorizationException::class)]
@@ -49,7 +49,8 @@ final class ApiCodeEnumTest extends TestCase
 
     public function testEveryCaseMapsBackFromItsStatusCodeUnlessTheCodeIsShared(): void
     {
-        $counts = \array_count_values(\array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases()));
+        $codes = \array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases());
+        $counts = \array_count_values($codes);
 
         foreach (ApiErrorCodeEnum::cases() as $case) {
             $expected = $counts[$case->statusCode()] === 1 ? $case : null;

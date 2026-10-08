@@ -11,8 +11,9 @@ namespace Polkurier\Webservice\Exception;
  * The request never completed.
  *
  * A DNS failure, refused connection, TLS problem or timeout. The API was never reached, so nothing
- * was processed and the call is safe to retry. With a {@see WebserviceException}, by contrast, the
- * API answered and refused the call.
+ * was processed and the call is safe to retry. With a
+ * {@see \Polkurier\Webservice\Exception\WebserviceException}, by contrast, the API answered and
+ * refused the call.
  *
  * The underlying PSR-18 exception is available through getPrevious().
  *

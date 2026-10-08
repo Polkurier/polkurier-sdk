@@ -82,7 +82,9 @@ final class OrderWebhookReaderTest extends TestCase
         $body = self::body(['type' => 'UPDATED', 'data' => self::order()]);
         $at = (int)\strrpos($body, '&hash=') + 6;
 
-        self::assertTrue((new OrderWebhookReader())->isAuthentic(\substr($body, 0, $at) . \strtoupper(\substr($body, $at)), self::SECRET));
+        $inCapitals = \substr($body, 0, $at) . \strtoupper(\substr($body, $at));
+
+        self::assertTrue((new OrderWebhookReader())->isAuthentic($inCapitals, self::SECRET));
     }
 
     public function testABodyThatIsNotAnOrderEventIsRefused(): void

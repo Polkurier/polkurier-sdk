@@ -161,7 +161,11 @@ final class BuilderBehaviourTest extends TestCase
         $builder = PickupMessageBuilder::create();
         self::assertInstanceOf(GetPickupTimeMessageBuilder::class, $builder);
 
-        $message = $builder->courier('UPS')->shipFrom('61-001')->pickupDate(new \DateTimeImmutable('2026-10-01'))->build();
+        $message = $builder
+            ->courier('UPS')
+            ->shipFrom('61-001')
+            ->pickupDate(new \DateTimeImmutable('2026-10-01'))
+            ->build();
 
         self::assertInstanceOf(PickupMessage::class, $message);
         self::assertSame('61-001', $message->getShipFrom());

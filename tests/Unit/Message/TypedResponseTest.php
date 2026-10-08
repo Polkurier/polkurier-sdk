@@ -28,8 +28,8 @@ use Polkurier\Webservice\Test\Support\Sample;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * Responses whose values used to come back as decoded JSON read into typed messages, from payloads
- * shaped as the API sends them.
+ * Valuations, contact forms and their values read into typed messages, from payloads shaped as the
+ * API sends them.
  */
 #[CoversNothing]
 final class TypedResponseTest extends TestCase
@@ -75,7 +75,10 @@ final class TypedResponseTest extends TestCase
                 ['id' => 'f1', 'type' => 'TEXT', 'name' => 'name', 'value' => '', 'label' => 'Imię', 'maxLength' => 100],
                 [
                     'id' => 'f2', 'type' => 'SELECT', 'name' => 'courier', 'value' => '', 'label' => 'Przewoźnik',
-                    'options' => [['value' => 'DPD', 'label' => 'DPD'], ['value' => '-1', 'label' => 'Inne', 'condition' => '@a != \'\'']],
+                    'options' => [
+                        ['value' => 'DPD', 'label' => 'DPD'],
+                        ['value' => '-1', 'label' => 'Inne', 'condition' => '@a != \'\''],
+                    ],
                 ],
                 ['id' => 'f3', 'type' => 'SELECT', 'name' => 'target', 'value' => '', 'label' => 'Cel', 'options' => '@COURIERS'],
                 [
@@ -123,7 +126,10 @@ final class TypedResponseTest extends TestCase
         self::assertNull($unknown->getType());
 
         self::assertEquals(
-            [new ContactFormValueMessage('COURIERS', '["DPD","DHL"]'), new ContactFormValueMessage('hide_login_button', true)],
+            [
+                new ContactFormValueMessage('COURIERS', '["DPD","DHL"]'),
+                new ContactFormValueMessage('hide_login_button', true),
+            ],
             $form->getProperties(),
         );
         self::assertSame([], $form->getState());
@@ -166,14 +172,23 @@ final class TypedResponseTest extends TestCase
             [new KnowledgeBaseLinkMessage('jak-wykonac-zrzut-ekranu', 'Jak wykonać zrzut ekranu?')],
             $topic->getKnowledgeBaseArticles(),
         );
-        self::assertEquals([new KnowledgeBaseLinkMessage('reklamacje', 'Reklamacje')], $topic->getKnowledgeBaseCategories());
+        self::assertEquals(
+            [new KnowledgeBaseLinkMessage('reklamacje', 'Reklamacje')],
+            $topic->getKnowledgeBaseCategories(),
+        );
     }
 
     public function testAnOrderReadsItsFilesWithoutTheirContents(): void
     {
         $order = self::read(Order::class, [
             'files' => [
-                ['name' => 'faktura.pdf', 'type' => 'application/pdf', 'size' => 2048, 'hash' => 'abc', 'date_created' => '2026-10-01T12:00:00+02:00'],
+                [
+                    'name' => 'faktura.pdf',
+                    'type' => 'application/pdf',
+                    'size' => 2048,
+                    'hash' => 'abc',
+                    'date_created' => '2026-10-01T12:00:00+02:00',
+                ],
                 ['name' => 'zdjecie.png', 'type' => 'image/png', 'size' => 10, 'hash' => 'def', 'date_created' => null],
             ],
         ] + self::sample(Order::class));
@@ -193,11 +208,12 @@ final class TypedResponseTest extends TestCase
 
     public function testExternalApplicationSettingsReadAsNamedValues(): void
     {
+        $sample = self::sample(AccountInfoMessage::class);
         $info = self::read(AccountInfoMessage::class, ['external_application_settings' => [
             'webhook_url' => 'https://shop.example.com/polkurier',
             'statuses' => ['NEW', 'SENT'],
             'enabled' => true,
-        ]] + self::sample(AccountInfoMessage::class));
+        ]] + $sample);
         self::assertInstanceOf(AccountInfoMessage::class, $info);
         self::assertEquals(
             [
@@ -208,14 +224,12 @@ final class TypedResponseTest extends TestCase
             $info->getExternalApplicationSettings(),
         );
 
-        $none = self::read(AccountInfoMessage::class, ['external_application_settings' => []] + self::sample(AccountInfoMessage::class));
+        $none = self::read(AccountInfoMessage::class, ['external_application_settings' => []] + $sample);
         self::assertInstanceOf(AccountInfoMessage::class, $none);
         self::assertSame([], $none->getExternalApplicationSettings());
 
-        $notAsked = self::read(
-            AccountInfoMessage::class,
-            \array_diff_key(self::sample(AccountInfoMessage::class), [AccountInfoMessage::FIELD_EXTERNAL_APPLICATION_SETTINGS => 0]),
-        );
+        unset($sample[AccountInfoMessage::FIELD_EXTERNAL_APPLICATION_SETTINGS]);
+        $notAsked = self::read(AccountInfoMessage::class, $sample);
         self::assertInstanceOf(AccountInfoMessage::class, $notAsked);
         self::assertNull($notAsked->getExternalApplicationSettings());
     }

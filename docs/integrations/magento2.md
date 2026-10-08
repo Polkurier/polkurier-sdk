@@ -42,7 +42,7 @@ Methods > Polkurier**.
 
 For Magento's multi-address checkout (**Check Out with Multiple Addresses**), also install the
 bridge module `polkurier/magento2-multishipping`. It adds pickup point selection to each address in
-that checkout. Install it only if you use that checkout, since many stores turn it off.
+that checkout. It is only needed with that checkout, which many stores turn off.
 
 ```bash
 composer require polkurier/magento2-multishipping
@@ -65,10 +65,9 @@ Each package has its guides in its `docs/` directory:
 Customising it
 --------------
 
-Extend the module instead of writing a second integration next to it. Its developer guide lists
-the supported extension points, such as plugins on its service contracts, and the events it
-dispatches.
+The module's developer guide lists the supported extension points, such as plugins on its service
+contracts, and the events it dispatches.
 
-If you need a Polkurier call the module doesn't make yet, use the SDK client the module already
-configures for the account, as its developer guide describes. The SDK's own pages, starting with
+For a Polkurier call the module doesn't make yet, the developer guide describes using the SDK
+client the module already configures for the account. The SDK's own pages, starting with
 [Services](../services.md), describe each call.

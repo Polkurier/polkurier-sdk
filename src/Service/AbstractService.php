@@ -235,8 +235,7 @@ abstract class AbstractService
      * Returns the payload for an endpoint that may return nothing.
      *
      * Some endpoints say "not found" with an empty array instead of an error, and the response
-     * factory turns that into null. Use this method only for those endpoints. Elsewhere a missing
-     * object is an error.
+     * factory turns that into null. Everywhere else a missing object is an error.
      *
      * @template T of object
      *
@@ -541,8 +540,11 @@ abstract class AbstractService
      *
      * @return void
      */
-    protected function logRequest(ApiMethodInterface $apiMethod, RequestInterface $request, ?MessageInterface $payload): void
-    {
+    protected function logRequest(
+        ApiMethodInterface $apiMethod,
+        RequestInterface $request,
+        ?MessageInterface $payload,
+    ): void {
         if (!$this->config()->isExtendedLoggingEnabled($apiMethod)) {
             return;
         }

@@ -16,8 +16,8 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * An HTTP client that returns a fixed body and records the requests it receives.
  *
- * Use it to test the service layer end to end (request building, serialization, response parsing)
- * without a network. It is also its own factory, so you can pass it straight to a service
+ * It tests the service layer end to end (request building, serialization, response parsing)
+ * without a network. It is also its own factory, so it can be passed straight to a service
  * constructor.
  */
 final class RecordingClient implements ClientInterface, ClientFactoryInterface

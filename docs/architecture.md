@@ -14,7 +14,7 @@ The source is organised by role:
 | `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
 | `Request` | Everything you send |
 | `Response` | Everything you get back |
-| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the hand-written builders |
+| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, the SDK's own normalizers and 2 attributes |
 | `Log` | Preparing request and response bodies for the log |
@@ -113,7 +113,7 @@ Which classes are final
 builder, and the validation layer down to the individual rules. Subclass one to change a single
 step, or implement its interface (where it has one) to replace it outright. A broken change to the
 configuration, the serializer or a factory affects every call and tends to look like an API
-problem, so test such changes well.
+problem.
 
 Internals in the open classes are `protected`, so you can override them in a subclass.
 
@@ -141,10 +141,11 @@ new PolkurierWebservice(
 
 ### `ClientFactoryInterface`: your own HTTP client
 
-This is the one you are most likely to need. The default builds a Guzzle client with the configured
+The default builds a Guzzle client with the configured
 base URI, timeout, `Content-Type: application/json` and **redirects disabled**. The API is a single
 POST endpoint that never redirects, so a 3xx means something is misconfigured, and following it
-would send your credentials to wherever it points. Keep redirects off in your replacement.
+would send your credentials to wherever it points. A replacement client that follows redirects
+would do the same.
 
 ```php
 use Polkurier\Webservice\Http\ClientFactoryInterface;
@@ -161,8 +162,8 @@ final readonly class MyClientFactory implements ClientFactoryInterface
 }
 ```
 
-Any PSR-18 client works. Use it to add retries, circuit breaking, request tracing or a shared
-connection pool, or to use your framework's client so its instrumentation applies.
+Any PSR-18 client works. A replacement can add retries, circuit breaking, request tracing or a
+shared connection pool, or be your framework's client so its instrumentation applies.
 
 ### `SerializerProviderInterface`: mapping
 
@@ -178,7 +179,7 @@ See [Configuration: per-tenant credentials](configuration.md#per-tenant-credenti
 
 ### `RequestFactoryInterface` and `ResponseFactoryInterface`: the envelope
 
-You will rarely need these. They keep the envelope format out of the services. You might replace
+They keep the envelope format out of the services. You might replace
 [`RequestFactory`](../src/Http/Request/RequestFactory.php) to add a header to every request, or [`ResponseFactory`](../src/Http/Response/ResponseFactory.php) to accept a status value
 the SDK does not recognise.
 
@@ -198,7 +199,7 @@ The key is the class your instance replaces. Services you do not pass are built 
 usual. The value is not type-checked against the key, so anything that implements the interface
 the accessor returns will do.
 
-Use this to add behaviour around one service without reimplementing the client:
+This adds behaviour around one service without reimplementing the client:
 
 ```php
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
@@ -234,16 +235,14 @@ final class RetryingOrders extends OrdersService
 }
 ```
 
-Both are supported. Implementing the interface suits wrapping and composing. Subclassing suits
+Implementing the interface suits wrapping and composing. Subclassing suits
 small changes.
 
 Not using the facade at all
 ---------------------------
 
 [`PolkurierWebservice`](../src/PolkurierWebservice.php) is a convenience and nothing depends on it. In an application with a DI
-container you usually should not use it, because it does the wiring the container should be doing.
-
-Wire a service directly:
+container, it duplicates the wiring the container does. A service can be wired directly:
 
 ```php
 use Polkurier\Webservice\ConfigProvider;
@@ -273,22 +272,12 @@ Every service takes the same arguments in the same order. The 6 above are the on
 more are optional: `lastResponse`, a [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) that keeps the last response, and
 `logSanitizer`, the [`LogSanitizer`](../src/Log/LogSanitizer.php) that prepares bodies for the log. Pass one
 [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) to several services if you want to see the last call made through any of
-them. Note: the default `validator` on
-[`AbstractService`](../src/Service/AbstractService.php) is [`NullValidator`](../src/Validator/NullValidator.php). A service you build by hand validates nothing unless you pass
-a validator, which is the opposite of the facade's default. Pass
-[`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php) unless you want validation off.
+them. The default `validator` on
+[`AbstractService`](../src/Service/AbstractService.php) is [`NullValidator`](../src/Validator/NullValidator.php), so a service built by hand validates nothing unless it is given
+a validator, the opposite of the facade's default.
+[`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php) gives the facade's rules.
 
 [Integrations](integrations/README.md) shows this wiring for each major framework.
-
-Why there are no interfaces on models
--------------------------------------
-
-Request and response classes have no interfaces. Their wire names, formats and dates are defined
-by serializer attributes on the classes, so another implementation would not serialize. An
-interface would suggest a swap that cannot work.
-
-For the same reason, `Api` only has interfaces where another implementation can do something
-useful.
 
 Thread-safety and reuse
 -----------------------
@@ -297,19 +286,11 @@ The SDK holds no connection state and does no I/O until you call a service metho
 
 - [`PolkurierWebservice`](../src/PolkurierWebservice.php) caches each service after first use, so repeated calls to an accessor
   return the same instance.
-- [`AbstractService`](../src/Service/AbstractService.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php) and [`ClientFactory`](../src/Http/ClientFactory.php) read the configuration from the
-  provider on every call and don't keep it.
+- The configuration is read from the provider on every call and not kept.
 - [`SerializerProvider`](../src/Serializer/SerializerProvider.php) holds no per-call state and can be shared across any number of clients.
-- The reflection caches in [`AttributeValidator`](../src/Validator/AttributeValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) and
-  [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) are `static` and keyed by class name, so they fill once per process.
+- What the SDK reads from its classes by reflection is cached per class, once per process.
 
-Some state does change with each call:
-
-- [`AbstractService::$lastHttpResponse`](../src/Service/AbstractService.php), which the exception factories use to report what came back.
-- The [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php), which every service the facade builds shares. Each call replaces
-  what it holds.
-- [`LogSanitizer`](../src/Log/LogSanitizer.php) remembers each body it has prepared while the message exists, so a body that is logged
-  twice is only prepared once.
-
-In a normal shared-nothing PHP process this does not matter. In a long-running worker, do not
-share one client or service instance across concurrent coroutines.
+Each call replaces the last response a service keeps, and the
+[`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) the facade's services share. In a normal shared-nothing PHP process this
+does not matter. In a long-running worker, concurrent coroutines that share one client or service
+instance overwrite this state for each other.

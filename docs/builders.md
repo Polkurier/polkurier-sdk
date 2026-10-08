@@ -61,38 +61,12 @@ the checks are the same whether you used a builder or the constructor. See
 **They're optional.** You can construct every message directly, and about two-thirds of messages
 have no builder.
 
-Available builders
-------------------
+Which messages have one
+-----------------------
 
-There are 23 builders. Every message with four or more fields has one. Builders inherit like their
-messages: the parcel builders share the abstract [`Common\BasePackMessageBuilder`](../src/Builder/Common/BasePackMessageBuilder.php), and
-[`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) extends [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php).
-
-| Builder | Builds |
-|---------|--------|
-| [`Account\SavePayerAddressMessageBuilder`](../src/Builder/Account/SavePayerAddressMessageBuilder.php) | [`Request\Account\SavePayerAddressMessage`](../src/Request/Account/SavePayerAddressMessage.php) |
-| [`Account\SavePhoneNumberMessageBuilder`](../src/Builder/Account/SavePhoneNumberMessageBuilder.php) | [`Request\Account\SavePhoneNumberMessage`](../src/Request/Account/SavePhoneNumberMessage.php) |
-| [`Address\SaveMessageBuilder`](../src/Builder/Address/SaveMessageBuilder.php) | [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) |
-| [`BankAccount\SaveMessageBuilder`](../src/Builder/BankAccount/SaveMessageBuilder.php) | [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) |
-| [`Contact\SaveContactFormMessageBuilder`](../src/Builder/Contact/SaveContactFormMessageBuilder.php) | [`Request\Contact\SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php) |
-| [`Courier\GetPickupTimeMessageBuilder`](../src/Builder/Courier/GetPickupTimeMessageBuilder.php) | [`Request\Courier\GetPickupTimeMessage`](../src/Request/Courier/GetPickupTimeMessage.php) |
-| [`Courier\GetPointMessageBuilder`](../src/Builder/Courier/GetPointMessageBuilder.php) | [`Request\Courier\GetPointMessage`](../src/Request/Courier/GetPointMessage.php) |
-| [`Courier\PickupMessageBuilder`](../src/Builder/Courier/PickupMessageBuilder.php) | [`Request\Courier\PickupMessage`](../src/Request/Courier/PickupMessage.php) |
-| [`MoneyBox\CreateMoneyBoxPayoutMessageBuilder`](../src/Builder/MoneyBox/CreateMoneyBoxPayoutMessageBuilder.php) | [`Request\MoneyBox\CreateMoneyBoxPayoutMessage`](../src/Request/MoneyBox/CreateMoneyBoxPayoutMessage.php) |
-| [`MoneyBox\GetMoneyBoxPayoutsMessageBuilder`](../src/Builder/MoneyBox/GetMoneyBoxPayoutsMessageBuilder.php) | [`Request\MoneyBox\GetMoneyBoxPayoutsMessage`](../src/Request/MoneyBox/GetMoneyBoxPayoutsMessage.php) |
-| [`Order\CodMessageBuilder`](../src/Builder/Order/CodMessageBuilder.php) | [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) |
-| [`Order\CoverAddressMessageBuilder`](../src/Builder/Order/CoverAddressMessageBuilder.php) | [`Request\Order\CoverAddressMessage`](../src/Request/Order/CoverAddressMessage.php) |
-| [`Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) | [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) |
-| [`Order\GetOrdersMessageBuilder`](../src/Builder/Order/GetOrdersMessageBuilder.php) | [`Request\Order\GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php) |
-| [`Order\MultiPickupAvailabilityRequestMessageBuilder`](../src/Builder/Order/MultiPickupAvailabilityRequestMessageBuilder.php) | [`Request\Order\MultiPickupAvailabilityRequestMessage`](../src/Request/Order/MultiPickupAvailabilityRequestMessage.php) |
-| [`Order\MultiPickupRequestMessageBuilder`](../src/Builder/Order/MultiPickupRequestMessageBuilder.php) | [`Request\Order\MultiPickupRequestMessage`](../src/Request/Order/MultiPickupRequestMessage.php) |
-| [`Order\OrderAddressMessageBuilder`](../src/Builder/Order/OrderAddressMessageBuilder.php) | [`Request\Order\OrderAddressMessage`](../src/Request/Order/OrderAddressMessage.php) |
-| [`Order\PackMessageBuilder`](../src/Builder/Order/PackMessageBuilder.php) | [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) |
-| [`Order\PickupMessageBuilder`](../src/Builder/Order/PickupMessageBuilder.php) | [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) |
-| [`PackTemplate\SaveMessageBuilder`](../src/Builder/PackTemplate/SaveMessageBuilder.php) | [`Request\PackTemplate\SaveMessage`](../src/Request/PackTemplate/SaveMessage.php) |
-| [`System\ValidateCouponMessageBuilder`](../src/Builder/System/ValidateCouponMessageBuilder.php) | [`Request\System\ValidateCouponMessage`](../src/Request/System/ValidateCouponMessage.php) |
-| [`Ticket\CreateTicketMessageBuilder`](../src/Builder/Ticket/CreateTicketMessageBuilder.php) | [`Request\Ticket\CreateTicketMessage`](../src/Request/Ticket/CreateTicketMessage.php) |
-| [`Ticket\GetTicketsMessageBuilder`](../src/Builder/Ticket/GetTicketsMessageBuilder.php) | [`Request\Ticket\GetTicketsMessage`](../src/Request/Ticket/GetTicketsMessage.php) |
+Every message with four or more fields has a builder. It is named after the message with `Builder`
+appended, in the same sub-namespace under `Builder` as the message has under `Request`:
+[`Builder\Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) builds [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php).
 
 Nesting builders
 ----------------
@@ -149,9 +123,8 @@ $firstPage  = $base->page(1)->build();
 $secondPage = $base->page(2)->build();
 ```
 
-Note: this mutates `$base`. Setters return the same instance, not a copy. If you need two
-independent builders, create two. To start over with the same builder, call
-[`AbstractBuilder::reset()`](../src/Builder/AbstractBuilder.php).
+This changes `$base`: setters return the same instance, not a copy.
+[`AbstractBuilder::reset()`](../src/Builder/AbstractBuilder.php) clears every value set so far.
 
 Builders in a DI container
 --------------------------
@@ -159,8 +132,8 @@ Builders in a DI container
 A builder's constructor takes no arguments, so a DI container can create builders in place of
 [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php), e.g. through Magento's generated factories. No builder class or public builder
 method is `final`, so a container can also hand out a subclass or wrap a builder in an interceptor,
-e.g. a Magento plugin on a setter or on `build()`. Ask the container for a new builder each time
-you need one, since a builder keeps its values.
+e.g. a Magento plugin on a setter or on `build()`. A builder keeps its values, so a shared instance
+carries them from one use to the next.
 
 The messages themselves are readonly value objects. To change what is sent, change the values
 given to the builder, or build a new message from the one `build()` returned.
@@ -168,8 +141,7 @@ given to the builder, or build a new message from the one `build()` returned.
 Writing your own
 ----------------
 
-Builders are hand-written, one file each, and contain little more than setters and a [`build()`](../src/Builder/)
-method. [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) does the rest: it collects values, works out which fields are required
+A builder contains little more than setters and a [`build()`](../src/Builder/) method. [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) does the rest: it collects values, works out which fields are required
 and refuses to build without them.
 
 ```php
@@ -201,16 +173,3 @@ by reflection, so it always agrees with the constructor.
 Builders aren't `final`, because their setters return `static` and a subclass can add setters.
 [`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) takes no arguments. A subclass that declares its own constructor must keep it
 parameterless and call `parent::__construct()`, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
-
-Drift test
-----------
-
-`tests/Unit/Builder/BuilderDriftTest.php` compares every builder with its message's constructor
-and checks that:
-
-1. Every constructor parameter has a setter with a matching type.
-2. No setter is left over for a parameter that no longer exists.
-3. Every message with four or more fields has a builder.
-
-If you add a field to a message and forget the builder, this test fails. If you write your own
-builders, consider copying it. It's short, and it catches builders that have fallen out of sync.

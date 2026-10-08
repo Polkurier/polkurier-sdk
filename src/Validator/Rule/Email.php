@@ -17,7 +17,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  * that are clearly not an address, like a name, a phone number or a value with a space in it. A
  * stricter check would reject working addresses and block the order.
  *
- * Empty values pass. Use {@see NotBlank} to make the field required.
+ * Empty values pass. Use {@see \Polkurier\Webservice\Validator\Rule\NotBlank} to make the field
+ * required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Email implements ValueValidatorInterface

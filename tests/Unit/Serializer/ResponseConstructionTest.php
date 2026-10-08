@@ -16,14 +16,11 @@ use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 /**
  * No response class can be handed back half-built.
  *
- * The previous serializer instantiated without calling the constructor and filled properties by
- * reflection, so a key the API left out became a typed property that was never initialised. The
- * object looked fine until the first getter, which threw `Error: must not be accessed before
- * initialization` — a crash with no connection to the response that caused it. That is how an
- * unknown pickup point id, answered with an empty payload, turned into an exception three frames
- * away from the call.
+ * An object filled by reflection without its constructor leaves a key the API left out as an
+ * uninitialised typed property. It looks fine until the first getter, which throws
+ * `Error: must not be accessed before initialization`, far from the response that caused it.
  *
- * Building through the constructor is what removes that state: either every required field is
+ * Building through the constructor removes that state: either every required field is
  * present and the object is whole, or construction fails immediately and says which field was
  * missing. This walks every response class with the emptiest possible payload and insists on one
  * of those two outcomes — never a third.

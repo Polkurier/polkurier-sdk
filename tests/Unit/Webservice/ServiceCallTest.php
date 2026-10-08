@@ -39,10 +39,8 @@ use Polkurier\Webservice\Testing\RecordingClient;
 /**
  * Drives every service method through a stub transport.
  *
- * Several service methods used to pass their payload where the response format belonged, which
- * meant they raised a TypeError or an ArgumentCountError on the very first call — the failure was
- * total, but nothing exercised them. This suite calls each one so that class of mistake cannot
- * return unnoticed.
+ * A service method that passes its payload where the response format belongs raises a TypeError
+ * or an ArgumentCountError on its first call. Calling each one catches that.
  */
 #[CoversNothing]
 final class ServiceCallTest extends TestCase
@@ -201,7 +199,9 @@ final class ServiceCallTest extends TestCase
                 $ok('{"isMultiPickupAvailable":true}'),
             ],
             'ticket messages, a list of timeline entries' => [
-                static fn(PolkurierWebservice $s) => $s->tickets()->getTicketMessages(new TicketIdMessage(ticketId: 'b379362e')),
+                static fn(PolkurierWebservice $s) => $s->tickets()->getTicketMessages(
+                    new TicketIdMessage(ticketId: 'b379362e'),
+                ),
                 ApiMethodEnum::GetTicketMessages,
                 $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
                     . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięto zgłoszenie","date_read":"2026-10-06T14:00:35+02:00"}]'),

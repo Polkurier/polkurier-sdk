@@ -157,7 +157,7 @@ final class ValidationTest extends TestCase
     {
         return [
             'no carrier' => [self::order(courier: ''), 'courier'],
-            // CreateOrderMessage rejects an empty pack list in its own constructor, before any
+            // {@see CreateOrderMessage} rejects an empty pack list in its own constructor, before any
             // validator sees it, so the list rule is exercised through a payload that gets that far.
             'a point search naming no carriers' => [new GetPointMessage(couriers: []), 'couriers'],
             // Half an order context: the API refuses, naming whichever field it noticed first.
@@ -416,7 +416,9 @@ final class ValidationTest extends TestCase
         return new CreateOrderMessage(
             courier: $courier,
             shipmentType: ShipmentTypeEnum::Box,
-            packs: $packs ?? [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard)],
+            packs: $packs ?? [
+                new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+            ],
             sender: $sender ?? new OrderAddressMessage(
                 person: 'Jan Kowalski',
                 street: 'Długa',

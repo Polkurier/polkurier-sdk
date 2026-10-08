@@ -1,10 +1,6 @@
 Polkurier SDK documentation
 ===========================
 
-These pages document the PHP client for the Polkurier.pl web API in detail: what the SDK is made
-of, how it fits together, and how to use each part. The project [README](../README.md) is the short
-version. If you only need to place an order, start there.
-
 Start here
 ----------
 
@@ -12,7 +8,7 @@ Start here
 |------|----------------|
 | [Getting started](getting-started.md) | Installation, credentials, the first call, and how every call works |
 | [Configuration](configuration.md) | [`Config`](../src/Config.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php), logging, timeouts, sandbox, per-tenant credentials |
-| [Services](services.md) | All 16 services and their methods, with return types |
+| [Services](services.md) | Everything the API offers, grouped by task: every method and what it does |
 | [Messages and models](messages.md) | Requests, responses, enums, wire names, and why requests and responses are separate classes |
 | [Builders](builders.md) | Building a payload step by step instead of in one constructor call |
 | [Validation](validation.md) | What is checked before a request is sent, reading a rejection, changing the rules |
@@ -21,7 +17,7 @@ Start here
 | [Architecture](architecture.md) | The request lifecycle, the collaborators, and which classes you can replace |
 | [Webhooks](webhooks.md) | Checking and reading the order events Polkurier posts to your system |
 | [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |
-| [Testing](testing.md) | Testing your integration against the SDK, and running the SDK's own tests |
+| [Testing](testing.md) | Testing your integration against the SDK |
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
 | [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
@@ -54,9 +50,9 @@ How the API works
 with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
 unwraps the envelope.
 
-**The API returns HTTP 200 for everything**, including a bad token and a rejected payload. Don't
-check the HTTP status. The SDK doesn't either. It reads the envelope's `status` field and either
-returns a typed value or throws an exception.
+**The API returns HTTP 200 for everything**, including a bad token and a rejected payload. The SDK
+doesn't look at the HTTP status. It reads the envelope's `status` field and either returns a typed
+value or throws an exception.
 
 **The API's field names are awkward to use in PHP**, e.g. `codbankaccount`, `is_cover_address`,
 `shipmenttype`, `value_nett`. SDK properties are named for what they mean, and a
@@ -64,14 +60,11 @@ returns a typed value or throws an exception.
 required: it means the wire names can change without a breaking release. See
 [Serialization](serialization.md).
 
-Conventions used in these pages
--------------------------------
+Messages and examples
+---------------------
 
-- Class names are written short when the namespace is clear from context, and fully qualified when
-  it isn't. Everything is under [`Polkurier\Webservice\`](../src/).
 - "Message" means a request payload: a class under `Request` that implements
   [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`, which can be confusing.
   The namespace tells them apart. [Messages and models](messages.md) explains why.
-- Code that places an order, moves money or deletes something is marked.
 - [`examples/`](../examples) has runnable versions of most of this, one file per API method. They
   are safe to run, because scripts that write do nothing without `--confirm`.

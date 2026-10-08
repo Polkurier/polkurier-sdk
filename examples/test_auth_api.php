@@ -9,7 +9,7 @@
  * The one method that takes its credentials as an argument rather than using the configured ones,
  * which is what makes it useful for checking a token a customer has just pasted in before storing
  * it. A wrong token is an error, not a false answer, so the check is the absence of an
- * AuthorizationException.
+ * {@see AuthorizationException}.
  */
 declare(strict_types=1);
 

@@ -41,14 +41,14 @@ use Polkurier\Webservice\Validator\Rule\ValidatedBy;
  * Class-level declarations are inherited, so a rule on a base message applies to every message
  * that extends it.
  *
- * Rules that can't be written as attributes go in an {@see AbstractMessageValidator}. The usual
- * case is a rule that depends on the role a value plays. For example, an address needs an email
- * when it is the sender but not when it is the recipient.
+ * Rules that can't be written as attributes go in an
+ * {@see \Polkurier\Webservice\Validator\AbstractMessageValidator}. The usual case is a rule that
+ * depends on the role a value plays. For example, an address needs an email when it is the sender
+ * but not when it is the recipient.
  *
- * Reflection runs once per class and is cached. Nothing here is final or private. To drop a rule
- * you don't want, extend this class, filter what {@see static::rulesFor()} returns, and pass your
- * validator to the client. Filter the parent's result instead of replacing it: the cache holds the
- * unfiltered rules, which lets 2 differently configured validators run in the same process.
+ * Reflection runs once per class and is cached. Nothing here is final or private, so a subclass can
+ * drop a rule by filtering what {@see static::rulesFor()} returns. The cache holds the unfiltered
+ * rules, which lets 2 differently configured validators run in the same process.
  */
 class AttributeValidator implements ValidatorInterface
 {
@@ -255,7 +255,8 @@ class AttributeValidator implements ValidatorInterface
         for ($declaring = $reflection; $declaring !== false; $declaring = $declaring->getParentClass()) {
             // Only the SDK's own attributes are instantiated, so a foreign attribute on a message
             // is never constructed here.
-            foreach ($declaring->getAttributes(MessageRuleInterface::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            $rules = $declaring->getAttributes(MessageRuleInterface::class, \ReflectionAttribute::IS_INSTANCEOF);
+            foreach ($rules as $attribute) {
                 $message[] = $attribute->newInstance();
             }
             foreach ($declaring->getAttributes(IgnoredWhen::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
@@ -279,13 +280,16 @@ class AttributeValidator implements ValidatorInterface
                 }
                 $seen[$name] = true;
 
-                foreach ($property->getAttributes(ValueValidatorInterface::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $rules = $property->getAttributes(ValueValidatorInterface::class, \ReflectionAttribute::IS_INSTANCEOF);
+                foreach ($rules as $attribute) {
                     $values[$name][] = $attribute->newInstance();
                 }
                 foreach ($property->getAttributes(Each::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
                     $each[$name][] = $attribute->newInstance()->rule();
                 }
-                if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== [] && !\in_array($name, $nested, true)) {
+                if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== []
+                    && !\in_array($name, $nested, true)
+                ) {
                     $nested[] = $name;
                 }
                 if ($property->getAttributes(InlineFields::class) !== [] && !\in_array($name, $inlined, true)) {

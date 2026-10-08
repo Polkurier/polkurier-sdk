@@ -55,7 +55,7 @@ interface AccountServiceInterface
     /**
      * Fetches the account's profile, balances and outstanding obligations.
      *
-     * Use it as a check before placing orders, not just for display. The acceptance flags decide
+     * It matters before placing orders, not just for display. The acceptance flags decide
      * whether orders are accepted at all. `require_account_verification` and
      * `require_agreement_verification` block shipping on some accounts. `pin_locks` says which calls
      * need the security PIN.
@@ -182,8 +182,8 @@ interface AccountServiceInterface
     /**
      * Sets the carrier preselected on the order form.
      *
-     * Use this instead of saveAccountSettings() when only the carrier changes. The carrier must be
-     * one this account is allowed to use.
+     * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one this account is
+     * allowed to use.
      *
      * Endpoint: `change_default_courier`
      *
@@ -387,8 +387,8 @@ interface AccountServiceInterface
      * Sets or changes the account's telephone PIN.
      *
      * You give this code when contacting support. It also unlocks PIN-protected operations such as
-     * editing bank accounts. The allowed length can change, so read it from `get_system_info` under
-     * `security` instead of hard-coding it.
+     * editing bank accounts. The allowed length can change. `get_system_info` reports it under
+     * `security`.
      *
      * Endpoint: `change_phone_pin`
      *

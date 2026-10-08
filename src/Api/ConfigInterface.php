@@ -78,8 +78,8 @@ interface ConfigInterface
      *
      * Off by default: the API token, passwords, PINs, two-factor codes and access tokens are
      * replaced with `***` in logged bodies, and objects that could hold them are left out of the log
-     * context. Turn it on when you need the full payloads to debug, and keep such logs as safe as
-     * the credentials in them.
+     * context. On, it logs the full payloads, and the logs are then as sensitive as the credentials
+     * in them.
      *
      * @return bool
      */
@@ -99,8 +99,8 @@ interface ConfigInterface
      * Whether files in requests and responses are saved for the log.
      *
      * File contents, such as labels and attachments, are never written into a log entry. When this
-     * is on, each file is saved in {@see self::getLogFilesDirectory()} and the entry gives its path.
-     * When it is off, which is the default, the entry only gives its size.
+     * is on, each file is saved in {@see self::getLogFilesDirectory()} and the entry gives its
+     * path. When it is off, which is the default, the entry only gives its size.
      *
      * @return bool
      */
@@ -117,8 +117,7 @@ interface ConfigInterface
      * Whether outgoing payloads are checked before they are sent.
      *
      * On by default. When off, the client-side rules are skipped and only the API checks the
-     * payload. Use this if the SDK's rules ever disagree with the API, and please report it as a
-     * bug.
+     * payload. A disagreement between the SDK's rules and the API is a bug in the SDK.
      *
      * @return bool
      */

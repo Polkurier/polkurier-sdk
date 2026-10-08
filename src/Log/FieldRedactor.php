@@ -119,7 +119,9 @@ class FieldRedactor
     protected function walk(array $data, array $fields): array
     {
         foreach ($data as $key => $value) {
-            if (\is_string($key) && $this->hides($key, $fields) && $value !== null && $value !== '' && $value !== []) {
+            if (\is_string($key) && $this->hides($key, $fields)
+                && $value !== null && $value !== '' && $value !== []
+            ) {
                 $data[$key] = self::MASK;
             } elseif (\is_array($value)) {
                 $data[$key] = $this->walk($value, $fields);

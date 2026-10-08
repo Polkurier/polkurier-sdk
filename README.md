@@ -60,8 +60,8 @@ method returns. Scripts that need an identifier take it as the first argument.
 Services
 --------
 
-The client has one service per functional area. Methods return typed values such as `Carrier[]`,
-an `Order`, or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
+The client has one service per functional area. Methods return typed values such as [`Carrier[]`](src/Response/Carrier.php),
+an [`Order`](src/Response/Order.php), or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
 anything.
 
 | Accessor                        | Covers                                                        |
@@ -115,17 +115,15 @@ Setters have the same types as the constructor parameters. `build()` throws if a
 was never set, and the exception names the field. Builders don't validate anything themselves. The
 message's rules run when it is sent, so you get the same checks either way.
 
-A builder class contains only its setters. The shared logic is in `AbstractBuilder`. Fields you
+A builder class contains only its setters. The shared logic is in [`AbstractBuilder`](src/Builder/AbstractBuilder.php). Fields you
 never set are not passed to the constructor, so they keep the message's own defaults.
 
-Only messages with 4 or more fields have a builder. The builders are written by hand next to the
-messages. `BuilderDriftTest` compares each builder with its message's constructor, so a field added
-to one and not the other makes the test fail.
+Only messages with 4 or more fields have a builder.
 
 Configuration
 -------------
 
-`Config` takes the authorization message plus a platform name and version that identify your
+[`Config`](src/Config.php) takes the authorization message plus a platform name and version that identify your
 integration. The rest is optional:
 
 | Option                     | Default          | Meaning                                              |
@@ -145,8 +143,8 @@ Nothing is logged unless you pass a PSR-3 logger as the second constructor argum
 anything is logged, secrets and personal data are hidden and files are left out, unless the options
 above allow them. See [Configuration: logging](docs/configuration.md#logging).
 
-The serializer has its own configuration. Pass a `SerializerProvider` built with a
-`SerializerConfig`:
+The serializer has its own configuration. Pass a [`SerializerProvider`](src/Serializer/SerializerProvider.php) built with a
+[`SerializerConfig`](src/Serializer/SerializerConfig.php):
 
 | Option                | Default              | Meaning                                              |
 |-----------------------|----------------------|------------------------------------------------------|
@@ -156,17 +154,19 @@ The serializer has its own configuration. Pass a `SerializerProvider` built with
 | `rejectUnknownFields` | `false`              | Whether an unrecognised response field is an error   |
 
 Reading the attributes of around 150 classes is the SDK's biggest start-up cost. The result doesn't
-change between deployments of the same code, so give a long-running process a cache pool.
+change between deployments of the same code, so a cache pool saves that cost in every process after
+the first.
 
-Turn `rejectUnknownFields` on in CI against a staging API: it tells you when a response has a new
-field that the SDK doesn't read. Leave it off in production, where a new field shouldn't break a
-working integration.
+With `rejectUnknownFields` on, a response with a field the SDK doesn't read fails to map. Against a
+staging API in CI, that tells you about new fields. In production, it would turn a new field into a
+failed call, which is why it is off by default.
 
 Error handling
 --------------
 
 The API returns HTTP 200 for everything, including authentication failures and validation errors,
-so don't branch on the HTTP status. The SDK checks the response for you and throws one of these:
+so the HTTP status says nothing about the outcome. The SDK checks the response and throws one of
+these:
 
 | Exception                     | Raised when                                                     |
 |-------------------------------|-----------------------------------------------------------------|
@@ -177,7 +177,7 @@ so don't branch on the HTTP status. The SDK checks the response for you and thro
 | `ValidationException`         | A payload was rejected before anything was sent                 |
 | `InvalidArgumentException`    | A message was constructed with values the SDK rejects locally   |
 
-They all extend `Polkurier\Webservice\Exception\Exception`. `WebserviceException` holds the parsed
+They all extend [`Polkurier\Webservice\Exception\Exception`](src/Exception/Exception.php). [`WebserviceException`](src/Exception/WebserviceException.php) holds the parsed
 error, the request and the response:
 
 ```php
@@ -193,6 +193,9 @@ try {
     \printf("%s (%s)\n", $error->getResponse(), $error->getErrorCode() ?? 'no code');
 }
 ```
+
+`status_code` and `error_code` can both be missing from an error payload, so their getters can
+return null.
 
 Validation
 ----------
@@ -225,100 +228,19 @@ offers, whether it needs a collection date, or what PIN locks an account has. Th
 `available_carriers`, `get_account_info` and `get_system_info`, and the API checks these rules
 itself.
 
-The SDK should never reject a payload the API would accept. If it does, please report it as a bug.
-Until it's fixed, `validatePayloads: false` turns off all checks.
+A payload the API would accept passes. One that doesn't is a bug in the SDK, and
+`validatePayloads: false` turns off all checks.
 
-To drop a single rule, subclass the validator. The validation layer is not final and its internals
-are protected, so you can filter out one rule and keep the others:
-
-```php
-use Polkurier\Webservice\Validator\AttributeValidator;
-use Polkurier\Webservice\Validator\Rule\Iban;
-
-final class WithoutIbanCheck extends AttributeValidator
-{
-    protected static function rulesFor(string $class): array
-    {
-        $rules = parent::rulesFor($class);
-
-        foreach ($rules['values'] as $property => $validators) {
-            $rules['values'][$property] = \array_values(\array_filter(
-                $validators,
-                static fn($rule): bool => !$rule instanceof Iban,
-            ));
-        }
-
-        return $rules;
-    }
-}
-```
-
-Register it and pass it to the client as the `validator` argument. Services and factories work the
-same way: subclass a service to change how a call is made, or a factory to change what it builds.
-The configuration and serializer classes can be subclassed too, or replaced through their
-interfaces (see [Architecture](#architecture)).
-
-Errors are thrown as exceptions. A method that returns an `Order` can't also return an error.
-`WebserviceException::getErrorMessage()` returns the parsed error, so you handle it in a `catch`
-block. `status_code` and `error_code` can both be missing from an error payload, so treat them as
-nullable.
+To drop a single rule, add your own or replace the validator, see
+[Validation: changing the rules](docs/validation.md#changing-the-rules).
 
 Architecture
 ------------
 
-The source is organised by role:
-
-| Namespace                             | Holds                                                   |
-|---------------------------------------|----------------------------------------------------------|
-| `Polkurier\Webservice\Api\Service`      | One contract per service, which is what to type-hint    |
-| `Polkurier\Webservice\Api\Validation`   | The three contracts the validation layer is built on    |
-| `Polkurier\Webservice\Api`             | `ConfigInterface`, `ConfigProviderInterface`, `MessageInterface` |
-| `Polkurier\Webservice\Service`         | The services that call the API                          |
-| `Polkurier\Webservice\Request`        | Everything you send                                     |
-| `Polkurier\Webservice\Response`       | Everything you get back                                 |
-| `Polkurier\Webservice\Http`            | The transport: client, factories, and the JSON envelope |
-| `Polkurier\Webservice\Serializer`      | Serializer wiring                                       |
-| `Polkurier\Webservice\Validator`       | The rules, and the code that runs them                  |
-| `Polkurier\Webservice\Enum`            | Values the API accepts and returns                      |
-| `Polkurier\Webservice\Exception`       | Everything the SDK throws                               |
-
-`Config` and `ConfigProvider` are in the root namespace next to `PolkurierWebservice`, because they
-belong to the wiring and not to any of the areas above.
-
-Responses are built through their constructors. A response object is either complete, or
-construction fails and names the missing field. You never get an object whose getters throw.
-
-`Api` contains only contracts you can usefully implement yourself: the service interfaces (which
-are also the API reference) and a few extension points. The 3 in the root of `Api` are used across
-several areas.
-
-Requests and responses have no interfaces. Their wire names, formats and dates are defined in
-serializer attributes on the classes, so a different implementation would not serialize. Type-hint
-the classes.
-
-The same attributes keep PHP names separate from wire names. A property is named for what it
-means, and `#[Serializer\SerializedName]` gives the API's name for it. You won't see
-`codbankaccount`, `is_cover_address` or `shipmenttype` in your code.
-
-`Request` and `Response` are split by the direction data travels, and both sit at the root instead
-of under a shared `Model` namespace. They stay separate even when they describe the same thing,
-because the shapes differ. `Request\Order\PackMessage` holds the dimensions you choose. The
-`Response\Order\Pack` you get back also holds what the carrier charged for them. `CodMessage` says
-what to collect, and `Cod` says what happened to the money. Keeping them apart means a response
-field can be non-nullable when the API always sends it.
-
-The pairs are `SaveMessage`/`Address`, `SaveMessage`/`PackTemplate`, `SaveMessage`/`BankAccount`,
-`PackMessage`/`Pack`, `CodMessage`/`Cod`, `PickupMessage`/`Pickup`, and
-`CreateOrderMessage`/`Order`. Each response class's docblock names the request that writes it.
-
-`PolkurierWebservice` wires up a serializer, request and response factories, an HTTP client factory
+[`PolkurierWebservice`](src/PolkurierWebservice.php) wires up a serializer, request and response factories, an HTTP client factory
 and the services. Every collaborator is an optional constructor argument typed as an interface, so
-you can replace any of them. For example, you can pass your own PSR-18 client, a different
-serializer setup, or a configuration provider that looks up credentials per tenant at call time.
-
-The built-in services all share one constructor signature, and `PolkurierWebservice` uses it to
-create them. Your own services don't need that signature. Construct them however you like and pass
-them in:
+you can replace any of them: your own PSR-18 client, a different serializer setup, a configuration
+provider that looks up credentials per tenant at call time, or a service of your own:
 
 ```php
 new PolkurierWebservice(
@@ -327,12 +249,17 @@ new PolkurierWebservice(
 );
 ```
 
-Services you don't pass are created on first use.
-
 Only the facade, the JSON envelope classes and a few small helpers are final. Everything else can
-be subclassed: the configuration, the serializer wiring, the client, request and response
-factories, the services, all request and response classes, and the validation layer including the
-individual rules. Most of them also implement an interface, so you can replace them outright.
+be subclassed: the configuration, the serializer wiring, the factories, the services, the request
+and response classes, and the validation layer including the individual rules.
+
+Requests and responses are separate classes, even where they describe the same thing, so a response
+field can be non-nullable when the API always sends it. Properties are named for what they mean,
+and the API's names stay in serializer attributes. A response object is either complete, or
+construction fails and names the missing field.
+
+The [architecture page](docs/architecture.md) covers the request lifecycle and every extension
+point.
 
 Development
 -----------
@@ -350,7 +277,4 @@ The integration suite talks to a real API. `composer test` skips it, so run it s
 POLKURIER_API_URL=https://api-sandbox.polkurier.pl composer test:integration
 ```
 
-That script fails instead of skipping when it isn't configured, so it can't pass without running
-anything. Set `POLKURIER_API_LOGIN` and `POLKURIER_API_TOKEN` as well to cover the authenticated
-methods. Do this in CI. Fixtures only encode what you expected the API to return. Mapping bugs show
-up against real responses.
+`POLKURIER_API_LOGIN` and `POLKURIER_API_TOKEN` cover the authenticated methods.

@@ -62,8 +62,12 @@ class ExactDateTimeNormalizer implements NormalizerInterface, DenormalizerInterf
      *
      * @return \DateTimeInterface
      */
-    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): \DateTimeInterface
-    {
+    public function denormalize(
+        mixed $data,
+        string $type,
+        ?string $format = null,
+        array $context = [],
+    ): \DateTimeInterface {
         $dateFormat = $context[DateTimeNormalizer::FORMAT_KEY] ?? null;
 
         // A Unix timestamp has every field already, and the inner normalizer reads it by its exact
@@ -85,8 +89,12 @@ class ExactDateTimeNormalizer implements NormalizerInterface, DenormalizerInterf
      *
      * @return bool
      */
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
-    {
+    public function supportsDenormalization(
+        mixed $data,
+        string $type,
+        ?string $format = null,
+        array $context = [],
+    ): bool {
         return $this->inner->supportsDenormalization($data, $type, $format, $context);
     }
 

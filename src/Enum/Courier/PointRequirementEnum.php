@@ -16,7 +16,7 @@ namespace Polkurier\Webservice\Enum\Courier;
 enum PointRequirementEnum: string
 {
     /**
-     * The carrier doesn't use pickup points here. Don't send one.
+     * The carrier doesn't use pickup points here, so the order has none.
      */
     case None = 'NONE';
 

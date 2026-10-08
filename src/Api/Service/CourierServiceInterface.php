@@ -85,9 +85,9 @@ interface CourierServiceInterface
      * ```
      *
      * With `additional_data: true`, each entry also has an `additional_data` object with `COD`,
-     * `insurance`, `courierservice`, `shipmenttype`, `pickup`, `points_map` and `additional_fields`.
-     * `points_map` can be null. Some keys inside `pickup` aren't sent for every carrier, see
-     * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\Option}.
+     * `insurance`, `courierservice`, `shipmenttype`, `pickup`, `points_map` and
+     * `additional_fields`. `points_map` can be null. Some keys inside `pickup` aren't sent for
+     * every carrier, see {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\Option}.
      *
      * @param AvailableCarriersMessage|null $availableCarriersMessage null lists every carrier
      *        without the additional data
@@ -347,7 +347,7 @@ interface CourierServiceInterface
      *
      * The function filter keeps only points that support all of the functions given.
      *
-     * Use this for lookups and searches. The per-carrier bulk listings are for copying a whole
+     * This is for lookups and searches. The per-carrier bulk listings are for copying a whole
      * network locally.
      *
      * Endpoint: `get_courier_point`

@@ -1,33 +1,30 @@
 Validation
 ==========
 
-Payloads are checked before they are sent. Each message class is reflected once, and a bad
-payload fails locally instead of costing a round trip.
+Payloads are checked before they are sent, so a bad payload fails locally instead of costing a
+round trip.
 
-The guiding rule
-----------------
+What is checked
+---------------
 
-> A payload the API would have accepted must never be rejected here.
-
-Validation that is stricter than the API blocks valid calls, and the failure looks like the SDK
-doing its job. So the rules follow what the API documents as required. On top of that, a few
+The rules follow what the API documents as required, so a payload the API would accept passes.
+Validation stricter than the API would block valid calls, and the failure would look like the SDK
+doing its job. On top of that, a few
 checks catch payloads that are well-formed but can't do what you meant: a date range that runs
 backwards and so matches nothing, a page size above the documented maximum, or a malformed order
 number in a batch.
 
-If the SDK ever disagrees with the API, please report it as a bug. Until it's fixed,
-`validatePayloads: false` turns off every check, and [changing the rules](#changing-the-rules)
-shows how to drop a single rule and keep the rest.
+A disagreement with the API is a bug in the SDK. `validatePayloads: false` turns off every check,
+and [changing the rules](#changing-the-rules) shows how to drop a single rule and keep the rest.
 
 What is not checked
 -------------------
 
 Nothing that depends on the carrier or the account: which services a carrier sells, whether it
 needs a collection date, an account's PIN locks, the required PIN length, or the minimum prepaid
-top-up. You can read all of these from `available_carriers`, `get_account_info` and
-`get_system_info`. They can change between SDK releases, and the API checks them itself.
-
-If you want these checks to happen earlier, read the values and enforce them yourself:
+top-up. All of these can be read from `available_carriers`, `get_account_info` and
+`get_system_info`. They can change between SDK releases, and the API checks them itself. Your own
+code can check them before sending:
 
 ```php
 $carriers = $client->courier()->availableCarriers(new AvailableCarriersMessage(additionalData: true));
@@ -59,8 +56,6 @@ sender.postcode: must be a Polish postcode in the format NN-NNN
 packs[1].weight: must be greater than zero
 ```
 
-Some things to note about that output:
-
 **Field names are wire names.** You get `sender.postcode`, not `sender.getPostcode()`. They match
 the API's own validation errors and the request that would have been sent, so the same code can
 display both.
@@ -70,8 +65,6 @@ find `packs[1].weight` without counting through the payload.
 
 **Everything is reported at once.** Every rule on every field runs and all findings are collected,
 so you can fix the payload in one pass.
-
-There are two ways to read the report:
 
 ```php
 $e->getValidationErrors();            // array<string, string[]>: every field
@@ -115,8 +108,6 @@ readonly class GetOrdersMessage implements MessageInterface
 The two class-level kinds are inherited, so a rule declared on a base message applies to every
 message that extends it.
 
-Reflection runs once per class and the result is cached.
-
 ### Cross-field rules
 
 A property attribute that names a sibling, like a hypothetical `#[Postcode(countryFrom: 'country')]`, links two
@@ -149,9 +140,9 @@ The rules
 | [`Iban`](../src/Validator/Rule/Iban.php) | ISO 13616 check digits, on a full IBAN or a bare national number |
 | [`OfType('string')`](../src/Validator/Rule/OfType.php) / [`OfType(PackMessage::class)`](../src/Validator/Rule/OfType.php) | A value of that type, mostly for list entries through `Each` |
 
-Two points explain most of this list. First, only [`NotBlank`](../src/Validator/Rule/NotBlank.php) checks whether a value is present.
+Only [`NotBlank`](../src/Validator/Rule/NotBlank.php) checks whether a value is present.
 Format rules pass on null, so the same postcode rule can be optional in one message and required
-in another. Second, [`Email`](../src/Validator/Rule/Email.php) and [`PhoneNumber`](../src/Validator/Rule/PhoneNumber.php) are loose. They only reject values that are
+in another. [`Email`](../src/Validator/Rule/Email.php) and [`PhoneNumber`](../src/Validator/Rule/PhoneNumber.php) are loose. They only reject values that are
 clearly wrong, because a stricter check would refuse recipients the carrier can deliver to.
 
 [`Iban`](../src/Validator/Rule/Iban.php) is stricter. It fully verifies the check digits, because the field decides where collected
@@ -176,7 +167,7 @@ private array $orderNo;
 
 The rule is given by class name. Any further arguments go to its constructor, which is how a list
 declares the type of its entries: `#[Validate\Each(Validate\OfType::class, PackMessage::class)]`. For a
-rule that depends on a sibling field, write a message validator.
+rule that depends on a sibling field, there are message validators.
 
 ### Class rules
 
@@ -203,28 +194,18 @@ the endpoints that have a limit.
 Validators written as classes
 -----------------------------
 
-Four rules need more logic than an attribute can hold:
+Some rules need more logic than an attribute can hold, and a message names the class that checks
+them with `#[ValidatedBy]`. An order address is the typical case. A sender must have an email
+address and a recipient doesn't have to. A recipient collecting from a pickup point needs no street
+address at all. Which fields are required depends on the *role* of the address in the order, which
+the address itself doesn't know. Placing an order, registering a payment and checking a coupon
+against an order have rules of this kind too.
 
-| Validator | Enforces |
-|-----------|----------|
-| [`CreateOrderMessageValidator`](../src/Validator/Message/CreateOrderMessageValidator.php) | The order rules that depend on context, not on a single value |
-| [`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) | Which address fields are required, given the role the address plays |
-| [`RegisterPaymentMessageValidator`](../src/Validator/Message/RegisterPaymentMessageValidator.php) | The amount is required for exactly one payment mode |
-| [`ValidateCouponMessageValidator`](../src/Validator/Message/ValidateCouponMessageValidator.php) | Coupon-against-order means all three fields, or none |
-
-[`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) is a good example. A sender must have an email address and a recipient
-doesn't have to. A recipient collecting from a pickup point needs no street address at all. Which
-fields are required depends on the *role* of the address in the order, which the address itself
-doesn't know.
-
-The message names its validators, and the validator doesn't name its messages. Declaring the link
-on both sides let the two disagree, and a validator attached to the wrong message would silently
-stop running.
+The message names its validators, and a validator doesn't name its messages, so the link is
+declared in one place only. To write one, see [Add rules of your own](#3-add-rules-of-your-own).
 
 Changing the rules
 ------------------
-
-There are five options, roughly from most to least drastic.
 
 ### 1. Turn everything off
 
@@ -232,13 +213,12 @@ There are five options, roughly from most to least drastic.
 new Config(/* … */, validatePayloads: false);
 ```
 
-The services then skip validation entirely. Use this when the SDK disagrees with the API and you
-need to ship, and report the disagreement.
+The services then skip validation entirely.
 
 ### 2. Drop one rule, keep the rest
 
-[`AttributeValidator`](../src/Validator/AttributeValidator.php) isn't final and its internals are `protected`. Filter what [`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php)
-returns:
+[`AttributeValidator`](../src/Validator/AttributeValidator.php) isn't final and its internals are `protected`, so a subclass can filter what
+[`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php) returns:
 
 ```php
 use Polkurier\Webservice\Validator\AttributeValidator;
@@ -262,10 +242,10 @@ final class WithoutIbanCheck extends AttributeValidator
 }
 ```
 
-Filter the parent's result instead of replacing it. The cache stores the *unfiltered* reflection
-result, which lets two differently configured validators run in the same process.
+This filters the parent's result rather than replacing it, so two differently configured
+validators can run in the same process.
 
-Then register it:
+It is then registered like this:
 
 ```php
 use Polkurier\Webservice\Api\MessageInterface;
@@ -316,19 +296,19 @@ final class MyOrderPolicy extends AbstractMessageValidator
 ```
 
 [`ViolationPool`](../src/Validator/ViolationPool.php) has [`ViolationPool::add()`](../src/Validator/ViolationPool.php), [`ViolationPool::check()`](../src/Validator/ViolationPool.php) (run value validators against a value), [`ViolationPool::checkWhen()`](../src/Validator/ViolationPool.php) (run
-them only if a condition holds) and [`ViolationPool::mergeUnder()`](../src/Validator/ViolationPool.php) (add a nested report under a prefix). Use
-[`MessageFields::field()`](../src/Validator/MessageFields.php) to get the wire name, so your field names match the SDK's.
+them only if a condition holds) and [`ViolationPool::mergeUnder()`](../src/Validator/ViolationPool.php) (add a nested report under a prefix).
+[`MessageFields::field()`](../src/Validator/MessageFields.php) gives the wire name, so field names match the SDK's.
 
 ### 4. Attach a rule to your own message
 
-If you've subclassed a message, declare the rule on the subclass. The attribute engine reads
+A subclassed message can declare rules of its own. The attribute engine reads
 inherited declarations, and `#[ValidatedBy]` on your subclass runs in addition to anything the
 parent declares.
 
 ### 5. Replace the validator
 
-[`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) has one method. Implement it and pass it as `validator:`, and none of the
-SDK's rules run:
+[`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) has one method. An implementation passed as `validator:` replaces all of the
+SDK's rules:
 
 ```php
 use Polkurier\Webservice\Api\MessageInterface;
@@ -346,17 +326,9 @@ final class MyValidator implements ValidatorInterface
 Where validation happens
 ------------------------
 
-In [`AbstractService::processRequest()`](../src/Service/AbstractService.php), before the request is built:
-
-```php
-if ($payload !== null && $this->config()->validatePayloads()) {
-    $this->validator->validate($payload);
-}
-```
-
-This covers every service method that takes a payload. Methods without a message have nothing to
-check. If you write your own service and pass it to the client through `services:`, it gets this
-behaviour only if it extends [`AbstractService`](../src/Service/AbstractService.php).
+In [`AbstractService`](../src/Service/AbstractService.php), before the request is built, for every service method that takes a payload.
+Methods without a message have nothing to check. A service of your own passed to the client
+through `services:` gets this behaviour only if it extends [`AbstractService`](../src/Service/AbstractService.php).
 
 Testing against the rules
 -------------------------

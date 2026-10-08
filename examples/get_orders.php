@@ -39,7 +39,12 @@ try {
             );
         }
 
-        \printf("-- page %d of %d (%d orders total)\n", $list->getCurrentPage(), $list->getTotalPages(), $list->getTotalRows());
+        \printf(
+            "-- page %d of %d (%d orders total)\n",
+            $list->getCurrentPage(),
+            $list->getTotalPages(),
+            $list->getTotalRows(),
+        );
         $page++;
     } while ($page <= $list->getTotalPages());
 } catch (Exception $e) {

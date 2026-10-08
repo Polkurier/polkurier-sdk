@@ -13,8 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The server clock, as reported by an availability check.
  *
- * Use it to spot clock skew between your host and the API. Skew matters when you schedule a
- * pickup.
+ * It shows clock skew between your host and the API, which matters when a pickup is scheduled.
  */
 readonly class HeartbeatMessage implements MessageInterface
 {
