@@ -30,6 +30,7 @@ use Polkurier\Webservice\Response\Order\MultiPickupResultMessage;
 use Polkurier\Webservice\Response\Order\OrderFileMessage;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Response\Order\ValuationMessage;
 
 /**
  * Placing, pricing, tracking and cancelling orders.
@@ -61,22 +62,76 @@ interface OrdersServiceInterface
      *
      * Endpoint: `order_valuation_v2`
      *
-     * Request: the same `data` object as createOrder(), below.
+     * Request: the same `data` object as createOrder(), below. With $courier, `returnvaluations` is
+     * sent next to the order's fields, and only that carrier is priced:
+     * ```json
+     * {
+     *     "apimethod": "order_valuation_v2",
+     *     "authorization": {"login": "12345", "token": "…"},
+     *     "data": {"courier": "UPS", "shipmenttype": "box", "packs": […], "sender": {…},
+     *              "recipient": {…}, "returnvaluations": "DPD"}
+     * }
+     * ```
      *
-     * Response: quotes keyed by carrier. Their shape differs between carriers, so the SDK returns the
-     * decoded JSON as is.
+     * Response without $courier: one quote per carrier that can price the order. A carrier that can't carry the
+     * shipment, e.g. because a parcel is too heavy for it, is left out of the list.
+     * ```json
+     * {
+     *     "status": "success",
+     *     "response": [
+     *         {
+     *             "servicecode": "INPOST",
+     *             "serviceName": "InPost Kurier",
+     *             "netprice": 15.12,
+     *             "grossprice": 18.6,
+     *             "conditional_price_nett": 0,
+     *             "conditional_price_gross": 0,
+     *             "promotion_nett": 0,
+     *             "promotion_gross": 0,
+     *             "rebate_nett": 0,
+     *             "rebate_gross": 0,
+     *             "shipment": true,
+     *             "available": true,
+     *             "unavailable_message": ""
+     *         }
+     *     ]
+     * }
+     * ```
+     *
+     * Response with $courier: that carrier's quote alone, as an object and without `serviceName`.
+     * The SDK returns it as a list of one:
      * ```json
      * {
      *     "status": "success",
      *     "response": {
-     *         "UPS": {"price_net": 19.50, "price_gross": 23.99, "currency": "PLN"}
+     *         "servicecode": "DPD",
+     *         "netprice": 14.5,
+     *         "grossprice": 17.84,
+     *         "conditional_price_nett": 0,
+     *         "conditional_price_gross": 0,
+     *         "promotion_nett": 0,
+     *         "promotion_gross": 0,
+     *         "rebate_nett": 0,
+     *         "rebate_gross": 0,
+     *         "shipment": true,
+     *         "available": true,
+     *         "unavailable_message": ""
      *     }
      * }
      * ```
      *
-     * @param CreateOrderMessage $createOrderMessage
+     * A carrier code the API doesn't know is rejected, with neither code field:
+     * ```json
+     * {"status": "error", "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, UPS_ES, …]"}
+     * ```
      *
-     * @return array<array-key, mixed> quotes keyed by carrier, shape differs per carrier
+     * @param CreateOrderMessage $createOrderMessage
+     * @param string|null $courier a service code from
+     *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::availableCarriers()} to
+     *        price the order for that carrier only, null for every carrier
+     *
+     * @return ValuationMessage[] one quote per carrier, or the one carrier's quote, see
+     *         {@see \Polkurier\Webservice\Response\Order\ValuationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -84,7 +139,7 @@ interface OrdersServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function orderValuation(CreateOrderMessage $createOrderMessage): array;
+    public function orderValuation(CreateOrderMessage $createOrderMessage, ?string $courier = null): array;
 
     /**
      * Places an order.

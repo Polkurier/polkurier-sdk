@@ -378,9 +378,7 @@ abstract class AbstractService
     }
 
     /**
-     * Returns the payload for an endpoint whose shape depends on the request.
-     *
-     * Only for the 2 endpoints whose answer has no fixed structure. The result is the decoded JSON.
+     * Returns the payload as decoded JSON, for a response with no fixed structure.
      *
      * @param ApiMethodInterface $apiMethod
      * @param MessageInterface|null $payload

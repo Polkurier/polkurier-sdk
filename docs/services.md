@@ -137,7 +137,7 @@ orders()
 
 | Method | Returns |
 |--------|---------|
-| [`OrdersServiceInterface::orderValuation(CreateOrderMessage)`](../src/Api/Service/OrdersServiceInterface.php) | `array<array-key, mixed>` |
+| [`OrdersServiceInterface::orderValuation(CreateOrderMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`ValuationMessage[]`](../src/Response/Order/ValuationMessage.php) |
 | [`OrdersServiceInterface::createOrder(CreateOrderMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`CreatedOrderMessage`](../src/Response/Order/CreatedOrderMessage.php) |
 | [`OrdersServiceInterface::getOrders(?GetOrdersMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php) |
 | [`OrdersServiceInterface::cancelOrder(OrderIdMessage)`](../src/Api/Service/OrdersServiceInterface.php) | [`CancellationMessage`](../src/Response/Order/CancellationMessage.php) |
@@ -156,9 +156,11 @@ orders()
 > rejected when you place the order, so don't use valuation to check whether an order will go
 > through.
 
-[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) returns a decoded array instead of a mapped object. Its response has no stable
-structure, so the SDK returns it as received. It is one of two such endpoints. See
-[Messages: unmapped responses](messages.md#the-two-unmapped-responses).
+[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) quotes every carrier that can carry the shipment, one
+[`ValuationMessage`](../src/Response/Order/ValuationMessage.php) each, whichever courier the message names. A carrier that can't carry it is left out.
+The net and gross prices are the totals to be charged, with any promotion and rebate already taken
+off. Check [`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) before using a price, and read a conditional price of 0
+as no conditional offer, not as free.
 
 To find an order again by your own id, place it with `externalApplicationId` (your application's
 UUID) and `externalOrderId` (your id for the order). The SDK refuses one without the other.
@@ -444,14 +446,14 @@ tickets()
 | [`TicketsServiceInterface::createTicketMessage(CreateTicketMessageMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketTimelineItemMessage`](../src/Response/Ticket/TicketTimelineItemMessage.php) |
 | [`TicketsServiceInterface::setTicketStatus(SetTicketStatusMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketMessage`](../src/Response/Ticket/TicketMessage.php) |
 | [`TicketsServiceInterface::getTicketMessageFile(GetTicketMessageFileMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php) |
-| [`TicketsServiceInterface::getContactForm(GetContactFormMessage)`](../src/Api/Service/TicketsServiceInterface.php) | `array<array-key, mixed>` |
+| [`TicketsServiceInterface::getContactForm(GetContactFormMessage)`](../src/Api/Service/TicketsServiceInterface.php) | [`ContactFormMessage`](../src/Response/Contact/ContactFormMessage.php) |
 | [`TicketsServiceInterface::saveContactForm(SaveContactFormMessage)`](../src/Api/Service/TicketsServiceInterface.php) | `bool` |
 
 There are two ways to contact support. A **ticket** is a conversation you can read and reply to.
 Open it with [`TicketsServiceInterface::createTicket()`](../src/Api/Service/TicketsServiceInterface.php), read it with [`TicketsServiceInterface::getTicketMessages()`](../src/Api/Service/TicketsServiceInterface.php), and reply with
 [`TicketsServiceInterface::createTicketMessage()`](../src/Api/Service/TicketsServiceInterface.php). A **contact form** is a one-way submission with fields defined by the
-API. [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) returns the form definition and [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) submits it. Pass the answers in
-[`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the field names in the definition. Use a
+API. [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) returns the form and [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) submits it. Pass the answers in
+[`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the names of the form's fields. Use a
 ticket if you want to get the answer back in your own system.
 
 Use the ticket's id, not its number, in the calls that take a ticket. The conversation is a list of
@@ -466,8 +468,10 @@ a name of its own, which the timeline gives and
 A contact form's category is the id of a topic that has a form. The form id and nonce change on
 every fetch, so fetch the form right before submitting.
 
-[`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) is the other endpoint whose response shape depends on the request, so it also
-returns a decoded array.
+The form is a [`ContactFormMessage`](../src/Response/Contact/ContactFormMessage.php) with a list of [`ContactFormFieldMessage`](../src/Response/Contact/ContactFormFieldMessage.php) entries. Besides
+inputs, the list has elements that take no answer, such as headings, notices and the submit button.
+A field may carry a condition saying when it's shown. The SDK gives it as text, as the form states
+it.
 
 [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) is 250 (for orders it is 100).
 

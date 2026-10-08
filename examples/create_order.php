@@ -71,8 +71,19 @@ $order = new CreateOrderMessage(
 $sdk = polkurier();
 
 try {
-    echo "Quote:\n";
-    dumpResponse($sdk->orders()->orderValuation($order));
+    $quote = null;
+    foreach ($sdk->orders()->orderValuation($order) as $valuation) {
+        if ($valuation->getServiceCode() === $order->getCourier()) {
+            $quote = $valuation;
+        }
+    }
+
+    if ($quote === null || !$quote->isShipment()) {
+        echo "{$order->getCourier()} gives no quote for this shipment.\n";
+        exit(1);
+    }
+
+    \printf("Quote: %.2f PLN net, %.2f PLN gross.\n", $quote->getNetPrice(), $quote->getGrossPrice());
 
     if (!hasFlag('--confirm')) {
         echo "\nRe-run with --confirm to place this order.\n";

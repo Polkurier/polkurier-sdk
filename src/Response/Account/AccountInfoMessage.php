@@ -94,12 +94,12 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param float|null $invoiceLimitUsed how much of that limit is used
      * @param float $invoiceRebate standing discount, as a percentage
      * @param float $bonusesSavings cumulative saving from bonuses, in PLN
-     * @param array<string, mixed> $defaultSenderPoint default drop-off point per carrier code, null
+     * @param array<string, string|null> $defaultSenderPoint default drop-off point per carrier code, null
      *        for carriers with none set
      * @param PinLocksMessage|null $pinLocks
      * @param AccountSettingsMessage|null $settings
-     * @param array<string, mixed>|null $externalApplicationSettings present only when the request
-     *        named an external application
+     * @param array<string, mixed>|null $externalApplicationSettings the external application's
+     *        settings by name, present only when the request named one
      */
     public function __construct(
         /**
@@ -274,10 +274,7 @@ readonly class AccountInfoMessage implements MessageInterface
         private float $bonusesSavings = 0.0,
 
         /**
-         * A raw map: the keys are carrier codes, and carriers without a default map to null. A typed
-         * map cannot express that.
-         *
-         * @var array<string, mixed>
+         * @var array<string, string|null>
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_SENDER_POINT)]
         private array $defaultSenderPoint = [],
@@ -527,7 +524,8 @@ readonly class AccountInfoMessage implements MessageInterface
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, string|null> default drop-off point per carrier code, null for carriers
+     *         with none set
      */
     public function getDefaultSenderPoint(): array
     {
@@ -551,10 +549,27 @@ readonly class AccountInfoMessage implements MessageInterface
     }
 
     /**
-     * @return array<string, mixed>|null
+     * The settings of the external application the request named, one entry per setting.
+     *
+     * Empty when the application has none, and also when the id doesn't match one of the
+     * account's applications, which isn't reported as an error.
+     *
+     * @return ExternalApplicationSettingMessage[]|null null when the request named no application
      */
     public function getExternalApplicationSettings(): ?array
     {
-        return $this->externalApplicationSettings;
+        if ($this->externalApplicationSettings === null) {
+            return null;
+        }
+
+        $settings = [];
+        foreach ($this->externalApplicationSettings as $name => $value) {
+            $settings[] = new ExternalApplicationSettingMessage(
+                (string)$name,
+                $value === null || \is_scalar($value) ? $value : (string)\json_encode($value, \JSON_UNESCAPED_UNICODE),
+            );
+        }
+
+        return $settings;
     }
 }

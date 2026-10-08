@@ -64,7 +64,8 @@ interface AccountServiceInterface
      * now, and the part already committed to a payout.
      *
      * With `external_application_id`, the response also has `external_application_settings`: that
-     * application's settings for this account.
+     * application's settings for this account, see
+     * {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::getExternalApplicationSettings()}.
      *
      * Endpoint: `get_account_info`
      *

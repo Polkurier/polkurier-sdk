@@ -21,6 +21,7 @@ use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
 use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
 use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Response\Contact\ContactFormMessage;
 use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
@@ -69,16 +70,16 @@ interface TicketsServiceInterface
      *     "status": "success",
      *     "response": [
      *         {
-     *             "id": "przesylki",
+     *             "id": "fc8db0b4-acad-4f15-b2af-a066629bc002",
      *             "parent_id": null,
      *             "title": "Przesyłki",
      *             "content": "Pytania dotyczące nadanych przesyłek",
      *             "has_form": true,
      *             "knowledge_base_articles": [
-     *                 {"id": "…", "title": "Jak śledzić przesyłkę", "url": "https://…"}
+     *                 {"id": "jak-wykonac-zrzut-ekranu", "title": "Jak wykonać zrzut ekranu?"}
      *             ],
      *             "knowledge_base_categories": [
-     *                 {"id": "…", "title": "Nadawanie", "url": "https://…"}
+     *                 {"id": "reklamacje", "title": "Reklamacje"}
      *             ]
      *         }
      *     ]
@@ -466,8 +467,25 @@ interface TicketsServiceInterface
      * }
      * ```
      *
-     * Response: the form definition. Its fields vary per category, so the SDK returns it as decoded
-     * JSON.
+     * Response, abridged:
+     * ```json
+     * {
+     *     "status": "success",
+     *     "response": {
+     *         "id": "16209c1e-2605-4da5-b011-eff0b940d2c7",
+     *         "fields": [
+     *             {"id": "fdd0631c-04ff-4cfc-9e07-2bca219f4722", "type": "TEXT", "name": "name",
+     *              "value": "", "label": "Imię"},
+     *             {"id": "39d63653-a2c3-4da2-be72-404b43fa2b50", "type": "TEL", "name": "phone",
+     *              "pattern": "[0-9 +\\-]*", "value": "", "label": "Telefon"}
+     *         ],
+     *         "properties": [],
+     *         "state": [],
+     *         "nonce": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9…",
+     *         "has_form": true
+     *     }
+     * }
+     * ```
      *
      * Common errors:
      * ```json
@@ -477,7 +495,8 @@ interface TicketsServiceInterface
      *
      * @param GetContactFormMessage $getContactFormMessage
      *
-     * @return array<array-key, mixed> the form definition, whose fields vary per category
+     * @return ContactFormMessage the form, see
+     *         {@see \Polkurier\Webservice\Response\Contact\ContactFormMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -485,7 +504,7 @@ interface TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getContactForm(GetContactFormMessage $getContactFormMessage): array;
+    public function getContactForm(GetContactFormMessage $getContactFormMessage): ContactFormMessage;
 
     /**
      * Submits a completed contact form.

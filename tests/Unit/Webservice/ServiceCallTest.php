@@ -15,6 +15,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Common\DeleteMessage;
@@ -27,6 +28,7 @@ use Polkurier\Webservice\Request\Order\GetStatusMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
+use Polkurier\Webservice\Request\Order\OrderValuationMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
@@ -238,6 +240,11 @@ final class ServiceCallTest extends TestCase
                 ApiMethodEnum::OrderValuation,
                 $ok('[]'),
             ],
+            'order valuation for one carrier' => [
+                static fn(PolkurierWebservice $s) => $s->orders()->orderValuation(self::createOrderMessage(), 'DPD'),
+                ApiMethodEnum::OrderValuation,
+                $ok('{"servicecode":"DPD","netprice":14.5,"grossprice":17.84,"shipment":true,"available":true}'),
+            ],
         ];
     }
 
@@ -334,6 +341,55 @@ final class ServiceCallTest extends TestCase
 
         self::assertCount(1, $timeline);
         self::assertSame('94a7', $timeline[0]->getId());
+    }
+
+    public function testAValuationForOneCarrierSendsTheOrderWithTheCarrierNextToIt(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":'
+            . '{"servicecode":"DPD","netprice":14.5,"grossprice":17.84,"conditional_price_nett":0,'
+            . '"conditional_price_gross":0,"promotion_nett":0,"promotion_gross":0,"rebate_nett":0,'
+            . '"rebate_gross":0,"shipment":true,"available":true,"unavailable_message":""}}');
+
+        $quotes = $this->sdk->orders()->orderValuation(self::createOrderMessage(), 'DPD');
+
+        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA];
+        self::assertIsArray($data);
+        self::assertSame('DPD', $data[OrderValuationMessage::FIELD_RETURN_VALUATIONS]);
+        self::assertSame('UPS', $data[CreateOrderMessage::FIELD_COURIER]);
+        self::assertArrayHasKey(CreateOrderMessage::FIELD_SENDER, $data);
+        self::assertArrayNotHasKey(OrderValuationMessage::FIELD_ORDER, $data);
+        self::assertCount(1, $quotes);
+        self::assertSame('DPD', $quotes[0]->getServiceCode());
+        self::assertSame('', $quotes[0]->getServiceName());
+        self::assertSame(14.5, $quotes[0]->getNetPrice());
+    }
+
+    public function testAnOrderPricedForOneCarrierIsRejectedUnderItsOwnFieldNames(): void
+    {
+        $order = new CreateOrderMessage(
+            courier: 'UPS',
+            shipmentType: ShipmentTypeEnum::Box,
+            packs: [new PackMessage(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
+            sender: new OrderAddressMessage(
+                person: 'Jan Kowalski',
+                street: 'Długa',
+                city: 'Poznań',
+                postcode: '61001',
+                email: 'jan@example.com',
+                phone: '500600700',
+                houseNumber: '12',
+            ),
+            recipient: self::createOrderMessage()->getRecipient(),
+        );
+
+        try {
+            $this->sdk->orders()->orderValuation($order, 'DPD');
+            self::fail('Expected a rejection.');
+        } catch (ValidationException $e) {
+            self::assertNotSame([], $e->getFieldErrors('sender.postcode'));
+            self::assertSame([], $e->getFieldErrors('order.sender.postcode'));
+        }
+        self::assertSame(0, $this->client->requestCount());
     }
 
     private static function createOrderMessage(): CreateOrderMessage

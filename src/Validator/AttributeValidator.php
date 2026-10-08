@@ -14,6 +14,7 @@ use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface as MessageValidatorInterface;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\IgnoredWhen;
 use Polkurier\Webservice\Validator\Rule\Valid;
@@ -58,6 +59,7 @@ class AttributeValidator implements ValidatorInterface
      *     values: array<string, ValueValidatorInterface[]>,
      *     each: array<string, ValueValidatorInterface[]>,
      *     nested: string[],
+     *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
      *     validators: class-string<MessageValidatorInterface>[]
@@ -134,7 +136,13 @@ class AttributeValidator implements ValidatorInterface
         }
 
         foreach ($rules['nested'] as $property) {
-            $this->collectNested($fields->value($property), $fields->field($property), $violations);
+            $value = $fields->value($property);
+            if (\in_array($property, $rules['inlined'], true) && \is_object($value)) {
+                // An inlined object's fields are sent at this level, so they are reported here too
+                $this->collect($value, $violations);
+                continue;
+            }
+            $this->collectNested($value, $fields->field($property), $violations);
         }
 
         foreach ($rules['message'] as $rule) {
@@ -220,6 +228,7 @@ class AttributeValidator implements ValidatorInterface
      *     values: array<string, ValueValidatorInterface[]>,
      *     each: array<string, ValueValidatorInterface[]>,
      *     nested: string[],
+     *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
      *     validators: class-string<MessageValidatorInterface>[]
@@ -235,6 +244,7 @@ class AttributeValidator implements ValidatorInterface
         $values = [];
         $each = [];
         $nested = [];
+        $inlined = [];
         $message = [];
         $ignored = [];
         $validators = [];
@@ -278,6 +288,9 @@ class AttributeValidator implements ValidatorInterface
                 if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== [] && !\in_array($name, $nested, true)) {
                     $nested[] = $name;
                 }
+                if ($property->getAttributes(InlineFields::class) !== [] && !\in_array($name, $inlined, true)) {
+                    $inlined[] = $name;
+                }
             }
             $current = $current->getParentClass();
         }
@@ -286,6 +299,7 @@ class AttributeValidator implements ValidatorInterface
             'values' => $values,
             'each' => $each,
             'nested' => $nested,
+            'inlined' => $inlined,
             'message' => $message,
             'ignored' => $ignored,
             'validators' => \array_values(\array_unique($validators)),

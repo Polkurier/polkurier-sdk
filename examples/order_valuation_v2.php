@@ -6,10 +6,12 @@
 /**
  * order_valuation_v2 — price a fully assembled order before placing it.
  *
- * Takes the same payload as create_order and answers with what each carrier would charge, so an
- * order can be quoted and then placed without rebuilding it. Validation is deliberately looser
- * here than on create_order: a payload that quotes may still be rejected when placed.
- * examples/create_order.php shows the two in sequence.
+ * Takes the same payload as create_order and answers with what each carrier that can carry the
+ * shipment would charge, so an order can be quoted and then placed without rebuilding it. A
+ * payload that quotes may still be rejected when placed. examples/create_order.php shows the two in
+ * sequence.
+ *
+ * Pass a carrier's service code, e.g. DPD, to price the order for that carrier only.
  */
 declare(strict_types=1);
 
@@ -47,7 +49,19 @@ $order = new CreateOrderMessage(
 );
 
 try {
-    dumpResponse(polkurier()->orders()->orderValuation($order));
+    foreach (polkurier()->orders()->orderValuation($order, $argv[1] ?? null) as $quote) {
+        if (!$quote->isShipment()) {
+            continue;
+        }
+
+        \printf(
+            "%-28s %8.2f net %8.2f gross%s\n",
+            $quote->getServiceCode(),
+            $quote->getNetPrice(),
+            $quote->getGrossPrice(),
+            $quote->isAvailable() ? '' : '  unavailable: ' . $quote->getUnavailableMessage(),
+        );
+    }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

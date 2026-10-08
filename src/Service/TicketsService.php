@@ -23,6 +23,7 @@ use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
 use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
 use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Response\Contact\ContactFormMessage;
 use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
@@ -172,7 +173,7 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
     /**
      * @param GetContactFormMessage $getContactFormMessage
      *
-     * @return array<array-key, mixed>
+     * @return ContactFormMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -180,9 +181,9 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getContactForm(GetContactFormMessage $getContactFormMessage): array
+    public function getContactForm(GetContactFormMessage $getContactFormMessage): ContactFormMessage
     {
-        return $this->requestRawArray(ApiMethodEnum::GetContactForm, $getContactFormMessage);
+        return $this->requestObject(ApiMethodEnum::GetContactForm, ContactFormMessage::class, $getContactFormMessage);
     }
 
     /**

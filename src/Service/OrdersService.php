@@ -23,6 +23,7 @@ use Polkurier\Webservice\Request\Order\GetStatusMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
+use Polkurier\Webservice\Request\Order\OrderValuationMessage;
 use Polkurier\Webservice\Response\Order\CancellationMessage;
 use Polkurier\Webservice\Response\Order\CreatedOrderMessage;
 use Polkurier\Webservice\Response\Order\DocumentMessage;
@@ -31,6 +32,7 @@ use Polkurier\Webservice\Response\Order\MultiPickupResultMessage;
 use Polkurier\Webservice\Response\Order\OrderFileMessage;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Response\Order\ValuationMessage;
 
 /**
  * @see OrdersServiceInterface
@@ -39,8 +41,9 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
 {
     /**
      * @param CreateOrderMessage $createOrderMessage
+     * @param string|null $courier
      *
-     * @return array<array-key, mixed>
+     * @return ValuationMessage[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -48,9 +51,20 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function orderValuation(CreateOrderMessage $createOrderMessage): array
+    public function orderValuation(CreateOrderMessage $createOrderMessage, ?string $courier = null): array
     {
-        return $this->requestRawArray(ApiMethodEnum::OrderValuation, $createOrderMessage);
+        if ($courier === null) {
+            return $this->requestList(ApiMethodEnum::OrderValuation, ValuationMessage::class, $createOrderMessage);
+        }
+
+        // Priced for one carrier, the API answers with that quote alone, not a list
+        $quote = $this->requestObject(
+            ApiMethodEnum::OrderValuation,
+            ValuationMessage::class,
+            new OrderValuationMessage($createOrderMessage, $courier),
+        );
+
+        return [$quote];
     }
 
     /**

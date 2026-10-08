@@ -66,7 +66,7 @@ $order = new CreateOrderMessage(
     externalOrderId: 'SHOP-1001',              // your own id for this order
 );
 
-$quote   = $client->orders()->orderValuation($order);   // array, no stable shape
+$quotes  = $client->orders()->orderValuation($order);   // ValuationMessage[], one per carrier
 $created = $client->orders()->createOrder($order);      // CreatedOrderMessage
 
 printf(
@@ -153,30 +153,30 @@ shipping form.
 
 ### Let the price decide
 
-Get a quote for the same shipment from several carriers and compare:
+One valuation quotes every carrier that can carry the shipment, so compare the quotes it returns:
 
 ```php
-$quotes = [];
+use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
+use Polkurier\Webservice\Response\Order\ValuationMessage;
 
-foreach ($candidateCodes as $code) {
-    try {
-        $quotes[$code] = $client->orders()->orderValuation(
-            CreateOrderMessageBuilder::create()
-                ->courier($code)
-                ->shipmentType($type)
-                ->packs($packs)
-                ->sender($sender)
-                ->recipient($recipient)
-                ->build(),
-        );
-    } catch (WebserviceException) {
-        // This carrier will not take it. Skip.
-    }
-}
+$quotes = $client->orders()->orderValuation(
+    CreateOrderMessageBuilder::create()
+        ->courier($anyCode)
+        ->shipmentType($type)
+        ->packs($packs)
+        ->sender($sender)
+        ->recipient($recipient)
+        ->build(),
+);
+
+$quotes = array_filter($quotes, static fn(ValuationMessage $quote) => $quote->isShipment());
+usort($quotes, static fn(ValuationMessage $a, ValuationMessage $b) => $a->getGrossPrice() <=> $b->getGrossPrice());
+
+$cheapest = $quotes[0] ?? null;   // place the order with $cheapest->getServiceCode() as the courier
 ```
 
-Each quote is an unmapped array, so read the price from whatever structure the API returned. Catch
-exceptions per carrier, so that one carrier refusing the shipment does not stop the comparison.
+Filter on [`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) first. A carrier that can't carry the shipment is
+quoted at 0, and would otherwise come out cheapest.
 
 ---
 

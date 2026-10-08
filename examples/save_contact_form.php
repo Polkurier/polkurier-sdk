@@ -42,8 +42,8 @@ try {
 
     $saved = polkurier()->tickets()->saveContactForm(new SaveContactFormMessage(
         category: $category,
-        formId: (string)($form['id'] ?? ''),
-        nonce: (string)($form['nonce'] ?? ''),
+        formId: $form->getId(),
+        nonce: $form->getNonce(),
         fields: $answers,
     ));
 

@@ -5,7 +5,7 @@ Everything sent to or received from the API lives in one of two namespaces:
 
 ```
 Request/    72 classes: everything you send
-Response/   85 classes: everything you get back
+Response/   93 classes: everything you get back
 ```
 
 Both sit at the root of [`Polkurier\Webservice`](../src/), not under a shared `Model` namespace. They hold
@@ -137,11 +137,16 @@ Filtered down to one record, `get_orders` (by order number) and `get_tickets` (b
 that record alone. The SDK reads it as a page with one row, so
 [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) and [`TicketsServiceInterface::getTickets()`](../src/Api/Service/TicketsServiceInterface.php) return the same shape either way.
 
-### The two unmapped responses
+### Values whose names vary
 
-[`$client->orders()->orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) and [`$client->tickets()->getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) return `array<array-key, mixed>`,
-which is just the decoded JSON. Their shape depends on the request, so there's no fixed structure
-to map. Every other method returns a typed object.
+A few responses hold values under names that depend on the request, not on the API: an
+external application's settings, and a contact form's properties, starting values and display
+properties. These come as lists of name and value pairs,
+[`ExternalApplicationSettingMessage`](../src/Response/Account/ExternalApplicationSettingMessage.php) and [`ContactFormValueMessage`](../src/Response/Contact/ContactFormValueMessage.php). A value that isn't a single value,
+such as a list, is given as its JSON.
+
+No method returns decoded JSON. For a value the SDK doesn't map, read the response as the API sent
+it, with [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php).
 
 Why requests and responses are split
 ------------------------------------
@@ -242,6 +247,7 @@ area. The ones you're most likely to use:
 | [`MoneyBox\MoneyBoxPayoutTypeEnum`](../src/Enum/MoneyBox/MoneyBoxPayoutTypeEnum.php), [`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php) | Payouts |
 | [`Invoice\InvoiceTypeEnum`](../src/Enum/Invoice/InvoiceTypeEnum.php) | Invoice kind |
 | [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
+| [`Contact\ContactFormFieldTypeEnum`](../src/Enum/Contact/ContactFormFieldTypeEnum.php), [`ContactFormSeverityEnum`](../src/Enum/Contact/ContactFormSeverityEnum.php) | Contact form fields |
 | [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
 | [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
 | [`TwoFactorToken\TwoFactorTransportTypeEnum`](../src/Enum/TwoFactorToken/TwoFactorTransportTypeEnum.php) | How a code reaches the customer |

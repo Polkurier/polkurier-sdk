@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Response;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Response\Order\Cod;
+use Polkurier\Webservice\Response\Order\File;
 use Polkurier\Webservice\Response\Order\IndividualPricing;
 use Polkurier\Webservice\Response\Order\Item;
 use Polkurier\Webservice\Response\Order\Pack;
@@ -333,7 +334,7 @@ readonly class Order implements MessageInterface
         private ?IndividualPricing $individualPricing = null,
 
         /**
-         * @var array<int, array<string, mixed>>|null
+         * @var File[]|null
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
@@ -660,7 +661,7 @@ readonly class Order implements MessageInterface
     /**
      * Documents attached to the order. Returned only when the request asked for files.
      *
-     * @return array<int, array<string, mixed>>|null
+     * @return File[]|null
      */
     public function getFiles(): ?array
     {

@@ -38,8 +38,8 @@ readonly class ContactTopicMessage implements MessageInterface
      * @param string $title display title, in Polish
      * @param string $content explanatory text, in Polish
      * @param bool $hasForm whether a ticket can be raised under this topic
-     * @param array<int, array<string, mixed>> $knowledgeBaseArticles help articles suggested for this topic
-     * @param array<int, array<string, mixed>> $knowledgeBaseCategories help categories suggested for this topic
+     * @param KnowledgeBaseLinkMessage[] $knowledgeBaseArticles help articles suggested for this topic
+     * @param KnowledgeBaseLinkMessage[] $knowledgeBaseCategories help categories suggested for this topic
      */
     public function __construct(
         /**
@@ -74,13 +74,13 @@ readonly class ContactTopicMessage implements MessageInterface
         private bool $hasForm = false,
 
         /**
-         * @var array<int, array<string, mixed>>
+         * @var KnowledgeBaseLinkMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_KNOWLEDGE_BASE_ARTICLES)]
         private array $knowledgeBaseArticles = [],
 
         /**
-         * @var array<int, array<string, mixed>>
+         * @var KnowledgeBaseLinkMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_KNOWLEDGE_BASE_CATEGORIES)]
         private array $knowledgeBaseCategories = [],
@@ -127,7 +127,7 @@ readonly class ContactTopicMessage implements MessageInterface
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return KnowledgeBaseLinkMessage[]
      */
     public function getKnowledgeBaseArticles(): array
     {
@@ -135,7 +135,7 @@ readonly class ContactTopicMessage implements MessageInterface
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return KnowledgeBaseLinkMessage[]
      */
     public function getKnowledgeBaseCategories(): array
     {
