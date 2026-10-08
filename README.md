@@ -39,8 +39,9 @@ $carriers = $client->courier()->availableCarriers();   // Carrier[]
 
 The full documentation is in [`./docs`](docs/README.md). There are pages on
 [configuration](docs/configuration.md), [every service](docs/services.md),
-[validation](docs/validation.md), [errors](docs/errors.md), [serialization](docs/serialization.md)
-and [architecture](docs/architecture.md), plus [worked recipes](docs/recipes.md) and
+[validation](docs/validation.md), [errors](docs/errors.md), [webhooks](docs/webhooks.md),
+[serialization](docs/serialization.md) and [architecture](docs/architecture.md), plus
+[worked recipes](docs/recipes.md) and
 [integration guides](docs/integrations/README.md) for Symfony, Laravel, PrestaShop, WooCommerce,
 Shopware and Sylius. For Magento, Polkurier has its own module, described in the
 [Magento page](docs/integrations/magento2.md).

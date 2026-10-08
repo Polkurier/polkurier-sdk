@@ -168,6 +168,8 @@ them in step with the code they demonstrate.
 | `Http/ResponseShapeTest` | Responses with keys left out, nulls, empty strings or new keys still read |
 | `Http/ClientFactoryTest` | One HTTP client per configuration |
 | `Message/RequestMessageConstructionTest` | Requests can be constructed as documented |
+| `Message/TypedResponseTest` | Valuations, contact forms, help links, order files and app settings read into typed messages |
+| `Webhook/OrderWebhookReaderTest` | Order events read as Polkurier posts them, and only the webhook's secret authenticates one |
 | `Validator/RuleTest` | Each rule in isolation |
 | `Validator/ValidationTest` | Whole payloads, and the pooled reports |
 | `Validator/ValidatorWiringTest` | Every message's declared validators exist and are reachable |

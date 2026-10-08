@@ -18,6 +18,7 @@ The source is organised by role:
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, the SDK's own normalizers and 2 attributes |
 | `Log` | Preparing request and response bodies for the log |
+| `Webhook` | [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php), for the order events Polkurier posts to your system |
 | `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |

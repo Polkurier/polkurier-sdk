@@ -19,6 +19,7 @@ Start here
 | [Errors](errors.md) | Every exception the SDK throws, when, and how to handle it |
 | [Serialization](serialization.md) | How PHP objects are converted to the API's JSON and back |
 | [Architecture](architecture.md) | The request lifecycle, the collaborators, and which classes you can replace |
+| [Webhooks](webhooks.md) | Checking and reading the order events Polkurier posts to your system |
 | [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |
 | [Testing](testing.md) | Testing your integration against the SDK, and running the SDK's own tests |
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
