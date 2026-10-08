@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2026 Polkurier.pl
- * All Rights Reserved
+ * Licensed under the MIT License, see LICENSE.md
  */
 /**
  * order_valuation_v2 — price a fully assembled order before placing it.

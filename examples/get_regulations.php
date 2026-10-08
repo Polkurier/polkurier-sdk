@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2026 Polkurier.pl
- * All Rights Reserved
+ * Licensed under the MIT License, see LICENSE.md
  */
 /**
  * get_regulations — read the current terms or privacy policy.

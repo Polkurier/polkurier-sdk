@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2026 Polkurier.pl
- * All Rights Reserved
+ * Licensed under the MIT License, see LICENSE.md
  */
 /**
  * create_money_box_payout — request a payout of collected cash-on-delivery money.

@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2026 Polkurier.pl
- * All Rights Reserved
+ * Licensed under the MIT License, see LICENSE.md
  */
 /**
  * save_pack_template — add a parcel template, or update one.

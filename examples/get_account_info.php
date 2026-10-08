@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) 2026 Polkurier.pl
- * All Rights Reserved
+ * Licensed under the MIT License, see LICENSE.md
  */
 /**
  * get_account_info — read the account: balances, settings and what it is allowed to do.

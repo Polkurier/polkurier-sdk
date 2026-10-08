@@ -278,3 +278,8 @@ POLKURIER_API_URL=https://api-sandbox.polkurier.pl composer test:integration
 ```
 
 `POLKURIER_API_LOGIN` and `POLKURIER_API_TOKEN` cover the authenticated methods.
+
+License
+-------
+
+MIT, see [LICENSE.md](LICENSE.md).
