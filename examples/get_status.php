@@ -1,26 +1,42 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * get_status — read where a shipment has got to.
+ *
+ * The current status always; the carrier's full scan history only when tracking is asked for,
+ * which makes the API query the carrier and is noticeably slower. Poll the plain form and fetch
+ * the history only when showing it to someone.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\GetStatus;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Order\GetStatusMessage;
+
+
+require __DIR__ . '/bootstrap.php';
+
+$orderNumber = arguments()[0] ?? '12345-678';
 
 try {
+    $status = polkurier()->orders()->getStatus(
+        new GetStatusMessage(orderNo: $orderNumber, tracking: true)
+    );
 
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
+    \printf("%s: %s (%s)\n", $orderNumber, $status->getStatus(), $status->getStatusCode());
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new GetStatus();
-    $method->setOrderNumber('1234-1');
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    foreach ($status->getTracking() as $event) {
+        \printf(
+            "  %-18s %-24s %s\n",
+            $event->getStatusDate()?->format('Y-m-d H:i') ?? '-',
+            $event->getLocation(),
+            $event->getDescription()
+        );
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

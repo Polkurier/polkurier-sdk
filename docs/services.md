@@ -1,0 +1,519 @@
+Services
+========
+
+The client has one service per functional area and one method per API endpoint. Each accessor
+returns an interface from [`Polkurier\Webservice\Api\Service\`](../src/Api/Service/), and that interface is the reference for
+its methods: each method's docblock lists the endpoint it calls, a sample payload, the possible
+success responses and the most common errors. The [API method index](api-methods.md) lists every
+method against the endpoint it calls.
+
+| Accessor | Interface | Covers |
+|----------|-----------|--------|
+| `courier()` | [`CourierServiceInterface`](../src/Api/Service/CourierServiceInterface.php) | Carriers, collections, pickup points, country coverage |
+| `orders()` | [`OrdersServiceInterface`](../src/Api/Service/OrdersServiceInterface.php) | Pricing, placing, tracking, cancelling, documents |
+| `addresses()` | [`AddressesServiceInterface`](../src/Api/Service/AddressesServiceInterface.php) | The account's address book |
+| `bankAccounts()` | [`BankAccountsServiceInterface`](../src/Api/Service/BankAccountsServiceInterface.php) | Accounts cash on delivery is settled to |
+| `packTemplates()` | [`PackTemplatesServiceInterface`](../src/Api/Service/PackTemplatesServiceInterface.php) | Saved parcel templates |
+| `geo()` | [`GeoServiceInterface`](../src/Api/Service/GeoServiceInterface.php) | City lookup and map tokens |
+| `account()` | [`AccountServiceInterface`](../src/Api/Service/AccountServiceInterface.php) | Profile, balances, preferences, credentials, phone numbers |
+| `accountVerification()` | [`AccountVerificationServiceInterface`](../src/Api/Service/AccountVerificationServiceInterface.php) | Identity verification |
+| `invoices()` | [`InvoicesServiceInterface`](../src/Api/Service/InvoicesServiceInterface.php) | Invoices and their documents |
+| `payments()` | [`PaymentsServiceInterface`](../src/Api/Service/PaymentsServiceInterface.php) | Online payments and the prepaid balance |
+| `moneyBox()` | [`MoneyBoxServiceInterface`](../src/Api/Service/MoneyBoxServiceInterface.php) | Collected funds and withdrawing them |
+| `tickets()` | [`TicketsServiceInterface`](../src/Api/Service/TicketsServiceInterface.php) | Support tickets and contact forms |
+| `knowledgeBase()` | [`KnowledgeBaseServiceInterface`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Help articles |
+| `twoFactorToken()` | [`TwoFactorTokenServiceInterface`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Confirmation codes for guarded operations |
+| `system()` | [`SystemServiceInterface`](../src/Api/Service/SystemServiceInterface.php) | Service limits, carrier notices, coupon checks |
+| `utils()` | [`UtilsServiceInterface`](../src/Api/Service/UtilsServiceInterface.php) | Reachability and credential checks |
+
+Reading a method signature
+--------------------------
+
+Method signatures follow three patterns:
+
+```php
+availableCarriers(?AvailableCarriersMessage $message = null): array   // all filters optional
+createOrder(CreateOrderMessage $message): CreatedOrderMessage         // payload required
+getBankAccounts(): array                                             // no parameters at all
+```
+
+A method that returns a [`CreatedOrderMessage`](../src/Response/Order/CreatedOrderMessage.php) either returns one or throws. It never returns null
+because the API sent something unexpected. Two methods can return null: [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php), for an id
+that matches no point, and [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php), for an account that has
+never started verification.
+
+Every method can throw [`AuthorizationException`](../src/Exception/AuthorizationException.php), [`ConnectionException`](../src/Exception/ConnectionException.php),
+[`MalformedResponseException`](../src/Exception/MalformedResponseException.php), [`ValidationException`](../src/Exception/ValidationException.php) and [`WebserviceException`](../src/Exception/WebserviceException.php), see
+[Errors](errors.md).
+
+An order from start to finish
+-----------------------------
+
+```
+courier()->availableCarriers()        which carriers, and what each one supports
+        │
+orders()->orderValuation()            the price, before committing to it
+        │
+orders()->createOrder()               places the order and returns its number
+        │
+orders()->getLabel()                  the label to stick on the parcel
+        │
+courier()->pickupCourier()            a collection for this parcel, or one collection
+        │                             for several orders, see Booking a collection
+        │
+orders()->getStatus(), getOrders()    where it is now; webhooks report changes
+        │
+        └── orders()->cancelOrder()   unless the carrier refuses
+```
+
+Choosing a carrier
+------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Lists the carriers this account may ship with |
+| [`SystemServiceInterface::getCouriersMessages()`](../src/Api/Service/SystemServiceInterface.php) | Current carrier notices: delays, suspensions and general information |
+| [`CourierServiceInterface::getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | Every country the service supports, with its regions |
+| [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | The countries one international carrier delivers to |
+
+[`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) lists the carriers. A [`Carrier`](../src/Response/Carrier.php)'s `serviceCode` is what
+[`CreateOrderMessage::$courier`](../src/Request/Order/CreateOrderMessage.php) takes. With `additionalData: true`, the response also lists what each
+carrier supports: shipment types, pack limits, whether it needs a pickup date, which additional
+services it offers, and which point map it uses. The SDK doesn't validate against this data because
+it varies by carrier and account.
+
+```php
+$carriers = $client->courier()->availableCarriers(
+    new AvailableCarriersMessage(additionalData: true),
+);
+```
+
+[`SystemServiceInterface::getCouriersMessages()`](../src/Api/Service/SystemServiceInterface.php) returns carrier notices (delays, suspensions, general information), each
+with a [`CourierMessageSeverityEnum`](../src/Enum/Courier/CourierMessageSeverityEnum.php). They often explain rejections.
+
+[`CourierServiceInterface::getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) returns the countries Polkurier serves, as `Country[]` with their
+regions. [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) returns the countries a particular carrier delivers
+to, as a flat map of codes to names. The first suits a form, the second a check of one carrier's
+destinations.
+
+Finding a pickup point
+----------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php) | Finds pickup points across one or more carriers |
+| [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php) | Fetches one pickup point by its id, or null |
+| [`GeoServiceInterface::getMapToken()`](../src/Api/Service/GeoServiceInterface.php) | A short-lived token for the pickup point map widget |
+
+```
+Who picks the point?
+├── the customer, on a map ............................ 3. geo()->getMapToken()
+└── your code
+    ├── near a place, across carriers ................. 1. findCourierPoints()
+    ├── all of a carrier's points, for a cache ........ 1. findCourierPoints(), without a query
+    └── a saved id: does it still exist? .............. 2. getCourierPoint()
+```
+
+**1. Search across carriers.** Search by query, location or filter:
+
+```php
+use Polkurier\Webservice\Request\Courier\GetPointMessage;
+
+$points = $client->courier()->findCourierPoints(new GetPointMessage(
+    couriers: ['INPOST_PACZKOMAT'],
+    searchQuery: 'Poznań',
+    limit: 5,
+));
+```
+
+Without a search query or a location, it returns every point of the given carriers, which suits a
+local cache. For InPost that is over 30,000 points, so cache the result instead of fetching it for
+every page.
+
+**2. Look one up by id.** This checks that a point the customer already chose still exists:
+
+```php
+$point = $client->courier()->getCourierPoint('POZ01A', ['INPOST_PACZKOMAT']);
+
+if ($point === null) {
+    // The id is unknown to that carrier. This is an absence, not an error.
+}
+```
+
+The carrier list is required even if the id looks unique.
+
+**3. Show the customer a map.** [`GeoServiceInterface::getMapToken()`](../src/Api/Service/GeoServiceInterface.php) returns a short-lived token for the
+pickup point map widget, which runs in the browser and reports the chosen point back to your page.
+The point goes into the order's address. The map is for a customer picking the point, the methods
+above for code that does.
+
+Pricing and placing an order
+----------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) | Prices an order without placing it, for every carrier or for one |
+| [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | Places an order |
+| [`SystemServiceInterface::validateCouponCode()`](../src/Api/Service/SystemServiceInterface.php) | Checks a discount coupon, optionally against a specific order |
+
+[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) and [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) take the same [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php).
+
+> A successful valuation only gives you a price. A payload that prices without errors can still be
+> rejected when you place the order, so a valuation doesn't show whether an order will go through.
+
+[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) quotes every carrier that can carry the shipment, one
+[`ValuationMessage`](../src/Response/Order/ValuationMessage.php) each, whichever courier the message names. A carrier that can't carry it is left out.
+Given a carrier's service code as well, it prices the order for that carrier only:
+
+```php
+$quotes = $client->orders()->orderValuation($order, 'DPD');   // ValuationMessage[], just DPD's quote
+```
+
+A code the API doesn't know is rejected. A single carrier's quote has no service name.
+The net and gross prices are the totals to be charged, with any promotion and rebate already taken
+off. A price only means something when [`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) is true, and a conditional
+price of 0 means no conditional offer, not a free one.
+
+To find an order again by your own id, place it with `externalApplicationId` (your application's
+UUID) and `externalOrderId` (your id for the order). The SDK refuses one without the other.
+`externalOrderNumber` can carry the number your customer sees.
+
+[`SystemServiceInterface::validateCouponCode()`](../src/Api/Service/SystemServiceInterface.php) checks a coupon on its own or against a specific order. Checking against an
+order needs the carrier, the shipment type and the parcels. If any of them are missing, the SDK
+reports all the missing ones together.
+
+Full example: [Recipes: placing an order](recipes.md#placing-an-order).
+
+Reading orders back
+-------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Lists orders, one page at a time |
+| [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current delivery status, optionally with its scan history |
+| [`OrdersServiceInterface::cancelOrder()`](../src/Api/Service/OrdersServiceInterface.php) | Cancels an order |
+
+```php
+$list   = $client->orders()->getOrders($filter);        // OrderListMessage: paged, full Order objects
+$status = $client->orders()->getStatus($statusMessage); // OrderStatusMessage: one order's delivery state
+```
+
+[`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) is the general query. It filters by date, status, carrier, cash-on-delivery range,
+free text and your own external identifiers, and can optionally include `packs`, `items` and
+`files`. The application id filters on its own. The order id only works together with it, which
+the SDK checks before sending. Both match exactly, and no match is an empty page. This is how to
+check whether an order was placed when [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) got no answer, see
+[Errors: retrying safely](errors.md#retrying-safely). Results are paged (see [Recipes: paging](recipes.md#paging-through-a-list)). The maximum
+page size is [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Request/Order/GetOrdersMessage.php) (100), and the SDK rejects anything larger before
+sending it.
+
+[`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) returns the current delivery state of one order, optionally with its scan history.
+It is the lighter call, suited to tracking. [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) suits reconciliation.
+To hear about changes without asking, see [Webhooks](webhooks.md).
+
+Both include a status code. [`Order::getStatusCode()`](../src/Response/Order.php) returns a plain string, and
+[`Enum\Order\OrderStatusCodeEnum`](../src/Enum/Order/OrderStatusCodeEnum.php) holds the known values:
+
+```php
+use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
+
+if ($order->getStatusCode() === OrderStatusCodeEnum::Delivered->value) { … }
+```
+
+Labels and other documents
+--------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) | Shipping labels for one or more orders, as one document |
+| [`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) | The handover protocol, the list the courier signs on collection |
+| [`OrdersServiceInterface::getOrderFile()`](../src/Api/Service/OrdersServiceInterface.php) | A document attached to an order |
+
+```php
+$labels   = $client->orders()->getLabel($doc);      // shipping labels, one PDF for all of them
+$protocol = $client->orders()->getProtocol($doc);   // the handover list the courier signs
+$file     = $client->orders()->getOrderFile($msg);  // a document attached to one order
+```
+
+[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) and [`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) both take [`GetDocumentMessage`](../src/Request/Order/GetDocumentMessage.php), which accepts a **list** of order
+numbers. You get labels for several orders back as one PDF from a single call.
+[`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) also accepts a [`LabelFileFormatEnum`](../src/Enum/Order/LabelFileFormatEnum.php) for formats other than PDF, such as ZPL, if the
+carrier supports them.
+
+Every document, these and the invoices below alike, has the base64 content in `getFile()` and the
+raw bytes in `getDecodedFile()`:
+
+```php
+file_put_contents('labels.pdf', $labels->getDecodedFile());     // write it out
+echo '<embed src="data:application/pdf;base64,' . $labels->getFile() . '">';  // hand it to a browser
+```
+
+Booking a collection
+--------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`CourierServiceInterface::getCourierPickupTime()`](../src/Api/Service/CourierServiceInterface.php) | The days a carrier can collect on, with the windows available each day |
+| [`CourierServiceInterface::pickupCourier()`](../src/Api/Service/CourierServiceInterface.php) | Books a courier collection |
+| [`OrdersServiceInterface::isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) | Checks whether a shipment can join a collective pickup |
+| [`OrdersServiceInterface::createMultiOrderPickup()`](../src/Api/Service/OrdersServiceInterface.php) | Books one courier collection covering several orders |
+
+```php
+$pickup = $client->courier()->pickupCourier($pickupMessage);       // one shipment
+$times  = $client->courier()->getCourierPickupTime($whenMessage);  // available days and windows
+```
+
+One collection for *several* shipments is a collective pickup. It is booked in three steps:
+
+```php
+// 1. Before placing an order, check the shipment can join a collective pickup.
+$check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
+if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
+    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
+}
+
+// 3. Later, book one collection for the order numbers placed that way.
+$result = $client->orders()->createMultiOrderPickup(new MultiPickupRequestMessage(
+    pickupDate: new DateTimeImmutable('+1 weekday'),
+    pickupTimeFrom: new DateTimeImmutable('10:00'),
+    pickupTimeTo: new DateTimeImmutable('14:00'),
+    orders: ['12345-678', '12345-679'],
+));
+```
+
+Availability depends on the shipment, chiefly its carrier and parcels, so it is checked for each
+one. The API answers false rather than an error for a request it can't evaluate.
+
+Addresses, bank accounts and parcel templates
+---------------------------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`AddressesServiceInterface::getAddresses()`](../src/Api/Service/AddressesServiceInterface.php) | Lists saved addresses |
+| [`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) | Creates an address, or updates the one the message's id names |
+| [`AddressesServiceInterface::deleteAddress()`](../src/Api/Service/AddressesServiceInterface.php) | Deletes one address book entry |
+| [`BankAccountsServiceInterface::getBankAccounts()`](../src/Api/Service/BankAccountsServiceInterface.php) | Lists the registered bank accounts |
+| [`BankAccountsServiceInterface::saveBankAccount()`](../src/Api/Service/BankAccountsServiceInterface.php) | Registers a bank account, or updates the one the message's id names |
+| [`BankAccountsServiceInterface::deleteBankAccount()`](../src/Api/Service/BankAccountsServiceInterface.php) | Removes a bank account |
+| [`PackTemplatesServiceInterface::getPackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) | Lists the account's parcel templates |
+| [`PackTemplatesServiceInterface::savePackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) | Creates a template, or updates the one its id names |
+| [`PackTemplatesServiceInterface::deletePackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) | Deletes a template |
+| [`GeoServiceInterface::findCity()`](../src/Api/Service/GeoServiceInterface.php) | Suggests localities for a postcode |
+
+Save creates and updates: with an id in the message it updates that entry, and without one it
+creates a new entry.
+
+You send a [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) and get back a [`Response\Address`](../src/Response/Address.php). These are different
+classes, as with requests and responses throughout the SDK. See
+[Messages: why requests and responses are split](messages.md#why-requests-and-responses-are-split).
+
+[`GeoServiceInterface::findCity()`](../src/Api/Service/GeoServiceInterface.php) returns the localities for a postcode, e.g. for address autocompletion. Offering
+the cities the API returns for `61-001` keeps a customer from typing one the carrier won't
+recognise.
+
+A bank account number is checked before it is sent. The [`Validator\Rule\Iban`](../src/Validator/Rule/Iban.php) rule verifies the
+ISO 13616 check digits, and accepts either a full IBAN or a national number without the country
+prefix. The check is strict because this field decides where collected money is paid, and two
+swapped digits could send it to someone else's account. Depending on the account's settings,
+changing a bank account may require [two-factor confirmation](#two-factor-confirmation).
+
+Parcel templates are optional. An order always carries its parcel dimensions in [`PackMessage`](../src/Request/Order/PackMessage.php).
+Templates save repeating standard box sizes for every order.
+
+The account
+-----------
+
+| Method | What it does |
+|--------|--------------|
+| [`AccountServiceInterface::getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php) | The account's profile, balances and outstanding obligations |
+| [`SystemServiceInterface::getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | The service limits: coupons, security and tickets |
+| [`AccountServiceInterface::saveAccountSettings()`](../src/Api/Service/AccountServiceInterface.php) | Changes the account's order form defaults |
+| [`AccountServiceInterface::changeDefaultCourier()`](../src/Api/Service/AccountServiceInterface.php) | Sets the carrier preselected on the order form |
+| [`AccountServiceInterface::changeDefaultSenderPoint()`](../src/Api/Service/AccountServiceInterface.php) | Sets, or clears, the default drop-off point for one carrier |
+| [`AccountServiceInterface::savePayerAddress()`](../src/Api/Service/AccountServiceInterface.php) | Writes the billing, correspondence or contact address, as [`PayerAddressTypeEnum`](../src/Enum/Account/PayerAddressTypeEnum.php) says |
+| [`AccountServiceInterface::changePassword()`](../src/Api/Service/AccountServiceInterface.php) | Changes the account password |
+| [`AccountServiceInterface::changePhonePin()`](../src/Api/Service/AccountServiceInterface.php) | Sets or changes the account's telephone PIN |
+| [`AccountServiceInterface::validateUserPin()`](../src/Api/Service/AccountServiceInterface.php) | Checks a security PIN without changing anything |
+| [`AccountServiceInterface::getRegulations()`](../src/Api/Service/AccountServiceInterface.php) | Fetches the terms of service or the privacy policy |
+| [`AccountServiceInterface::acceptRegulations()`](../src/Api/Service/AccountServiceInterface.php) | Records the customer's acceptance of the current terms |
+| [`AccountServiceInterface::getPhoneNumbers()`](../src/Api/Service/AccountServiceInterface.php) | Lists the account's telephone numbers |
+| [`AccountServiceInterface::savePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Adds a telephone number, optionally as the account's default |
+| [`AccountServiceInterface::deletePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Removes a telephone number from the account |
+| [`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) | Starts an identity verification |
+| [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) | The most recent verification attempt and its outcome, or null |
+
+[`AccountServiceInterface::getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php) returns the balances, outstanding payments and PIN lock settings, which
+decide whether other calls need confirming. [`SystemServiceInterface::getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) returns the coupon,
+security and ticket limits. The SDK checks none of this data locally, because it can change without
+a new SDK release.
+
+> [`AccountServiceInterface::acceptRegulations()`](../src/Api/Service/AccountServiceInterface.php) records that the customer accepts the current terms, which is a legal act on
+> their behalf. Called at start-up, it would accept the terms for a customer who never saw them.
+
+Some accounts need identity verification before shipping.
+[`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) starts it and returns the token needed to complete it, and
+the customer finishes the process outside your application.
+[`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) returns the latest attempt and its result, or `null` if none has
+been started. Verification has no notification, so this is how its outcome becomes known.
+
+Invoices, payments and payouts
+------------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`InvoicesServiceInterface::getInvoices()`](../src/Api/Service/InvoicesServiceInterface.php) | Lists invoices, one page at a time |
+| [`InvoicesServiceInterface::getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) | One invoice as a PDF |
+| [`InvoicesServiceInterface::getInvoiceSummaryList()`](../src/Api/Service/InvoicesServiceInterface.php) | The itemised summary behind one invoice, as a PDF or a CSV file |
+| [`PaymentsServiceInterface::registerPayment()`](../src/Api/Service/PaymentsServiceInterface.php) | Registers an online payment and returns the token needed to complete it |
+| [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) | The current state of a registered payment |
+| [`PaymentsServiceInterface::getPrepaidHistory()`](../src/Api/Service/PaymentsServiceInterface.php) | Movements on the prepaid balance, one page at a time |
+| [`MoneyBoxServiceInterface::getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | The account's payout settings |
+| [`MoneyBoxServiceInterface::calculatePayoutFee()`](../src/Api/Service/MoneyBoxServiceInterface.php) | What a payout would cost, without requesting one |
+| [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | Requests a payout of collected cash on delivery |
+| [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | Cancels a payout that hasn't been sent yet |
+| [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) | Lists payout requests, one page at a time |
+
+An invoice's itemised summary is more useful than the invoice for reconciling line by line, and
+comes as a PDF or a CSV file ([`InvoiceSummaryFormatEnum`](../src/Enum/Invoice/InvoiceSummaryFormatEnum.php)). Both take the invoice number and return
+base64, like order documents.
+
+[`PaymentsServiceInterface::registerPayment()`](../src/Api/Service/PaymentsServiceInterface.php) takes a [`PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) that says what the payment is for. Send an amount
+only for top-ups ([`PaymentModeEnum::Prepaid`](../src/Enum/Payment/PaymentModeEnum.php)). A top-up needs an amount greater than zero, and the
+SDK checks this before sending. [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) returns the current state of a
+registered payment. There is no notification for payments, so their state is read with this call.
+
+Cash collected on delivery is held on the account until it is paid out:
+
+```
+moneyBox()->getConfig()             the payout settings
+        │
+moneyBox()->calculatePayoutFee()    what it would cost, nothing requested yet
+        │
+moneyBox()->createPayout()          the request; may need a PIN and two-factor confirmation
+        │
+moneyBox()->getPayouts()            whether it went through
+        │
+        └── moneyBox()->cancelPayout()   until it has been sent
+```
+
+The payout fee depends on the payout type and on who pays the fee ([`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php)).
+
+> [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) moves real money. Depending on the account's settings, it may need a security
+> PIN, [two-factor confirmation](#two-factor-confirmation), or both. [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works until
+> the payout has been sent.
+
+Full example: [Recipes: paying out collected money](recipes.md#paying-out-collected-money).
+
+Two-factor confirmation
+-----------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`TwoFactorTokenServiceInterface::twoFactorTokenRegister()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Starts a confirmation and sends a code to the customer |
+| [`TwoFactorTokenServiceInterface::twoFactorTokenResend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Sends the code again on the same channel |
+| [`TwoFactorTokenServiceInterface::twoFactorTokenVerify()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Checks the code the customer entered |
+| [`TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Switches a pending confirmation to another channel |
+
+```
+twoFactorTokenRegister(operation)        a code goes to the customer
+        │
+        ├── the code didn't arrive?
+        │     ├── twoFactorTokenResend()                     again, on the same channel
+        │     └── twoFactorTokenChangeTransportMethod()      on another channel
+        │
+the customer enters the code
+        ├── twoFactorTokenVerify(token, code)                only checks it
+        └── the operation itself, with token and code        e.g. moneyBox()->createPayout()
+```
+
+The operation is a [`TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) value.
+
+The [`TwoFactorToken`](../src/Response/TwoFactorToken.php) says how the code was sent: [`TwoFactorToken::getTransportMethod()`](../src/Response/TwoFactorToken.php) names where it
+went, e.g. a masked phone number. [`TwoFactorToken::getAvailableMethods()`](../src/Response/TwoFactorToken.php) lists the other channels, by
+the id that switching to one takes.
+
+Full example: [Recipes: two-factor confirmation](recipes.md#two-factor-confirmation).
+
+Support and help
+----------------
+
+| Method | What it does |
+|--------|--------------|
+| [`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | Lists the topics a ticket or a contact form can be opened under |
+| [`TicketsServiceInterface::createTicket()`](../src/Api/Service/TicketsServiceInterface.php) | Raises a support ticket |
+| [`TicketsServiceInterface::getTickets()`](../src/Api/Service/TicketsServiceInterface.php) | Lists tickets, one page at a time |
+| [`TicketsServiceInterface::getTicketMessages()`](../src/Api/Service/TicketsServiceInterface.php) | A ticket's conversation, newest entry first |
+| [`TicketsServiceInterface::createTicketMessage()`](../src/Api/Service/TicketsServiceInterface.php) | Adds a reply to a ticket |
+| [`TicketsServiceInterface::setTicketStatus()`](../src/Api/Service/TicketsServiceInterface.php) | Changes a ticket's status |
+| [`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) | Downloads one attachment from a ticket conversation |
+| [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) | Fetches a contact form |
+| [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) | Submits a completed contact form |
+| [`KnowledgeBaseServiceInterface::getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | All help categories and articles as a flat list |
+| [`KnowledgeBaseServiceInterface::search()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Searches the help articles by free text |
+| [`KnowledgeBaseServiceInterface::getArticle()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | One article with its body and attachments |
+
+```
+Ticket: a conversation                     Contact form: a one-way submission
+
+getContactTopics()                         getContactTopics()
+      │                                          │  a topic that has a form
+createTicket(topic id, content, files)     getContactForm(topic id)
+      │                                          │  fields, form id and nonce
+getTickets() ─► getTicketMessages(id)      saveContactForm(topic id, form id, nonce, answers)
+      │              │
+      │         getTicketMessageFile()
+      │
+createTicketMessage(id, content, files)
+setTicketStatus(id, status)
+```
+
+Only a ticket brings the answer back into your own system. A contact form's fields are defined by
+the API.
+
+The calls that take a ticket take its id, not its number. The conversation is a list of
+[`TicketTimelineItemMessage`](../src/Response/Ticket/TicketTimelineItemMessage.php) entries, newest first: messages, and actions such as closing the ticket. A reply
+returns the new entry. Ticket lists are paged, up to
+[`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) (250) per page.
+
+Attachments are [`TicketAttachmentMessage`](../src/Request/Ticket/TicketAttachmentMessage.php) entries: a file name with an accepted extension,
+its media type and its contents in base64. A message carries up to 5. The API stores each one under
+a name of its own, which the timeline gives and
+[`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) takes.
+
+A contact form's category is the id of a topic that has a form, from
+[`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). The form id and nonce change on every fetch, and a
+submission quotes the ones from the latest fetch. The answers go in
+[`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the names of the form's fields.
+
+The form is a [`ContactFormMessage`](../src/Response/Contact/ContactFormMessage.php) with a list of [`ContactFormFieldMessage`](../src/Response/Contact/ContactFormFieldMessage.php) entries. Besides
+inputs, the list has elements that take no answer, such as headings, notices and the submit button.
+A field may carry a condition saying when it's shown. The SDK gives it as text, as the form states
+it.
+
+For help articles, you can fetch the flat index of all categories and articles with
+[`KnowledgeBaseServiceInterface::getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) and filter it yourself, or use
+[`KnowledgeBaseServiceInterface::search()`](../src/Api/Service/KnowledgeBaseServiceInterface.php). The index changes rarely, so you can cache it. Search works better for
+search-as-you-type.
+
+Checking the connection and credentials
+---------------------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) | Confirms the API is reachable and reports its clock, without credentials |
+| [`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) | Verifies a set of credentials without doing anything else |
+
+[`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) sends no credentials, which suits health checks. It tells
+you whether the API is reachable and returns the server time, whether or not your token is valid.
+
+[`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) takes its own [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) instead of using the configured one. You can
+use it to check credentials before saving them, e.g. in a settings form.
+
+```php
+try {
+    $client->utils()->testAuthApi(new AuthorizationMessage(token: $typed, login: $id));
+    // good
+} catch (AuthorizationException) {
+    // not good, and nothing was saved
+}
+```

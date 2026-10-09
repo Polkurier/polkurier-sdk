@@ -1,27 +1,49 @@
 {
-  "name": "polkurier/polkurier-sdk",
-  "description": "SDK API serwisu polkurier.pl",
-  "minimum-stability": "dev",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "polkurier.pl",
-      "email": "api@polkurier.pl"
+    "name": "polkurier/polkurier-sdk",
+    "description": "SDK for handling the web API of Polkurier.pl",
+    "license": "MIT",
+    "version": "2.0.0",
+    "require": {
+        "php": "~8.3.0||~8.4.0||~8.5.0",
+        "guzzlehttp/guzzle": "^7.10",
+        "psr/http-client": "^1.0",
+        "psr/http-message": "^1.1||^2.0",
+        "psr/log": "^2.0||^3.0",
+        "symfony/serializer": "^6.4.15 || ^7.4 || ^8.0",
+        "symfony/property-info": "^6.4.15 || ^7.4 || ^8.0",
+        "symfony/property-access": "^6.4.15 || ^7.4 || ^8.0",
+        "phpstan/phpdoc-parser": "^2.0",
+        "psr/cache": "^3.0",
+        "phpdocumentor/type-resolver": "^1.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Polkurier\\Webservice\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ],
+        "analyse": [
+            "phpstan analyse"
+        ],
+        "check": [
+            "@analyse",
+            "@test"
+        ],
+        "test:integration": [
+            "@php -r \"if (getenv('POLKURIER_API_URL') === false) { fwrite(STDERR, 'Set POLKURIER_API_URL, plus POLKURIER_API_LOGIN and POLKURIER_API_TOKEN for the authenticated methods.' . PHP_EOL); exit(1); }\"",
+            "phpunit --group integration"
+        ]
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5",
+        "phpstan/phpstan": "^2.1.30"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Polkurier\\Webservice\\Test\\": "tests/"
+        }
     }
-  ],
-  "require": {
-    "php": ">=5.6.0",
-    "ext-curl": "*",
-    "ext-json": "*"
-  },
-  "autoload": {
-    "psr-0": {
-      "PolkurierWebServiceApi": "src/"
-    }
-  },
-  "scripts": {
-    "serve": [
-      "php -S localhost:9005 -t examples/"
-    ]
-  }
 }

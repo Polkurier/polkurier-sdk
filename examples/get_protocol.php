@@ -1,29 +1,34 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * get_protocol — download the handover protocol for one or more orders.
+ *
+ * The document the courier signs on collection. Always a PDF, unlike get_label, which can also
+ * render printer languages. Several order numbers can go in one request and come back as one
+ * document.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\GetProtocol;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 
-$config = new Config();
-$config->setAuthLogin(API_LOGIN);
-$config->setAuthToken(API_TOKEN);
 
-$auth = new Auth($config);
-$webApi = new PolkurierWebService($auth, $config);
-$method = new GetProtocol();
-$method->addOrderNumber('1234-1');
+require __DIR__ . '/bootstrap.php';
+
+$orderNumbers = arguments() ?: ['12345-678'];
 
 try {
-    $webApi->requestMethod($method);
+    $document = polkurier()->orders()->getProtocol(new GetDocumentMessage(orderNo: $orderNumbers));
 
-    header('Content-Type: application/pdf');
-    echo $method->getData()->getContent();
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    $path = \sys_get_temp_dir() . '/polkurier-protocol.pdf';
+    \file_put_contents($path, $document->getDecodedFile());
+
+    \printf("Saved %s\n", $path);
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
-
 

@@ -1,28 +1,54 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * pickup_courier — book a collection that is not tied to one order.
+ *
+ * A standing collection request, for handing over whatever is ready when the courier arrives
+ * rather than a specific consignment. An order placed with its own pickup block does not need
+ * this. Which carriers accept it, and how far ahead, varies — available_carriers reports it.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\PolkurierWebService;
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\PickupCourier;
+use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Courier\PickupMessage;
+
+
+require __DIR__ . '/bootstrap.php';
+
+if (!hasFlag('--confirm')) {
+    echo "This example books a real collection. Re-run with --confirm to do it for real.\n";
+    exit(0);
+}
+
+$day = new DateTimeImmutable('+1 weekday');
 
 try {
+    $pickup = polkurier()->courier()->pickupCourier(new PickupMessage(
+        courier: 'UPS',
+        shipFrom: '61-001',
+        parcel: ShipmentTypeEnum::Box,
+        pickupDate: $day,
+    ));
 
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
+    if (!$pickup->isPickupDate()) {
+        \printf("The carrier refused a collection on %s.\n", $day->format('Y-m-d'));
+        exit(1);
+    }
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new PickupCourier();
-    $method->setPickupdate('2018-06-24');
-    $method->setShipfrom('63-400');
-    $method->setCourier('DPD');
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    \printf("Collection booked for %s.\n", $day->format('Y-m-d'));
+    foreach ($pickup->getTime() as $window) {
+        \printf(
+            "  window offered: %s–%s\n",
+            $window->getTimeFrom()->format('H:i'),
+            $window->getTimeTo()->format('H:i'),
+        );
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

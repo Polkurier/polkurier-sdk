@@ -1,27 +1,57 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * get_courier_point — search pickup points, or fetch one by its id.
+ *
+ * One endpoint with two shapes, so the SDK gives it two methods: findCourierPoints() searches and
+ * answers with a list, getCourierPoint() takes an id and answers with one point or null. The
+ * carrier list is required either way — an id is looked up within the carriers named, and an empty
+ * list is rejected.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\GetCourierPoint;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Courier\GetPointMessage;
+
+
+require __DIR__ . '/bootstrap.php';
+
+$sdk = polkurier();
+$couriers = ['INPOST_PACZKOMAT'];
 
 try {
+    $points = $sdk->courier()->findCourierPoints(new GetPointMessage(
+        couriers: $couriers,
+        searchQuery: 'Poznań',
+        functions: [PointFunctionEnum::Send],
+        limit: 5,
+    ));
 
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
+    foreach ($points as $point) {
+        \printf("%-10s %-30s %s\n", $point->getId(), $point->getName(), $point->getAddress());
+    }
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-    $method = new GetCourierPoint();
-    $method->setCouriers(['INPOST_PACZKOMAT']);
-    $method->setLimit(10);
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
+    if ($points === []) {
+        echo "No points matched.\n";
+        exit(0);
+    }
 
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+    // The same endpoint, asked for one point. An id that matches nothing answers with null
+    // rather than an error, so the null check is the "not found" branch.
+    $one = $sdk->courier()->getCourierPoint($points[0]->getId(), $couriers);
+
+    if ($one === null) {
+        echo "That id is no longer listed.\n";
+        exit(0);
+    }
+
+    \printf("\n%s is %s\n", $one->getId(), $one->isAvailable() ? 'open' : 'closed');
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }
+

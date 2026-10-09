@@ -1,31 +1,53 @@
 <?php
-require('../autoload.php');
-require('./config.php');
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * get_orders — page through the order list.
+ *
+ * The response is always a paging envelope, even when filtering to a single order number. Page
+ * size is capped at 100 and defaults to 100, so a complete listing means walking the pages.
+ */
+declare(strict_types=1);
 
-use PolkurierWebServiceApi\Auth;
-use PolkurierWebServiceApi\Config;
-use PolkurierWebServiceApi\Exception\ErrorException;
-use PolkurierWebServiceApi\Methods\GetOrders;
-use PolkurierWebServiceApi\PolkurierWebService;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+
+require __DIR__ . '/bootstrap.php';
+
+$sdk = polkurier();
+$page = 1;
 
 try {
+    do {
+        $list = $sdk->orders()
+            ->getOrders(new GetOrdersMessage(
+                dateFrom: new DateTimeImmutable('-30 days'),
+                pageSize: 100,
+                page: $page,
+                packs: true,
+            ));
 
-    $config = new Config();
-    $config->setAuthLogin(API_LOGIN);
-    $config->setAuthToken(API_TOKEN);
-    $config->setApiUrl('http://api.polkurier.local');
+        foreach ($list->getResult() as $order) {
+            \printf(
+                "%-16s %-12s %-28s %8.2f PLN\n",
+                $order->getNumber(),
+                $order->getStatusCode(),
+                $order->getCourierName() ?? $order->getCourier(),
+                $order->getPriceGross()
+            );
+        }
 
-    $auth = new Auth($config);
-    $webApi = new PolkurierWebService($auth, $config);
-
-    $method = new GetOrders();
-//    $method->setOrderno('30692-1142');
-//    $method->setPageSize(10);
-    $method->setFiles(true);
-    $method->setItems(true);
-    $method->setPacks(true);
-    $webApi->requestMethod($method);
-    var_dump($method->getData());
-} catch (ErrorException $ex) {
-    echo $ex->getMessage();
+        \printf(
+            "-- page %d of %d (%d orders total)\n",
+            $list->getCurrentPage(),
+            $list->getTotalPages(),
+            $list->getTotalRows(),
+        );
+        $page++;
+    } while ($page <= $list->getTotalPages());
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
 }

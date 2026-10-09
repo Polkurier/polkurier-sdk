@@ -1,0 +1,44 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+/**
+ * two_factor_token_register — ask for a confirmation code.
+ *
+ * The first step of any operation the API guards. The namespace says which operation the code is
+ * for, and a code issued for one will not confirm another. The answer says where the code went,
+ * when it expires, and the other ways it can be sent.
+ */
+declare(strict_types=1);
+
+use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
+use Polkurier\Webservice\Exception\Exception;
+use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
+
+
+require __DIR__ . '/bootstrap.php';
+
+if (!hasFlag('--confirm')) {
+    echo "This example sends a real confirmation code. Re-run with --confirm to do it for real.\n";
+    exit(0);
+}
+
+try {
+    $token = polkurier()->twoFactorToken()->twoFactorTokenRegister(
+        new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber)
+    );
+
+    \printf("Code sent to %s, valid until %s\n",
+        $token->getTransportMethod()?->getName() ?? '(unknown)',
+        $token->getExpiresAt()->format('H:i'));
+    \printf("Token: %s\n", $token->getId());
+
+    foreach ($token->getAvailableMethods() as $method) {
+        \printf("Can also send it to %s (method id %s)\n", $method->getName(), $method->getId());
+    }
+} catch (Exception $e) {
+    \fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}
+
