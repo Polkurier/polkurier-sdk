@@ -63,6 +63,11 @@ interface AccountServiceInterface
      * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw
      * now, and the part already committed to a payout.
      *
+     * `is_new_regulations` is true in one response per version of the terms of service the account
+     * hasn't accepted: the call that reports it also marks the notice as shown, and later calls answer
+     * false, accepted or not. Act on it when it arrives. To know whether the current terms are
+     * accepted, read `is_regulations_accepted`.
+     *
      * With `external_application_id`, the response also has `external_application_settings`: that
      * application's settings for this account, see
      * {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::getExternalApplicationSettings()}.
@@ -120,7 +125,7 @@ interface AccountServiceInterface
      * }
      * ```
      *
-     * @param GetAccountInfoMessage|null $getAccountInfoMessage null leaves out all 3 optional extras
+     * @param GetAccountInfoMessage|null $getAccountInfoMessage null asks for no application settings
      *
      * @return AccountInfoMessage the payload, see
      *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}

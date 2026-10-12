@@ -72,7 +72,8 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param string $defaultCourier carrier code preselected on the order form, empty if none
      * @param bool $active an inactive account cannot authenticate
      * @param bool $regulationsAccepted
-     * @param bool $newRegulations revised terms are waiting to be accepted
+     * @param bool $newRegulations revised terms are waiting to be accepted, reported in one response
+     *        only
      * @param bool $pricesListAccepted
      * @param bool $couriersRegulationsAccepted
      * @param bool $electronicInvoiceAccepted
@@ -348,6 +349,9 @@ readonly class AccountInfoMessage implements MessageInterface
     }
 
     /**
+     * Revised terms are waiting to be accepted. True in one response per version of the terms: the
+     * call that reports it marks the notice as shown, and later calls answer false, accepted or not.
+     *
      * @return bool
      */
     public function isNewRegulations(): bool
