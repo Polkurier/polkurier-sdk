@@ -21,6 +21,7 @@ Start here
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
 | [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
+| [Changelog](changelog/) | What changed in each release, one file per version |
 
 Quick example
 -------------

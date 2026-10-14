@@ -44,7 +44,7 @@ function polkurier(): PolkurierWebservice
     return new PolkurierWebservice(new Config(
         authorization: new AuthorizationMessage(token: $token, login: $login),
         platform: 'polkurier-sdk-examples',
-        platformVersion: '2.0.0',
+        platformVersion: '2.0.1',
         apiUrl: $apiUrl === false || $apiUrl === '' ? null : $apiUrl,
         sandbox: (bool)\getenv('POLKURIER_API_SANDBOX'),
     ));
