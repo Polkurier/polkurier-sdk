@@ -47,10 +47,10 @@ class ClientFactory implements ClientFactoryInterface
         $key = $config->getApiUrl() . '|' . $config->getApiTimeout();
 
         return $this->clients[$key] ??= new Client([
-            static::CONFIG_BASE_URI => $config->getApiUrl(),
-            static::CONFIG_TIMEOUT => $config->getApiTimeout(),
-            static::CONFIG_ALLOW_REDIRECTS => false,
-            static::CONFIG_HEADERS => [
+            self::CONFIG_BASE_URI => $config->getApiUrl(),
+            self::CONFIG_TIMEOUT => $config->getApiTimeout(),
+            self::CONFIG_ALLOW_REDIRECTS => false,
+            self::CONFIG_HEADERS => [
                 'Content-Type' => 'application/json',
             ],
         ]);

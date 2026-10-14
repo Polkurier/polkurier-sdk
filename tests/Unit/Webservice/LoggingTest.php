@@ -304,9 +304,12 @@ final class SpyLogger extends AbstractLogger
     public array $records = [];
 
     /**
+     * Untyped $message, so the signature fits every psr/log major version.
+     *
+     * @param string|\Stringable $message
      * @param array<mixed> $context
      */
-    public function log($level, \Stringable|string $message, array $context = []): void
+    public function log($level, $message, array $context = []): void
     {
         if (!\is_string($level)) {
             throw new \Psr\Log\InvalidArgumentException('Level must be a PSR-3 level string.');
