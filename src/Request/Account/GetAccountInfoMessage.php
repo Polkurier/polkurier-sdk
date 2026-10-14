@@ -12,9 +12,7 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Optional extras for the account profile.
- *
- * All 3 are off (or null) by default. Each one makes the call slower, so request only what you use.
+ * What to add to the account profile: an external application's settings for this account.
  */
 readonly class GetAccountInfoMessage implements MessageInterface
 {
@@ -29,7 +27,6 @@ readonly class GetAccountInfoMessage implements MessageInterface
      *        application's settings for this account are included
      */
     public function __construct(
-
         /**
          * @var ?string
          */
