@@ -185,10 +185,10 @@ interface AccountServiceInterface
     ): AccountInfoMessage;
 
     /**
-     * Sets the carrier preselected on the order form.
+     * Sets or clears the carrier preselected on the order form.
      *
      * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one this account is
-     * allowed to use.
+     * allowed to use. An empty code clears the default.
      *
      * Endpoint: `change_default_courier`
      *

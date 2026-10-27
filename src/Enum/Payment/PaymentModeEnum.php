@@ -21,12 +21,12 @@ enum PaymentModeEnum: string
     case Balance = 'BALANCE';
 
     /**
-     * Settles unpaid invoices.
+     * Settles the unpaid invoices whose numbers the payment lists.
      */
     case Invoices = 'INVOICES';
 
     /**
-     * Pays for specific orders.
+     * Pays for the orders whose numbers the payment lists, from the prepaid balance first.
      */
     case Orders = 'ORDERS';
 

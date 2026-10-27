@@ -343,7 +343,9 @@ interface CourierServiceInterface
      *   for this. The message passed here must not have an id set.
      * - By search phrase: matches the point details and returns up to the first 1000 matches.
      *   Leave `page` and `limit` unset in this mode.
-     * - Neither: pages through the whole filtered set with `page` and `limit`.
+     * - Neither: pages through the whole filtered set with `page` and `limit`. Without `limit` the
+     *   whole set comes back in one reply and `page` has no effect, so the SDK refuses a `page`
+     *   without a `limit` before sending.
      *
      * The function filter keeps only points that support all of the functions given.
      *

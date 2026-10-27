@@ -128,7 +128,7 @@ $points = $client->courier()->findCourierPoints(new GetPointMessage(
 
 Without a search query or a location, it returns every point of the given carriers, which suits a
 local cache. For InPost that is over 30,000 points, so cache the result instead of fetching it for
-every page.
+every page. To page through them, set `limit` with `page`; the SDK refuses `page` alone.
 
 **2. Look one up by id.** This checks that a point the customer already chose still exists:
 
@@ -328,7 +328,7 @@ The account
 | [`AccountServiceInterface::getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php) | The account's profile, balances and outstanding obligations |
 | [`SystemServiceInterface::getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | The service limits: coupons, security and tickets |
 | [`AccountServiceInterface::saveAccountSettings()`](../src/Api/Service/AccountServiceInterface.php) | Changes the account's order form defaults |
-| [`AccountServiceInterface::changeDefaultCourier()`](../src/Api/Service/AccountServiceInterface.php) | Sets the carrier preselected on the order form |
+| [`AccountServiceInterface::changeDefaultCourier()`](../src/Api/Service/AccountServiceInterface.php) | Sets or clears the carrier preselected on the order form |
 | [`AccountServiceInterface::changeDefaultSenderPoint()`](../src/Api/Service/AccountServiceInterface.php) | Sets, or clears, the default drop-off point for one carrier |
 | [`AccountServiceInterface::savePayerAddress()`](../src/Api/Service/AccountServiceInterface.php) | Writes the billing, correspondence or contact address, as [`PayerAddressTypeEnum`](../src/Enum/Account/PayerAddressTypeEnum.php) says |
 | [`AccountServiceInterface::changePassword()`](../src/Api/Service/AccountServiceInterface.php) | Changes the account password |
@@ -379,7 +379,10 @@ base64, like order documents.
 
 [`PaymentsServiceInterface::registerPayment()`](../src/Api/Service/PaymentsServiceInterface.php) takes a [`PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) that says what the payment is for. Send an amount
 only for top-ups ([`PaymentModeEnum::Prepaid`](../src/Enum/Payment/PaymentModeEnum.php)). A top-up needs an amount greater than zero, and the
-SDK checks this before sending. [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) returns the current state of a
+SDK checks this before sending. Paying invoices ([`PaymentModeEnum::Invoices`](../src/Enum/Payment/PaymentModeEnum.php)) needs the invoice
+numbers, and paying for orders ([`PaymentModeEnum::Orders`](../src/Enum/Payment/PaymentModeEnum.php)) needs the order numbers; the SDK refuses
+either mode without its list. Paying for orders spends the prepaid balance on them first, and when
+it covers them all, the orders are paid at once. [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) returns the current state of a
 registered payment. There is no notification for payments, so their state is read with this call.
 
 Cash collected on delivery is held on the account until it is paid out:
