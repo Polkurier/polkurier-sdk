@@ -23,4 +23,9 @@ enum OrderItemTypeEnum: string
      * Carriage of one of the parcels.
      */
     case Pack = 'PACK';
+
+    /**
+     * The order's discount, with negative amounts.
+     */
+    case Rebate = 'REBATE';
 }

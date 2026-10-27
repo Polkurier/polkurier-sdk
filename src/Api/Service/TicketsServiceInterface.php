@@ -22,6 +22,7 @@ use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
 use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\Response\Contact\ContactFormMessage;
+use Polkurier\Webservice\Response\Contact\ContactFormResultMessage;
 use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
@@ -550,9 +551,21 @@ interface TicketsServiceInterface
      * ```json
      * {
      *     "status": "success",
-     *     "response": {"status": "SUCCESS", "action": "SHOW_MESSAGE", "message": "Twoja wiadomość została wysłana. …"}
+     *     "response": {"status": "SUCCESS", "action": "SHOW_MESSAGE", "message": "Twoja wiadomość została wysłana. …",
+     *                  "data": {"ticket_number": "202609-000123"}}
      * }
      * ```
+     *
+     * A form that needs the code sent by e-mail answers with its own status set to `ERROR`, inside a
+     * successful envelope, so the SDK returns it rather than throwing:
+     * ```json
+     * {
+     *     "status": "success",
+     *     "response": {"status": "ERROR", "action": "UPDATE_FORM", "nonce": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9…",
+     *                  "data": {"require_auth_code": true}}
+     * }
+     * ```
+     * Show the form's auth code field and submit again with the new nonce.
      *
      * A rejected submission comes with the status in capitals, `"status": "ERROR"`, which the SDK
      * reads like any other error. Its `validation_errors` name each answer to fix.
@@ -574,7 +587,7 @@ interface TicketsServiceInterface
      *
      * @param SaveContactFormMessage $saveContactFormMessage
      *
-     * @return bool true on success
+     * @return ContactFormResultMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -582,5 +595,5 @@ interface TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveContactForm(SaveContactFormMessage $saveContactFormMessage): bool;
+    public function saveContactForm(SaveContactFormMessage $saveContactFormMessage): ContactFormResultMessage;
 }

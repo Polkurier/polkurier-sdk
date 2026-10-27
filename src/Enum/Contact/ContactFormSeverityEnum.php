@@ -23,7 +23,17 @@ enum ContactFormSeverityEnum: string
     case Warning = 'WARNING';
 
     /**
+     * Information only.
+     */
+    case Info = 'INFO';
+
+    /**
      * Something that stops the request.
      */
     case Danger = 'DANGER';
+
+    /**
+     * No emphasis.
+     */
+    case None = 'NONE';
 }

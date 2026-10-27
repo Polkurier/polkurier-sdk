@@ -29,7 +29,7 @@ readonly class SystemInfoMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param int $verificationTransferAmountPln amount, in PLN, of the token transfer used to
+     * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
      *                                           verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
      *                                         the account is restricted
@@ -40,10 +40,10 @@ readonly class SystemInfoMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var int
+         * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_TRANSFER_AMOUNT_PLN)]
-        private int $verificationTransferAmountPln = 0,
+        private float $verificationTransferAmountPln = 0.0,
 
         /**
          * @var int
@@ -77,9 +77,9 @@ readonly class SystemInfoMessage implements MessageInterface
     ) {}
 
     /**
-     * @return int
+     * @return float
      */
-    public function getVerificationTransferAmountPln(): int
+    public function getVerificationTransferAmountPln(): float
     {
         return $this->verificationTransferAmountPln;
     }

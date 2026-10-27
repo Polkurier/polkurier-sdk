@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
+use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
+use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
@@ -21,6 +23,7 @@ use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Courier\PickupMessage;
@@ -346,6 +349,51 @@ final class ServiceCallTest extends TestCase
         $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null;
         self::assertIsArray($data);
         self::assertSame(RegulationsTypeEnum::Regulations->value, $data[GetRegulationsMessage::FIELD_TYPE] ?? null);
+    }
+
+    /**
+     * Some carriers refuse a pickup day with an empty response instead of the false flag.
+     */
+    public function testAnEmptyPickupAnswerIsARefusedDay(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $pickup = $this->sdk->courier()->pickupCourier(new PickupMessage(courier: 'INPOST', shipFrom: '61-001'));
+
+        self::assertFalse($pickup->isPickupDate());
+        self::assertSame([], $pickup->getTime());
+    }
+
+    /**
+     * A form asking for the e-mailed code answers inside a successful envelope; the result carries
+     * that request and the next nonce instead of reading as a plain success.
+     */
+    public function testAContactFormAskingForTheAuthCodeIsReturnedWithTheNextNonce(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"status":"ERROR","action":"UPDATE_FORM",'
+            . '"nonce":"n2","data":{"require_auth_code":true}}}');
+
+        $result = $this->sdk->tickets()->saveContactForm(
+            new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
+        );
+
+        self::assertSame(ContactFormResultStatusEnum::Error, $result->getStatus());
+        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->getAction());
+        self::assertSame('n2', $result->getNonce());
+        self::assertTrue($result->getData()?->isRequireAuthCode());
+    }
+
+    public function testASubmittedContactFormReturnsTheTicketNumber(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"status":"SUCCESS",'
+            . '"action":"SHOW_MESSAGE","message":"Wysłano.","data":{"ticket_number":"202609-000123"}}}');
+
+        $result = $this->sdk->tickets()->saveContactForm(
+            new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
+        );
+
+        self::assertSame(ContactFormResultStatusEnum::Success, $result->getStatus());
+        self::assertSame('202609-000123', $result->getData()?->getTicketNumber());
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void

@@ -75,7 +75,7 @@ readonly class Order implements MessageInterface
      * @param string $status
      * @param string $statusCode
      * @param \DateTimeInterface $date
-     * @param \DateTimeInterface $statusDate
+     * @param ?\DateTimeInterface $statusDate null without a waybill or before its first status
      * @param ShipmentTypeEnum|null $shipmentType
      * @param string $courier
      * @param BaseAddress|null $sender
@@ -118,10 +118,10 @@ readonly class Order implements MessageInterface
         private \DateTimeInterface $date,
 
         /**
-         * @var \DateTimeInterface
+         * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_DATE)]
-        private \DateTimeInterface $statusDate,
+        private ?\DateTimeInterface $statusDate,
 
         /**
          * @var ShipmentTypeEnum|null
@@ -375,9 +375,9 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return ?\DateTimeInterface
      */
-    public function getStatusDate(): \DateTimeInterface
+    public function getStatusDate(): ?\DateTimeInterface
     {
         return $this->statusDate;
     }

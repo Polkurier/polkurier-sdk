@@ -26,6 +26,7 @@ readonly class AdditionalField implements MessageInterface
     public const string FIELD_TYPE = 'type';
     public const string FIELD_REQUIRED = 'required';
     public const string FIELD_ENABLED = 'enabled';
+    public const string FIELD_OPTIONS = 'options';
     /**-@#*/
 
     /**
@@ -35,6 +36,7 @@ readonly class AdditionalField implements MessageInterface
      * @param AdditionalFieldTypeEnum|null $type
      * @param bool $required
      * @param bool $enabled
+     * @param AdditionalFieldOption[]|null $options the allowed values, null when any value goes
      */
     public function __construct(
         /**
@@ -72,6 +74,12 @@ readonly class AdditionalField implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_ENABLED)]
         private bool $enabled,
+
+        /**
+         * @var AdditionalFieldOption[]|null
+         */
+        #[Serializer\SerializedName(self::FIELD_OPTIONS)]
+        private ?array $options = null,
     ) {}
 
     /**
@@ -120,5 +128,13 @@ readonly class AdditionalField implements MessageInterface
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    /**
+     * @return AdditionalFieldOption[]|null the allowed values, null when any value goes
+     */
+    public function getOptions(): ?array
+    {
+        return $this->options;
     }
 }

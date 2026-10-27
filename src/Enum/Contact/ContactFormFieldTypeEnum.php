@@ -58,6 +58,16 @@ enum ContactFormFieldTypeEnum: string
     case Files = 'FILES';
 
     /**
+     * A captcha to solve.
+     */
+    case Captcha = 'CAPTCHA';
+
+    /**
+     * A code sent by e-mail to the address given with the order, to be typed in.
+     */
+    case AuthCode = 'AUTH_CODE';
+
+    /**
      * The button that submits the form.
      */
     case Submit = 'SUBMIT';

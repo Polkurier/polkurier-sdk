@@ -153,6 +153,7 @@ interface CourierServiceInterface
      * ```json
      * {"status": "success", "response": {"pickupdate": false, "time": []}}
      * ```
+     * Some carriers answer a refused day with `"response": []`, which the SDK reads the same way.
      *
      * Common errors:
      * ```json
