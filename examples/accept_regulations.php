@@ -6,8 +6,7 @@
 /**
  * accept_regulations — record acceptance of the current terms.
  *
- * The id comes from get_regulations and is version-specific, so acceptance is tied to the text
- * that was shown rather than to the document in general.
+ * The id comes from get_regulations. Only the version currently in force is accepted.
  */
 declare(strict_types=1);
 

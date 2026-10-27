@@ -16,7 +16,7 @@ namespace Polkurier\Webservice\Enum\Payment;
 enum PaymentModeEnum: string
 {
     /**
-     * Settles the account's outstanding balance.
+     * Settles every unpaid invoice on the account.
      */
     case Balance = 'BALANCE';
 

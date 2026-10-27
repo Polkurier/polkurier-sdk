@@ -14,8 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Identifies one attachment to download.
  *
- * An attachment is identified by its message and its filename. Filenames are only unique within a
- * message.
+ * An attachment is identified by its message and its filename.
  */
 readonly class GetTicketMessageFileMessage implements MessageInterface
 {

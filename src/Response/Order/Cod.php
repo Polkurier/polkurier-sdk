@@ -16,8 +16,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Cash on delivery: how much to collect from the recipient and where it goes.
- *
- * An amount of zero means no collection.
  */
 readonly class Cod implements MessageInterface
 {
@@ -34,10 +32,10 @@ readonly class Cod implements MessageInterface
 
     /**
      * Cash on delivery as reported on an order. To request it, use
-     * {@see \Polkurier\Webservice\Request\Order\CodMessage}. No field here is nullable.
+     * {@see \Polkurier\Webservice\Request\Order\CodMessage}.
      *
      * @param float $amount amount collected from the recipient, in PLN
-     * @param string $bankAccount the account the money is returned to
+     * @param string $bankAccount the account the money is returned to, empty when it goes elsewhere
      * @param CodTypeEnum|null $type how quickly the collected money is settled
      * @param CodReturnTypeEnum|null $returnType where it is sent
      * @param CodStatusEnum|null $status where the money has got to

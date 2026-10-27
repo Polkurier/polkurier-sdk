@@ -28,7 +28,7 @@ between being validated and being serialized.
 **1. The constructor, with named arguments.** This is the default and works best when you have
 every value up front. You can skip optional parameters in any order.
 
-**2. A [builder](builders.md).** The 23 larger messages have one. It suits a payload put together
+**2. A [builder](builders.md).** The 24 larger messages have one. It suits a payload put together
 over several steps, or one with many conditional fields:
 
 ```php
@@ -89,7 +89,7 @@ message, e.g. an [`Address\SaveMessage`](../src/Request/Address/SaveMessage.php)
 
 ### Lists, maps and pages
 
-Responses come in four shapes:
+Apart from a `bool` for calls that only acknowledge, responses come in four shapes:
 
 | Shape | Example | What you get |
 |-------|---------|--------------|
@@ -123,9 +123,9 @@ page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows
 
 A paging field the API sends as null reads as `0`.
 
-Filtered down to one record, `get_orders` (by order number) and `get_tickets` (by id) answer with
-that record alone. The SDK reads it as a page with one row, so
-[`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) and [`TicketsServiceInterface::getTickets()`](../src/Api/Service/TicketsServiceInterface.php) return the same shape either way.
+Filtered down to one record, `get_orders` (by order number), `get_tickets` (by id) and
+`get_money_box_payouts` (by payout number) answer with that record alone. The SDK reads it as a
+page with one row.
 
 ### Values whose names vary
 
@@ -146,8 +146,8 @@ shapes differ.
 
 [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) has the dimensions you choose. [`Response\Order\Pack`](../src/Response/Order/Pack.php) has those plus
 what the carrier charged for them. [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) says what to collect.
-[`Response\Order\Cod`](../src/Response/Order/Cod.php) says what happened to the money: when it was paid out, whether it was
-returned, and why.
+[`Response\Order\Cod`](../src/Response/Order/Cod.php) adds what happened to the money: its status and, for a returned
+amount, when and why it was returned.
 
 The pairs:
 
@@ -161,7 +161,7 @@ The pairs:
 | [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) | [`Response\Order\Pickup`](../src/Response/Order/Pickup.php) |
 | [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) | [`Response\Order`](../src/Response/Order.php) |
 
-The docblock of each response class names the request that writes it, so you can find the pair
+The docblock of each response class above names the request that writes it, so you can find the pair
 from either side.
 
 The main benefit is nullability. A response field can be non-nullable when the API always sends
@@ -190,7 +190,7 @@ use Polkurier\Webservice\Response\Order\Pickup as PickupResult;
 Wire names
 ----------
 
-No property is named after the API field it maps to. Each one has a `#[SerializedName]` instead:
+Each property names its API field in a `#[SerializedName]`, whether or not the two names match:
 
 ```php
 #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]

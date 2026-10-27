@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Limits and policy to validate input against.
  *
- * The numbers are policy and can change without an API version bump.
+ * These values can change without an API version bump.
  */
 readonly class SystemInfoMessage implements MessageInterface
 {
@@ -29,10 +29,11 @@ readonly class SystemInfoMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param int $verificationTransferAmountPln amount, in PLN, of the token transfer used to
+     * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
      *                                           verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
-     *                                         the account is restricted
+     *        {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::isRegulationsAccepted()}
+     *        turns false
      * @param CouponLimitsMessage|null $coupons
      * @param TicketLimitsMessage|null $tickets
      * @param SecurityLimitsMessage|null $security
@@ -40,10 +41,10 @@ readonly class SystemInfoMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var int
+         * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_TRANSFER_AMOUNT_PLN)]
-        private int $verificationTransferAmountPln = 0,
+        private float $verificationTransferAmountPln = 0.0,
 
         /**
          * @var int
@@ -77,9 +78,9 @@ readonly class SystemInfoMessage implements MessageInterface
     ) {}
 
     /**
-     * @return int
+     * @return float
      */
-    public function getVerificationTransferAmountPln(): int
+    public function getVerificationTransferAmountPln(): float
     {
         return $this->verificationTransferAmountPln;
     }

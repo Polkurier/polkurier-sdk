@@ -32,13 +32,13 @@ use Polkurier\Webservice\Response\PackTemplate;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface PackTemplatesServiceInterface
 {
     /**
-     * Lists the account's parcel templates.
+     * Lists the account's parcel templates, in the order the account's template sorting in the panel
+     * sets.
      *
      * Endpoint: `get_pack_templates`
      *
@@ -80,10 +80,11 @@ interface PackTemplatesServiceInterface
     public function getPackTemplates(): array;
 
     /**
-     * Creates a template, or updates the one its id names.
+     * Creates a template, or updates the one its id names. An id that names none of the account's
+     * templates creates a new one.
      *
-     * Dimensions are in whole centimetres. Give the weight and monetary amounts to at most 2
-     * decimals. Use parcel types from {@see \Polkurier\Webservice\Enum\Order\PackTypeEnum} and
+     * Dimensions are stored as whole centimetres, the weight and amounts rounded to 2 decimals. Use
+     * parcel types from {@see \Polkurier\Webservice\Enum\Order\PackTypeEnum} and
      * service codes from {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum}. Read the
      * stored values from the response.
      *
@@ -118,7 +119,8 @@ interface PackTemplatesServiceInterface
      *  "response": "Pole nazwa nie może być puste [name]",
      *  "validation_errors": {
      *      "name": ["Pole nazwa nie może być puste"],
-     *      "shipmenttype": ["Błędny typ przesyłki"]
+     *      "shipmenttype": ["Błędny rodzaj przesyłki"],
+     *      "type": ["Błędny typ przesyłki"]
      *  }}
      * ```
      * The message names only the first failure. `validation_errors` has all of them, keyed by the
@@ -139,9 +141,7 @@ interface PackTemplatesServiceInterface
     /**
      * Deletes a template.
      *
-     * Orders already placed from the template are not affected.
-     *
-     * As with bank accounts, deleting an unknown id succeeds without an error.
+     * Deleting an unknown id also succeeds.
      *
      * Endpoint: `delete_pack_template`
      *

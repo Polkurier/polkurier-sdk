@@ -29,7 +29,7 @@ try {
     $path = \sys_get_temp_dir() . '/polkurier-labels.pdf';
     \file_put_contents($path, $document->getDecodedFile());
 
-    \printf("Saved %d label(s) to %s\n", \count($orderNumbers), $path);
+    \printf("Saved the labels for up to %d order(s) to %s\n", \count($orderNumbers), $path);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

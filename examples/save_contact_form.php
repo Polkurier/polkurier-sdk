@@ -11,7 +11,8 @@
  *
  * Takes the topic id from get_contact_topics, then the answers as name=value pairs keyed by the
  * form's field names, e.g. `name="Jan Kowalski" phone=500600700 rules_accept=1`. A rejected
- * submission lists the fields to fix.
+ * submission lists the fields to fix; a form that wants the e-mailed code asks for another
+ * submission.
  */
 declare(strict_types=1);
 
@@ -47,7 +48,16 @@ try {
         fields: $answers,
     ));
 
-    echo $saved ? "Form submitted.\n" : "The form was not accepted.\n";
+    if ($saved->getData()?->isRequireAuthCode()) {
+        echo "Enter the code sent by e-mail and submit again with nonce {$saved->getNonce()}.\n";
+        exit(0);
+    }
+
+    echo $saved->getMessage(), "\n";
+    $ticket = $saved->getData()?->getTicketNumber();
+    if ($ticket !== null) {
+        echo "Ticket {$ticket}\n";
+    }
 } catch (WebserviceException $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     foreach ($e->getErrorMessage()->getValidationErrors() ?? [] as $field => $messages) {

@@ -7,7 +7,7 @@
  * get_addresses — read the account's address book.
  *
  * Entries are filed per role, so the same place kept as both a sender and a recipient is two
- * entries with two ids. Exactly one entry per role is the default.
+ * entries with two ids. Senders have at most one default, and alternative return addresses another.
  */
 declare(strict_types=1);
 

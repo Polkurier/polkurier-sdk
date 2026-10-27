@@ -22,7 +22,6 @@ use Psr\Http\Client\ClientInterface;
 class ClientFactory implements ClientFactoryInterface
 {
     protected const string CONFIG_BASE_URI = 'base_uri';
-    protected const string CONFIG_HEADERS = 'headers';
     protected const string CONFIG_TIMEOUT = 'timeout';
     protected const string CONFIG_ALLOW_REDIRECTS = 'allow_redirects';
     /**
@@ -50,9 +49,6 @@ class ClientFactory implements ClientFactoryInterface
             self::CONFIG_BASE_URI => $config->getApiUrl(),
             self::CONFIG_TIMEOUT => $config->getApiTimeout(),
             self::CONFIG_ALLOW_REDIRECTS => false,
-            self::CONFIG_HEADERS => [
-                'Content-Type' => 'application/json',
-            ],
         ]);
     }
 }

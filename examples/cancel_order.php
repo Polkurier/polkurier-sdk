@@ -4,11 +4,10 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * cancel_order — withdraw an order that has not yet been collected.
+ * cancel_order — cancel an order.
  *
  * Whether an order can still be cancelled depends on the carrier and on how far the shipment has
- * got. The answer is a flag rather than an error, so a refusal reads as `false` and not as an
- * exception.
+ * got. A refusal is an error carrying the carrier's reason.
  */
 declare(strict_types=1);
 
@@ -26,11 +25,9 @@ if (!hasFlag('--confirm')) {
 $orderNumber = arguments()[0] ?? '12345-678';
 
 try {
-    $cancellation = polkurier()->orders()->cancelOrder(new OrderIdMessage(orderNo: $orderNumber));
+    polkurier()->orders()->cancelOrder(new OrderIdMessage(orderNo: $orderNumber));
 
-    echo $cancellation->isCancelled()
-        ? "Order {$orderNumber} cancelled.\n"
-        : "Order {$orderNumber} could not be cancelled at this stage.\n";
+    echo "Order {$orderNumber} cancelled.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

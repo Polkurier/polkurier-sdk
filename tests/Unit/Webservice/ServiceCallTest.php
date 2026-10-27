@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
+use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
+use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
@@ -21,9 +23,12 @@ use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
@@ -32,6 +37,7 @@ use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\OrderValuationMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
@@ -298,7 +304,8 @@ final class ServiceCallTest extends TestCase
     }
 
     /**
-     * The configured platform and version travel in the User-Agent header.
+     * The configured platform and version travel in the User-Agent header, with the SDK version
+     * composer.json declares.
      */
     public function testRequestsCarryTheUserAgent(): void
     {
@@ -308,10 +315,23 @@ final class ServiceCallTest extends TestCase
 
         $request = $this->client->lastRequest();
         self::assertNotNull($request);
-        self::assertMatchesRegularExpression(
-            '~^phpunit/1\.0\.0 polkurier-sdk/\d+\.\d+\.\d+$~',
+        $composer = \json_decode((string)\file_get_contents(__DIR__ . '/../../../composer.json'), true);
+        self::assertSame(
+            'phpunit/1.0.0 polkurier-sdk/' . $composer['version'],
             $request->getHeaderLine('User-Agent'),
         );
+    }
+
+    /**
+     * The API rejects any other Content-Type, so the request carries it whatever the HTTP client.
+     */
+    public function testRequestsCarryTheJsonContentType(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $this->sdk->addresses()->getAddresses();
+
+        self::assertSame('application/json', $this->client->lastRequest()?->getHeaderLine('Content-Type'));
     }
 
     /**
@@ -346,6 +366,92 @@ final class ServiceCallTest extends TestCase
         $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null;
         self::assertIsArray($data);
         self::assertSame(RegulationsTypeEnum::Regulations->value, $data[GetRegulationsMessage::FIELD_TYPE] ?? null);
+    }
+
+    /**
+     * Some carriers refuse a pickup day with an empty response instead of the false flag.
+     */
+    public function testAnEmptyPickupAnswerIsARefusedDay(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $pickup = $this->sdk->courier()->pickupCourier(new PickupMessage(courier: 'INPOST', shipFrom: '61-001'));
+
+        self::assertFalse($pickup->isPickupDate());
+        self::assertSame([], $pickup->getTime());
+    }
+
+    /**
+     * An empty order list means everything available, which the API reads only from a missing key.
+     */
+    public function testAPayoutFeeForEverythingSendsNoOrderList(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"fee":0,"fee_nett":0,"fee_vat_rate":23,'
+            . '"fees":[]}}');
+
+        $this->sdk->moneyBox()->calculatePayoutFee(new CalculateMoneyBoxPayoutFeeMessage());
+
+        self::assertArrayNotHasKey(
+            CalculateMoneyBoxPayoutFeeMessage::FIELD_ORDERS,
+            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? [],
+        );
+    }
+
+    /**
+     * A form asking for the e-mailed code answers inside a successful envelope; the result carries
+     * that request and the next nonce instead of reading as a plain success.
+     */
+    public function testAContactFormAskingForTheAuthCodeIsReturnedWithTheNextNonce(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"status":"ERROR","action":"UPDATE_FORM",'
+            . '"nonce":"n2","data":{"require_auth_code":true}}}');
+
+        $result = $this->sdk->tickets()->saveContactForm(
+            new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
+        );
+
+        self::assertSame(ContactFormResultStatusEnum::Error, $result->getStatus());
+        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->getAction());
+        self::assertSame('n2', $result->getNonce());
+        self::assertTrue($result->getData()?->isRequireAuthCode());
+    }
+
+    public function testASubmittedContactFormReturnsTheTicketNumber(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"status":"SUCCESS",'
+            . '"action":"SHOW_MESSAGE","message":"Wysłano.","data":{"ticket_number":"202609-000123"}}}');
+
+        $result = $this->sdk->tickets()->saveContactForm(
+            new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
+        );
+
+        self::assertSame(ContactFormResultStatusEnum::Success, $result->getStatus());
+        self::assertSame('202609-000123', $result->getData()?->getTicketNumber());
+    }
+
+    public function testCarrierNoticesCanBeNarrowedToOneCarrier(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $this->sdk->system()->getCouriersMessages(new GetCouriersMessagesMessage(courier: 'DPD'));
+
+        self::assertSame(
+            [GetCouriersMessagesMessage::FIELD_COURIER => 'DPD'],
+            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+        );
+    }
+
+    /**
+     * A postal payout has no bank account.
+     */
+    public function testAPayoutWithoutABankAccountReads(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"number":"W1","payout_type":"POSTAL",'
+            . '"bank_account_number":null}}');
+
+        $page = $this->sdk->moneyBox()->getPayouts(new GetMoneyBoxPayoutsMessage(payoutNumber: 'W1'));
+
+        self::assertNull($page->getResult()[0]->getIban());
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void

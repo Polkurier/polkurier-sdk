@@ -50,7 +50,7 @@ readonly class PackTemplate extends BasePack
      * @param float $insurance
      * @param string $description
      * @param string|null $courier
-     * @param array $services
+     * @param AdditionalServiceEnum[] $services
      * @param bool $default not sent by the API, always false
      */
     public function __construct(
@@ -172,7 +172,7 @@ readonly class PackTemplate extends BasePack
     }
 
     /**
-     * @return string|null null when the template isn't tied to a carrier
+     * @return string|null null when the template has no carrier
      */
     public function getCourier(): ?string
     {

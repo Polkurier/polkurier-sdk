@@ -13,6 +13,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Response\System\CouponValidationMessage;
 use Polkurier\Webservice\Response\System\CourierMessage;
@@ -32,8 +33,7 @@ use Polkurier\Webservice\Response\System\SystemInfoMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface SystemServiceInterface
 {
@@ -90,11 +90,12 @@ interface SystemServiceInterface
     /**
      * Returns current carrier notices: delays, suspensions and general information.
      *
-     * Each notice has a `type`. Alerts mean orders placed now will be affected. The others are
-     * informational. `severity` is only a display hint.
+     * Each notice has a `type`. An alert usually means orders placed now will be affected. The
+     * others are informational. `severity` is only a display hint.
      *
-     * Show these before a customer picks a carrier. The text is in Polish and ready to display. There
-     * is no machine-readable reason code.
+     * Show these before a customer picks a carrier. The message is HTML in Polish, see
+     * {@see \Polkurier\Webservice\Response\System\CourierMessage::getMessage()}. There is no
+     * machine-readable reason code.
      *
      * Endpoint: `get_couriers_messages`
      *
@@ -135,15 +136,19 @@ interface SystemServiceInterface
      *
      * With nothing to report the response is `[]`.
      *
+     * @param GetCouriersMessagesMessage|null $getCouriersMessagesMessage a carrier to narrow the
+     *        list to
+     *
      * @return CourierMessage[] payload:
      *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getCouriersMessages(): array;
+    public function getCouriersMessages(?GetCouriersMessagesMessage $getCouriersMessagesMessage = null): array;
 
     /**
      * Checks a discount coupon, optionally against a specific order.
@@ -152,13 +157,12 @@ interface SystemServiceInterface
      * order.
      *
      * The response has 2 separate verdicts. `valid` means the coupon exists and this account may use
-     * it. `valid_for_order` also checks it against the carrier, contents and sender region of the
-     * order you pass. Without an order it is always false, meaning "not checked".
+     * it. `valid_for_order` also checks it against the carrier, shipment type and parcels you pass.
+     * Without them it is always false, meaning "not checked".
      *
      * Send the carrier, shipment type and parcels together or not at all. With payload validation
      * on (the default), the SDK throws {@see \Polkurier\Webservice\Exception\ValidationException}
-     * for a partial set before sending the
-     * request, listing every missing field.
+     * for a partial set before sending the request, listing every missing field.
      *
      * Endpoint: `validate_coupon_code`
      *
@@ -180,8 +184,7 @@ interface SystemServiceInterface
      *         "coupon_code": "SPRING10",
      *         "courier": "UPS",
      *         "shipmenttype": "box",
-     *         "packs": [{"length": 30, "width": 20, "height": 15, "weight": 2.5, "type": "ST"}],
-     *         "sender": {"postcode": "61-001", "city": "Poznań", "country": "PL"}
+     *         "packs": [{"length": 30, "width": 20, "height": 15, "weight": 2.5, "type": "ST"}]
      *     }
      * }
      * ```
@@ -197,7 +200,7 @@ interface SystemServiceInterface
      *         "type": "PERCENT",
      *         "value": 10,
      *         "value_used": 0,
-     *         "usage_type": "MULTIPLE",
+     *         "usage_type": "MULTI",
      *         "couriers": ["UPS"],
      *         "valid_to": "2026-12-31T23:59:59+01:00",
      *         "description": "Rabat 10% na przesyłki UPS"
@@ -205,8 +208,8 @@ interface SystemServiceInterface
      * }
      * ```
      *
-     * Response for a code that doesn't exist. This is a success, not an error. Every descriptive field
-     * is null, and `couriers` is null instead of an empty list:
+     * Response for a code that doesn't exist. The descriptive fields are null and `description` is
+     * empty:
      * ```json
      * {
      *     "status": "success",

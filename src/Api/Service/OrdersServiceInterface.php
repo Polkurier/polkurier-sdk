@@ -34,12 +34,8 @@ use Polkurier\Webservice\Response\Order\ValuationMessage;
 /**
  * Placing, pricing, tracking and cancelling orders.
  *
- * Every method returns a {@see \Polkurier\Webservice\Http\Response\ResponseWrapper}. Get the parsed
- * payload with `getParsedResponse()->getResponse()`. Each method names its payload type.
- *
- * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
- * status. `status_code` and `error_code` are both optional. An error may have one, both or
- * neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -47,17 +43,16 @@ use Polkurier\Webservice\Response\Order\ValuationMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface OrdersServiceInterface
 {
     /**
      * Prices an order without placing it.
      *
-     * Takes the same payload as createOrder(). A payload that gets a price can still be rejected by
-     * createOrder(), usually because the carrier will not accept the pickup or cannot route the
-     * address. So a price doesn't show whether an order can be placed.
+     * Takes the same payload as createOrder(). A priced payload can still be rejected by
+     * createOrder(): pricing doesn't check the carrier code, the addresses, cash on delivery or the
+     * pickup.
      *
      * Endpoint: `order_valuation_v2`
      *
@@ -72,8 +67,8 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * Response without $courier: one quote per carrier that can price the order. A carrier that can't carry the
-     * shipment, e.g. because a parcel is too heavy for it, is left out of the list.
+     * Response without $courier: one quote per carrier that can carry the shipment. A carrier that
+     * can't, e.g. because a parcel is too heavy for it, is left out of the list.
      * ```json
      * {
      *     "status": "success",
@@ -118,11 +113,18 @@ interface OrdersServiceInterface
      *     }
      * }
      * ```
+     * If that carrier can't carry the shipment, `shipment` is false and every price is 0.
      *
-     * A carrier code the API doesn't know is rejected, with neither code field:
+     * Common errors:
      * ```json
      * {"status": "error", "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, UPS_ES, …]"}
      * ```
+     * $courier is a code the API doesn't know, or one the account can't use. No code fields.
+     * ```json
+     * {"status": "error", "status_code": 28, "error_code": "EMPTY_VALUATION",
+     *  "response": "Wprowadzone parametry przesyłki przekraczają wartości maksymalne. …"}
+     * ```
+     * Without $courier, no carrier can carry the shipment.
      *
      * @param CreateOrderMessage $createOrderMessage
      * @param string|null $courier a service code from
@@ -148,11 +150,11 @@ interface OrdersServiceInterface
      * with `external_application_id` and `external_order_id` can be looked up by them. The SDK
      * refuses one without the other.
      *
-     * The API does not always report every fault in a payload at once. A rejection lists at least
-     * one problem, but maybe not all of them.
+     * A rejection names at least one fault in the payload, not necessarily all of them.
      *
-     * The description has a length limit. A cash-on-delivery amount of zero means the order ships
-     * with no collection.
+     * A description longer than its limit, {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH} bytes by
+     * default, is cut to fit. A cash-on-delivery amount of zero means the order ships with no
+     * collection.
      *
      * Some requirements depend on the carrier: whether a pickup date or a time window is needed,
      * and whether either address needs a pickup point. `available_carriers` reports them.
@@ -163,8 +165,8 @@ interface OrdersServiceInterface
      *
      * Endpoint: `create_order`
      *
-     * Request with every accepted `data` key. Only courier, shipmenttype, packs, sender and recipient
-     * are required:
+     * Request with every `data` key the SDK sends. Only courier, shipmenttype, packs, sender,
+     * recipient and description are required:
      * ```json
      * {
      *     "courier": "UPS",
@@ -179,7 +181,6 @@ interface OrdersServiceInterface
      *         "company": "Acme sp. z o.o.",
      *         "street": "Długa",
      *         "housenumber": "12",
-     *         "flatnumber": "",
      *         "postcode": "61-001",
      *         "city": "Poznań",
      *         "country": "PL",
@@ -214,6 +215,8 @@ interface OrdersServiceInterface
      *     },
      *     "pickup": {"pickupdate": "2026-09-24", "pickuptimefrom": "10:00", "pickuptimeto": "14:00"},
      *     "courierservice": {"SMS_NOTIFICATION_RECIPIENT": true, "COVER_ADDRESS_SENDER": true},
+     *     "additional_fields": {…},
+     *     "coupon_code": "…",
      *     "external_application_id": "6f1c2b9e-…",
      *     "external_order_id": "SHOP-1001",
      *     "external_order_number": "1001"
@@ -245,6 +248,10 @@ interface OrdersServiceInterface
      *  "response": "Brak wymaganego parametru lub jest pusty: [sender]"}
      * ```
      * ```json
+     * {"status": "error", "status_code": 11, "error_code": "PARAMS_NOT_SET",
+     *  "response": "Brak parametru lub ma wartość 0: [description]."}
+     * ```
+     * ```json
      * {"status": "error", "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, UPS_ES, …]"}
      * ```
      * Unknown carrier, or one the account can't use. No code fields.
@@ -256,15 +263,21 @@ interface OrdersServiceInterface
      * carriers need one.
      * ```json
      * {"status": "error", "status_code": 23, "error_code": "ADDITIONAL_SERVICE_UNAVAILABLE",
-     *  "response": "…"}
+     *  "response": "Usługa dodatkowa \"Dostawa weekendowa\" jest niedostępna [WEEK_COLLECTION]"}
      * ```
-     * The carrier does not offer the service. This includes WEEK_COLLECTION (weekend delivery) on
-     * anything other than an InPost locker.
+     * WEEK_COLLECTION (weekend delivery) on anything other than an InPost locker, or outside its
+     * weekly ordering window.
      * ```json
      * {"status": "error", "response": "Kod pocztowy 00-000 nie występuje w bazie kodów"}
      * ```
      * A value failed validation, e.g. an unknown postcode, an overweight parcel or an invalid
      * cash-on-delivery bank account. No code fields.
+     * ```json
+     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
+     *  "response": "… [field]", "validation_errors": {"field": ["…"]}}
+     * ```
+     * Some validation failures come with this code instead, the first failing field in brackets and
+     * the field errors in `validation_errors`.
      *
      * @param CreateOrderMessage $createOrderMessage
      *
@@ -282,14 +295,13 @@ interface OrdersServiceInterface
     /**
      * Lists orders, one page at a time.
      *
-     * The response is always a paged envelope, even when you filter by a single order number. Pages
-     * start at 1. The page size must be 1–100, and the SDK checks this before sending. The page size
-     * key is `pagesize`. This method has no `limit` parameter.
+     * Pages start at 1; `pagesize` must be 1–100, checked by the SDK.
      *
      * The parcel, item and file flags are off by default. Each one makes the call slower.
      *
-     * Filters combine with AND. The date range applies to the order's creation date. The free-text
-     * search matches order numbers, waybills and party names.
+     * Orders come newest first. Filters combine with AND. The date range applies to the order's
+     * creation date and includes both days. The free-text search matches order numbers, waybills,
+     * your external order ids and the recipient's name, company, address, phone, email and point.
      *
      * Each address has `streetname`, `housenumber` and `flatnumber` split from `street`. They're
      * empty when the street can't be split, so rely on `street`. A cover address, when the order has
@@ -383,7 +395,8 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * With an order number, the API returns that order alone. The SDK returns a one-row page.
+     * With an order number, the API returns that order alone, with its parcels, items and files
+     * whatever the flags say, and ignores the other filters. The SDK returns a one-row page.
      *
      * Filtering by an order number that does not exist is an error, not an empty page. It has
      * neither `status_code` nor `error_code`:
@@ -409,8 +422,7 @@ interface OrdersServiceInterface
      *
      * Whether an order can be cancelled depends on how far the shipment has got and on the carrier's
      * rules. If cancellation is refused, the API returns an error with the carrier's reason. The
-     * `cancellation` flag in a successful response is always true, so rely on the lack of an
-     * exception instead.
+     * `cancellation` flag in a successful response is always true.
      *
      * Endpoint: `cancel_order`
      *
@@ -441,9 +453,11 @@ interface OrdersServiceInterface
      * ```json
      * {"status": "error", "response": "Brak zamówienia 99999-1"}
      * ```
-     * The last one is returned both for an order that doesn't exist and for one that belongs to
-     * another account. When the carrier refuses a cancellation, its reason comes back in the same
-     * shape.
+     * An order that doesn't exist, or one that belongs to another account.
+     * ```json
+     * {"status": "error", "response": "Zamówienie 12345-678 zostało już anulowane"}
+     * ```
+     * When the carrier refuses a cancellation, its reason comes back in the same shape.
      *
      * @param OrderIdMessage $orderIdMessage
      *
@@ -461,15 +475,10 @@ interface OrdersServiceInterface
     /**
      * Fetches shipping labels as one document.
      *
-     * You can request several order numbers at once. Their labels come back merged into one file,
-     * which is handy for a day's dispatch.
-     *
-     * The SDK checks the format of each order number before sending. The file holds labels only for
-     * active orders on your account, so it can hold fewer labels than you asked for. The response
-     * doesn't say which are missing. Compare against what you sent if that matters.
-     *
-     * Returns a base64-encoded PDF. A single order number can ask for a printer language, if the
-     * carrier supports it; several always give one merged PDF.
+     * Takes one or more order numbers, and the SDK checks the format of each before sending.
+     * Several come back as one base64-encoded PDF holding the labels of those that are on your
+     * account and not cancelled. The response doesn't say which are missing. A single order number
+     * can ask for a printer language instead of PDF, if the carrier supports it.
      *
      * Carriers stop serving labels for old shipments. When that happens you get a generic
      * UNKNOWN_ERROR.
@@ -624,11 +633,11 @@ interface OrdersServiceInterface
      * A cancelled order gets an error instead of a status. getOrders() reads the state of a cancelled
      * order.
      *
-     * The scan history is off by default. Asking for it makes the call slower.
+     * The scan history is off by default. Asking for it makes the call slower. `url` and
+     * `status_date` are left out while the order has no waybill.
      *
-     * Watch the date formats. There are 3 here, and get_orders uses none of them. The status
-     * timestamp has no seconds, the delivery date has no time, and the scan timestamps in the history
-     * are full datetimes.
+     * The dates differ from the ones get_orders uses: the status timestamp has no seconds, the
+     * delivery date has no time, and the scan timestamps in the history are full datetimes.
      *
      * Endpoint: `get_status`
      *
@@ -756,7 +765,7 @@ interface OrdersServiceInterface
      * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM. They apply to
      * every order in the call.
      *
-     * A non-empty list of order numbers, each once; the SDK checks it.
+     * List each order once. The SDK checks that the list isn't empty and holds order numbers.
      *
      * Orders succeed or fail one by one, and the call succeeds even when none goes through, so
      * check both lists. `success` lists order numbers; `failed` is keyed by the number as sent,
@@ -764,7 +773,7 @@ interface OrdersServiceInterface
      *
      * - "Nie znaleziono zamówienia": no such order on this account, or the order has no pickup
      * - "Nie można zamówić podjazdu zbiorczo dla tego zamówienia": not placed for a collective
-     *   pickup, or not accepted yet
+     *   pickup, not accepted yet, or cancelled
      * - "Podjazd już został zamówiony": its collection is already booked
      * - "Błędna data lub godzina odbioru dla kodu 61-001": the time window has already started or
      *   passed; the code is the sender's postcode
@@ -837,7 +846,7 @@ interface OrdersServiceInterface
      *
      * Besides the label and protocol, an order can have other documents attached, such as customs
      * paperwork, proof of delivery or correspondence. Get the filenames from getOrders() with the
-     * file flag turned on.
+     * file flag turned on, or by order number.
      *
      * The content hash stays the same across downloads, so it tells a file you already have from a
      * changed one.

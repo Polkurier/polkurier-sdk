@@ -19,14 +19,14 @@ use Polkurier\Webservice\Response\Account\AccountVerificationMessage;
 /**
  * Identity verification for the account.
  *
- * Some accounts must be verified before they can ship. `get_account_info` reports this as
- * `require_account_verification`. An external provider runs the verification: you register an
+ * `get_account_info` reports an account that has to be verified as
+ * `require_agreement_verification`. An external provider runs the verification: you register an
  * attempt and get a token back, the customer completes the provider's flow with that token, and you
  * read the outcome back here.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface AccountVerificationServiceInterface
 {
@@ -36,8 +36,8 @@ interface AccountVerificationServiceInterface
      * A verification that is neither cancelled nor expired is returned instead of starting a new
      * one.
      *
-     * The provider's flow needs the access token, and only this response contains it. Each call
-     * issues a token anew, so call again for a fresh one. A token stays valid for up to three hours.
+     * The provider's flow needs the access token, and only this response contains it. A token stays
+     * valid for up to three hours; calling again after that returns a new one.
      *
      * You can pass an order number to tie the verification to a shipment. Without one, a general
      * account verification starts.
@@ -66,6 +66,13 @@ interface AccountVerificationServiceInterface
      * }
      * ```
      *
+     * Common errors:
+     * ```json
+     * {"status": "error", "status_code": 400, "error_code": "INVALID_ORDER_NUMBER",
+     *  "response": "Błędny numer zamówienia"}
+     * ```
+     * The order number names none of the account's orders.
+     *
      * @param RegisterAccountVerificationMessage|null $registerAccountVerificationMessage null
      *        starts a general account verification
      *
@@ -85,10 +92,8 @@ interface AccountVerificationServiceInterface
     /**
      * Reports the most recent verification attempt and its outcome.
      *
-     * Only the latest attempt is returned. Earlier ones can't be retrieved.
-     *
-     * An account that has never attempted verification gets an empty response, which the SDK maps
-     * to null. So null means "never attempted", which is different from a failed attempt.
+     * Only the latest attempt is returned. An account that has never attempted verification gets an
+     * empty response, which the SDK maps to null.
      *
      * The access token is not included here. Only register() returns it.
      *

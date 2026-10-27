@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * To send them, use {@see \Polkurier\Webservice\Request\Common\BasePackMessage} or one of its
  * subclasses. Lengths are whole centimetres and the weight is in kilograms. Each carrier has its own
- * limits on both, and `available_carriers` reports them.
+ * limits on both.
  */
 readonly class BasePack implements MessageInterface
 {

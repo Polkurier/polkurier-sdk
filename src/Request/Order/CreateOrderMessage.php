@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The payload for `create_order` and `order_valuation_v2`.
  *
  * Both methods take the same message, but a payload that prices successfully can still be rejected
- * when you place the order. A successful quote does not mean the order is valid.
+ * when you place the order.
  *
  * These requirements vary by carrier or account, so this class does not check them:
  *
@@ -30,8 +30,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * - The recipient SMS notifications (on dispatch and on going out for delivery) are ordered
  *   separately. Each `_WITH_NAME` variant needs a default SMS sender name on the account and
  *   replaces its plain variant. {@see AdditionalServiceEnum} describes how the two kinds combine.
- * - `description` has a length limit of {@see self::DESCRIPTION_MAX_LENGTH}, and some carriers
- *   allow less.
+ * - `description` is cut to fit its length limit, {@see self::DESCRIPTION_MAX_LENGTH} bytes unless
+ *   the account or the carrier has another.
  *
  * To find the order later by your own id, set `externalApplicationId` and `externalOrderId`
  * together (the SDK refuses one without the other), then filter
@@ -65,7 +65,8 @@ readonly class CreateOrderMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * Maximum length of `description`, unless the carrier sets a lower limit.
+     * Length of `description` in bytes of UTF-8, beyond which the API cuts it, unless the account or
+     * the carrier has another limit.
      */
     public const int DESCRIPTION_MAX_LENGTH = 30;
 
@@ -79,12 +80,13 @@ readonly class CreateOrderMessage implements MessageInterface
      *                                      collection, and the other fields are then not needed
      * @param float|null $insurance declared value in PLN, zero for no insurance
      * @param CoverAddressMessage|null $coverAddress alternative sender address to print on the
-     *        label, see {@see AdditionalServiceEnum::CoverSenderAddress}
+     *        label. It orders {@see AdditionalServiceEnum::CoverSenderAddress} as well
      * @param PickupMessage|null $pickup
      * @param AdditionalServiceEnum[] $courierService services to order, sent as the flag map the
      *                                                API expects
      * @param array<string, string> $additionalFields carrier-specific extra fields
-     * @param string|null $description
+     * @param string|null $description what the parcels hold. Required by `create_order`, not for
+     *        pricing
      * @param string|null $couponCode
      * @param string|null $externalApplicationId UUID of your application. Set it together with
      *        $externalOrderId to link the order to your own record

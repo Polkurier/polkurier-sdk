@@ -28,8 +28,7 @@ use Polkurier\Webservice\Response\Util\HeartbeatMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface UtilsServiceInterface
 {
@@ -37,8 +36,7 @@ interface UtilsServiceInterface
      * Confirms the API is reachable and reports its clock.
      *
      * It needs no credentials, so it checks connectivity, or a configured API URL before there are
-     * credentials. The SDK leaves out the authorization block
-     * entirely.
+     * credentials. The SDK leaves out the authorization block entirely.
      *
      * The returned time is the server's. Compare it with your own clock to catch clock skew, which
      * matters when you schedule a collection.
@@ -98,7 +96,7 @@ interface UtilsServiceInterface
      * }
      * ```
      *
-     * Failed authorization (this example has empty credentials) throws AuthorizationException:
+     * Failed authorization, here with empty credentials:
      * ```json
      * {
      *     "status": "error",

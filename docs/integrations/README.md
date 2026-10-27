@@ -12,9 +12,8 @@ that module instead of the wiring.
 | [Slim, PHP-DI and any PSR-11 container](psr-11.md) | [Shopware 6](shopware.md) |
 | [Plain PHP, no container](psr-11.md#no-container-at-all) | [Sylius](sylius.md) |
 
-Apart from the Magento page, none of these pages ships a package. This repository has no
-`polkurier/polkurier-sdk-bundle`. Each page shows the wiring in the host's own style, for you to
-copy into your project or module.
+Apart from the Magento page, none of these pages ships a package. Each page shows the wiring in the
+host's own style, for you to copy into your project or module.
 
 ---
 

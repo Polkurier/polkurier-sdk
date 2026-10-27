@@ -12,10 +12,10 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\BankAccount\SaveMessage;
 
 /**
- * Assembles a bank account for cash-on-delivery settlement.
+ * Assembles a bank account to register or update.
  *
- * Whether the security PIN and the two-factor fields are needed depends on the account. Check
- * get_account_info and set them only when required.
+ * While `get_account_info` reports the bank-account PIN lock on, every save needs the security PIN.
+ * Otherwise registering, or changing the number or default flag, needs the two-factor fields.
  */
 class SaveMessageBuilder extends AbstractBuilder
 {

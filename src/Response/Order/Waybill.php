@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A tracking number assigned to an order.
  *
- * An order can have several: one per parcel, plus any return waybill. Exactly one is marked as
- * primary.
+ * An order can have several. The primary one is marked `is_default`, and the order's status and
+ * tracking link follow it.
  */
 readonly class Waybill implements MessageInterface
 {

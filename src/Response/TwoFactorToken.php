@@ -39,7 +39,8 @@ readonly class TwoFactorToken implements MessageInterface
      * @param \DateTimeInterface|null $sentAt
      * @param \DateTimeInterface $expiresAt
      * @param TransportMethodMessage|null $transportMethod how the code was sent
-     * @param TransportMethodMessage[] $availableMethods the other ways the code can be sent
+     * @param TransportMethodMessage[] $availableMethods the ways the code can be sent, the current
+     *        one included
      */
     public function __construct(
         /**
@@ -166,10 +167,8 @@ readonly class TwoFactorToken implements MessageInterface
     }
 
     /**
-     * The ways the code can be sent instead. Pass one's id to
+     * The ways the code can be sent, the current one included. Pass one's id to
      * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()}.
-     *
-     * Registering, resending and changing the method return these. Empty otherwise.
      *
      * @return list<TransportMethodMessage>
      */

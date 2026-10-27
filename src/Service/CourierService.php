@@ -65,11 +65,12 @@ class CourierService extends AbstractService implements CourierServiceInterface
      */
     public function pickupCourier(PickupMessage $pickupMessage): PickupResponseMessage
     {
-        return $this->requestObject(
+        // A refused day comes as `[]` from some carriers instead of the false flag.
+        return $this->requestNullableObject(
             ApiMethodEnum::PickupCourier,
             PickupResponseMessage::class,
             $pickupMessage,
-        );
+        ) ?? new PickupResponseMessage();
     }
 
     /**

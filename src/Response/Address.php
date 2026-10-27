@@ -14,9 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One entry in the account's address book, as stored.
  *
- * To write an entry, use {@see \Polkurier\Webservice\Request\Address\SaveMessage}. It takes
- * the fields you can set. The rest are read-only: the parsed street name, the resolved pickup point
- * and whether the entry is shared.
+ * To write an entry, use {@see \Polkurier\Webservice\Request\Address\SaveMessage}. `shared` is
+ * read-only. The address book sends no street name, machine name or point, so those getters return
+ * null.
  */
 readonly class Address extends BaseAddress
 {
@@ -45,13 +45,15 @@ readonly class Address extends BaseAddress
      * @param string|null $company
      * @param string|null $province
      * @param string $country
-     * @param string|null $pointId
+     * @param string|null $pointId sent for recipients only
      * @param string|null $id
      * @param AddressTypeEnum|null $type
      * @param string|null $flatNumber
-     * @param bool $default
-     * @param bool $shared
-     * @param bool $coverAddress
+     * @param bool $default for a sender: the preselected sender, or the preselected alternative
+     *        return address
+     * @param bool $shared the entry belongs to the main account's address book, which this
+     *        sub-account shares
+     * @param bool $coverAddress the sender is an alternative return address; sent for senders only
      * @param string|null $streetName
      * @param string|null $machineName
      * @param CourierPoint|null $point

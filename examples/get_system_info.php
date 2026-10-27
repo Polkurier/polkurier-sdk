@@ -4,11 +4,11 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * get_system_info — read the limits and switches the API is currently applying.
+ * get_system_info — read the limits the API is currently applying.
  *
- * Worth calling once at start-up and caching. It reports the caps the account is subject to and
- * which security features are turned on, which is what tells you whether an operation will need a
- * PIN or a two-factor token before you attempt it.
+ * Security PIN lengths, the two-factor code length and resend window, ticket attachment limits,
+ * the minimum coupon length, the verification transfer amount and the terms acceptance period. It
+ * holds no account data, so call it once at start-up and cache it.
  */
 declare(strict_types=1);
 

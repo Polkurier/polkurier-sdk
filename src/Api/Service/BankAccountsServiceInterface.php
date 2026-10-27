@@ -18,9 +18,10 @@ use Polkurier\Webservice\Request\BankAccount\SaveMessage;
 use Polkurier\Webservice\Response\BankAccount;
 
 /**
- * Bank accounts that collected cash-on-delivery funds are paid into.
+ * The account's registered bank accounts.
  *
- * An order can use an account for COD settlement once it is registered here.
+ * A money box payout to a bank account must name one registered here. An order's cash on delivery
+ * takes its account number inline, registered or not.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:
@@ -31,15 +32,14 @@ use Polkurier\Webservice\Response\BankAccount;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface BankAccountsServiceInterface
 {
     /**
      * Lists the registered bank accounts.
      *
-     * Reading is not behind the PIN lock (saving and deleting are).
+     * Reading is not behind the PIN lock. Numbers are digits only.
      *
      * Endpoint: `get_bank_accounts`
      *
@@ -83,11 +83,15 @@ interface BankAccountsServiceInterface
      * - If bank account editing is PIN-locked, send the PIN with the request. `get_account_info`
      *   reports the lock state under `pin_locks.BANK_ACCOUNTS_EDIT`.
      * - Otherwise, send a confirmed two-factor token registered under the CHANGE_BANK_ACCOUNT_NUMBER
-     *   namespace. This call uses up the token, so it can't be reused.
+     *   namespace. This call uses up the token.
      *
      * Renaming needs no two-factor confirmation; the PIN lock still applies.
      *
-     * The number must be a valid account number. The SDK checks its check digits before sending.
+     * The number must be a Polish account number, and not one of ZUS or a tax office. The SDK checks
+     * its check digits before sending.
+     *
+     * An id that names none of the account's bank accounts gets an empty response, which the SDK
+     * throws as MalformedResponseException.
      *
      * Endpoint: `save_bank_account`
      *
@@ -112,7 +116,7 @@ interface BankAccountsServiceInterface
      * ```json
      * {
      *     "status": "success",
-     *     "response": {"id": "ZQB", "number": "34102010260000000000000001",
+     *     "response": {"id": "ZQB", "number": "58102039580000920202228609",
      *                  "name": "Konto firmowe", "default": true}
      * }
      * ```
@@ -121,6 +125,10 @@ interface BankAccountsServiceInterface
      * ```json
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Numer konta jest niepoprawny [number]"}
+     * ```
+     * ```json
+     * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
+     *  "response": "To rachunek ZUS albo urzędu skarbowego. Podaj numer własnego konta bankowego. [number]"}
      * ```
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
@@ -135,7 +143,7 @@ interface BankAccountsServiceInterface
      * {"status": "error", "status_code": 506005, "error_code": "TWO_FACTOR_INVALID_CODE",
      *  "response": "Błędny kod weryfikacyjny lub kod utracił ważność"}
      * ```
-     * Two-factor code missing, wrong, expired, or from a token registered for another operation.
+     * Wrong or expired code, or a token registered for another operation.
      *
      * @param SaveMessage $saveMessage
      *
@@ -155,8 +163,7 @@ interface BankAccountsServiceInterface
      * The same PIN lock as for saving applies: while it is on, send the PIN. Deleting does not need
      * two-factor confirmation.
      *
-     * Deleting an id that does not exist also succeeds, so the response doesn't tell you whether
-     * anything was removed. List the accounts afterwards if you need to know.
+     * Deleting an id that does not exist also succeeds.
      *
      * Endpoint: `delete_bank_account`
      *

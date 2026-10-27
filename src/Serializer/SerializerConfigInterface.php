@@ -52,10 +52,12 @@ interface SerializerConfigInterface
     public function getJsonEncodeOptions(): int;
 
     /**
-     * The timezone to convert dates into, or null to keep the timezone the API sent.
+     * The timezone a date without an offset is read in, or null for PHP's default timezone.
      *
-     * The API answers in Europe/Warsaw. If your application works in UTC, or shows times to
-     * customers in other zones, set this to convert every date as it is read.
+     * Most dates the API sends carry their offset, and they keep it. The rest, such as a collection
+     * date or a time window, are local Polish time, so set Europe/Warsaw when PHP's default
+     * timezone is another one. Nothing is converted: to show a date in another zone, call its
+     * `setTimezone()`.
      *
      * @return \DateTimeZone|null
      */

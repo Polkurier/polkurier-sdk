@@ -6,10 +6,9 @@
 /**
  * create_multi_order_pickup — book one collection covering several orders.
  *
- * One courier visit for a batch of orders rather than one per order. Takes order numbers, of orders
- * placed for a collective pickup ({@see \Polkurier\Webservice\Request\Order\PickupMessage}'s
- * multiPickup). The result reports each order separately: some can be added to the collection and
- * others refused in the same call, so the call isn't all-or-nothing.
+ * Takes the numbers of orders placed for a collective pickup
+ * ({@see \Polkurier\Webservice\Request\Order\PickupMessage}'s multiPickup). The result reports each
+ * order separately, and the call succeeds even when none goes through.
  */
 declare(strict_types=1);
 

@@ -71,6 +71,7 @@ readonly class ContactFormFieldMessage implements MessageInterface
      * @param string $group the group of checkboxes the field belongs to
      * @param string $groupParent the group whose checkboxes this one ticks or clears
      * @param ?ContactFormSeverityEnum $severity how a notice should be shown, null for other fields
+     *        and for a severity the SDK doesn't know
      * @param string $href where a button leads
      * @param array<string, mixed> $props display properties
      */

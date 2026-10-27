@@ -28,7 +28,7 @@ readonly class PickupMessage extends GetPickupTimeMessage
      * @param string $shipFrom
      * @param string|null $shipTo
      * @param ShipmentTypeEnum|null $parcel
-     * @param \DateTimeInterface|null $pickupDate
+     * @param \DateTimeInterface|null $pickupDate the day to check, today when null
      */
     public function __construct(
         string $courier,

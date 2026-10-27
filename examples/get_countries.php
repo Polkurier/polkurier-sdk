@@ -7,7 +7,8 @@
  * get_countries — list the countries one carrier ships to.
  *
  * Answers with a map of ISO code to country name, not a list of objects. The carrier is required:
- * this is that carrier's coverage, not the service's.
+ * this is that carrier's coverage, not the service's. Only UPS_EX, DPDEXP, GLS_FOREIGN and
+ * INPOST_INTERNATIONAL are accepted.
  */
 declare(strict_types=1);
 

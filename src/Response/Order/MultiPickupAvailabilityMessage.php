@@ -11,7 +11,8 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Whether the account may order a single pickup covering several shipments.
+ * Whether the shipment asked about can be placed for a collective pickup. False also when the API
+ * couldn't evaluate the request.
  */
 readonly class MultiPickupAvailabilityMessage implements MessageInterface
 {

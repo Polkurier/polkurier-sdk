@@ -17,8 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The amounts show the total requested, the part still to be paid, the part already paid and
  * anything withheld as compensation against debts.
  *
- * Check the cancellable flag before offering a cancel action. A payout already in progress cannot be
- * recalled.
+ * Check the cancellable flag before offering a cancel action. It turns false once any part of the
+ * payout is on its way or paid, and once its fee is paid other than on an invoice.
  */
 readonly class MoneyBoxPayoutMessage implements MessageInterface
 {
@@ -54,7 +54,7 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
      * @param ?\DateTimeInterface $date when the payout was requested
      * @param string $requestType whether it was requested manually or automatically
      * @param string $payoutType how it is being delivered
-     * @param string $bankAccountNumber
+     * @param ?string $bankAccountNumber empty or null for a postal payout
      * @param string $company
      * @param string $person
      * @param string $street
@@ -100,10 +100,10 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
         private string $payoutType = '',
 
         /**
-         * @var string
+         * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
-        private string $bankAccountNumber = '',
+        private ?string $bankAccountNumber = null,
 
         /**
          * @var string
@@ -241,9 +241,9 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getIban(): string
+    public function getIban(): ?string
     {
         return $this->bankAccountNumber;
     }

@@ -39,8 +39,8 @@ $client = new PolkurierWebservice(new Config(
 $carriers = $client->courier()->availableCarriers();   // Carrier[]
 ```
 
-The client has one service per functional area and one method per API endpoint. Each method
-returns the type it is named for. Errors are thrown as exceptions.
+The client has one service per functional area and a method for each API endpoint. Methods
+return typed results and throw exceptions for errors.
 
 How the API works
 -----------------
@@ -64,7 +64,7 @@ Messages and examples
 ---------------------
 
 - "Message" means a request payload: a class under `Request` that implements
-  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`, which can be confusing.
-  The namespace tells them apart. [Messages and models](messages.md) explains why.
+  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`;
+  the namespace tells them apart. [Messages and models](messages.md) explains why.
 - [`examples/`](../examples) has runnable versions of most of this, one file per API method. They
   are safe to run, because scripts that write do nothing without `--confirm`.

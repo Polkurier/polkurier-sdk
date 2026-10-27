@@ -6,10 +6,10 @@
 /**
  * save_bank_account — register a bank account, or update one.
  *
- * Redirecting where money is paid is treated as sensitive, so the API may refuse the change
- * without a confirmed two-factor token, and may additionally refuse it while the account's bank-
- * account PIN lock is engaged. get_account_info and get_system_info report which applies. The
- * number is checked as an IBAN before anything is sent.
+ * While get_account_info reports the bank-account PIN lock engaged, every save needs the security
+ * PIN. Otherwise registering an account, or changing its number or default flag, needs a confirmed
+ * two-factor token. The API accepts Polish account numbers only; the SDK checks the IBAN check
+ * digits before anything is sent.
  */
 declare(strict_types=1);
 

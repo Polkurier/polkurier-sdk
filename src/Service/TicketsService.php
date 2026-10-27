@@ -24,6 +24,7 @@ use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
 use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\Response\Contact\ContactFormMessage;
+use Polkurier\Webservice\Response\Contact\ContactFormResultMessage;
 use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
 use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
@@ -189,7 +190,7 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
     /**
      * @param SaveContactFormMessage $saveContactFormMessage
      *
-     * @return bool
+     * @return ContactFormResultMessage
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -197,8 +198,12 @@ class TicketsService extends AbstractService implements TicketsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveContactForm(SaveContactFormMessage $saveContactFormMessage): bool
+    public function saveContactForm(SaveContactFormMessage $saveContactFormMessage): ContactFormResultMessage
     {
-        return $this->requestAcknowledgement(ApiMethodEnum::SaveContactForm, $saveContactFormMessage);
+        return $this->requestObject(
+            ApiMethodEnum::SaveContactForm,
+            ContactFormResultMessage::class,
+            $saveContactFormMessage,
+        );
     }
 }

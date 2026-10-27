@@ -19,8 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * address book entry. That class has an id, a label and sharing flags that do not apply to orders,
  * and it has no `machinename`. Most fields overlap, but the two are not interchangeable.
  *
- * For a parcel machine or pickup point, set `pointId` (and `machineName` if the carrier uses it).
- * The street address fields are then only used for contact purposes.
+ * For a parcel machine or pickup point, set `pointId`. `machineName` is read only when `pointId` is
+ * empty.
  */
 #[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
 readonly class OrderAddressMessage implements MessageInterface
@@ -53,10 +53,11 @@ readonly class OrderAddressMessage implements MessageInterface
      * @param string $phone
      * @param string|null $company
      * @param string|null $houseNumber
-     * @param string|null $flatNumber
+     * @param string|null $flatNumber joined to the house number as `N/M`; set both
      * @param string $country ISO country code
      * @param string|null $pointId parcel machine or pickup point identifier
-     * @param string|null $machineName parcel machine name, for carriers that key on it
+     * @param string|null $machineName the same identifier under another key, read only when
+     *        $pointId is empty
      */
     public function __construct(
         /**

@@ -14,7 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A record a ticket refers to: an order, a complaint or an invoice.
  *
- * Only the number is included. If you need more, fetch the record through its own service.
+ * Only the number is included, and for an order its waybill number. If you need more, fetch the
+ * record through its own service.
  */
 readonly class TicketReferenceMessage implements MessageInterface
 {

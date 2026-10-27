@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Exception;
 /**
  * The request never completed.
  *
- * A DNS failure, refused connection, TLS problem or timeout. The API was never reached, so nothing
- * was processed and the call is safe to retry. With a
+ * A DNS failure, refused connection, TLS problem or timeout. A request that timed out may still
+ * have been processed, so check before retrying a call that changes data. With a
  * {@see \Polkurier\Webservice\Exception\WebserviceException}, by contrast, the API answered and
  * refused the call.
  *

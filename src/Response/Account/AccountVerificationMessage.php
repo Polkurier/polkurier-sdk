@@ -14,8 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An identity verification attempt and where it has got to.
  *
- * The access token, for the verification provider's flow, comes only from registering. Each call
- * issues a new one, valid for up to three hours.
+ * The access token, for the verification provider's flow, comes only from registering. It is valid
+ * for up to three hours: calls within each three-hour period counted from the start of the
+ * verification return the same token, and a call in the next period returns a new one.
  */
 readonly class AccountVerificationMessage implements MessageInterface
 {
@@ -30,8 +31,10 @@ readonly class AccountVerificationMessage implements MessageInterface
 
     /**
      * @param string $verificationId
-     * @param string $type how the account is being verified, e.g. "online" for a bank-based check
-     * @param string $status where the attempt has got to, e.g. NEW
+     * @param string $type how the account is being verified: "online" (an online payment) or
+     *        "bank_transfer"
+     * @param string $status where the attempt has got to: NEW, PAYMENT_PLACED, PAYMENT_RECEIVED,
+     *        INCONCLUSIVE, VERIFIED or CANCELLED
      * @param string|null $accessToken returned only when registering, null when reading back
      */
     public function __construct(

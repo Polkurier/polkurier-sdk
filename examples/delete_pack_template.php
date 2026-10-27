@@ -6,8 +6,7 @@
 /**
  * delete_pack_template — remove a parcel template.
  *
- * Templates are keyed by id alone. Deleting one does not touch any order that was built from it,
- * since nothing references a template after the fact.
+ * Templates are keyed by id alone. An unknown id also succeeds.
  */
 declare(strict_types=1);
 

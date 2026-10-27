@@ -6,10 +6,9 @@
 /**
  * get_account_info — read the account: balances, settings and what it is allowed to do.
  *
- * The broadest read in the API and the one to call before anything conditional. It carries the
- * money box, prepaid and invoice balances, which regulations have been accepted, whether the
- * account is verified, and which PIN locks are engaged — the flags that decide whether a later
- * call will need a PIN or a two-factor token.
+ * The one to call before anything conditional. It carries the money box, prepaid and invoice
+ * balances, the acceptance flags, whether orders are refused, and which PIN locks are engaged — the
+ * flags that decide whether a later call will need a PIN or a two-factor token.
  */
 declare(strict_types=1);
 

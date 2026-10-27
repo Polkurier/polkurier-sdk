@@ -12,6 +12,8 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * An error response: the message, and the codes and field errors that classify it.
+ *
  * @property string $response
  * @method string getResponse():
  */

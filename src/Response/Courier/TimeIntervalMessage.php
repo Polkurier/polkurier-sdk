@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * A collection window.
  *
- * The API sends wall-clock times without a date, so only the time part of these values means
- * anything. The date comes from the message that owns the window.
+ * The API sends wall-clock times ("H:i") without a date, so these values read as that time on
+ * 1 January 1970. The date comes from the message that owns the window.
  */
 readonly class TimeIntervalMessage
 {
@@ -26,9 +26,6 @@ readonly class TimeIntervalMessage
     /**-@#*/
 
     /**
-     * Pickup windows arrive as wall-clock times ("H:i") with no date, so the times read as that time
-     * on 1 January 1970. The owning message carries the pickup date.
-     *
      * @param \DateTimeInterface $timeFrom
      * @param \DateTimeInterface $timeTo
      */

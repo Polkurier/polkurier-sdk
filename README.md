@@ -42,9 +42,9 @@ The full documentation is in [`./docs`](docs/README.md). There are pages on
 [validation](docs/validation.md), [errors](docs/errors.md), [webhooks](docs/webhooks.md),
 [serialization](docs/serialization.md) and [architecture](docs/architecture.md), plus
 [worked recipes](docs/recipes.md) and
-[integration guides](docs/integrations/README.md) for Symfony, Laravel, PrestaShop, WooCommerce,
-Shopware and Sylius. For Magento, Polkurier has its own module, described in the
-[Magento page](docs/integrations/magento2.md).
+[integration guides](docs/integrations/README.md) for Symfony, Laravel, Laminas and Mezzio, PSR-11
+containers, PrestaShop, WooCommerce, Shopware and Sylius. For Magento, Polkurier has its own
+module, described in the [Magento page](docs/integrations/magento2.md).
 
 `./examples` has one runnable script per API method, named after the method it calls. Each script
 runs on its own:
@@ -69,7 +69,7 @@ anything.
 | `$client->courier()`            | Carriers, pickups, pickup points, supported countries         |
 | `$client->orders()`             | Pricing, placing, tracking, cancelling, labels, protocols     |
 | `$client->addresses()`          | The account's address book                                    |
-| `$client->bankAccounts()`       | Bank accounts used for cash-on-delivery settlement            |
+| `$client->bankAccounts()`       | Bank accounts money box payouts can be sent to                |
 | `$client->packTemplates()`      | Saved parcel templates                                        |
 | `$client->geo()`                | City lookup and map tokens                                    |
 | `$client->account()`            | Profile, balances, preferences, credentials, phone numbers    |
@@ -150,7 +150,7 @@ The serializer has its own configuration. Pass a [`SerializerProvider`](src/Seri
 |-----------------------|----------------------|------------------------------------------------------|
 | `metadataCache`       | none                 | A PSR-6 pool to keep mapping metadata in             |
 | `jsonEncodeOptions`   | readable UTF-8       | Flags for `json_encode` on the request body          |
-| `timezone`            | whatever the API set | The zone dates are read into                         |
+| `timezone`            | PHP's default        | The zone a date without an offset is read in         |
 | `rejectUnknownFields` | `false`              | Whether an unrecognised response field is an error   |
 
 Reading the attributes of around 150 classes is the SDK's biggest start-up cost. The result doesn't
@@ -175,7 +175,7 @@ these:
 | `ConnectionException`         | The request never completed (DNS, TCP, TLS or timeout)          |
 | `MalformedResponseException`  | A reply was not an API envelope, or not the shape promised      |
 | `ValidationException`         | A payload was rejected before anything was sent                 |
-| `InvalidArgumentException`    | A message was constructed with values the SDK rejects locally   |
+| `InvalidArgumentException`    | A value was rejected locally, e.g. a builder missing a field    |
 
 They all extend [`Polkurier\Webservice\Exception\Exception`](src/Exception/Exception.php). [`WebserviceException`](src/Exception/WebserviceException.php) holds the parsed
 error, the request and the response:
@@ -228,8 +228,8 @@ offers, whether it needs a collection date, or what PIN locks an account has. Th
 `available_carriers`, `get_account_info` and `get_system_info`, and the API checks these rules
 itself.
 
-A payload the API would accept passes. One that doesn't is a bug in the SDK, and
-`validatePayloads: false` turns off all checks.
+Rejecting a payload the API would accept is a bug in the SDK. `validatePayloads: false` turns off
+all checks.
 
 To drop a single rule, add your own or replace the validator, see
 [Validation: changing the rules](docs/validation.md#changing-the-rules).

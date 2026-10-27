@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The index is a flat list of these. The hierarchy comes from the parent id, not from nesting, so to
  * build a tree you group the entries by it yourself. A null parent marks a top-level entry.
  *
- * The id is the entry's slug, which is what
+ * The id is an opaque key that parent ids refer to. An article's slug is what
  * {@see \Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface::getArticle()} takes.
  */
 readonly class KnowledgeBaseEntryMessage implements MessageInterface
@@ -35,9 +35,9 @@ readonly class KnowledgeBaseEntryMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $id the entry's slug, and its identifier
-     * @param ?string $parentId slug of the parent entry, null at the top level
-     * @param string $slug URL-friendly name
+     * @param string $id opaque key of the entry
+     * @param ?string $parentId id of the parent category, null at the top level
+     * @param string $slug URL-friendly name, which getArticle() takes for an article
      * @param string $title display title, in Polish
      * @param KnowledgeBaseEntryTypeEnum|null $type whether this is an article or a category
      * @param string $url public web address of the entry

@@ -24,8 +24,8 @@ use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
  * Two-factor confirmation for operations that need more than the API token.
  *
  * Register a token for the operation, have the user enter the code sent to them, and verify it.
- * Then repeat the original call with the token and code. The main operation that needs this is
- * changing where cash-on-delivery funds are paid.
+ * Then repeat the original call with the token and code. Operations that need it include
+ * registering or changing a bank account and making a telephone number the default.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:
@@ -36,8 +36,7 @@ use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface TwoFactorTokenServiceInterface
 {
@@ -45,7 +44,7 @@ interface TwoFactorTokenServiceInterface
      * Starts a confirmation and sends a code to the customer.
      *
      * The token is bound to the namespace you register it under, and only that operation accepts
-     * it. A token for a bank account change can't be used for anything else.
+     * it.
      *
      * The code goes to the first channel the namespace takes: authenticator app, text message to
      * the default phone, e-mail. Only LOGIN takes e-mail; ENABLE_TWO_FACTOR_LOGIN,
@@ -80,16 +79,18 @@ interface TwoFactorTokenServiceInterface
      *     "status": "success",
      *     "response": {
      *         "id": "8f3c1e2a-…",
-     *         "phone_number": "***600700",
-     *         "transport_method": {"id": "…", "name": "*** *** 700", "type": "SMS", "description": "",
-     *                              "type_name": "SMS"},
+     *         "phone_number": "",
+     *         "transport_method": {"id": "…", "name": "*** *** 700", "type": "SMS",
+     *                              "description": "Kod autoryzacyjny wysyłany w wiadomości SMS",
+     *                              "type_name": "Wiadomość SMS"},
      *         "operation_title": "Zmiana numeru konta bankowego",
      *         "operation_number": 1,
      *         "operation_date": "2026-09-23T09:10:13+02:00",
      *         "sent_at": "2026-09-23T09:10:13+02:00",
      *         "expires_at": "2026-09-23T09:13:13+02:00",
-     *         "available_methods": [{"id": "…", "name": "*** *** 700", "type": "SMS", "description": "",
-     *                                "type_name": "SMS"}]
+     *         "available_methods": [{"id": "…", "name": "*** *** 700", "type": "SMS",
+     *                                "description": "Kod autoryzacyjny wysyłany w wiadomości SMS",
+     *                                "type_name": "Wiadomość SMS"}]
      *     }
      * }
      * ```
@@ -170,11 +171,11 @@ interface TwoFactorTokenServiceInterface
      * Checks the code the customer entered.
      *
      * A wrong code, or an unknown or expired token, does not throw. It comes back as a successful
-     * response with `valid` set to false. Always check the flag.
+     * response with `valid` set to false.
      *
      * Verifying doesn't use up the token. The confirmed operation does, so you pass the token and
-     * code to it afterwards. Verifying twice does no harm. Codes have a fixed length, which
-     * `get_system_info` reports.
+     * code to it afterwards. Verifying twice does no harm. `get_system_info` reports the length of
+     * the codes the API sends.
      *
      * Endpoint: `two_factor_token_verify`
      *
@@ -202,8 +203,7 @@ interface TwoFactorTokenServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
-     * An empty `code` gives the same error. Only a missing parameter is an error here. A wrong value
-     * gives `valid: false`.
+     * An empty `code` gives the same error.
      *
      * @param VerifyMessage $verifyMessage
      *

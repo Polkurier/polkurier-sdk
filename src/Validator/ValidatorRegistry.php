@@ -26,7 +26,7 @@ use Polkurier\Webservice\Exception\ValidationException;
  * validator throws on its own, so otherwise a payload with a malformed field and an invalid field
  * combination would only report the first problem.
  *
- * A message with no registered validator passes. That only means no rule applies to it.
+ * A message with no registered validator passes.
  */
 class ValidatorRegistry implements ValidatorInterface
 {

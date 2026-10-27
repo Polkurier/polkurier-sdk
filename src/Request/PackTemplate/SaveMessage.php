@@ -18,12 +18,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A parcel template to save on the account.
  *
- * Pass an id to update that template, or leave it out to create a new one. A template holds the
- * dimensions, shipment type and extras for repeat shipments. Its values are only a starting point
- * and can be overridden on each order.
+ * Pass an id to update that template, or leave it out to create a new one. An id that names none of
+ * the account's templates creates a new one.
  *
- * Setting a carrier ties the template, and its service list, to that carrier. Without one, the
- * template works with any carrier.
+ * The services `ADR`, `DO_NOT_STACK`, `REQUIRE_LIFT_FOR_LOAD`, `REQUIRE_LIFT_FOR_UNLOAD`,
+ * `SIDE_LOAD` and `SIDE_UNLOAD` aren't stored on a template, and a carrier code the API doesn't know
+ * is stored as no carrier.
  */
 readonly class SaveMessage extends BasePackMessage
 {
@@ -52,7 +52,7 @@ readonly class SaveMessage extends BasePackMessage
      * @param float $cod amount to collect on delivery, in PLN
      * @param float $insurance declared value, in PLN
      * @param string $description
-     * @param string|null $courier the carrier the template is tied to, if any
+     * @param string|null $courier the template's carrier code, if any
      * @param AdditionalServiceEnum[] $services extras to preselect
      */
     public function __construct(

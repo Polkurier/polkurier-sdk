@@ -14,7 +14,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
 
 /**
- * Assembles the billing, correspondence or contact address the account is invoiced at.
+ * Assembles one of the account's addresses: billing, correspondence or contact.
  *
  * Only the address type is required. Which of the other fields apply depends on the address type
  * and on whether the payer is a company.

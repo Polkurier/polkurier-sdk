@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Order;
 
 /**
- * Why a cash-on-delivery amount was used for something other than a normal payout.
+ * How part of a cash-on-delivery amount was settled.
  */
 enum CodReturnReasonEnum: string
 {

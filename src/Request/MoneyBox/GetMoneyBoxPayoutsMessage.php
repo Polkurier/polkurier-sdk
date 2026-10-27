@@ -25,9 +25,10 @@ readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
 
     /**
      * @param ?string $payoutNumber narrow to one payout by its reference
-     * @param ?string $searchQuery free-text search across the payouts
-     * @param ?int $pageSize
-     * @param ?int $page
+     * @param ?string $searchQuery matches the payout number, or the number, waybill number,
+     *        recipient name or company of an order the payout covers
+     * @param ?int $pageSize payouts per page, 1 when left out, capped at 100
+     * @param ?int $page 1-based page index
      */
     public function __construct(
         /**

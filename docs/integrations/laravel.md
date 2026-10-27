@@ -122,7 +122,7 @@ final class PolkurierServiceProvider extends ServiceProvider
             static fn() => DefaultValidatorRegistryFactory::create(),
         );
 
-        // The services. Register the ones you use. They all take the same 6 arguments.
+        // The services. Register the ones you use. They all take the same arguments.
         foreach ([
             OrdersServiceInterface::class  => OrdersService::class,
             CourierServiceInterface::class => CourierService::class,
@@ -143,6 +143,7 @@ final class PolkurierServiceProvider extends ServiceProvider
             logger: $app->make(LoggerInterface::class),
             serializerProvider: $app->make(SerializerProviderInterface::class),
             configProvider: $app->make(ConfigProviderInterface::class),
+            clientFactory: $app->make(ClientFactoryInterface::class),
         ));
     }
 
@@ -208,7 +209,7 @@ final class Polkurier extends Facade
 ```
 
 ```php
-Polkurier::orders()->getStatus(new GetStatusMessage(orderNo: 'POL123456789'));
+Polkurier::orders()->getStatus(new GetStatusMessage(orderNo: '12345-678'));
 ```
 
 A facade is convenient but harder to test than constructor injection.
@@ -315,7 +316,7 @@ Bind [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) to a
 
 ```php
 $provider = static fn($app) => new class($app) implements ConfigProviderInterface {
-    public function __construct(private readonly $app) {}
+    public function __construct(private readonly \Illuminate\Contracts\Foundation\Application $app) {}
 
     public function getConfig(): ConfigInterface
     {

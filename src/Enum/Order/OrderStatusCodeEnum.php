@@ -21,7 +21,8 @@ enum OrderStatusCodeEnum: string
     case Pending = 'O';
 
     /**
-     * Confirmed, no carrier scan yet.
+     * Confirmed, no carrier scan yet. As a `get_orders` filter, it matches every confirmed order,
+     * whatever its delivery state.
      */
     case Confirmed = 'P';
 
@@ -57,7 +58,7 @@ enum OrderStatusCodeEnum: string
     case Exception = 'W';
 
     /**
-     * Part of a collective consignment.
+     * Placed for a collective pickup that hasn't been booked yet.
      * Only used as a `get_orders` filter. No order is returned with this status.
      */
     case Collective = 'PZ';

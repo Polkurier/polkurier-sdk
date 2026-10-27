@@ -45,6 +45,10 @@ readonly class PointsMap implements MessageInterface
     ) {}
 
     /**
+     * The carrier codes to pass, all together, to
+     * {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::findCourierPoints()} for
+     * this carrier's points.
+     *
      * @return string[]
      */
     public function getAvailableProviders(): array

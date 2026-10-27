@@ -195,7 +195,7 @@ Responses look like this:
 
 ```json
 {"status": "success", "response": { … }}
-{"status": "error", "response": "…", "status_code": 401, "error_code": "INVALID_AUTH_DATA"}
+{"status": "error", "status_code": 7, "error_code": "ERROR_AUTH_DATA", "response": "Błąd autoryzacji. Błędny login lub token"}
 ```
 
 [`ResponseMessage`](../src/Http/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) map these two.
@@ -261,7 +261,7 @@ Debugging a mapping problem
 | A nested object arrives as a plain `array` | The `@var` docblock on the property. The extractor reads that, not the PHP type |
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
 | An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) names it |
-| "Failed to parse time string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
+| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
 | A required-field error on a response | An empty array arrived where an object was expected, or a key with no default was absent |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
 | An unexpected field breaks the call | `rejectUnknownFields: true`. Meant for CI, not production |

@@ -6,8 +6,8 @@
 /**
  * heartbeat — check that the API is reachable.
  *
- * The only method that needs no credentials, which makes it the right probe for connectivity and
- * for confirming the configured API URL is correct.
+ * It needs no credentials, which makes it the right probe for connectivity and for confirming the
+ * configured API URL is correct.
  */
 declare(strict_types=1);
 

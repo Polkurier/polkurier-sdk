@@ -7,8 +7,8 @@
  * get_supported_countries_v2 — list every country the service ships to, with its provinces.
  *
  * The richer of the two country listings: each entry carries its provinces, whether it is in the
- * EU, and whether it is the account's default. Use the provinces to populate an address form for
- * countries that require one.
+ * EU, and whether it is the default country (Poland). Use the provinces to populate an address
+ * form for countries that have them.
  */
 declare(strict_types=1);
 

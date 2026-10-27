@@ -22,7 +22,7 @@ trait DecodesFile
     /**
      * The file's raw bytes, ready to write to disk or stream to a browser.
      *
-     * @return string
+     * @return string empty when the file isn't valid base64
      */
     public function getDecodedFile(): string
     {

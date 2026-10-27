@@ -11,8 +11,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies an order to fetch the status of.
- *
- * @see GetStatusMessage
  */
 readonly class GetStatusMessage extends OrderIdMessage
 {
@@ -41,8 +39,7 @@ readonly class GetStatusMessage extends OrderIdMessage
     /**
      * Whether to also fetch the carrier's scan history.
      *
-     * Off by default. Turning it on makes the call slower. Leave it off if you only need the
-     * current status.
+     * Off by default. Turning it on makes the call slower.
      *
      * @return bool
      */

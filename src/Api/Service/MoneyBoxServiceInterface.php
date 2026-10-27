@@ -36,8 +36,8 @@ use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
  * createPayout() moves money and is not idempotent. Read its notes before you add a retry.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface MoneyBoxServiceInterface
 {
@@ -45,8 +45,8 @@ interface MoneyBoxServiceInterface
      * Returns the account's payout settings.
      *
      * Read this before offering a payout. It gives the account's payout method, the fee payment
-     * options it can choose from, and the destination details on file. Only the destination fields
-     * for the account's payout type are filled in. The others are blank.
+     * options it can choose from, and the destination details on file. A destination with nothing
+     * saved comes back blank.
      *
      * Endpoint: `get_money_box_config`
      *
@@ -94,10 +94,12 @@ interface MoneyBoxServiceInterface
      * Nothing is created or reserved. If you send the same orders and payout type you plan to use,
      * the quote is the fee that will apply.
      *
-     * Call it even when the fee looks predictable. An account with free payouts left pays nothing,
-     * and only this response reports the free payout counters.
+     * Call it even when the fee looks predictable. Only this response reports the free payout
+     * counters.
      *
-     * The fee can have several components. `fees` lists them.
+     * The fee can have several components, which `fees` lists: PAYOUT_FEE once the month's free
+     * payouts are used up, and POSTAL_TRANSFER_FEE for a postal money order. Without a payout type,
+     * the quote has no postal money order fee.
      *
      * Endpoint: `calculate_money_box_payout_fee`
      *
@@ -136,7 +138,7 @@ interface MoneyBoxServiceInterface
      * ```
      *
      * @param CalculateMoneyBoxPayoutFeeMessage|null $calculateMoneyBoxPayoutFeeMessage null quotes
-     *        for everything available, using the account's configured payout type
+     *        for everything available, without a payout type
      *
      * @return MoneyBoxFeeMessage payload:
      *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage}
@@ -165,11 +167,14 @@ interface MoneyBoxServiceInterface
      * - bank transfer: an account number from the saved bank accounts, otherwise FORBIDDEN;
      * - postal money order: the postal address.
      *
+     * Without a fee payment type, the fee is deducted from the money box, or added to an invoice
+     * where INVOICE is the only type getConfig() offers.
+     *
      * Only a postal money order to an address other than the saved default needs a confirmation,
      * one of:
      *
      * - the security PIN, while `pin_locks.COD_MONEY_BOX` is on;
-     * - otherwise, a verified two-factor token registered under MONEY_BOX_PAYOUT.
+     * - otherwise, a two-factor token registered under MONEY_BOX_PAYOUT, with its code.
      *
      * Endpoint: `create_money_box_payout`
      *
@@ -224,6 +229,15 @@ interface MoneyBoxServiceInterface
      * ```
      * The account number is missing or not one of the saved bank accounts.
      * ```json
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
+     *  "response": "Brak środków aby uregulować opłatę manipulacyjną za dyspozycję wypłaty ze skarbonki"}
+     * ```
+     * Not enough funds to pay the handling fee.
+     * ```json
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "Podany PIN jest nieprawidłowy"}
+     * ```
+     * Wrong security PIN.
+     * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "Brak środków do wypłaty [cods]", "validation_errors": {"cods": ["Brak środków do wypłaty"]}}
      * ```
@@ -245,10 +259,11 @@ interface MoneyBoxServiceInterface
     /**
      * Cancels a payout that has not yet been sent.
      *
-     * You can only cancel while the payout's `is_cancellable` flag is true. Once it is in progress it
-     * can't be recalled, and a cancel attempt fails with the reason. Check the flag first.
+     * You can only cancel while the payout's `is_cancellable` flag is true. It turns false once any
+     * part of the payout is on its way or paid, and once its fee is paid other than on an invoice. A
+     * cancel attempt then fails with the reason. Check the flag first.
      *
-     * A payout that belongs to another account gives not found, not forbidden.
+     * A payout that belongs to another account gives NOT_FOUND.
      *
      * Endpoint: `cancel_money_box_payout`
      *
@@ -261,8 +276,8 @@ interface MoneyBoxServiceInterface
      * }
      * ```
      *
-     * Response: the payout as it was before the cancel. The payout is removed; getPayouts() no
-     * longer lists it.
+     * Response: the payout as it was before the cancel. The payout is removed, and getPayouts() does
+     * not list it afterwards.
      *
      * Common errors:
      * ```json
@@ -271,7 +286,7 @@ interface MoneyBoxServiceInterface
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
      * ```
-     * Thrown when the payout is too far along to cancel. The message gives the reason.
+     * Thrown when `is_cancellable` is false. The message gives the reason.
      *
      * @param CancelMoneyBoxPayoutMessage $cancelMoneyBoxPayoutMessage
      *
@@ -289,11 +304,13 @@ interface MoneyBoxServiceInterface
     /**
      * Lists payout requests, one page at a time.
      *
-     * Unlike the invoice and prepaid listings, this envelope includes `totalpages`.
+     * Unlike the invoice and prepaid listings, this envelope includes `totalpages`. Page size is
+     * capped at 100 and is 1 when left out.
      *
      * A payout splits its `amount` into the part still to pay, the part paid and any compensation
      * withheld against debts, so less than `amount` may be paid out. `status` is PENDING until
-     * nothing is left to pay, then PAID. A fee added to an invoice is PAID from the start.
+     * nothing is left to pay, then PAID. `fee_payment_status` is PAID from the start for a fee added
+     * to an invoice and for a free payout.
      *
      * Endpoint: `get_money_box_payouts`
      *
@@ -345,7 +362,8 @@ interface MoneyBoxServiceInterface
      * {"status": "success", "response": []}
      * ```
      *
-     * @param GetMoneyBoxPayoutsMessage|null $getMoneyBoxPayoutsMessage null lists the first page
+     * @param GetMoneyBoxPayoutsMessage|null $getMoneyBoxPayoutsMessage null lists the first page,
+     *        of one payout
      *
      * @return MoneyBoxPayoutListMessage payload:
      *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage}
