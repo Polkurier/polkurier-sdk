@@ -63,6 +63,10 @@ final class Sample
             return 'x';
         }
 
+        if (\in_array($match[1], ['string', 'int', 'float', 'bool'], true)) {
+            return self::value($match[1]);
+        }
+
         $name = self::resolve($reflection->getDeclaringClass(), $match[1]);
         if ($name === null) {
             return 'x';
@@ -117,9 +121,15 @@ final class Sample
             return 'x';
         }
 
-        /** @var class-string $name */
-        $name = $type->getName();
+        return self::value($type->getName());
+    }
 
+    /**
+     * A non-empty sample value of a type named in PHP: a built-in type, an enum or a class.
+     */
+    private static function value(string $name): mixed
+    {
+        /** @var class-string $name */
         return match (true) {
             $name === 'string' => 'x',
             $name === 'int' => 1,

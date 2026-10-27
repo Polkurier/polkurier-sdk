@@ -63,6 +63,9 @@ readonly class AccountInfoMessage implements MessageInterface
     public const string FIELD_PIN_LOCKS = 'pin_locks';
     public const string FIELD_SETTINGS = 'settings';
     public const string FIELD_EXTERNAL_APPLICATION_SETTINGS = 'external_application_settings';
+    public const string FIELD_PHONE_PIN = 'phone_pin';
+    public const string FIELD_DEFAULT_INPOST_SENDER_POINT = 'default_shipping_point_sender_INPOST_PACZKOMAT';
+    public const string FIELD_DEFAULT_POCZTEX_SENDER_POINT = 'default_shipping_point_sender_KURIER48';
     /**-@#*/
 
     /**
@@ -101,6 +104,11 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param AccountSettingsMessage|null $settings
      * @param array<string, mixed>|null $externalApplicationSettings the external application's
      *        settings by name, present only when the request named one
+     * @param string $phonePin the telephone PIN, the code given when contacting support, empty if
+     *        none is set
+     * @param string|null $defaultInpostSenderPoint the `INPOST_PACZKOMAT` entry of
+     *        $defaultSenderPoint
+     * @param string|null $defaultPocztexSenderPoint the `POCZTEX_PUNKT` entry of $defaultSenderPoint
      */
     public function __construct(
         /**
@@ -298,6 +306,24 @@ readonly class AccountInfoMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_SETTINGS)]
         #[OmitWhenEmpty]
         private ?array $externalApplicationSettings = null,
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_PHONE_PIN)]
+        private string $phonePin = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_DEFAULT_INPOST_SENDER_POINT)]
+        private ?string $defaultInpostSenderPoint = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_DEFAULT_POCZTEX_SENDER_POINT)]
+        private ?string $defaultPocztexSenderPoint = null,
     ) {}
 
     /**
@@ -575,5 +601,37 @@ readonly class AccountInfoMessage implements MessageInterface
         }
 
         return $settings;
+    }
+
+    /**
+     * The telephone PIN, given when contacting support. Not the security PIN.
+     *
+     * @return string empty when none is set
+     */
+    public function getPhonePin(): string
+    {
+        return $this->phonePin;
+    }
+
+    /**
+     * @deprecated The same value as the `INPOST_PACZKOMAT` entry of getDefaultSenderPoint(); read it
+     *             from there.
+     *
+     * @return string|null
+     */
+    public function getDefaultInpostSenderPoint(): ?string
+    {
+        return $this->defaultInpostSenderPoint;
+    }
+
+    /**
+     * @deprecated The same value as the `POCZTEX_PUNKT` entry of getDefaultSenderPoint(); read it
+     *             from there.
+     *
+     * @return string|null
+     */
+    public function getDefaultPocztexSenderPoint(): ?string
+    {
+        return $this->defaultPocztexSenderPoint;
     }
 }

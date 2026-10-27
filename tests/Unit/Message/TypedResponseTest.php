@@ -23,6 +23,10 @@ use Polkurier\Webservice\Response\Contact\KnowledgeBaseLinkMessage;
 use Polkurier\Webservice\Response\Order;
 use Polkurier\Webservice\Response\Order\File;
 use Polkurier\Webservice\Response\Order\ValuationMessage;
+use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
+use Polkurier\Webservice\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Response\Ticket\TicketResponseTemplateMessage;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -206,6 +210,44 @@ final class TypedResponseTest extends TestCase
         self::assertNull($photo->getDateCreated());
     }
 
+    public function testADownloadedTicketAttachmentReadsEveryFieldTheApiSends(): void
+    {
+        $file = self::read(TicketFileContentMessage::class, [
+            'name' => 'zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg',
+            'type' => 'image/jpeg',
+            'size' => 3,
+            'date_created' => '2026-09-23T09:10:13+02:00',
+            'hash' => '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+            'file' => 'YWJj',
+        ], strict: true);
+
+        self::assertInstanceOf(TicketFileContentMessage::class, $file);
+        self::assertSame('zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg', $file->getName());
+        self::assertSame('2026-09-23', $file->getDateCreated()?->format('Y-m-d'));
+        self::assertSame('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', $file->getHash());
+        self::assertSame('abc', $file->getDecodedFile());
+    }
+
+    public function testATicketReadsTheAnswersItsLatestReplyAsksFor(): void
+    {
+        $ticket = self::read(TicketMessage::class, [
+            'id' => '8f3c1e2a-0d4a-4c3e-9b8f-1a2b3c4d5e6f',
+            'response_template' => ['message' => 'Czy paczka dotarła?', 'responses' => ['Tak', 'Nie']],
+        ], strict: true);
+
+        self::assertInstanceOf(TicketMessage::class, $ticket);
+        self::assertEquals(
+            new TicketResponseTemplateMessage('Czy paczka dotarła?', ['Tak', 'Nie']),
+            $ticket->getResponseTemplate(),
+        );
+
+        $sample = self::sample(TicketMessage::class);
+        unset($sample[TicketMessage::FIELD_RESPONSE_TEMPLATE]);
+        $none = self::read(TicketMessage::class, $sample);
+        self::assertInstanceOf(TicketMessage::class, $none);
+        self::assertNull($none->getResponseTemplate());
+    }
+
     public function testExternalApplicationSettingsReadAsNamedValues(): void
     {
         $sample = self::sample(AccountInfoMessage::class);
@@ -235,6 +277,41 @@ final class TypedResponseTest extends TestCase
     }
 
     /**
+     * A full account profile, as the API sends it, reads even when unknown fields are rejected.
+     */
+    public function testTheAccountProfileReadsWhenUnknownFieldsAreRejected(): void
+    {
+        $profile = [
+            'id' => 12345, 'phone_pin' => '1357', 'display_name' => 'Jan Kowalski', 'email' => 'jan@example.com',
+            'default_courier' => 'UPS', 'is_active' => true, 'is_regulations_accepted' => true,
+            'is_new_regulations' => false, 'is_prices_list_accepted' => true,
+            'is_couriers_regulations_accepted' => true, 'is_electronic_invoice_accepted' => true,
+            'is_email_verified' => true, 'is_payer_data_complete' => true, 'is_verified' => true,
+            'is_delete_requested' => false, 'has_phone_number' => true, 'require_account_verification' => false,
+            'require_agreement_verification' => false, 'payment_type' => 'INVOICE', 'money_box_balance' => 0,
+            'money_box_payout_available_balance' => 0, 'money_box_to_payout_balance' => 0, 'prepaid_balance' => 0,
+            'invoice_balance' => 0, 'invoice_payment_account_number' => null, 'invoice_limit' => null,
+            'invoice_limit_used' => null, 'invoice_rebate' => 0, 'bonuses_savings' => 0,
+            'default_shipping_point_sender_INPOST_PACZKOMAT' => 'POZ01A',
+            'default_shipping_point_sender_KURIER48' => null,
+            'default_sender_point' => ['INPOST_PACZKOMAT' => 'POZ01A', 'POCZTEX_PUNKT' => null, 'DPD_POINT' => null],
+            'pin_locks' => ['PIN_SETTINGS' => false, 'BANK_ACCOUNTS_EDIT' => false, 'COD_MONEY_BOX' => false],
+            'settings' => ['user_delivery_pickup_myself' => false, 'cover_address_sender_checked' => false],
+        ];
+        $body = \json_encode(['status' => 'success', 'response' => $profile], \JSON_THROW_ON_ERROR);
+
+        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: true))))
+            ->create(new Response(200, [], $body), AccountInfoMessage::class)
+            ->getParsedResponse()
+            ->getResponse();
+
+        self::assertInstanceOf(AccountInfoMessage::class, $info);
+        self::assertSame('1357', $info->getPhonePin());
+        self::assertSame('POZ01A', $info->getDefaultInpostSenderPoint());
+        self::assertNull($info->getDefaultPocztexSenderPoint());
+    }
+
+    /**
      * A fully populated response of the class, in its wire form.
      *
      * @param class-string $class
@@ -254,14 +331,15 @@ final class TypedResponseTest extends TestCase
     /**
      * @param string $format
      * @param array<array-key, mixed> $payload
+     * @param bool $strict whether a field the SDK doesn't map fails the read
      *
      * @return mixed
      */
-    private static function read(string $format, array $payload): mixed
+    private static function read(string $format, array $payload, bool $strict = false): mixed
     {
         $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
 
-        return (new ResponseFactory(new SerializerProvider()))
+        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: $strict))))
             ->create(new Response(200, [], $body), $format)
             ->getParsedResponse()
             ->getResponse();

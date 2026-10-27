@@ -44,6 +44,8 @@ interface SystemServiceInterface
      * the minimum coupon length, the bank verification transfer amount, and how long a customer has
      * to accept revised terms. These values can change without an API version bump.
      *
+     * `features` holds feature flags keyed by name.
+     *
      * The response has no account data, so you can cache it and share it across a process.
      *
      * Endpoint: `get_system_info`
@@ -106,6 +108,9 @@ interface SystemServiceInterface
      * }
      * ```
      *
+     * `ALERT` notices have `hide_timeout`; `MESSAGE` notices have `title` and `priority` instead.
+     * Alerts come first, then messages by descending `priority`.
+     *
      * Response:
      * ```json
      * {
@@ -117,6 +122,14 @@ interface SystemServiceInterface
      *             "type": "ALERT",
      *             "severity": "WARNING",
      *             "hide_timeout": 4
+     *         },
+     *         {
+     *             "courier": "FEDEX",
+     *             "title": "Płatność kartą za pobranie",
+     *             "message": "<p>Uwaga! Przewoźnik nalicza opłatę w sytuacji, gdy odbiorca opłaci pobranie kartą…</p>",
+     *             "type": "MESSAGE",
+     *             "severity": "WARNING",
+     *             "priority": 5
      *         }
      *     ]
      * }

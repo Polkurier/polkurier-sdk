@@ -476,9 +476,10 @@ returns the new entry. Ticket lists are paged, up to
 [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) (250) per page.
 
 Attachments are [`TicketAttachmentMessage`](../src/Request/Ticket/TicketAttachmentMessage.php) entries: a file name with an accepted extension,
-its media type and its contents in base64. A message carries up to 5. The API stores each one under
-a name of its own, which the timeline gives and
-[`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) takes.
+its media type and its contents in base64. A message carries up to 5. Each is stored under a new
+unique name, given by the timeline; [`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) needs that name.
+
+When [`TicketMessage::getResponseTemplate()`](../src/Response/Ticket/TicketMessage.php) is set, a reply must be one of its answers.
 
 A contact form's category is the id of a topic that has a form, from
 [`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). The form id and nonce change on every fetch, and a

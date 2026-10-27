@@ -267,8 +267,8 @@ interface TicketsServiceInterface
      *             "content": "Przesyłka nie dotarła.",
      *             "date_read": null,
      *             "files": [
-     *                 {"name": "zdjecie.jpg", "type": "image/jpeg", "size": 102400,
-     *                  "date_created": "2026-09-23T09:10:13+02:00"}
+     *                 {"name": "zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg", "type": "image/jpeg",
+     *                  "size": 102400, "date_created": "2026-09-23T09:10:13+02:00"}
      *             ]
      *         }
      *     ]
@@ -299,6 +299,9 @@ interface TicketsServiceInterface
      *
      * The same attachment limits apply as for createTicket(). You can't reply to a closed ticket.
      * Open a new one instead.
+     *
+     * When the ticket has a `response_template`, the reply must be one of its `responses`; anything
+     * else is a VALIDATION_ERROR on `content`.
      *
      * Endpoint: `create_ticket_message`
      *
@@ -401,6 +404,9 @@ interface TicketsServiceInterface
      * An attachment is identified by its timeline entry id and its filename. A filename only has to
      * be unique within its message. Take both values from the timeline getTicketMessages() returns.
      *
+     * Attachments are stored under a new unique name, given by the timeline's `files[].name`. The
+     * download needs that name; the upload name gives NOT_FOUND.
+     *
      * Endpoint: `get_ticket_message_file`
      *
      * Request:
@@ -408,7 +414,7 @@ interface TicketsServiceInterface
      * {
      *     "apimethod": "get_ticket_message_file",
      *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {"message_id": "…", "filename": "zdjecie.jpg"}
+     *     "data": {"message_id": "…", "filename": "zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg"}
      * }
      * ```
      *
@@ -417,9 +423,11 @@ interface TicketsServiceInterface
      * {
      *     "status": "success",
      *     "response": {
-     *         "name": "zdjecie.jpg",
+     *         "name": "zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg",
      *         "type": "image/jpeg",
      *         "size": 102400,
+     *         "date_created": "2026-09-23T09:10:13+02:00",
+     *         "hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
      *         "file": "/9j/4AAQSkZJRgABAQ…"
      *     }
      * }

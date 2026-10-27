@@ -316,6 +316,12 @@ interface MoneyBoxServiceInterface
      * }
      * ```
      *
+     * With a payout number, the API returns that payout alone, or `[]` if the number is unknown.
+     * The SDK returns a one-row or empty page.
+     * ```json
+     * {"status": "success", "response": []}
+     * ```
+     *
      * @param GetMoneyBoxPayoutsMessage|null $getMoneyBoxPayoutsMessage null lists the first page
      *
      * @return MoneyBoxPayoutListMessage payload:

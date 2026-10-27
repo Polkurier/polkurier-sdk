@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
 use Polkurier\Webservice\Response\Order;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Response\PagedListMessage;
@@ -19,10 +21,9 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 /**
  * Reads a single record as a one-row page where a page of records is expected.
  *
- * Filtered down to one record, `get_orders` (by order number) and `get_tickets` (by id) answer
- * with the record itself instead of a page. Read as a page, its fields would be ignored and the
- * record would look like an empty page. This wraps it in a page with that one row, so the result
- * has the same shape either way.
+ * Filtered to one record, `get_orders` (by order number), `get_tickets` (by id) and
+ * `get_money_box_payouts` (by payout number) return the record itself. Read as a page, it would
+ * look empty; this wraps it in a one-row page.
  */
 class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAwareInterface
 {
@@ -36,6 +37,7 @@ class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAw
     protected const array RECORD_KEYS = [
         OrderListMessage::class => Order::FIELD_NUMBER,
         TicketListMessage::class => TicketMessage::FIELD_NUMBER,
+        MoneyBoxPayoutListMessage::class => MoneyBoxPayoutMessage::FIELD_NUMBER,
     ];
 
     /**

@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An attachment on a ticket message.
  *
- * The contents are included only when the listing asked for them. Otherwise, fetch the file
- * separately by name.
+ * It comes without its contents. Download the file by this name with
+ * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessageFile()}.
  */
 readonly class TicketFileMessage implements MessageInterface
 {
