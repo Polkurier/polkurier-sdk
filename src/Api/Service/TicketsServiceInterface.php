@@ -583,7 +583,8 @@ interface TicketsServiceInterface
      *
      * A rejected submission comes with the status in capitals, `"status": "ERROR"`, which the SDK
      * reads like any other error. Its `validation_errors` name each answer to fix. It spends the
-     * nonce, and carries a fresh one in `nonce`.
+     * nonce, and carries a fresh one in `nonce`, read with
+     * {@see \Polkurier\Webservice\Http\Response\ErrorMessage::getNonce()}.
      *
      * Common errors:
      * ```json

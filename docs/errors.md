@@ -145,6 +145,7 @@ $error->getResponse();          // string: the human-readable message
 $error->getStatusCode();        // ?int
 $error->getErrorCode();         // ?string
 $error->getValidationErrors();  // ?array<string, string[]>
+$error->getNonce();             // ?string: a rejected contact form's next nonce
 ```
 
 > **Either code can be missing** from an error response, so both getters can return null.
