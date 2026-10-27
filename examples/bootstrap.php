@@ -79,8 +79,8 @@ function arguments(): array
 /**
  * Ticket attachments read from the given files.
  *
- * The media type is detected when the fileinfo extension is loaded. Without it the API is told
- * nothing, which only means the smaller size limit applies.
+ * The media type is detected when the fileinfo extension is loaded. Without it the SDK rejects the
+ * attachment before sending.
  *
  * @param list<string> $paths
  *

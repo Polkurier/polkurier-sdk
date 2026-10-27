@@ -57,21 +57,21 @@ class CoverAddressMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param string $email required before build()
+     * @param string|null $email
      *
      * @return static
      */
-    public function email(string $email): static
+    public function email(?string $email): static
     {
         return $this->set('email', $email);
     }
 
     /**
-     * @param string $phone required before build()
+     * @param string|null $phone
      *
      * @return static
      */
-    public function phone(string $phone): static
+    public function phone(?string $phone): static
     {
         return $this->set('phone', $phone);
     }
@@ -94,6 +94,16 @@ class CoverAddressMessageBuilder extends AbstractBuilder
     public function flatNumber(?string $flatNumber): static
     {
         return $this->set('flatNumber', $flatNumber);
+    }
+
+    /**
+     * @param string|null $houseNumber
+     *
+     * @return static
+     */
+    public function houseNumber(?string $houseNumber): static
+    {
+        return $this->set('houseNumber', $houseNumber);
     }
 
     /**

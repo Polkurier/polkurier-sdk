@@ -17,6 +17,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The same attachment limits apply as when creating a ticket. You cannot reply to a closed ticket.
  */
+#[Validate\RequiredWhen(field: 'content', property: 'files', equals: [], because: 'is required without files')]
 readonly class CreateTicketMessageMessage implements MessageInterface
 {
     /**+@#
@@ -29,7 +30,7 @@ readonly class CreateTicketMessageMessage implements MessageInterface
 
     /**
      * @param string $ticketId the ticket UUID
-     * @param string $content the message body
+     * @param string $content the message body, may be empty when files are attached
      * @param TicketAttachmentMessage[] $files attachments, up to 5
      */
     public function __construct(
@@ -44,7 +45,6 @@ readonly class CreateTicketMessageMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        #[Validate\NotBlank]
         private string $content,
 
         /**

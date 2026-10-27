@@ -13,6 +13,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Response\System\CouponValidationMessage;
 use Polkurier\Webservice\Response\System\CourierMessage;
@@ -135,15 +136,19 @@ interface SystemServiceInterface
      *
      * With nothing to report the response is `[]`.
      *
+     * @param GetCouriersMessagesMessage|null $getCouriersMessagesMessage a carrier to narrow the
+     *        list to
+     *
      * @return CourierMessage[] payload:
      *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getCouriersMessages(): array;
+    public function getCouriersMessages(?GetCouriersMessagesMessage $getCouriersMessagesMessage = null): array;
 
     /**
      * Checks a discount coupon, optionally against a specific order.

@@ -28,7 +28,7 @@ use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\Log\LogSanitizer;
-use Polkurier\Webservice\Validator\NullValidator;
+use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\MessageInterface as HttpMessageInterface;
@@ -56,13 +56,18 @@ abstract class AbstractService
     protected ?ResponseInterface $lastHttpResponse = null;
 
     /**
+     * @var ValidatorInterface
+     */
+    protected readonly ValidatorInterface $validator;
+
+    /**
      * @param RequestFactoryInterface $requestFactory
      * @param ResponseFactoryInterface $responseFactory
      * @param LoggerInterface $logger
      * @param ClientFactoryInterface $clientFactory
      * @param ConfigProviderInterface $configProvider
-     * @param ValidatorInterface $validator checks payloads before they are sent. Defaults to one
-     *        that accepts everything
+     * @param ValidatorInterface|null $validator checks payloads before they are sent. Defaults to
+     *        {@see DefaultValidatorRegistryFactory::create()}, as the facade does
      * @param LastResponseHolder $lastResponse receives the response to each call. Share one between
      *        services to see the last call made through any of them
      * @param LogSanitizer $logSanitizer prepares bodies for the log: takes files out and hides
@@ -94,10 +99,7 @@ abstract class AbstractService
          */
         protected readonly ConfigProviderInterface $configProvider,
 
-        /**
-         * @var ValidatorInterface
-         */
-        protected readonly ValidatorInterface $validator = new NullValidator(),
+        ?ValidatorInterface $validator = null,
 
         /**
          * @var LastResponseHolder
@@ -108,7 +110,9 @@ abstract class AbstractService
          * @var LogSanitizer
          */
         protected readonly LogSanitizer $logSanitizer = new LogSanitizer(),
-    ) {}
+    ) {
+        $this->validator = $validator ?? DefaultValidatorRegistryFactory::create();
+    }
 
     /**
      * The configuration for the current call. It is read from the provider each time, so a

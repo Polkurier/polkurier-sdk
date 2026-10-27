@@ -23,13 +23,14 @@ use Psr\Http\Message\RequestInterface;
  * Builds requests in the format the API accepts.
  *
  * Every call is a POST to the root path with `apimethod` in the body, plus `authorization` and
- * `data` when the call has them. The method is a body field, so there is only one endpoint. The `User-Agent` header names your
+ * `data` when the call has them, sent as `Content-Type: application/json`. The method is a body field, so there is only one endpoint. The `User-Agent` header names your
  * platform and version, followed by the SDK's.
  */
 readonly class RequestFactory implements RequestFactoryInterface
 {
     protected const string HTTP_METHOD = 'POST';
     protected const string ENDPOINT = '/';
+    protected const string CONTENT_TYPE = 'application/json';
     protected const string SDK_PRODUCT = 'polkurier-sdk/2.0.0';
 
     /**
@@ -86,7 +87,10 @@ readonly class RequestFactory implements RequestFactoryInterface
         return new Request(
             method: static::HTTP_METHOD,
             uri: static::ENDPOINT,
-            headers: ['User-Agent' => $this->userAgent($config)],
+            headers: [
+                'Content-Type' => static::CONTENT_TYPE,
+                'User-Agent' => $this->userAgent($config),
+            ],
             body: $body,
         );
     }

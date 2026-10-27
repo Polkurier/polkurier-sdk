@@ -79,9 +79,9 @@ readonly class ValidateCouponMessage implements MessageInterface
 
         /**
          * @var OrderAddressMessage|null
+         * @deprecated The API does not read this field.
          */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
-        #[Validate\Valid]
         #[OmitWhenEmpty]
         private ?OrderAddressMessage $sender = null,
     ) {}
@@ -120,6 +120,7 @@ readonly class ValidateCouponMessage implements MessageInterface
 
     /**
      * @return OrderAddressMessage|null
+     * @deprecated The API does not read this field.
      */
     public function getSender(): ?OrderAddressMessage
     {

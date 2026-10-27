@@ -27,6 +27,7 @@ readonly class CoverAddressMessage implements MessageInterface
     public const string FIELD_PERSON = 'person';
     public const string FIELD_COMPANY = 'company';
     public const string FIELD_STREET = 'street';
+    public const string FIELD_HOUSE_NUMBER = 'housenumber';
     public const string FIELD_FLAT_NUMBER = 'flat_number';
     public const string FIELD_CITY = 'city';
     public const string FIELD_POSTCODE = 'postcode';
@@ -39,10 +40,11 @@ readonly class CoverAddressMessage implements MessageInterface
      * @param string $street
      * @param string $city
      * @param string $postcode
-     * @param string $email
-     * @param string $phone
+     * @param string|null $email
+     * @param string|null $phone
      * @param string|null $company
      * @param string|null $flatNumber
+     * @param string|null $houseNumber
      */
     public function __construct(
         /**
@@ -71,18 +73,20 @@ readonly class CoverAddressMessage implements MessageInterface
         private string $postcode,
 
         /**
-         * @var string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
+        #[OmitWhenEmpty]
         #[Validate\Email]
-        private string $email,
+        private ?string $email = null,
 
         /**
-         * @var string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PHONE)]
+        #[OmitWhenEmpty]
         #[Validate\PhoneNumber]
-        private string $phone,
+        private ?string $phone = null,
 
         /**
          * @var string|null
@@ -97,6 +101,13 @@ readonly class CoverAddressMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
         #[OmitWhenEmpty]
         private ?string $flatNumber = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
+        #[OmitWhenEmpty]
+        private ?string $houseNumber = null,
     ) {}
 
     /**
@@ -132,17 +143,17 @@ readonly class CoverAddressMessage implements MessageInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPhone(): string
+    public function getPhone(): ?string
     {
         return $this->phone;
     }
@@ -161,5 +172,13 @@ readonly class CoverAddressMessage implements MessageInterface
     public function getFlatNumber(): ?string
     {
         return $this->flatNumber;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getHouseNumber(): ?string
+    {
+        return $this->houseNumber;
     }
 }

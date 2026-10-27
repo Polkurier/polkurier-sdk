@@ -27,6 +27,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  *
  * Countries missing from the registry below pass. New countries get added over time, and rejecting
  * an account the bank accepts would be worse.
+ *
+ * With `foreign: false`, only an account of the configured country passes.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Iban implements ValueValidatorInterface
@@ -51,12 +53,18 @@ class Iban implements ValueValidatorInterface
 
     /**
      * @param string $country ISO country code used when the value has no country prefix
+     * @param bool $foreign whether an account of another country passes
      */
     public function __construct(
         /**
          * @var string
          */
         public readonly string $country = 'PL',
+
+        /**
+         * @var bool
+         */
+        public readonly bool $foreign = true,
     ) {}
 
     /**
@@ -92,6 +100,9 @@ class Iban implements ValueValidatorInterface
             : \strtoupper($this->country) . $normalised;
 
         $country = \substr($iban, 0, 2);
+        if (!$this->foreign && $country !== \strtoupper($this->country)) {
+            return [\sprintf('must be a %s account', \strtoupper($this->country))];
+        }
         $expected = self::LENGTHS[$country] ?? null;
 
         if ($expected !== null && \strlen($iban) !== $expected) {

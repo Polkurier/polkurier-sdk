@@ -46,7 +46,8 @@ readonly class CodMessage implements MessageInterface
     /**
      * @param float $amount amount to collect, in PLN. Zero means no collection, and the other
      *                       fields are then not needed
-     * @param string $bankAccount destination account, required when the return type is a bank account
+     * @param string $bankAccount destination account, required when the return type is a bank
+     *        account. Polish accounts only
      * @param CodTypeEnum $type how quickly the collected money is settled
      * @param CodReturnTypeEnum $returnType where it is sent
      */
@@ -62,7 +63,7 @@ readonly class CodMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT)]
-        #[Validate\Iban]
+        #[Validate\Iban(foreign: false)]
         #[OmitWhenEmpty]
         private string $bankAccount = '',
 

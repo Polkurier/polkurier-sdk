@@ -69,6 +69,7 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
+        #[OmitWhenEmpty]
         #[Validate\Each(Validate\OrderNumber::class)]
         private array $orders = [],
 

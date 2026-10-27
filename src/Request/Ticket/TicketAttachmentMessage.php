@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -67,8 +66,8 @@ readonly class TicketAttachmentMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        #[OmitWhenEmpty]
-        private string $type = '',
+        #[Validate\NotBlank]
+        private string $type,
     ) {}
 
     /**
@@ -80,7 +79,7 @@ readonly class TicketAttachmentMessage implements MessageInterface
      *
      * @return self
      */
-    public static function fromContents(string $name, string $contents, string $type = ''): self
+    public static function fromContents(string $name, string $contents, string $type): self
     {
         return new self($name, \base64_encode($contents), $type);
     }

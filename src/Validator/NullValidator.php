@@ -11,10 +11,7 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 
 /**
- * A validator that accepts everything.
- *
- * Used when payload validation is switched off, so the service layer has one code path whether or
- * not it is enabled.
+ * A validator that accepts everything. Pass it to a service to turn its checks off.
  */
 class NullValidator implements ValidatorInterface
 {

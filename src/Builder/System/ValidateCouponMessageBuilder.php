@@ -67,6 +67,7 @@ class ValidateCouponMessageBuilder extends AbstractBuilder
      * @param OrderAddressMessage|null $sender
      *
      * @return static
+     * @deprecated The API does not read this field.
      */
     public function sender(?OrderAddressMessage $sender): static
     {

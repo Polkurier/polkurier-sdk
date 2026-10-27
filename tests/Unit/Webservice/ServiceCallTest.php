@@ -27,6 +27,8 @@ use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Request\Order\GetStatusMessage;
@@ -35,6 +37,7 @@ use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Request\Order\OrderValuationMessage;
 use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
 use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
@@ -301,7 +304,8 @@ final class ServiceCallTest extends TestCase
     }
 
     /**
-     * The configured platform and version travel in the User-Agent header.
+     * The configured platform and version travel in the User-Agent header, with the SDK version
+     * composer.json declares.
      */
     public function testRequestsCarryTheUserAgent(): void
     {
@@ -311,10 +315,23 @@ final class ServiceCallTest extends TestCase
 
         $request = $this->client->lastRequest();
         self::assertNotNull($request);
-        self::assertMatchesRegularExpression(
-            '~^phpunit/1\.0\.0 polkurier-sdk/\d+\.\d+\.\d+$~',
+        $composer = \json_decode((string)\file_get_contents(__DIR__ . '/../../../composer.json'), true);
+        self::assertSame(
+            'phpunit/1.0.0 polkurier-sdk/' . $composer['version'],
             $request->getHeaderLine('User-Agent'),
         );
+    }
+
+    /**
+     * The API rejects any other Content-Type, so the request carries it whatever the HTTP client.
+     */
+    public function testRequestsCarryTheJsonContentType(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $this->sdk->addresses()->getAddresses();
+
+        self::assertSame('application/json', $this->client->lastRequest()?->getHeaderLine('Content-Type'));
     }
 
     /**
@@ -365,6 +382,22 @@ final class ServiceCallTest extends TestCase
     }
 
     /**
+     * An empty order list means everything available, which the API reads only from a missing key.
+     */
+    public function testAPayoutFeeForEverythingSendsNoOrderList(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"fee":0,"fee_nett":0,"fee_vat_rate":23,'
+            . '"fees":[]}}');
+
+        $this->sdk->moneyBox()->calculatePayoutFee(new CalculateMoneyBoxPayoutFeeMessage());
+
+        self::assertArrayNotHasKey(
+            CalculateMoneyBoxPayoutFeeMessage::FIELD_ORDERS,
+            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? [],
+        );
+    }
+
+    /**
      * A form asking for the e-mailed code answers inside a successful envelope; the result carries
      * that request and the next nonce instead of reading as a plain success.
      */
@@ -394,6 +427,31 @@ final class ServiceCallTest extends TestCase
 
         self::assertSame(ContactFormResultStatusEnum::Success, $result->getStatus());
         self::assertSame('202609-000123', $result->getData()?->getTicketNumber());
+    }
+
+    public function testCarrierNoticesCanBeNarrowedToOneCarrier(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[]}');
+
+        $this->sdk->system()->getCouriersMessages(new GetCouriersMessagesMessage(courier: 'DPD'));
+
+        self::assertSame(
+            [GetCouriersMessagesMessage::FIELD_COURIER => 'DPD'],
+            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+        );
+    }
+
+    /**
+     * A postal payout has no bank account.
+     */
+    public function testAPayoutWithoutABankAccountReads(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"number":"W1","payout_type":"POSTAL",'
+            . '"bank_account_number":null}}');
+
+        $page = $this->sdk->moneyBox()->getPayouts(new GetMoneyBoxPayoutsMessage(payoutNumber: 'W1'));
+
+        self::assertNull($page->getResult()[0]->getIban());
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void

@@ -47,7 +47,8 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param array<string, scalar> $fields the answers, keyed by the form's field names
+     * @param array<string, scalar|list<\Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage>> $fields
+     *        the answers, keyed by the form's field names; a files field takes a list of attachments
      *
      * @return static
      */

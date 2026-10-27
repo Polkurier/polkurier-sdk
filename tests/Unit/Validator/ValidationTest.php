@@ -32,6 +32,8 @@ use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
+use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 /**
  * The rules applied to a payload before it leaves.
@@ -60,6 +62,11 @@ final class ValidationTest extends TestCase
     {
         return [
             'a complete order' => [self::order()],
+            'a ticket reply carrying only a file' => [new CreateTicketMessageMessage(
+                ticketId: 't1',
+                content: '',
+                files: [TicketAttachmentMessage::fromContents('a.txt', 'x', 'text/plain')],
+            )],
             'an order with no cash on delivery' => [self::order(cod: null)],
             'cash on delivery zeroed, which the API ignores' => [self::order(cod: new CodMessage(amount: 0.0))],
             // The API stops reading the block at a zero amount, so nothing beside it can be wrong.
@@ -165,6 +172,18 @@ final class ValidationTest extends TestCase
     {
         return [
             'no carrier' => [self::order(courier: ''), 'courier'],
+            'a ticket reply with neither text nor files' => [
+                new CreateTicketMessageMessage(ticketId: 't1', content: ''),
+                'content',
+            ],
+            'a ticket attachment without a media type' => [
+                new CreateTicketMessageMessage(
+                    ticketId: 't1',
+                    content: 'x',
+                    files: [new TicketAttachmentMessage(name: 'a.txt', file: 'eA==', type: '')],
+                ),
+                'files[0].type',
+            ],
             // {@see CreateOrderMessage} rejects an empty pack list in its own constructor, before any
             // validator sees it, so the list rule is exercised through a payload that gets that far.
             'a point search naming no carriers' => [new GetPointMessage(couriers: []), 'couriers'],
@@ -341,23 +360,20 @@ final class ValidationTest extends TestCase
     }
 
     /**
-     * A coupon check only needs the sender's region, as in the validateCouponCode() example.
+     * The API doesn't read the coupon's sender, so a malformed one passes.
      *
      * @return void
      */
-    public function testCouponCheckAcceptsARegionOnlySender(): void
+    public function testCouponCheckIgnoresTheSender(): void
     {
         $this->validator->validate(new ValidateCouponMessage(
             couponCode: 'SPRING10',
-            courier: 'UPS',
-            shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard)],
             sender: new OrderAddressMessage(
                 person: '',
                 street: '',
-                city: 'Poznań',
-                postcode: '61-001',
-                email: '',
+                city: '',
+                postcode: 'not a postcode',
+                email: 'not an email',
                 phone: '',
             ),
         ));
