@@ -66,8 +66,8 @@ class ViolationPool
     /**
      * Runs value validators only if the condition is true.
      *
-     * Most cross-field rules look like this, e.g. a bank account that is required because the
-     * money goes to one, or a two-factor code that is required when the number becomes the default.
+     * For a rule that applies only in some cases, e.g. an email address that the sender needs and
+     * the recipient doesn't.
      *
      * @param bool $condition
      * @param string $field

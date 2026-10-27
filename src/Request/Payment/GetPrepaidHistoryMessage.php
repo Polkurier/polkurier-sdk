@@ -21,7 +21,7 @@ readonly class GetPrepaidHistoryMessage extends PagedMessage
     /**-@#*/
 
     /**
-     * @param ?int $pageSize movements per page
+     * @param ?int $pageSize movements per page, defaults to 100, capped at 250
      * @param ?int $page 1-based page index
      */
     public function __construct(

@@ -15,7 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Filters and paging for the ticket list.
  *
- * Setting an id narrows the list to that ticket. The response is still a list.
+ * Setting an id narrows the list to that ticket, with its timeline, and ignores the other filters.
+ * The response is still a list.
  */
 #[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
 readonly class GetTicketsMessage extends PagedMessage
@@ -34,7 +35,8 @@ readonly class GetTicketsMessage extends PagedMessage
 
     /**
      * @param ?string $id narrow to one ticket by UUID
-     * @param ?string $searchQuery free-text search across the tickets
+     * @param ?string $searchQuery words to find in the subject, the ticket number or the numbers of
+     *        the orders, waybills, complaints and invoices it refers to; every word must match
      * @param ?int $pageSize 1-250, defaults to 100
      * @param ?int $page 1-based page index
      */

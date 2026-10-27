@@ -6,9 +6,9 @@
 /**
  * get_couriers_messages — read the carriers’ current service notices.
  *
- * Delays, suspended regions, holiday cut-offs. Each notice carries a severity and the carrier it
- * concerns, so a shop can warn a customer before they choose a carrier that is not collecting this
- * week rather than after the order is placed.
+ * Delays, suspensions and general information. Each notice carries a severity and the carrier it
+ * concerns, so a shop can warn a customer before they choose a carrier. The message is HTML in
+ * Polish.
  */
 declare(strict_types=1);
 

@@ -36,7 +36,7 @@ readonly class ReturnDetails implements MessageInterface
      * @param float $amount
      * @param string|null $documentNumber
      * @param \DateTimeInterface|null $date
-     * @param array|null $invoiceNumbers
+     * @param string[]|null $invoiceNumbers
      */
     public function __construct(
         /**

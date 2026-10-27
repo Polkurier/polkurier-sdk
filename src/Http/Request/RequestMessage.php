@@ -15,8 +15,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The JSON envelope wrapping every request.
  *
- * `authorization` and `data` are left out when empty, so unauthenticated methods and methods
- * without parameters use the same envelope.
+ * `authorization` and `data` are left out when empty.
  */
 final class RequestMessage implements MessageInterface
 {

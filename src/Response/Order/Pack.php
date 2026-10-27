@@ -12,11 +12,9 @@ use Polkurier\Webservice\Response\BasePack;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One parcel as reported on an order, with what the carrier charged for it.
+ * One parcel as reported on an order, with its price.
  *
- * To send parcel details, use {@see \Polkurier\Webservice\Request\Order\PackMessage}. The
- * carrier works out both prices from the dimensions given, rounded to its own increments, so they
- * may be based on larger figures than you sent.
+ * To send parcel details, use {@see \Polkurier\Webservice\Request\Order\PackMessage}.
  */
 readonly class Pack extends BasePack
 {

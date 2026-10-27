@@ -23,21 +23,21 @@ use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 /**
  * Invoices issued to the account, and the documents behind them.
  *
- * Invoices and corrections are listed separately. To reconcile what an account owes, fetch both.
+ * Invoices and corrections are listed separately.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface InvoicesServiceInterface
 {
     /**
      * Lists invoices, one page at a time.
      *
-     * The document type is required. Invoices and corrections are separate lists.
+     * The document type is required. Invoices and corrections are separate lists, newest first.
      *
-     * Unlike the order list, the paging envelope has no `totalpages`. Work out the last page from
-     * the total and the page size.
+     * Page size defaults to 100 and is capped at 250. Unlike the order list, the paging envelope has
+     * no `totalpages`. Work out the last page from the total and the page size.
      *
      * For reconciliation, use `unpaid_value`: what is left after part payments and compensations,
      * zero once settled. Corrections carry only `number`, `value` and `date`; their unpaid value
@@ -75,7 +75,7 @@ interface InvoicesServiceInterface
      * }
      * ```
      *
-     * An account with no invoices of that kind gets a zeroed envelope with `"result": []`.
+     * An account with no invoices of that kind gets `"totalrows": 0` and `"result": []`.
      *
      * Common errors:
      * ```json
@@ -98,9 +98,9 @@ interface InvoicesServiceInterface
     public function getInvoices(GetInvoicesMessage $getInvoicesMessage): InvoiceListMessage;
 
     /**
-     * Downloads one invoice as a PDF.
+     * Downloads one invoice or correction as a PDF.
      *
-     * Pass the invoice number from getInvoices() as returned, slashes included.
+     * Pass the number from getInvoices() as returned, slashes included.
      *
      * The response includes a suggested filename, which you can use in a download header as is.
      *
@@ -120,7 +120,7 @@ interface InvoicesServiceInterface
      * {
      *     "status": "success",
      *     "response": {
-     *         "filename": "2520_06_2026_POL.pdf",
+     *         "filename": "2520-06-2026-POL.pdf",
      *         "filetype": "application/pdf",
      *         "file": "JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…"
      *     }
@@ -164,8 +164,7 @@ interface InvoicesServiceInterface
      * against individual orders.
      *
      * Pass the invoice number, as for getInvoicePdf(), and the format: PDF to read or print, CSV to
-     * import. The format is required and goes out in capitals. The SDK sends PDF unless you choose
-     * otherwise.
+     * import. The SDK sends PDF unless you choose otherwise.
      *
      * Endpoint: `get_invoice_summary_list`
      *
@@ -183,25 +182,22 @@ interface InvoicesServiceInterface
      * {
      *     "status": "success",
      *     "response": {
-     *         "filename": "zestawienie_2520_06_2026.pdf",
+     *         "filename": "lista_2520-06-2026-POL.pdf",
      *         "type": "application/pdf",
      *         "file": "JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…"
      *     }
      * }
      * ```
      *
-     * Unlike getInvoicePdf(), the media type comes as `type` (`application/pdf` or `text/csv`) and
-     * there is no invoice number in the response:
-     * ```json
-     * {"status": "success", "response": {"filename": "…", "type": "text/csv", "file": "…"}}
-     * ```
+     * Unlike getInvoicePdf(), the media type comes as `type`: `application/pdf` or `text/csv`.
      *
      * Common errors:
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Nie znaleziono obiektu"}
      * ```
-     * A missing `number` gives the same error.
+     * Thrown for an unknown number and for a correction's, and for a missing or blank one when
+     * payload validation is off.
      *
      * @param GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
      *

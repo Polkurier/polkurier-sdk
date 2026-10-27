@@ -17,8 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The amounts show the total requested, the part still to be paid, the part already paid and
  * anything withheld as compensation against debts.
  *
- * Check the cancellable flag before offering a cancel action. A payout already in progress cannot be
- * recalled.
+ * Check the cancellable flag before offering a cancel action. It turns false once any part of the
+ * payout is on its way or paid, and once its fee is paid other than on an invoice.
  */
 readonly class MoneyBoxPayoutMessage implements MessageInterface
 {

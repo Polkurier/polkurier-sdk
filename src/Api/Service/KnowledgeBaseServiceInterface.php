@@ -24,16 +24,16 @@ use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
  * All content is in Polish. Article bodies are HTML fragments you can embed.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface KnowledgeBaseServiceInterface
 {
     /**
-     * Returns all categories and articles as a flat list.
+     * Returns the knowledge base's categories and articles as a flat list.
      *
-     * Each entry's parent id gives the hierarchy. Group on it to build a tree. A null parent means a
-     * top-level entry.
+     * Each entry's parent id is the id of its category. Group on it to build a tree. A null parent
+     * means a top-level entry.
      *
      * Only ARTICLE entries can be fetched with getArticle(). A category's slug returns not found.
      *
@@ -66,7 +66,7 @@ interface KnowledgeBaseServiceInterface
      *             "slug": "api-pierwsze-kroki",
      *             "title": "API — pierwsze kroki",
      *             "type": "ARTICLE",
-     *             "url": "https://polkurier.pl/baza-wiedzy/api-pierwsze-kroki"
+     *             "url": "https://polkurier.pl/baza-wiedzy/artykul/api-pierwsze-kroki"
      *         }
      *     ]
      * }
@@ -85,10 +85,8 @@ interface KnowledgeBaseServiceInterface
     /**
      * Searches the knowledge base by free text.
      *
-     * Returns entries in the same shape as getIndex(). There is no relevance score, but results
-     * come back in ranked order.
-     *
-     * No matches gives an empty list, not an error.
+     * Returns up to 25 articles, best match first, in the same shape as getIndex(). There is no
+     * relevance score.
      *
      * Endpoint: `search_knowledge_base`
      *
@@ -107,12 +105,12 @@ interface KnowledgeBaseServiceInterface
      *     "status": "success",
      *     "response": [
      *         {
-     *             "id": "2222222222222222222222222222222222222222",
+     *             "id": "4444444444444444444444444444444444444444",
      *             "parent_id": "3333333333333333333333333333333333333333",
      *             "slug": "sposoby-pakowania-paczka-w-ruchu",
      *             "title": "Sposoby pakowania - Orlen Paczka",
      *             "type": "ARTICLE",
-     *             "url": "https://polkurier.pl/baza-wiedzy/sposoby-pakowania-paczka-w-ruchu"
+     *             "url": "https://polkurier.pl/baza-wiedzy/artykul/sposoby-pakowania-paczka-w-ruchu"
      *         }
      *     ]
      * }
@@ -162,7 +160,7 @@ interface KnowledgeBaseServiceInterface
      *                 "name": "dokumentacja.pdf",
      *                 "type": "application/pdf",
      *                 "size": 254000,
-     *                 "url": "https://polkurier.pl/download/a1b2c3"
+     *                 "url": "https://polkurier.pl/files/download/a1b2c3"
      *             }
      *         ]
      *     }

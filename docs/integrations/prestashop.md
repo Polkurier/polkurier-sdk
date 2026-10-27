@@ -1,8 +1,8 @@
 PrestaShop
 ==========
 
-For PrestaShop 1.7.8 and 8.x, as a module. PrestaShop 9 works the same way on a newer Symfony
-version.
+For PrestaShop 9, as a module. Earlier versions don't run on PHP 8.3, which the SDK needs
+([PHP compatibility](https://devdocs.prestashop-project.org/9/basics/installation/system-requirements/)).
 
 Autoloading
 -----------
@@ -15,7 +15,7 @@ modules/polkurier/
 ├── composer.json
 ├── vendor/                  ← committed, or built in CI
 ├── polkurier.php            ← the module class
-├── config/services.yml      ← back-office services (1.7+)
+├── config/services.yml      ← back-office services
 ├── src/
 │   ├── Configuration/
 │   ├── Order/
@@ -42,9 +42,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 > `prepend-autoloader: false` keeps the module's autoloader behind the shop's. PrestaShop and each
 > module have their own Composer tree, and a prepended one can shadow a class the core expects. The
-> Symfony components are where conflicts usually show: the SDK needs Symfony 6.4 or newer, while
-> PrestaShop 1.7 ships Symfony 3.4 and PrestaShop 8 ships 4.4. Prefixing the module's vendor tree at build time,
-> as [Mozart](https://github.com/coenjacobs/mozart) does, avoids the clash.
+> Symfony components are where conflicts usually show, when the module's copy differs from the
+> shop's. Prefixing the module's vendor tree at build time, as
+> [Mozart](https://github.com/coenjacobs/mozart) does, avoids the clash.
 
 Configuration
 -------------
@@ -75,7 +75,7 @@ class Polkurier extends Module
         $this->version = '1.0.0';
         $this->author = 'Your company';
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = ['min' => '1.7.8.0', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '9.0.0', 'max' => _PS_VERSION_];
         $this->bootstrap = true;
 
         parent::__construct();
@@ -136,8 +136,10 @@ settings form, that lets you check what the merchant just typed before you rely 
 Building the client
 -------------------
 
-PrestaShop 1.7+ has a Symfony container in the back office but not in the front office. A small
-static factory works in both, and from the CLI too.
+The full Symfony container exists only in the back office. The front office has a
+[light container](https://devdocs.prestashop-project.org/9/modules/concepts/services/) holding
+Doctrine and the services a module declares in `config/front/`. A small static factory works
+everywhere, and from the CLI too.
 
 ```php
 <?php

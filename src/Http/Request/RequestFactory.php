@@ -22,9 +22,10 @@ use Psr\Http\Message\RequestInterface;
 /**
  * Builds requests in the format the API accepts.
  *
- * Every call is a POST to the root path with `apimethod` in the body, plus `authorization` and
- * `data` when the call has them, sent as `Content-Type: application/json`. The method is a body field, so there is only one endpoint. The `User-Agent` header names your
- * platform and version, followed by the SDK's.
+ * Every call is a POST to the path `/` with `apimethod` in the body, plus `authorization` and
+ * `data` when the call has them, sent as `Content-Type: application/json`. The `User-Agent` header
+ * names your platform and version, followed by the SDK's. The base URI is left to the HTTP client,
+ * which {@see \Polkurier\Webservice\Http\ClientFactory} sets up.
  */
 readonly class RequestFactory implements RequestFactoryInterface
 {

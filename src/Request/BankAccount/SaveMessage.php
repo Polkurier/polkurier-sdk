@@ -14,13 +14,14 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Registers or updates a bank account for cash-on-delivery settlement.
+ * Registers or updates a bank account.
  *
  * Pass an id to update that account, or leave it out to register a new one. Setting `default`
- * makes this the account cash on delivery is settled to and removes the flag from the previous one.
+ * makes this the default account and removes the flag from the previous one.
  *
- * A change may need a confirmed two-factor token, and the access PIN while the bank-account lock is
- * on; `get_account_info` reports which, so both are optional here. Renaming needs no token.
+ * While `get_account_info` reports the bank-account PIN lock on, every save needs the access PIN.
+ * Otherwise registering, or changing the number or default flag, needs a confirmed two-factor
+ * token; renaming needs none. Both are optional here.
  */
 readonly class SaveMessage implements MessageInterface
 {
@@ -38,9 +39,9 @@ readonly class SaveMessage implements MessageInterface
 
     /**
      * @param string $name the customer's own label for the account
-     * @param string $number the account number, as an IBAN or a bare national number
+     * @param string $number a Polish account number, as an IBAN or the bare national number
      * @param string|null $id the account to update, or null to register a new one
-     * @param bool $default settle cash on delivery to this account
+     * @param bool $default make this the default account
      * @param string|null $twoFactorToken
      * @param string|null $twoFactorCode
      * @param string|null $accessPin required only while the bank-account PIN lock is engaged

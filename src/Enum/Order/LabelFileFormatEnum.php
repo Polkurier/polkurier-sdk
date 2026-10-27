@@ -11,7 +11,7 @@ namespace Polkurier\Webservice\Enum\Order;
  * Thermal printer languages `get_label` can return instead of a PDF.
  *
  * Without a format you get a PDF, which is what most integrations need. Use one of these only when
- * sending straight to a label printer. Use a value from this enum.
+ * sending straight to a label printer.
  *
  * Applies to a single order number only, and not every carrier supports every language.
  */

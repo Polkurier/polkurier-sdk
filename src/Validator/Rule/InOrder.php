@@ -30,7 +30,7 @@ class InOrder implements MessageRuleInterface
     /**
      * @param string $earlier the property that must not be greater than $later
      * @param string $later
-     * @param string|null $because appended to the report instead of the default wording
+     * @param string|null $because the report's wording, in place of the default
      */
     public function __construct(
         /**

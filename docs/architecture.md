@@ -115,7 +115,7 @@ step, or implement its interface (where it has one) to replace it outright. A br
 configuration, the serializer or a factory affects every call and tends to look like an API
 problem.
 
-Internals in the open classes are `protected`, so you can override them in a subclass.
+Most internals in the open classes are `protected`, so you can override them in a subclass.
 
 [`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) takes no arguments, and a subclass that declares its own must keep it that
 way, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
@@ -142,10 +142,14 @@ new PolkurierWebservice(
 ### `ClientFactoryInterface`: your own HTTP client
 
 The default builds a Guzzle client with the configured
-base URI, timeout, `Content-Type: application/json` and **redirects disabled**. The API is a single
+base URI, timeout and **redirects disabled**. The API is a single
 POST endpoint that never redirects, so a 3xx means something is misconfigured, and following it
 would send your credentials to wherever it points. A replacement client that follows redirects
 would do the same.
+
+A replacement client also has to supply the base URI, because requests carry only the path `/`. It
+must keep the request's `Content-Type: application/json`: the API answers any other value, a charset
+parameter included, with UNSUPPORTED_MEDIA_TYPE.
 
 ```php
 use Polkurier\Webservice\Http\ClientFactoryInterface;
@@ -251,7 +255,6 @@ use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Service\OrdersService;
-use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 $configProvider = new ConfigProvider($config);
 $serializer     = new SerializerProvider();
@@ -262,31 +265,29 @@ $orders = new OrdersService(
     logger:          $logger,
     clientFactory:   new ClientFactory($configProvider),
     configProvider:  $configProvider,
-    validator:       DefaultValidatorRegistryFactory::create(),
 );
 
 $orders->getOrders($filter);
 ```
 
-Every service takes the same arguments in the same order. The 6 above are the ones to pass. Two
-more are optional: `lastResponse`, a [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) that keeps the last response, and
-`logSanitizer`, the [`LogSanitizer`](../src/Log/LogSanitizer.php) that prepares bodies for the log. Pass one
+Every service takes the same arguments in the same order. The 5 above are the ones to pass. Three
+more are optional: `validator`, by default the facade's, from [`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php)
+([`NullValidator`](../src/Validator/NullValidator.php) turns the checks off); `lastResponse`, a [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) that keeps the last
+response; and `logSanitizer`, the [`LogSanitizer`](../src/Log/LogSanitizer.php) that prepares bodies for the log. Pass one
 [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php) to several services if you want to see the last call made through any of
-them. The default `validator` on
-[`AbstractService`](../src/Service/AbstractService.php) is [`NullValidator`](../src/Validator/NullValidator.php), so a service built by hand validates nothing unless it is given
-a validator, the opposite of the facade's default.
-[`DefaultValidatorRegistryFactory::create()`](../src/Validator/DefaultValidatorRegistryFactory.php) gives the facade's rules.
+them.
 
 [Integrations](integrations/README.md) shows this wiring for each major framework.
 
 Thread-safety and reuse
 -----------------------
 
-The SDK holds no connection state and does no I/O until you call a service method.
+The SDK does no I/O until you call a service method.
 
 - [`PolkurierWebservice`](../src/PolkurierWebservice.php) caches each service after first use, so repeated calls to an accessor
   return the same instance.
 - The configuration is read from the provider on every call and not kept.
+- [`ClientFactory`](../src/Http/ClientFactory.php) builds one HTTP client per API URL and timeout, and reuses it.
 - [`SerializerProvider`](../src/Serializer/SerializerProvider.php) holds no per-call state and can be shared across any number of clients.
 - What the SDK reads from its classes by reflection is cached per class, once per process.
 

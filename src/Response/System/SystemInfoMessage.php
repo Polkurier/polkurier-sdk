@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Limits and policy to validate input against.
  *
- * The numbers are policy and can change without an API version bump.
+ * These values can change without an API version bump.
  */
 readonly class SystemInfoMessage implements MessageInterface
 {
@@ -32,7 +32,8 @@ readonly class SystemInfoMessage implements MessageInterface
      * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
      *                                           verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
-     *                                         the account is restricted
+     *        {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::isRegulationsAccepted()}
+     *        turns false
      * @param CouponLimitsMessage|null $coupons
      * @param TicketLimitsMessage|null $tickets
      * @param SecurityLimitsMessage|null $security

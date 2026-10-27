@@ -9,8 +9,6 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * What an order line item charges for.
- *
- * Items are only returned if the listing request asks for them.
  */
 enum OrderItemTypeEnum: string
 {

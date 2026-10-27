@@ -11,8 +11,8 @@
  *     POLKURIER_API_LOGIN=12345 POLKURIER_API_TOKEN=… php examples/available_carriers.php
  *
  * Generate an API token in the customer panel under Settings > API token after signing in at
- * https://www.polkurier.pl. Point POLKURIER_API_URL at a sandbox while you are developing; the
- * SDK targets the production API when it is not set.
+ * https://www.polkurier.pl. Set POLKURIER_API_SANDBOX=1, or point POLKURIER_API_URL at another
+ * host, while you are developing; the SDK targets the production API when neither is set.
  */
 declare(strict_types=1);
 

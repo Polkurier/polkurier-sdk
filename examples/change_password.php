@@ -6,9 +6,8 @@
 /**
  * change_password — change the account password.
  *
- * Needs the current password as well as the new one. Nothing else in the SDK reads or stores a
- * password: this is the one method that handles one, and it is here because the customer panel and
- * an integration may both need to offer it.
+ * Needs the current password as well as the new one. Credentials that may not change the password
+ * get FORBIDDEN.
  */
 declare(strict_types=1);
 

@@ -6,7 +6,7 @@
 /**
  * calculate_money_box_payout_fee — find out what a payout would cost before requesting it.
  *
- * Fees depend on the payout type and on how many free payouts the account has left this period, so
+ * Fees depend on the payout type and on how many free payouts the account has left this month, so
  * this is worth showing before the customer commits. Naming specific orders prices a partial
  * payout; leaving the list empty prices the whole available balance.
  */

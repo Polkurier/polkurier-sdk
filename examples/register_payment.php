@@ -6,9 +6,9 @@
 /**
  * register_payment — start an online payment.
  *
- * Answers with a transaction id and an access token for the payment provider's flow. The mode
- * decides what is being paid for — topping up the prepaid balance, settling invoices, or paying
- * for specific orders.
+ * Answers with a transaction id and an access token, which together open the payment page. The
+ * mode decides what is being paid for — topping up the prepaid balance, settling invoices, or
+ * paying for specific orders.
  */
 declare(strict_types=1);
 

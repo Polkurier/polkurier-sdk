@@ -8,9 +8,12 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Exception;
 
 /**
- * A message was constructed with values the SDK rejects before sending.
+ * A value the SDK rejected without asking the API.
  *
- * Thrown locally, never because of an API response. It always means a bug in the calling code.
+ * Thrown when a builder lacks a required field, a payload can't be serialized, a validation rule
+ * names the wrong kind of class, or a webhook body isn't an order event. Its subclass
+ * {@see \Polkurier\Webservice\Exception\ValidationException} is a payload that breaks the
+ * validation rules.
  *
  * @api
  */

@@ -77,8 +77,8 @@ so `"$field $message"` reads as a sentence.
 How the rules are attached
 --------------------------
 
-Each rule is an attribute on the thing it describes. There's no registry that maps messages to
-rules and no configuration file, so there's no second list that could get out of sync.
+Each rule is an attribute on the thing it describes. No separate list or configuration file maps
+messages to their rules, so none can get out of sync.
 
 ```php
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
@@ -105,7 +105,7 @@ readonly class GetOrdersMessage implements MessageInterface
 | [`#[IgnoredWhen(...)]`](../src/Validator/Rule/IgnoredWhen.php) | class | Skip every rule, because the block does not apply |
 | [`#[ValidatedBy(Validator::class)]`](../src/Validator/Rule/ValidatedBy.php) | class | Run a validator written as a class |
 
-The two class-level kinds are inherited, so a rule declared on a base message applies to every
+The class-level kinds are inherited, so a rule declared on a base message applies to every
 message that extends it.
 
 ### Cross-field rules
@@ -140,15 +140,16 @@ The rules
 | [`Iban`](../src/Validator/Rule/Iban.php) | ISO 13616 check digits, on a full IBAN or a bare national number |
 | [`OfType('string')`](../src/Validator/Rule/OfType.php) / [`OfType(PackMessage::class)`](../src/Validator/Rule/OfType.php) | A value of that type, mostly for list entries through `Each` |
 
-Only [`NotBlank`](../src/Validator/Rule/NotBlank.php) checks whether a value is present.
+Only [`NotBlank`](../src/Validator/Rule/NotBlank.php) and [`NotEmptyList`](../src/Validator/Rule/NotEmptyList.php) reject a missing value.
 Format rules pass on null, so the same postcode rule can be optional in one message and required
 in another. [`Email`](../src/Validator/Rule/Email.php) and [`PhoneNumber`](../src/Validator/Rule/PhoneNumber.php) are loose. They only reject values that are
 clearly wrong, because a stricter check would refuse recipients the carrier can deliver to.
 
 [`Iban`](../src/Validator/Rule/Iban.php) is stricter. It fully verifies the check digits, because the field decides where collected
-money is paid out and a typo would send it to the wrong account. A country that isn't in its
-registry is skipped, not rejected, so an account the bank accepts isn't refused just because the
-registry is behind.
+money is paid out and a typo would send it to the wrong account. For a country that isn't in its
+registry only the check digits are verified, so an account the bank accepts isn't refused just
+because the registry is behind. With `foreign: false` it accepts only accounts of its `country`; the
+cash-on-delivery account uses that, because the API takes only Polish accounts there.
 
 ### Structural rules (on a property)
 
@@ -198,8 +199,8 @@ Some rules need more logic than an attribute can hold, and a message names the c
 them with `#[ValidatedBy]`. An order address is the typical case. A sender must have an email
 address and a recipient doesn't have to. A recipient collecting from a pickup point needs no street
 address at all. Which fields are required depends on the *role* of the address in the order, which
-the address itself doesn't know. Placing an order, registering a payment and checking a coupon
-against an order have rules of this kind too.
+the address itself doesn't know. Registering a payment and checking a coupon against an order have
+rules of this kind too.
 
 The message names its validators, and a validator doesn't name its messages, so the link is
 declared in one place only. To write one, see [Add rules of your own](#3-add-rules-of-your-own).
@@ -265,7 +266,6 @@ that extends it:
 
 ```php
 use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Validator\AttributeValidator;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 $validator = DefaultValidatorRegistryFactory::create()
@@ -328,7 +328,7 @@ Where validation happens
 
 In [`AbstractService`](../src/Service/AbstractService.php), before the request is built, for every service method that takes a payload.
 Methods without a message have nothing to check. A service of your own passed to the client
-through `services:` gets this behaviour only if it extends [`AbstractService`](../src/Service/AbstractService.php).
+through `services:` gets this behaviour if it extends [`AbstractService`](../src/Service/AbstractService.php).
 
 Testing against the rules
 -------------------------

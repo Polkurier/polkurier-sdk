@@ -58,7 +58,7 @@ enum ApiMethodEnum: string implements ApiMethodInterface
     case SaveAddress = 'save_address';
     case DeleteAddress = 'delete_address';
 
-    // BankAccountsServiceInterface: accounts cash on delivery is settled to
+    // BankAccountsServiceInterface: bank accounts money box payouts can be sent to
     case GetBankAccounts = 'get_bank_accounts';
     case SaveBankAccount = 'save_bank_account';
     case DeleteBankAccount = 'delete_bank_account';

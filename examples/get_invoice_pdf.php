@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * get_invoice_pdf — download one invoice as a PDF.
+ * get_invoice_pdf — download one invoice or correction as a PDF.
  *
  * The number comes from get_invoices. The payload carries the file base64-encoded along with the
  * name to save it under.

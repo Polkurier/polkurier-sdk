@@ -18,7 +18,7 @@ enum TicketAuthorEnum: string
     case Customer = 'CUSTOMER';
 
     /**
-     * Written by Polkurier in reply.
+     * Written by Polkurier in reply. Every ACTION entry carries it, whoever took the action.
      */
     case Employee = 'EMPLOYEE';
 }

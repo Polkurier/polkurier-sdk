@@ -606,7 +606,7 @@ abstract class AbstractService
      * enabled.
      *
      * The SDK reads such a value as null, or leaves it out of a list, so the call still succeeds.
-     * The warning says which field to look at, and that this version of the SDK needs a new case.
+     * The warning names the enum, the value and where in the response it was.
      *
      * @param ApiMethodInterface $apiMethod
      * @param ResponseWrapper $responseWrapper

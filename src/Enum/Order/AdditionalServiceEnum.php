@@ -20,10 +20,10 @@ namespace Polkurier\Webservice\Enum\Order;
  * The recipient SMS notifications come in 2 independent kinds: one when the parcel is dispatched
  * and one when it goes out for delivery. You can order either or both. Each has a variant sent
  * under the account's default SMS sender name. The named variant replaces the plain one, so an
- * order has one or the other. If the account has no default sender name, the order is refused with PARAMS_NOT_SET.
- * If you order the named dispatch notification, an out-for-delivery notification you also ordered
- * is sent under that name too. It doesn't work the other way round. Not every UPS service supports
- * SMS notifications.
+ * order has one or the other. If the account has no default sender name, the order is refused
+ * with PARAMS_NOT_SET. If you order the named dispatch notification, an out-for-delivery
+ * notification you also ordered is sent under that name too. It doesn't work the other way round.
+ * Not every UPS service supports SMS notifications.
  */
 enum AdditionalServiceEnum: string
 {
@@ -90,7 +90,7 @@ enum AdditionalServiceEnum: string
 
     /**
      * Prints an alternative sender address on the label. Requires a cover
-     * address on the order.
+     * address on the order, and sending one orders this service too.
      */
     case CoverSenderAddress = 'COVER_ADDRESS_SENDER';
 
@@ -120,14 +120,12 @@ enum AdditionalServiceEnum: string
     case DeliveryByTime = 'DELIVERY_TO_TIME';
 
     /**
-     * Handed over to a person at the delivery address. The parcel can't be left
-     * unattended, but anyone there may accept it.
+     * Orders the same service as DeliveryToOwnHands.
      */
     case HandDelivery = 'HAND_DELIVERY';
 
     /**
-     * Handed to the addressee in person, after an identity check. Stricter than
-     * HandDelivery, which anyone at the address may accept.
+     * Handed to the addressee in person. HandDelivery orders the same service.
      */
     case DeliveryToOwnHands = 'DOSTAWA_DO_RAK_WLASNYCH';
 

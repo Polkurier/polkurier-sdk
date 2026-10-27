@@ -22,7 +22,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
  *
  * An event is a form-encoded POST with the fields `type`, `data` (the order) and `hash`. Check it
  * with {@see self::isAuthentic()} against the secret the panel gives for the webhook, then read it
- * with {@see self::read()}. Answer with HTTP 200 and {@see self::ACKNOWLEDGEMENT} as the body.
+ * with {@see self::read()}. Answer within 30 seconds with HTTP 200 and {@see self::ACKNOWLEDGEMENT}
+ * as the body.
  *
  * Both take the request body as it came, e.g. `file_get_contents('php://input')`, rather than
  * `$_POST`. A large order has more fields than PHP's `max_input_vars` lets `$_POST` hold.

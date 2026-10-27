@@ -49,7 +49,7 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     protected const string FORMAT = 'json';
 
     /**
-     * Response format for the 2 endpoints whose answer has no fixed shape.
+     * Response format for an answer with no fixed shape.
      *
      * The decoded payload is returned as is.
      */

@@ -16,9 +16,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The net and gross prices are the totals the order would be charged, with the promotion and the
  * rebate already taken off. The promotion and rebate amounts only say how much that saved.
  *
- * A price means something only when {@see self::isShipment()} is true: a carrier that can't carry
- * the shipment is quoted at 0. A conditional price of 0 likewise means no conditional offer
- * applies, not that the order is free.
+ * A price means something only when {@see self::isShipment()} is true: a carrier priced on its own
+ * that can't carry the shipment is quoted at 0. A conditional price of 0 likewise means no
+ * conditional offer applies, not that the order is free.
  */
 readonly class ValuationMessage implements MessageInterface
 {
@@ -54,8 +54,9 @@ readonly class ValuationMessage implements MessageInterface
      * @param float $rebateGross rebate already taken off the gross price
      * @param bool $shipment whether the carrier can carry this shipment. When false, the prices
      *        are 0 and mean nothing
-     * @param bool $available whether the carrier is available to the account
-     * @param string $unavailableMessage why the carrier isn't available, empty otherwise
+     * @param bool $available whether the account can use the carrier for this order
+     * @param string $unavailableMessage why the account can't use the carrier, possibly with HTML
+     *        markup, empty otherwise
      */
     public function __construct(
         /**
@@ -226,7 +227,7 @@ readonly class ValuationMessage implements MessageInterface
     }
 
     /**
-     * @return bool whether the carrier is available to the account
+     * @return bool whether the account can use the carrier for this order
      */
     public function isAvailable(): bool
     {
@@ -234,7 +235,8 @@ readonly class ValuationMessage implements MessageInterface
     }
 
     /**
-     * @return string why the carrier isn't available, empty otherwise
+     * @return string why the account can't use the carrier, possibly with HTML markup, empty
+     *         otherwise
      */
     public function getUnavailableMessage(): string
     {

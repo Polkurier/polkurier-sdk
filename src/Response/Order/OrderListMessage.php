@@ -13,8 +13,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One page of the order list.
- *
- * @see OrderListMessage
  */
 readonly class OrderListMessage extends PagedListMessage
 {

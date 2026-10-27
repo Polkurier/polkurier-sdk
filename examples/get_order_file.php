@@ -6,9 +6,8 @@
 /**
  * get_order_file — download a file attached to an order.
  *
- * Customs paperwork, proofs of delivery, and anything else the carrier has filed against the
- * consignment. The file names come from the order itself, so read the order first rather than
- * guessing them.
+ * Documents attached to the order besides its label and protocol, such as customs paperwork or a
+ * proof of delivery. Get the file names from get_orders, by order number or with files turned on.
  */
 declare(strict_types=1);
 

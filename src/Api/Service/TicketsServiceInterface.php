@@ -36,20 +36,21 @@ use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
  * getContactTopics() to find the topic and createTicket() to open the ticket. Then use
  * getTicketMessages() to read the thread and createTicketMessage() to reply.
  *
- * Attachments are sent inline as base64. There is no separate upload. `get_system_info` reports
- * the size and count limits under `tickets`.
+ * Attachments are sent inline as base64. `get_system_info` reports the size and count limits
+ * under `tickets`.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface TicketsServiceInterface
 {
     /**
-     * Lists the topics a ticket can be opened under.
+     * Lists the topics a ticket or a contact form can be opened under.
      *
-     * The topics form a shallow tree, given by each topic's parent id. Only topics with `has_form`
-     * set can take a ticket. The others just group topics.
+     * The topics form a tree, given by each topic's parent id. Which topics are listed depends on
+     * the account. `has_form` tells whether getContactForm() has a form for the topic, and
+     * `content` is an HTML fragment.
      *
      * Each topic lists suggested help articles and categories. You can show them to the customer
      * before they open a ticket.
@@ -73,7 +74,7 @@ interface TicketsServiceInterface
      *             "id": "fc8db0b4-acad-4f15-b2af-a066629bc002",
      *             "parent_id": null,
      *             "title": "Przesyłki",
-     *             "content": "Pytania dotyczące nadanych przesyłek",
+     *             "content": "<p>Pytania dotyczące nadanych przesyłek</p>",
      *             "has_form": true,
      *             "knowledge_base_articles": [
      *                 {"id": "jak-wykonac-zrzut-ekranu", "title": "Jak wykonać zrzut ekranu?"}
@@ -106,8 +107,7 @@ interface TicketsServiceInterface
      * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API
      * accepts.
      *
-     * `origin` says which channel opened the ticket and defaults to API. A mobile client sends its
-     * own origin.
+     * `origin` is the channel that opened the ticket, API by default.
      *
      * Endpoint: `create_ticket`
      *
@@ -117,7 +117,7 @@ interface TicketsServiceInterface
      *     "apimethod": "create_ticket",
      *     "authorization": {"login": "12345", "token": "…"},
      *     "data": {
-     *         "topic_id": "przesylki",
+     *         "topic_id": "fc8db0b4-acad-4f15-b2af-a066629bc002",
      *         "name": "Jan Kowalski",
      *         "content": "Przesyłka 12345-678 nie dotarła.",
      *         "origin": "API",
@@ -144,8 +144,9 @@ interface TicketsServiceInterface
      * `files[file]`, too many files under `files`.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
-     *  "response": "…", "validation_errors": {"content": ["…"]}}
+     *  "response": "Treść nie może być pusta [content]", "validation_errors": {"content": ["…"]}}
      * ```
+     * The content is empty and no file is attached.
      *
      * @param CreateTicketMessage $createTicketMessage
      *
@@ -170,7 +171,8 @@ interface TicketsServiceInterface
      * page.
      *
      * Otherwise tickets come back without their timeline. Use getTicketMessages() for the
-     * conversation.
+     * conversation. The list leaves out tickets closed more than 60 days ago; asking by id still
+     * finds them.
      *
      * Endpoint: `get_tickets`
      *
@@ -194,7 +196,7 @@ interface TicketsServiceInterface
      *         "result": [
      *             {
      *                 "id": "8f3c1e2a-…",
-     *                 "number": "ZG/2026/00123",
+     *                 "number": "202609-000123",
      *                 "subject": "Przesyłki",
      *                 "status": "OPENED",
      *                 "has_employee_responses": false,
@@ -210,7 +212,11 @@ interface TicketsServiceInterface
      * }
      * ```
      *
-     * An account with no tickets gets a zeroed envelope with `"result": []`.
+     * Common errors:
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono zgłoszenia"}
+     * ```
+     * Thrown when the id matches no ticket on the account.
      *
      * @param GetTicketsMessage|null $getTicketsMessage null lists the first page unfiltered
      *
@@ -339,7 +345,7 @@ interface TicketsServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono obiektu"}
      * ```
      * ```json
-     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "Zgłoszenie jest już zamknięte"}
      * ```
      * Thrown when the ticket is closed.
      *
@@ -361,9 +367,8 @@ interface TicketsServiceInterface
     /**
      * Changes a ticket's status.
      *
-     * Only CLOSED is accepted: a customer can close their own ticket, nothing more. Other statuses
-     * appear on tickets but can't be set here. Sending one gives an error that lists the accepted
-     * values.
+     * Only CLOSED is accepted. Closing adds an ACTION entry and a closing message from Polkurier to
+     * the timeline.
      *
      * Endpoint: `set_ticket_status`
      *
@@ -383,6 +388,14 @@ interface TicketsServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Błędna wartość parametru [status]. Musi zawierać się w zbiorze [CLOSED]"}
      * ```
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Nie znaleziono zgłoszenia"}
+     * ```
+     * ```json
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "Zgłoszenie jest już zamknięte"}
+     * ```
+     * Thrown when the ticket is already closed, or, with `"Nie można zamknąć zgłoszenia"`, when the
+     * customer can't close it.
      *
      * @param SetTicketStatusMessage $setTicketStatusMessage
      *
@@ -400,8 +413,8 @@ interface TicketsServiceInterface
     /**
      * Downloads one attachment from a ticket conversation.
      *
-     * An attachment is identified by its timeline entry id and its filename. A filename only has to
-     * be unique within its message. Take both values from the timeline getTicketMessages() returns.
+     * An attachment is identified by its timeline entry id and its filename. Take both values from
+     * the timeline getTicketMessages() returns.
      *
      * Attachments are stored under a new unique name, given by the timeline's `files[].name`. The
      * download needs that name; the upload name gives NOT_FOUND.
@@ -456,9 +469,9 @@ interface TicketsServiceInterface
     /**
      * Fetches the definition of a contact form.
      *
-     * Contact forms are a simpler alternative to tickets, for enquiries that aren't about a specific
-     * shipment. The definition lists the fields to render. It also has a form id and a nonce, which
-     * you must send back with the submission. Both change on every fetch.
+     * The definition lists the fields to render. It also has a form id and a nonce, which you must
+     * send back with the submission. Both change on every fetch. Depending on the topic, a
+     * submission may open a ticket on the account.
      *
      * The category is a topic id from getContactTopics(). A topic without a form, or an unknown
      * one, answers `{"has_form": false}`. A website-only form answers `has_form` and `web_only`
@@ -525,7 +538,8 @@ interface TicketsServiceInterface
     /**
      * Submits a completed contact form.
      *
-     * The form id and nonce come from the getContactForm() response, and change on every fetch.
+     * The form id and nonce come from the getContactForm() response, and change on every fetch. A
+     * nonce works once, within an hour of the fetch.
      *
      * Endpoint: `save_contact_form`
      *
@@ -568,21 +582,23 @@ interface TicketsServiceInterface
      * Show the form's auth code field and submit again with the new nonce.
      *
      * A rejected submission comes with the status in capitals, `"status": "ERROR"`, which the SDK
-     * reads like any other error. Its `validation_errors` name each answer to fix.
+     * reads like any other error. Its `validation_errors` name each answer to fix. It spends the
+     * nonce, and carries a fresh one in `nonce`.
      *
      * Common errors:
      * ```json
-     * {"status": "error", "status_code": 30, "error_code": "FORM_EXPIRED", "response": "…"}
+     * {"status": "error", "status_code": 30, "error_code": "FORM_EXPIRED", "response": "Formularz wygasł"}
      * ```
-     * Thrown when the nonce is stale. Fetch the form again and resubmit.
+     * Thrown when the nonce has expired, was already used or belongs to another form id. Fetch the
+     * form again and resubmit.
      * ```json
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Formularz nie istnieje"}
      * ```
      * Unknown category, no form, or a website-only form.
      * ```json
-     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
+     * {"status": "ERROR", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "Należy wyrazić zgodę [marketing_consent]",
-     *  "validation_errors": {"marketing_consent": ["Należy wyrazić zgodę"]}}
+     *  "validation_errors": {"marketing_consent": ["Należy wyrazić zgodę"]}, "nonce": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9…"}
      * ```
      *
      * @param SaveContactFormMessage $saveContactFormMessage

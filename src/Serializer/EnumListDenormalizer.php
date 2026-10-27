@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * collector, and runs before the array normalizer, so the list only holds enum cases. Without a
  * collector it steps aside, and an unknown value fails as usual.
  *
- * A list can also arrive as a JSON object with numeric keys, e.g. `{"1": "ROD"}`. Numeric keys are
- * dropped, so the result is a plain list either way. String keys are kept.
+ * A list can also arrive as a JSON object with numeric keys, e.g. `{"1": "ROD"}`. When every key is
+ * numeric, the keys are dropped and the result is a plain list. Otherwise the keys are kept.
  */
 class EnumListDenormalizer implements DenormalizerInterface
 {

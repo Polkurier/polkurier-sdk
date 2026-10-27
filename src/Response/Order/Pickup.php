@@ -44,7 +44,7 @@ readonly class Pickup implements MessageInterface
      * @param \DateTimeInterface|null $pickupTimeTo end of the window, as a time of day
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
-     * @param bool $multiPickup whether this collection covers several orders
+     * @param bool $multiPickup whether the order was placed for a collective pickup
      * @param string|null $pickupNumber the carrier's reference for the booked collection
      */
     public function __construct(
@@ -131,7 +131,7 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * Whether this collection covers several orders at once.
+     * Whether the order was placed for a collective pickup.
      *
      * @return bool
      */

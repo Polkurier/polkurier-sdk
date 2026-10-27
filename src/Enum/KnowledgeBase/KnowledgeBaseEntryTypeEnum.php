@@ -18,7 +18,7 @@ enum KnowledgeBaseEntryTypeEnum: string
     case Article = 'ARTICLE';
 
     /**
-     * A group of other entries. Fetching it as an article returns nothing.
+     * A group of other entries. The article endpoint answers its slug with NOT_FOUND.
      */
     case Category = 'CATEGORY';
 }

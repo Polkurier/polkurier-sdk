@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Creates a support ticket.
  *
- * A topic id from {@see
+ * Takes a topic id from {@see
  * \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()}; an unknown one
  * files the ticket under a general subject.
  *
@@ -41,7 +41,7 @@ readonly class CreateTicketMessage implements MessageInterface
     /**
      * @param string $topicId a topic id from getContactTopics()
      * @param string $content the message body, may be empty when files are attached
-     * @param string $name the sender's name, where it differs from the account holder
+     * @param string $name the sender's name
      * @param ?TicketOriginEnum $origin which channel created it, defaults to API
      * @param TicketAttachmentMessage[] $files attachments, up to 5
      */

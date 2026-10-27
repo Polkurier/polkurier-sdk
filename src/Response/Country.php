@@ -91,7 +91,7 @@ readonly class Country implements MessageInterface
     }
 
     /**
-     * @return bool
+     * @return bool true for Poland only
      */
     public function isDefault(): bool
     {

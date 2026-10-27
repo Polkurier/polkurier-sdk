@@ -13,7 +13,8 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Keeps the HTTP response to the last call, and the enum values in it that the SDK doesn't know.
  *
- * The services share one instance, so it always reflects the last call made through any of them.
+ * The services the facade builds share one instance, so it reflects the last call made through any
+ * of them.
  * Each call clears it before sending.
  */
 class LastResponseHolder

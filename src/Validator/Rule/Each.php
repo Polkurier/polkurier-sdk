@@ -27,8 +27,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * private array $orderNo;
  * ```
  *
- * The rule is given as a class name and built without arguments. A rule that needs arguments, or
- * depends on another field, has to go in a message validator.
+ * A rule that depends on another field has to go in a class-level rule or a message validator.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Each

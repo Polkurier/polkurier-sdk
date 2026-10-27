@@ -11,8 +11,8 @@ namespace Polkurier\Webservice\Api;
 /**
  * Supplies the SDK configuration to everything that needs it.
  *
- * Lets you load configuration lazily (per tenant, per request, or from a container) when it is
- * first needed.
+ * It is asked on every call, so it can load the configuration lazily, e.g. from a container, or
+ * return a different one per tenant or per request.
  */
 interface ConfigProviderInterface
 {

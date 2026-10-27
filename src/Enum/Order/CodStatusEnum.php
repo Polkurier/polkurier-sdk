@@ -13,12 +13,12 @@ namespace Polkurier\Webservice\Enum\Order;
 enum CodStatusEnum: string
 {
     /**
-     * Not yet collected from the recipient.
+     * Waiting for collection or settlement, before any of the states below.
      */
     case Waiting = 'WAITING';
 
     /**
-     * Collected and on its way from the carrier to Polkurier.
+     * The shipment is in transit, so the amount isn't collected yet.
      */
     case InTransit = 'IN_TRANSIT';
 
@@ -28,7 +28,7 @@ enum CodStatusEnum: string
     case MoneyBox = 'MONEY_BOX';
 
     /**
-     * Payout to the customer has been initiated.
+     * Due to be paid out to the customer.
      */
     case PaymentPending = 'PAYMENT_PENDING';
 
@@ -43,7 +43,7 @@ enum CodStatusEnum: string
     case Paid = 'PAID';
 
     /**
-     * Closed. No further changes expected.
+     * Settled with nothing left to pay out to the customer.
      */
     case Settled = 'SETTLED';
 }

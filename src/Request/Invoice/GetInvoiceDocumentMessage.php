@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Identifies the invoice to download as a PDF.
+ * Identifies the invoice or correction to download as a PDF.
  *
  * Use the number as printed on the document, slashes included.
  */
@@ -25,7 +25,7 @@ readonly class GetInvoiceDocumentMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $number the invoice number
+     * @param string $number the invoice or correction number
      */
     public function __construct(
         /**

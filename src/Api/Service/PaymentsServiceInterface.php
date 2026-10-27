@@ -23,35 +23,35 @@ use Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage;
 /**
  * Online payments and the prepaid balance.
  *
- * Paying takes two steps. Register the payment here to get a provider token and send the customer
- * to the provider's hosted page with it. Then check the outcome with getPaymentInfo().
+ * Paying takes two steps. Register the payment here to get a transaction id and an access token,
+ * which together open the payment page for the customer. Then check the outcome with
+ * getPaymentInfo().
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
- * `status_code` and `error_code` are both optional: an error may have both, one or neither. With
- * the default configuration the SDK throws these as exceptions.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
+ * throws these as exceptions. Each method lists the ones it can throw.
  */
 interface PaymentsServiceInterface
 {
     /**
      * Registers an online payment and returns the token needed to complete it.
      *
-     * Registering reserves a transaction with the payment provider. The customer pays in the
-     * provider's flow, using the returned access token.
-     *
      * The mode sets what is being paid for and whether the customer chooses the amount. Modes that
      * settle an existing debt charge what is owed, so send an amount only for a prepaid top-up. There
      * it is required and must be greater than zero. The SDK checks this before sending.
      *
      * Invoice and order payments need their list of numbers; the SDK checks it. Numbers with
-     * nothing to pay are skipped; if none is left, PARAMETER_INVALID.
+     * nothing to pay are skipped; if none is left, PARAMETER_INVALID. A balance payment covers every
+     * unpaid invoice.
      *
      * An order payment spends the prepaid balance first; if that covers it, the orders are paid at
-     * once (state DONE). Other modes move no money when registering.
+     * once (state DONE) and there is nothing left to pay online. Other modes move no money when
+     * registering.
      *
      * The verification mode fails with UNKNOWN_ERROR; use {@see
      * \Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface::register()}.
      *
-     * The transaction id is what looks the payment up later.
+     * The transaction id looks the payment up later with getPaymentInfo().
      *
      * Endpoint: `register_payment`
      *
@@ -99,7 +99,13 @@ interface PaymentsServiceInterface
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Brak zamówień do opłacenia"}
      * ```
-     * Nothing to pay among the listed invoices or orders.
+     * Nothing to pay among the listed invoices or orders, or no unpaid invoice for a balance
+     * payment.
+     * ```json
+     * {"status": "error", "status_code": 25, "error_code": "PARAMETER_OUT_OF_RANGE",
+     *  "response": "Minimalna wartość przedpłaty to …"}
+     * ```
+     * A top-up below the minimum, which the message names.
      * ```json
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
      *  "response": "Przed dokonaniem płatności należy uzupełnić dane płatnika"}
@@ -183,8 +189,8 @@ interface PaymentsServiceInterface
      * The description is "Doładowanie konta" for a positive amount, "Pobranie środków z konta"
      * otherwise, sometimes followed by a note.
      *
-     * Paging works like the invoice list. There is no `totalpages` either, so work out the last page
-     * from the total and the page size.
+     * Newest first. Page size defaults to 100 and is capped at 250. As in the invoice list, there is
+     * no `totalpages`, so work out the last page from the total and the page size.
      *
      * Endpoint: `get_prepaid_history`
      *
@@ -215,7 +221,7 @@ interface PaymentsServiceInterface
      * }
      * ```
      *
-     * An account that has never used prepaid gets a zeroed envelope with `"result": []`.
+     * An account that has never used prepaid gets `"totalrows": 0` and `"result": []`.
      *
      * @param GetPrepaidHistoryMessage|null $getPrepaidHistoryMessage null fetches the first page
      *

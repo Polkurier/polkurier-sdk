@@ -16,11 +16,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * {@see self::isValid()} says the coupon exists and the account may use it.
  * {@see self::isValidForOrder()} says it also applies to the order sent with the request. When no
- * order was sent, the second is always false. That means there was no order, not that a check
- * failed.
+ * order was sent, the second is always false.
  *
- * For a code that does not exist, every descriptive field is null, so check validity before reading
- * them.
+ * For a code that does not exist, the descriptive fields are null and the description is empty.
  */
 readonly class CouponValidationMessage implements MessageInterface
 {
@@ -43,12 +41,13 @@ readonly class CouponValidationMessage implements MessageInterface
      * @param string $code the code without whitespace and symbols
      * @param bool $valid the coupon exists and this account may use it
      * @param bool $validForOrder it also applies to the order sent with the request
-     * @param string|null $type discount type, e.g. a fixed amount or a percentage
+     * @param string|null $type `VALUE` (an amount off), `PERCENT` or `STATIC` (a fixed price)
      * @param float|null $value the discount's face value
      * @param float|null $valueUsed how much of it has already been spent
-     * @param string|null $usageType whether it may be used once or repeatedly
-     * @param string[]|null $couriers carrier codes it is restricted to. Empty means any carrier,
-     *                                null means the coupon does not exist
+     * @param string|null $usageType `SINGLE` or `MULTI`. A `MULTI` code can be used once per
+     *                               customer
+     * @param string[]|null $couriers carrier codes it is restricted to, null when it is not
+     *                                restricted to any carrier or does not exist
      * @param \DateTimeInterface|null $validTo expiry date, or null if it does not expire
      * @param string $description human-readable summary of the terms, in Polish
      */
@@ -100,8 +99,6 @@ readonly class CouponValidationMessage implements MessageInterface
         private ?string $usageType = null,
 
         /**
-         * Null, not an empty list, when the coupon does not exist. Check it before iterating.
-         *
          * @var string[]|null
          */
         #[Serializer\SerializedName(self::FIELD_COURIERS)]

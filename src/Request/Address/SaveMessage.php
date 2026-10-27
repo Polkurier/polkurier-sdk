@@ -20,14 +20,14 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * entry is listed under and is always required. Each entry has one role, so a place used as both
  * sender and recipient is 2 entries with 2 ids.
  *
- * Put the house and flat numbers in their own fields, not at the end of the street. Some carriers
- * validate them.
+ * Put the house and flat numbers in their own fields, not at the end of the street. The API
+ * validates the house number on its own.
  *
- * `default` is for senders only: it makes this the preselected sender.
+ * `default` is for senders only: it makes this the preselected sender, or the preselected
+ * alternative return address.
  *
- * Some fields are read-only and cannot be set here: the parsed street name, the resolved pickup
- * point and whether the entry is shared. They are reported on
- * {@see \Polkurier\Webservice\Response\Address}.
+ * Whether the entry is shared can't be set here; {@see \Polkurier\Webservice\Response\Address}
+ * reports it.
  */
 #[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
 readonly class SaveMessage implements MessageInterface
@@ -72,9 +72,9 @@ readonly class SaveMessage implements MessageInterface
      * @param string|null $flatNumber
      * @param string|null $province
      * @param string $country ISO 3166-1 alpha-2
-     * @param string|null $pointId a pickup point this entry stands for
+     * @param string|null $pointId a pickup point this entry stands for; stored for recipients only
      * @param bool $default make this the preselected sender; send it only for a sender
-     * @param bool $coverAddress whether the entry may be used as a return address
+     * @param bool $coverAddress the sender is an alternative return address
      */
     public function __construct(
         /**

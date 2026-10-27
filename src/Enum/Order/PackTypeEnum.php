@@ -10,8 +10,7 @@ namespace Polkurier\Webservice\Enum\Order;
 /**
  * The type of an individual parcel within an order.
  *
- * Carriers differ in which types they accept and how they price them. `available_carriers` lists
- * the supported types per carrier. Use a value from this enum.
+ * Carriers differ in which types they accept and how they price them.
  */
 enum PackTypeEnum: string
 {

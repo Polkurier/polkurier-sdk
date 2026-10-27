@@ -14,8 +14,9 @@ use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 /**
  * Assembles a sender or recipient address on an order.
  *
- * Which fields are required depends on whether this is the sender or the recipient, and on whether
- * the parcel is going to a pickup point.
+ * build() needs every setter marked required, but accepts an empty string. Which fields must be
+ * filled in depends on whether this is the sender or the recipient, and on whether the parcel is
+ * going to a pickup point.
  */
 class OrderAddressMessageBuilder extends AbstractBuilder
 {
@@ -100,7 +101,7 @@ class OrderAddressMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param string|null $flatNumber
+     * @param string|null $flatNumber joined to the house number as `N/M`; set both
      *
      * @return static
      */

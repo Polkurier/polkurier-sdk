@@ -38,7 +38,7 @@ readonly class OrderFileMessage implements MessageInterface
      * @param string $type media type
      * @param int $size size in bytes
      * @param string $hash content hash, stable across downloads
-     * @param ?\DateTimeInterface $dateCreated when the document was attached
+     * @param ?\DateTimeInterface $dateCreated when the document was attached, null if unknown
      * @param string $file base64-encoded contents
      */
     public function __construct(

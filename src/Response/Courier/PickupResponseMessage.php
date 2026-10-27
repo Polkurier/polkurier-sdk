@@ -13,8 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Whether a carrier can collect on the requested day, and the windows it offers.
  *
- * Carriers that do not report time windows return an empty list even when they accept the date. An
- * empty list is not a refusal.
+ * Carriers that do not report time windows return an empty list even when they accept the date.
  */
 readonly class PickupResponseMessage implements MessageInterface
 {

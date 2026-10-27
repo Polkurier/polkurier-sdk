@@ -11,10 +11,9 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 /**
- * Assembles a collection request that is not tied to an order.
+ * Assembles a check of whether a carrier can collect on one day. Nothing is booked.
  *
- * The date and the shipment type are optional. Which of them a carrier needs varies, and
- * available_carriers tells you.
+ * The date is optional, and today is checked without it.
  */
 class PickupMessageBuilder extends GetPickupTimeMessageBuilder
 {

@@ -46,7 +46,7 @@ int.
 The API answers HTTP 200 for everything, so an error case is still a 200:
 
 ```php
-$http = new RecordingClient('{"status":"error","response":"Invalid auth data","status_code":401,"error_code":"INVALID_AUTH_DATA"}');
+$http = new RecordingClient('{"status":"error","status_code":7,"error_code":"ERROR_AUTH_DATA","response":"Błąd autoryzacji"}');
 
 $this->expectException(AuthorizationException::class);
 

@@ -30,7 +30,7 @@ class RequiredWith implements MessageRuleInterface
     /**
      * @param string $field the property that becomes mandatory
      * @param string $with the property whose being set makes $field mandatory
-     * @param string|null $because appended to the report, to say why it was needed
+     * @param string|null $because the report's wording, in place of the default
      */
     public function __construct(
         /**

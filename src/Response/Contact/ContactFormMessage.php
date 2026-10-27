@@ -14,7 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The contact form for a topic, as fetched to be shown and submitted.
  *
  * Submit it with {@see \Polkurier\Webservice\Request\Contact\SaveContactFormMessage}, quoting this
- * form's id and nonce. Both change on every fetch, so fetch the form just before showing it.
+ * form's id and nonce. Both change on every fetch. The nonce works once, within an hour, so fetch
+ * the form just before showing it.
  *
  * A topic without a form gives one with {@see self::hasForm()} false and nothing else. A form that
  * can only be filled in on the Polkurier website has {@see self::isWebOnly()} set, no fields, and

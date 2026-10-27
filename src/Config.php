@@ -15,7 +15,7 @@ use Polkurier\Webservice\Http\Request\AuthorizationMessage;
  * How the SDK should talk to the API.
  *
  * Only the credentials and the platform name and version are required. Everything else has a
- * default. The platform name and version identify your integration, e.g. to support, so use
+ * default. The platform name and version go into the `User-Agent` header of every request, so use
  * something stable and recognisable.
  *
  * Endpoint: if apiUrl is set, it is used. Otherwise the sandbox flag picks the sandbox or the
@@ -62,7 +62,7 @@ readonly class Config implements ConfigInterface
         protected string $platformVersion,
 
         /**
-         * @var string
+         * @var string|null
          */
         protected ?string $apiUrl = null,
 

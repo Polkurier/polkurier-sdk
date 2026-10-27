@@ -14,9 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Narrows a carrier listing.
  *
- * Requesting the additional data makes the response much larger (it includes every service, pack
- * type and pickup rule per carrier). Ask for it when building a shipping form, not on every page
- * load.
+ * Requesting the additional data makes the response much larger (it includes every service,
+ * shipment type and pickup rule per carrier). Ask for it when building a shipping form, not on every
+ * page load.
  */
 readonly class AvailableCarriersMessage implements MessageInterface
 {
@@ -28,8 +28,7 @@ readonly class AvailableCarriersMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param bool|null $additionalData also describe what each carrier supports. Makes the response
-     *        several times larger
+     * @param bool|null $additionalData also describe what each carrier supports
      * @param string|null $returnCarrier list only this carrier, by its service code
      */
     public function __construct(

@@ -1,8 +1,8 @@
 Shopware 6
 ==========
 
-For Shopware 6.5 and 6.6, as a plugin. Shopware runs on Symfony, so most of
-[the Symfony page](symfony.md) applies here too.
+For Shopware 6.5.8, 6.6.10.12 and 6.7.7 or later, as a plugin. Shopware runs on Symfony, so most
+of [the Symfony page](symfony.md) applies here too.
 
 The plugin
 ----------
@@ -25,7 +25,7 @@ custom/plugins/PolkurierShipping/
     "name": "your-vendor/polkurier-shipping",
     "type": "shopware-platform-plugin",
     "require": {
-        "shopware/core": "~6.6.0",
+        "shopware/core": "~6.6.10.12 || ~6.7.7",
         "polkurier/polkurier-sdk": "^2.0"
     },
     "extra": {
@@ -37,8 +37,8 @@ custom/plugins/PolkurierShipping/
 ```
 
 Shopware merges plugin dependencies into the project's Composer tree, so nothing needs prefixing.
-The SDK's Symfony components accept 6.4, 7.4 and 8.x, which covers both Shopware 6.5 (Symfony 6.4)
-and 6.6 (Symfony 7.4).
+The SDK's Symfony components accept 6.4, 7.4 and 8.x. Shopware ships Symfony 6.4 from 6.5.8, and
+7.4 from 6.6.10.12 and 6.7.7; Composer refuses the SDK on earlier releases.
 
 Configuration
 -------------
@@ -199,11 +199,12 @@ Shopware loads the plugin's `Resources/config/packages/*.yaml` files.
 Sales-channel scoping
 ---------------------
 
-The SDK asks the provider for its configuration on every call, and the provider above reads the
-current sales channel. In a storefront request that is the right channel. In a **message handler or
-a scheduled task** there is no current channel at all.
+The SDK asks the provider for its configuration on every call. The provider above reads the
+settings of the sales channel it is bound to with `SalesChannelConfigProvider::forSalesChannel()`,
+and the settings for all sales channels when it is unbound. In a **message handler or a scheduled
+task** there is no current channel to bind it to.
 
-There, the client is built for each message:
+There, the client is built for each message, for the channel the message names:
 
 ```php
 <?php declare(strict_types=1);
@@ -393,7 +394,7 @@ final class SyncStatusesTask extends ScheduledTask
 ```
 
 For each sales channel, the handler builds a client and pages through [`OrdersServiceInterface::getOrders()`](../../src/Api/Service/OrdersServiceInterface.php) filtered to a
-recent date range. One paged query covers hundreds of orders, where
+recent date range. Each page covers up to 100 orders, where
 [`OrdersServiceInterface::getStatus()`](../../src/Api/Service/OrdersServiceInterface.php) would take a call per order.
 
 Caching

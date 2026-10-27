@@ -15,8 +15,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 /**
  * One invoice or invoice correction on the account.
  *
- * The unpaid value is what is still to be settled. Part payments and compensations reduce it, so it
- * can be lower than the full value. The invoice is paid when it reaches zero.
+ * The unpaid value is what is still to be settled after part payments and compensations. The
+ * invoice is paid when it reaches zero.
  *
  * A correction carries only number, value and date; its unpaid value reads as zero either way.
  *

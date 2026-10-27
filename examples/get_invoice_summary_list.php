@@ -6,9 +6,8 @@
 /**
  * get_invoice_summary_list — download the itemised breakdown behind an invoice.
  *
- * The consignments an invoice covers, as a document rather than as data — useful for
- * reconciliation when a single invoice bundles many orders. Add --csv to get it as a CSV file
- * instead of a PDF.
+ * The shipments an invoice covers — useful for reconciliation when a single invoice bundles many
+ * orders. Add --csv to get it as a CSV file instead of a PDF.
  */
 declare(strict_types=1);
 

@@ -12,7 +12,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Request\Order\CoverAddressMessage;
 
 /**
- * Assembles the alternative return address printed on a label.
+ * Assembles the alternative sender address printed on a label.
  */
 class CoverAddressMessageBuilder extends AbstractBuilder
 {
@@ -87,7 +87,7 @@ class CoverAddressMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param string|null $flatNumber
+     * @param string|null $flatNumber joined to the house number as `N/M`; set both
      *
      * @return static
      */

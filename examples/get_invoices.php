@@ -6,8 +6,7 @@
 /**
  * get_invoices — page through issued invoices.
  *
- * Invoices and corrections are separate types and are asked for separately. The response is a
- * paging envelope, so a full listing means walking the pages.
+ * Invoices and corrections are separate types and are asked for separately, one page at a time.
  */
 declare(strict_types=1);
 

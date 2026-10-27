@@ -14,10 +14,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A file attached to a new ticket or a reply.
  *
- * The API accepts a file by the extension of its name, so give it a real one: png, pdf, jpg, jpeg,
- * gif, doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, csv or txt. A refused extension is reported
- * under `files[type]`. A file can't be empty and can be up to 10 MB, or 20 MB when its media type
- * is an image. A message can carry up to 5 files.
+ * The API accepts a file by the extension of its name, one of {@see self::ALLOWED_EXTENSIONS}. A
+ * refused extension is reported under `files[type]`. A file can't be empty and can be up to 10 MB,
+ * or 20 MB when its media type is an image. A message can carry up to 5 files.
  *
  * The API stores the file under a name of its own, with a suffix added. The timeline entry's files
  * give that name, and it is the one
@@ -44,8 +43,7 @@ readonly class TicketAttachmentMessage implements MessageInterface
     /**
      * @param string $name the file name, with one of {@see self::ALLOWED_EXTENSIONS}
      * @param string $file the contents, base64-encoded
-     * @param string $type media type, e.g. `image/png`. It decides the size limit: 20 MB for an
-     *        image, 10 MB otherwise
+     * @param string $type media type, e.g. `image/png`
      */
     public function __construct(
         /**

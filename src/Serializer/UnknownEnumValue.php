@@ -15,7 +15,8 @@ readonly class UnknownEnumValue
     /**
      * @param class-string<\BackedEnum> $enum the enum the field uses
      * @param mixed $value the value as the API sent it
-     * @param string|null $path where in the payload it was, by PHP property name, e.g. `result[0].shipmentType`
+     * @param string|null $path where in the payload it was, by PHP property name, e.g.
+     *        `result[0].shipmentType`
      */
     public function __construct(
         private string $enum,

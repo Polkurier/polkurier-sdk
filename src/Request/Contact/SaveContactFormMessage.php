@@ -17,9 +17,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Take the form id and nonce from the matching
  * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactForm()} response.
- * Fetch the form again for each submission. Pass the answers in $fields, keyed by the field names
- * the form definition gives. They are sent next to the category, form id and nonce.
- * A files field takes a list of {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage}.
+ * A nonce works once, within an hour of the fetch. Pass the answers in $fields, keyed by the field
+ * names the form definition gives. They are sent next to the category, form id and nonce. A files
+ * field takes a list of {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage}.
  */
 readonly class SaveContactFormMessage implements MessageInterface
 {

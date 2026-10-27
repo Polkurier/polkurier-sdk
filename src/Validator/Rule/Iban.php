@@ -25,8 +25,8 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  *
  * Spaces and grouping don't matter.
  *
- * Countries missing from the registry below pass. New countries get added over time, and rejecting
- * an account the bank accepts would be worse.
+ * For a country missing from the registry below, only the check digits are verified. New countries
+ * get added over time, and rejecting an account the bank accepts would be worse.
  *
  * With `foreign: false`, only an account of the configured country passes.
  */

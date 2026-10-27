@@ -21,11 +21,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * An order as the API reports it, from
- * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} or after accepting
- * an individual price.
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} or in a webhook
+ * event.
  *
  * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} writes it. Parcels, items and files
- * are only filled in when the order list asked for them.
+ * are filled in when the order list asks for them or is filtered by order number. A webhook event
+ * carries parcels and items, not files.
  */
 readonly class Order implements MessageInterface
 {
@@ -81,8 +82,8 @@ readonly class Order implements MessageInterface
      * @param BaseAddress|null $sender
      * @param BaseAddress|null $recipient
      * @param Waybill[] $waybills
-     * @param Item[] $items absent from the order list unless it was asked for them
-     * @param Pack[] $packs absent from the order list unless it was asked for them
+     * @param Item[] $items empty unless included, see above
+     * @param Pack[] $packs empty unless included, see above
      * @param float $priceNet
      * @param float $priceGross
      * @param float $unpaidAmount
@@ -547,8 +548,7 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * Carrier-specific extra fields, keyed by field name. Not returned by
-     * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()}.
+     * Carrier-specific extra fields, keyed by field name.
      *
      * @return array<string, scalar>|null
      */
@@ -641,7 +641,7 @@ readonly class Order implements MessageInterface
 
     /**
      * Code the sender presents at the drop-off point. Present only for orders using the
-     * label-less shipping service.
+     * label-less shipping service, and null until the carrier issues it.
      *
      * @return string|null
      */
@@ -661,7 +661,8 @@ readonly class Order implements MessageInterface
     }
 
     /**
-     * Documents attached to the order. Returned only when the request asked for files.
+     * Documents attached to the order. Returned only when the order list asks for files or is
+     * filtered by order number.
      *
      * @return File[]|null
      */

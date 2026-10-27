@@ -28,10 +28,10 @@ try {
         couriers: $couriers,
         searchQuery: 'Poznań',
         functions: [PointFunctionEnum::Send],
-        limit: 5,
     ));
 
-    foreach ($points as $point) {
+    // A search ignores `limit`, so the first few matches are cut here.
+    foreach (\array_slice($points, 0, 5) as $point) {
         \printf("%-10s %-30s %s\n", $point->getId(), $point->getName(), $point->getAddress());
     }
 
@@ -40,8 +40,7 @@ try {
         exit(0);
     }
 
-    // The same endpoint, asked for one point. An id that matches nothing answers with null
-    // rather than an error, so the null check is the "not found" branch.
+    // The same endpoint, asked for one point. An id that matches nothing gives null.
     $one = $sdk->courier()->getCourierPoint($points[0]->getId(), $couriers);
 
     if ($one === null) {

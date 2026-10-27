@@ -16,7 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An order event Polkurier posts to the webhook address set in the Polkurier panel.
  *
  * Read it with {@see \Polkurier\Webservice\Webhook\OrderWebhookReader}. The order is in the shape
- * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} gives it.
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrders()} gives it, with
+ * parcels and items and without files.
  */
 readonly class OrderWebhookMessage implements MessageInterface
 {

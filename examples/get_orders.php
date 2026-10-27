@@ -6,8 +6,8 @@
 /**
  * get_orders — page through the order list.
  *
- * The response is always a paging envelope, even when filtering to a single order number. Page
- * size is capped at 100 and defaults to 100, so a complete listing means walking the pages.
+ * A page holds at most 100 orders, and 100 by default, so a complete listing means walking the
+ * pages.
  */
 declare(strict_types=1);
 

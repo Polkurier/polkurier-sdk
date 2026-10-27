@@ -15,8 +15,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Changes a ticket's status.
  *
- * Only {@see \Polkurier\Webservice\Enum\Ticket\TicketStatusEnum::Closed} is accepted, so you can
- * close your own ticket and nothing else. The other statuses are reported but cannot be set.
+ * Only {@see TicketStatusEnum::Closed} is accepted.
  */
 readonly class SetTicketStatusMessage implements MessageInterface
 {

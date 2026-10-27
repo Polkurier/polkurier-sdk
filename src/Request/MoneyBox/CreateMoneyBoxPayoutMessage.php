@@ -51,7 +51,8 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
     /**
      * @param string[] $orders order numbers whose cash-on-delivery amounts to pay out, empty for everything available
      * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method, ACCOUNT when left out
-     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to pay the handling fee, must be one the account can use
+     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to pay the handling fee, one of those
+     *        `get_money_box_config` lists as available
      * @param ?string $bankAccountNumber for a bank transfer, one of the account's saved bank accounts
      * @param ?string $company for a postal money order
      * @param ?string $person for a postal money order

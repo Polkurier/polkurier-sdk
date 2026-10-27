@@ -242,7 +242,8 @@ readonly class TicketMessage implements MessageInterface
     /**
      * The fixed answers the latest reply asks for; a reply must be one of them.
      *
-     * Comes only with the timeline, and only while the latest reply asks such a question.
+     * Comes only with the timeline, and only while the ticket's latest message is a reply from
+     * Polkurier that asks such a question.
      *
      * @return ?TicketResponseTemplateMessage null when there is none
      */

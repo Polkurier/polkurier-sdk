@@ -60,10 +60,6 @@ use Psr\Log\NullLogger;
 /**
  * Entry point to the Polkurier web API.
  *
- * The SDK is made of small parts: a serializer, request and response factories, an HTTP client
- * factory and one service per API area. Any of them can be replaced, and this class wires up the
- * rest:
- *
  * ```php
  * $client = new PolkurierWebservice(new Config(
  *     authorization: new AuthorizationMessage(token: 'abc…', login: '12345'),
@@ -74,8 +70,9 @@ use Psr\Log\NullLogger;
  * $carriers = $client->courier()->availableCarriers();   // Carrier[]
  * ```
  *
- * Services are created on first use and then reused. To swap a part, pass it to the constructor.
- * Anything you leave out is built from the configuration.
+ * It wires up a serializer, request and response factories, an HTTP client factory, a validator
+ * and one service per API area. Pass any of them to the constructor to replace it. Services are
+ * created on first use and then reused.
  *
  * No I/O happens until you call a service method.
  */
@@ -209,7 +206,7 @@ final class PolkurierWebservice
     }
 
     /**
-     * Bank accounts used for cash-on-delivery settlement.
+     * Bank accounts money box payouts can be sent to.
      *
      * @return BankAccountsServiceInterface
      */

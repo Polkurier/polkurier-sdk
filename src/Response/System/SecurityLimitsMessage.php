@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Rules governing the security PIN and two-factor codes.
  *
- * These are policy and can change without a new API version.
+ * These values can change without an API version bump.
  */
 readonly class SecurityLimitsMessage implements MessageInterface
 {

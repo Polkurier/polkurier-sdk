@@ -13,11 +13,11 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * The alternative sender address printed on the label, when the order uses the
- * {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum::CoverSenderAddress} service.
+ * The alternative sender address printed on the label. Sending one orders the
+ * {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum::CoverSenderAddress} service as well.
  *
  * Note the key spelling: this uses `flat_number` with an underscore, while sender and recipient
- * addresses use `flatnumber`. The API defines them that way.
+ * addresses use `flatnumber`.
  */
 readonly class CoverAddressMessage implements MessageInterface
 {
@@ -43,7 +43,7 @@ readonly class CoverAddressMessage implements MessageInterface
      * @param string|null $email
      * @param string|null $phone
      * @param string|null $company
-     * @param string|null $flatNumber
+     * @param string|null $flatNumber joined to the house number as `N/M`; set both
      * @param string|null $houseNumber
      */
     public function __construct(

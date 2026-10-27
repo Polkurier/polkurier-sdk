@@ -13,8 +13,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies a bank account to delete.
- *
- * @see DeleteBankAccountMessage
  */
 readonly class DeleteBankAccountMessage extends DeleteMessage
 {

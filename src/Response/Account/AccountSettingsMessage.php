@@ -13,8 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Preferences the customer has set in the panel.
  *
- * These are defaults for the order form. The API does not enforce them, so your own form can honour
- * them or ignore them.
+ * These are defaults for the order form. The API does not enforce them.
  */
 readonly class AccountSettingsMessage implements MessageInterface
 {

@@ -57,8 +57,8 @@ interface ConfigInterface
     public function isLoggingEnabled(): bool;
 
     /**
-     * Whether extended logging of API requests is enabled for the given method.
-     * The method is checked against @see self::getMethodsToLog()
+     * Whether the given method's requests and responses are logged in full: basic logging is on
+     * and the method is in {@see self::getMethodsToLog()}.
      *
      * @param ApiMethodInterface $apiMethod
      *
@@ -88,8 +88,8 @@ interface ConfigInterface
     /**
      * Whether personal data is logged as it is.
      *
-     * Off by default: names, street addresses, email addresses, phone numbers, tax numbers and bank
-     * account numbers are replaced with `***` in logged bodies.
+     * Off by default: names, street addresses, email addresses, phone numbers, tax and company
+     * registration numbers, and bank account numbers are replaced with `***` in logged bodies.
      *
      * @return bool
      */
