@@ -46,8 +46,8 @@ How the API works
 -----------------
 
 **The API has a single endpoint.** Every call is a `POST /` with a JSON envelope containing
-`apimethod`, `authorization` and `data`. There are no paths, HTTP verbs or status codes to deal
-with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
+`apimethod`, plus `authorization` and `data` when the call has them. There are no paths, HTTP
+verbs or status codes to deal with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
 unwraps the envelope.
 
 **The API returns HTTP 200 for everything**, including a bad token and a rejected payload. The SDK

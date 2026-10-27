@@ -65,7 +65,7 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
      * @param float $feeVatRate
      * @param string $feePaymentType how the fee is being settled
      * @param string $feePaymentStatus whether the fee has been paid
-     * @param string $status where the payout has got to
+     * @param string $status PENDING while part of the amount is still to be paid out, PAID once none is
      * @param float $amount total requested, in PLN
      * @param float $toPayAmount still to be paid out
      * @param float $paidAmount already paid out
@@ -329,7 +329,7 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
     }
 
     /**
-     * @return string
+     * @return string PENDING or PAID
      */
     public function getStatus(): string
     {

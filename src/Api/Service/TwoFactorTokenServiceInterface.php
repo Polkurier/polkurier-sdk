@@ -47,8 +47,17 @@ interface TwoFactorTokenServiceInterface
      * The token is bound to the namespace you register it under, and only that operation accepts
      * it. A token for a bank account change can't be used for anything else.
      *
-     * The code is sent as part of this call. If it can't be delivered, you get an error, so a
-     * successful response means the code was sent.
+     * The code goes to the first channel the namespace takes: authenticator app, text message to
+     * the default phone, e-mail. Only LOGIN takes e-mail; ENABLE_TWO_FACTOR_LOGIN,
+     * DISABLE_TWO_FACTOR_LOGIN, CREATE_TWO_FACTOR_TRANSPORT_METHOD and
+     * DELETE_TWO_FACTOR_TRANSPORT_METHOD take text messages only. With an authenticator app nothing
+     * is sent.
+     *
+     * Success means the code was sent, or is ready in the authenticator app. With no usable
+     * channel, e.g. no default phone that takes text messages, the call fails with
+     * TWO_FACTOR_NO_VALID_SMS_PHONE_NUMBER_EXCEPTION.
+     *
+     * At most 10 active tokens per account; the next fails with TWO_FACTOR_MAX_TOKENS_EXCEEDED.
      *
      * The response has the token id (pass it when verifying), the expiry time, and the delivery
      * channels available to this customer. twoFactorTokenChangeTransportMethod() picks from those
@@ -72,14 +81,14 @@ interface TwoFactorTokenServiceInterface
      *     "response": {
      *         "id": "8f3c1e2a-…",
      *         "phone_number": "***600700",
-     *         "transport_method": {"id": "…", "name": "SMS", "type": "SMS", "description": "",
+     *         "transport_method": {"id": "…", "name": "*** *** 700", "type": "SMS", "description": "",
      *                              "type_name": "SMS"},
      *         "operation_title": "Zmiana numeru konta bankowego",
      *         "operation_number": 1,
      *         "operation_date": "2026-09-23T09:10:13+02:00",
      *         "sent_at": "2026-09-23T09:10:13+02:00",
-     *         "expires_at": "2026-09-23T09:25:13+02:00",
-     *         "available_methods": [{"id": "…", "name": "SMS", "type": "SMS", "description": "",
+     *         "expires_at": "2026-09-23T09:13:13+02:00",
+     *         "available_methods": [{"id": "…", "name": "*** *** 700", "type": "SMS", "description": "",
      *                                "type_name": "SMS"}]
      *     }
      * }
@@ -91,9 +100,13 @@ interface TwoFactorTokenServiceInterface
      *  "response": "Brak parametru lub błędna wartość parametru: [namespace]"}
      * ```
      * ```json
-     * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
+     * {"status": "error", "status_code": 506006, "error_code": "TWO_FACTOR_MAX_TOKENS_EXCEEDED",
+     *  "response": "Przekroczono maksymalną ilość aktywnych sesji weryfikacji dwuskładnikowej."}
      * ```
-     * Thrown when a code was sent too recently. `get_system_info` reports the resend window.
+     * ```json
+     * {"status": "error", "status_code": 506012, "error_code": "TWO_FACTOR_NO_VALID_SMS_PHONE_NUMBER_EXCEPTION",
+     *  "response": "Brak domyślnego numeru telefonu lub numer nie jest numerem krajowej sieci mobilnej. Aby dodać domyślny numer dla weryfikacji dwuskładnikowej skontaktuj się z BOK"}
+     * ```
      *
      * @param RegisterMessage $registerMessage
      *
@@ -125,11 +138,20 @@ interface TwoFactorTokenServiceInterface
      * }
      * ```
      *
-     * Response: the same token object that registration returned, with a new `sent_at`.
+     * Response: the token, with a new `sent_at` and the same `expires_at`.
      *
      * Common errors:
      * ```json
-     * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
+     * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT",
+     *  "response": "Kod został już wysłany. Odczekaj 60 sekund i spróbuj ponownie."}
+     * ```
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
+     *  "response": "Błędny token sesji lub sesja wygasła"}
+     * ```
+     * ```json
+     * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
+     *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
      *
      * @param TokenMessage $tokenMessage
@@ -201,8 +223,7 @@ interface TwoFactorTokenServiceInterface
      * For a customer who can't receive the code on the first channel. The token returned by
      * registration lists their channels under `available_methods`.
      *
-     * Switching resends the code on the new channel, so the same throttle as twoFactorTokenResend()
-     * applies.
+     * The code goes out on the new channel at once; the resend window doesn't apply.
      *
      * Endpoint: `two_factor_token_change_transport_method`
      *
@@ -222,9 +243,13 @@ interface TwoFactorTokenServiceInterface
      * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
      *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
+     * An empty `method` gives the same error.
      * ```json
-     * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
+     *  "response": "Nieznana metoda uwierzytelnienia"}
      * ```
+     * The method isn't one of the customer's channels. An unknown token gives NOT_FOUND "Błędny
+     * token sesji lub sesja wygasła".
      *
      * @param ChangeTransportMethodMessage $changeTransportMethodMessage
      *

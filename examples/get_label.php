@@ -7,7 +7,7 @@
  * get_label — download shipping labels as a PDF.
  *
  * Several order numbers can be requested at once; the API returns one PDF containing all of their
- * labels. get_protocol works identically for the handover protocol.
+ * labels. get_protocol takes the same request for the handover protocol.
  */
 declare(strict_types=1);
 

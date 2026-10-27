@@ -161,6 +161,20 @@ final class TypedResponseTest extends TestCase
         self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->getHref());
     }
 
+    public function testAWebOnlyFormReadsWithNothingButItsAddress(): void
+    {
+        $form = self::read(ContactFormMessage::class, [
+            'has_form' => true, 'web_only' => true, 'href' => 'https://www.polkurier.pl/kontakt/abc',
+        ], strict: true);
+
+        self::assertInstanceOf(ContactFormMessage::class, $form);
+        self::assertTrue($form->hasForm());
+        self::assertTrue($form->isWebOnly());
+        self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->getHref());
+        self::assertSame([], $form->getFields());
+        self::assertSame('', $form->getNonce());
+    }
+
     public function testATopicReadsItsHelpLinks(): void
     {
         $topics = self::read(ContactTopicMessage::class . '[]', [[

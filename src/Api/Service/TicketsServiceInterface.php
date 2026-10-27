@@ -59,8 +59,7 @@ interface TicketsServiceInterface
      * ```json
      * {
      *     "apimethod": "get_contact_topics",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -99,8 +98,8 @@ interface TicketsServiceInterface
     /**
      * Raises a support ticket.
      *
-     * The topic must come from getContactTopics() and have `has_form` set. Any other topic is
-     * rejected.
+     * Send a topic id from getContactTopics(). An id that matches no topic files the ticket under a
+     * general subject.
      *
      * Attachments go inline as a list of files, each with its name, media type and base64 contents.
      * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API
@@ -133,7 +132,7 @@ interface TicketsServiceInterface
      * Common errors:
      * ```json
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
-     *  "response": "Błędna wartość parametru [origin]. Musi zawierać się w zbiorze [API, MOBILE_ANDROID, MOBILE_IOS]"}
+     *  "response": "Błędna wartość parametru [origin]. Musi zawierać się w zbiorze [API, MOBILE_IOS, MOBILE_ANDROID, MOBILE_ANDROID]"}
      * ```
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
@@ -166,9 +165,8 @@ interface TicketsServiceInterface
      * Page size must be 1–250 and defaults to 100. The SDK checks the range before sending. The order
      * list allows a narrower range. As with the invoice list, there is no `totalpages`.
      *
-     * Pass an id to get just that ticket. The API then answers with the ticket alone, with its
-     * timeline, instead of a page. The SDK reads it as a page with that one ticket, so the result
-     * has the same shape either way.
+     * With an id, the API returns that ticket alone, with its timeline. The SDK returns a one-row
+     * page.
      *
      * Otherwise tickets come back without their timeline. Use getTicketMessages() for the
      * conversation.
@@ -180,7 +178,7 @@ interface TicketsServiceInterface
      * {
      *     "apimethod": "get_tickets",
      *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {"id": "", "search_query": "", "pagesize": 100, "page": 1}
+     *     "data": {"pagesize": 100, "page": 1}
      * }
      * ```
      *
@@ -461,9 +459,9 @@ interface TicketsServiceInterface
      * shipment. The definition lists the fields to render. It also has a form id and a nonce, which
      * you must send back with the submission. Both change on every fetch.
      *
-     * The category is the id of a topic from getContactTopics() that has a form. Any other
-     * category, including an unknown one, answers with `{"has_form": false}` instead of a form,
-     * not with an error.
+     * The category is a topic id from getContactTopics(). A topic without a form, or an unknown
+     * one, answers `{"has_form": false}`. A website-only form answers `has_form` and `web_only`
+     * true and its page in `href`, with no fields, form id or nonce.
      *
      * Endpoint: `get_contact_form`
      *
@@ -493,6 +491,14 @@ interface TicketsServiceInterface
      *         "nonce": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9…",
      *         "has_form": true
      *     }
+     * }
+     * ```
+     *
+     * Response for a form that is on the website only:
+     * ```json
+     * {
+     *     "status": "success",
+     *     "response": {"has_form": true, "web_only": true, "href": "https://www.polkurier.pl/kontakt/605790c7…"}
      * }
      * ```
      *
@@ -556,6 +562,10 @@ interface TicketsServiceInterface
      * {"status": "error", "status_code": 30, "error_code": "FORM_EXPIRED", "response": "…"}
      * ```
      * Thrown when the nonce is stale. Fetch the form again and resubmit.
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND", "response": "Formularz nie istnieje"}
+     * ```
+     * Unknown category, no form, or a website-only form.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "Należy wyrazić zgodę [marketing_consent]",

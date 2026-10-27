@@ -87,8 +87,7 @@ interface GeoServiceInterface
      * ```json
      * {
      *     "apimethod": "get_map_token",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *

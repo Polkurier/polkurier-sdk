@@ -39,8 +39,9 @@ interface InvoicesServiceInterface
      * Unlike the order list, the paging envelope has no `totalpages`. Work out the last page from
      * the total and the page size.
      *
-     * For reconciliation, use `unpaid_value`. It is the amount left after part payments and
-     * compensations, and it drops to zero once the invoice is settled.
+     * For reconciliation, use `unpaid_value`: what is left after part payments and compensations,
+     * zero once settled. Corrections carry only `number`, `value` and `date`; their unpaid value
+     * reads as zero either way.
      *
      * Endpoint: `get_invoices`
      *
@@ -119,7 +120,6 @@ interface InvoicesServiceInterface
      * {
      *     "status": "success",
      *     "response": {
-     *         "faktura_nr": "2520/06/2026/POL",
      *         "filename": "2520_06_2026_POL.pdf",
      *         "filetype": "application/pdf",
      *         "file": "JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…"
@@ -133,6 +133,16 @@ interface InvoicesServiceInterface
      *  "response": "Nie znaleziono obiektu"}
      * ```
      * Thrown both for an unknown number and for one that belongs to another account.
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
+     *  "response": "Dokument został przekazany do KSeF i obecnie oczekuje na nadanie numeru identyfikacyjnego przez system. Po zakończeniu procesu dokument będzie dostępny"}
+     * ```
+     * The document is waiting for its KSeF number. Try again later.
+     * ```json
+     * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
+     *  "response": "Brak wymaganego parametru lub jest pusty: [number]"}
+     * ```
+     * Missing or blank number, when payload validation is off.
      *
      * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
      *

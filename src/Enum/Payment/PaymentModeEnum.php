@@ -38,6 +38,10 @@ enum PaymentModeEnum: string
     /**
      * The small transfer used to verify the account's identity. The amount is fixed and returned
      * by `get_system_info` as `verification_transfer_amount_pln`.
+     *
+     * @deprecated `register_payment` does not accept this mode: the call fails with UNKNOWN_ERROR.
+     *             Account verification starts with
+     *             {@see \Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface::register()}.
      */
     case Verification = 'VERIFICATION';
 }

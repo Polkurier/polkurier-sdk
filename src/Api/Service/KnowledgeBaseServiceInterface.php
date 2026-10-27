@@ -43,8 +43,7 @@ interface KnowledgeBaseServiceInterface
      * ```json
      * {
      *     "apimethod": "get_knowledge_base_index",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *

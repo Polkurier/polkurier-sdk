@@ -6,8 +6,8 @@
 /**
  * delete_phone_number — remove a phone number.
  *
- * Needs both the id and the number itself, which is the API's guard against deleting the wrong
- * one. The default number cannot be removed while it is the default.
+ * The id picks the number; the number is checked for format only. The default number can't be
+ * removed.
  */
 declare(strict_types=1);
 

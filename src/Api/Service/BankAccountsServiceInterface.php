@@ -47,8 +47,7 @@ interface BankAccountsServiceInterface
      * ```json
      * {
      *     "apimethod": "get_bank_accounts",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -79,12 +78,14 @@ interface BankAccountsServiceInterface
     /**
      * Registers a bank account, or updates the one the message's id names.
      *
-     * This call needs one of two confirmations (only one, never both):
+     * Registering an account, or changing its number or default flag, needs one of:
      *
      * - If bank account editing is PIN-locked, send the PIN with the request. `get_account_info`
      *   reports the lock state under `pin_locks.BANK_ACCOUNTS_EDIT`.
      * - Otherwise, send a confirmed two-factor token registered under the CHANGE_BANK_ACCOUNT_NUMBER
      *   namespace. This call uses up the token, so it can't be reused.
+     *
+     * Renaming needs no two-factor confirmation; the PIN lock still applies.
      *
      * The number must be a valid account number. The SDK checks its check digits before sending.
      *
@@ -127,10 +128,14 @@ interface BankAccountsServiceInterface
      * ```
      * Thrown when the PIN lock is on and the PIN is missing or wrong.
      * ```json
-     * {"status": "error", "status_code": 31, "error_code": "TWO_FACTOR_ALREADY_SENT", "response": "…"}
+     * {"status": "error", "status_code": 506001, "error_code": "TWO_FACTOR_CODE_REQUIRED",
+     *  "response": "Wymagany kod weryfikacyjny"}
      * ```
-     * Two-factor failures come back with the matching two-factor error code. A missing or invalid
-     * confirmation is always reported as an error.
+     * ```json
+     * {"status": "error", "status_code": 506005, "error_code": "TWO_FACTOR_INVALID_CODE",
+     *  "response": "Błędny kod weryfikacyjny lub kod utracił ważność"}
+     * ```
+     * Two-factor code missing, wrong, expired, or from a token registered for another operation.
      *
      * @param SaveMessage $saveMessage
      *

@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * Books a courier collection.
+ * Asks whether a carrier can collect on one day, and in which time windows. Nothing is booked.
  */
 readonly class PickupMessage extends GetPickupTimeMessage
 {

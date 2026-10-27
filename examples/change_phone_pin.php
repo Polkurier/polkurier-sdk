@@ -4,10 +4,9 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * change_phone_pin — set the security PIN.
+ * change_phone_pin — set the telephone PIN.
  *
- * The PIN that guards the operations get_account_info reports as locked — changing a bank account,
- * for instance. Setting it may itself need a two-factor token, depending on the account.
+ * The code given when contacting support: 4 digits. Not the security PIN.
  */
 declare(strict_types=1);
 
@@ -18,7 +17,7 @@ use Polkurier\Webservice\Request\Account\ChangePinMessage;
 require __DIR__ . '/bootstrap.php';
 
 if (!hasFlag('--confirm')) {
-    echo "This example changes the real security PIN. Re-run with --confirm to do it for real.\n";
+    echo "This example changes the real telephone PIN. Re-run with --confirm to do it for real.\n";
     exit(0);
 }
 

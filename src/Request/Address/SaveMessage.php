@@ -21,8 +21,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * sender and recipient is 2 entries with 2 ids.
  *
  * Put the house and flat numbers in their own fields, not at the end of the street. Some carriers
- * validate them. Setting `default` makes this the preselected entry for its role and removes the
- * flag from the previous default.
+ * validate them.
+ *
+ * `default` is for senders only: it makes this the preselected sender.
  *
  * Some fields are read-only and cannot be set here: the parsed street name, the resolved pickup
  * point and whether the entry is shared. They are reported on
@@ -72,7 +73,7 @@ readonly class SaveMessage implements MessageInterface
      * @param string|null $province
      * @param string $country ISO 3166-1 alpha-2
      * @param string|null $pointId a pickup point this entry stands for
-     * @param bool $default make this the preselected entry for its role
+     * @param bool $default make this the preselected sender; send it only for a sender
      * @param bool $coverAddress whether the entry may be used as a return address
      */
     public function __construct(

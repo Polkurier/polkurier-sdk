@@ -231,7 +231,6 @@ Pickup points
 $points = $client->courier()->findCourierPoints(new GetPointMessage(
     couriers: ['INPOST_PACZKOMAT'],
     searchQuery: 'Poznań',
-    limit: 5,
 ));
 
 // Re-reading one the customer already chose
@@ -265,11 +264,9 @@ number.
 Booking a collection
 --------------------
 
-For one shipment:
-
-```php
-$pickup = $client->courier()->pickupCourier($pickupMessage);
-```
+For one shipment, book the collection with the order, through
+[`CreateOrderMessage::getPickup()`](../src/Request/Order/CreateOrderMessage.php).
+[`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
 
 For several at once, if a collective pickup is available. Availability is decided per shipment,
 by its carrier and parcels, so check each one:
@@ -294,13 +291,11 @@ To find out when a carrier can come:
 
 ```php
 $days = $client->courier()->getCourierPickupTime($whenMessage);   // PickupTimeMessage[]
+$day  = $client->courier()->pickupCourier($pickupMessage);        // one day, PickupResponseMessage
 ```
 
 Each entry is a day with its available time windows. The carrier refuses a time outside them.
-
-You can also book the collection as part of the order, through [`CreateOrderMessage::$pickup`](../src/Request/Order/CreateOrderMessage.php). Which
-option to use depends on the carrier. Some require the pickup on the order, others accept a separate
-booking later. [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) tells you which.
+Neither books anything.
 
 ---
 
@@ -335,15 +330,16 @@ return new Response(
 );
 ```
 
-For a printer format other than PDF, if the carrier supports it:
+A printer format other than PDF works for one order number at a time, if the carrier supports it:
 
 ```php
 use Polkurier\Webservice\Enum\Order\LabelFileFormatEnum;
 
-new GetDocumentMessage(orderNo: $numbers, fileFormat: LabelFileFormatEnum::Zpl);
+new GetDocumentMessage(orderNo: ['POL123456789'], fileFormat: LabelFileFormatEnum::Zpl);
 ```
 
-[`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) works the same way and returns the handover list the courier signs.
+[`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) takes the same request and returns the handover list the courier signs. One unknown
+number among several fails the call.
 [`OrdersServiceInterface::getOrderFile()`](../src/Api/Service/OrdersServiceInterface.php) fetches a document attached to one order. [`$client->invoices()->getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) also
 returns base64 in the same way.
 
@@ -526,12 +522,13 @@ use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
+$config = $client->moneyBox()->getConfig();         // MoneyBoxConfigMessage, the saved destination
 $fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
 
 $payout = $client->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
     payoutType: MoneyBoxPayoutTypeEnum::Account,
     feePaymentType: MoneyBoxFeePaymentTypeEnum::MoneyBox,
-    // securityPin / twoFactorToken / twoFactorCode as the account requires
+    bankAccountNumber: $config->getIban(),   // must be a saved bank account
 ));
 
 printf("Payout %s for %.2f PLN is %s\n",

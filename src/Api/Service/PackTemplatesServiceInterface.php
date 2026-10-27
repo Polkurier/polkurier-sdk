@@ -46,8 +46,7 @@ interface PackTemplatesServiceInterface
      * ```json
      * {
      *     "apimethod": "get_pack_templates",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -65,8 +64,7 @@ interface PackTemplatesServiceInterface
      *             "COD": 0, "insurance": 0,
      *             "description": "",
      *             "courier": "UPS",
-     *             "services": ["SMS_NOTIFICATION_RECIPIENT"],
-     *             "default": false
+     *             "services": ["SMS_NOTIFICATION_RECIPIENT"]
      *         }
      *     ]
      * }

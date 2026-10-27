@@ -58,8 +58,8 @@ orders()->createOrder()               places the order and returns its number
         │
 orders()->getLabel()                  the label to stick on the parcel
         │
-courier()->pickupCourier()            a collection for this parcel, or one collection
-        │                             for several orders, see Booking a collection
+orders()->createMultiOrderPickup()    one collection for several orders, unless each
+        │                             order booked its own, see Booking a collection
         │
 orders()->getStatus(), getOrders()    where it is now; webhooks report changes
         │
@@ -114,7 +114,8 @@ Who picks the point?
     └── a saved id: does it still exist? .............. 2. getCourierPoint()
 ```
 
-**1. Search across carriers.** Search by query, location or filter:
+**1. Search across carriers.** Search by a phrase, optionally keeping only points with given
+functions. A search returns up to the first 1,000 matches and ignores `page` and `limit`:
 
 ```php
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
@@ -122,11 +123,10 @@ use Polkurier\Webservice\Request\Courier\GetPointMessage;
 $points = $client->courier()->findCourierPoints(new GetPointMessage(
     couriers: ['INPOST_PACZKOMAT'],
     searchQuery: 'Poznań',
-    limit: 5,
 ));
 ```
 
-Without a search query or a location, it returns every point of the given carriers, which suits a
+Without a search query, it returns every point of the given carriers, which suits a
 local cache. For InPost that is over 30,000 points, so cache the result instead of fetching it for
 every page. To page through them, set `limit` with `page`; the SDK refuses `page` alone.
 
@@ -238,7 +238,7 @@ $file     = $client->orders()->getOrderFile($msg);  // a document attached to on
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) and [`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) both take [`GetDocumentMessage`](../src/Request/Order/GetDocumentMessage.php), which accepts a **list** of order
 numbers. You get labels for several orders back as one PDF from a single call.
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) also accepts a [`LabelFileFormatEnum`](../src/Enum/Order/LabelFileFormatEnum.php) for formats other than PDF, such as ZPL, if the
-carrier supports them.
+carrier supports them, for a single order number only.
 
 Every document, these and the invoices below alike, has the base64 content in `getFile()` and the
 raw bytes in `getDecodedFile()`:
@@ -254,13 +254,17 @@ Booking a collection
 | Method | What it does |
 |--------|--------------|
 | [`CourierServiceInterface::getCourierPickupTime()`](../src/Api/Service/CourierServiceInterface.php) | The days a carrier can collect on, with the windows available each day |
-| [`CourierServiceInterface::pickupCourier()`](../src/Api/Service/CourierServiceInterface.php) | Books a courier collection |
+| [`CourierServiceInterface::pickupCourier()`](../src/Api/Service/CourierServiceInterface.php) | Whether a carrier can collect on one day, and in which windows. Books nothing |
 | [`OrdersServiceInterface::isMultiPickupAvailable()`](../src/Api/Service/OrdersServiceInterface.php) | Checks whether a shipment can join a collective pickup |
 | [`OrdersServiceInterface::createMultiOrderPickup()`](../src/Api/Service/OrdersServiceInterface.php) | Books one courier collection covering several orders |
 
+A collection for one order is booked with the order, through
+[`CreateOrderMessage::getPickup()`](../src/Request/Order/CreateOrderMessage.php). To offer only the days and
+windows the carrier accepts, ask first:
+
 ```php
-$pickup = $client->courier()->pickupCourier($pickupMessage);       // one shipment
 $times  = $client->courier()->getCourierPickupTime($whenMessage);  // available days and windows
+$pickup = $client->courier()->pickupCourier($pickupMessage);       // one day
 ```
 
 One collection for *several* shipments is a collective pickup. It is booked in three steps:
@@ -339,7 +343,7 @@ The account
 | [`AccountServiceInterface::getPhoneNumbers()`](../src/Api/Service/AccountServiceInterface.php) | Lists the account's telephone numbers |
 | [`AccountServiceInterface::savePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Adds a telephone number, optionally as the account's default |
 | [`AccountServiceInterface::deletePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Removes a telephone number from the account |
-| [`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) | Starts an identity verification |
+| [`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) | Starts an identity verification, or returns the one in progress |
 | [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) | The most recent verification attempt and its outcome, or null |
 
 [`AccountServiceInterface::getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php) returns the balances, outstanding payments and PIN lock settings, which
@@ -351,8 +355,8 @@ a new SDK release.
 > their behalf. Called at start-up, it would accept the terms for a customer who never saw them.
 
 Some accounts need identity verification before shipping.
-[`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) starts it and returns the token needed to complete it, and
-the customer finishes the process outside your application.
+[`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) starts it, or returns the one in progress, with a fresh access
+token; the customer finishes with the provider.
 [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) returns the latest attempt and its result, or `null` if none has
 been started. Verification has no notification, so this is how its outcome becomes known.
 
@@ -379,11 +383,10 @@ base64, like order documents.
 
 [`PaymentsServiceInterface::registerPayment()`](../src/Api/Service/PaymentsServiceInterface.php) takes a [`PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) that says what the payment is for. Send an amount
 only for top-ups ([`PaymentModeEnum::Prepaid`](../src/Enum/Payment/PaymentModeEnum.php)). A top-up needs an amount greater than zero, and the
-SDK checks this before sending. Paying invoices ([`PaymentModeEnum::Invoices`](../src/Enum/Payment/PaymentModeEnum.php)) needs the invoice
-numbers, and paying for orders ([`PaymentModeEnum::Orders`](../src/Enum/Payment/PaymentModeEnum.php)) needs the order numbers; the SDK refuses
-either mode without its list. Paying for orders spends the prepaid balance on them first, and when
-it covers them all, the orders are paid at once. [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) returns the current state of a
-registered payment. There is no notification for payments, so their state is read with this call.
+SDK checks this before sending. [`PaymentModeEnum::Invoices`](../src/Enum/Payment/PaymentModeEnum.php) and
+[`PaymentModeEnum::Orders`](../src/Enum/Payment/PaymentModeEnum.php) need their list of numbers; an order payment spends the prepaid balance
+first. [`PaymentModeEnum::Verification`](../src/Enum/Payment/PaymentModeEnum.php) fails with UNKNOWN_ERROR. Payments send no notification;
+[`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) reads their state.
 
 Cash collected on delivery is held on the account until it is paid out:
 
@@ -392,7 +395,7 @@ moneyBox()->getConfig()             the payout settings
         │
 moneyBox()->calculatePayoutFee()    what it would cost, nothing requested yet
         │
-moneyBox()->createPayout()          the request; may need a PIN and two-factor confirmation
+moneyBox()->createPayout()          the request; may need a PIN or two-factor confirmation
         │
 moneyBox()->getPayouts()            whether it went through
         │
@@ -401,9 +404,9 @@ moneyBox()->getPayouts()            whether it went through
 
 The payout fee depends on the payout type and on who pays the fee ([`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php)).
 
-> [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) moves real money. Depending on the account's settings, it may need a security
-> PIN, [two-factor confirmation](#two-factor-confirmation), or both. [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works until
-> the payout has been sent.
+> [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) moves real money. A postal money order to an address other than the saved
+> default needs a security PIN or [two-factor confirmation](#two-factor-confirmation). [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) works only
+> until the payout is sent.
 
 Full example: [Recipes: paying out collected money](recipes.md#paying-out-collected-money).
 
@@ -485,8 +488,9 @@ unique name, given by the timeline; [`TicketsServiceInterface::getTicketMessageF
 When [`TicketMessage::getResponseTemplate()`](../src/Response/Ticket/TicketMessage.php) is set, a reply must be one of its answers.
 
 A contact form's category is the id of a topic that has a form, from
-[`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). The form id and nonce change on every fetch, and a
-submission quotes the ones from the latest fetch. The answers go in
+[`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). For a website-only form, [`ContactFormMessage::isWebOnly()`](../src/Response/Contact/ContactFormMessage.php) is true and
+[`ContactFormMessage::getHref()`](../src/Response/Contact/ContactFormMessage.php) gives its page; the API takes no submission. A submission quotes the
+form id and nonce of the latest fetch. The answers go in
 [`SaveContactFormMessage`](../src/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the names of the form's fields.
 
 The form is a [`ContactFormMessage`](../src/Response/Contact/ContactFormMessage.php) with a list of [`ContactFormFieldMessage`](../src/Response/Contact/ContactFormFieldMessage.php) entries. Besides
