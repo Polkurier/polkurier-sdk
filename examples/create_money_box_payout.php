@@ -6,9 +6,8 @@
 /**
  * create_money_box_payout — request a payout of collected cash-on-delivery money.
  *
- * Moving money, so the API guards it: expect to need the security PIN, a confirmed two-factor
- * token, or both, depending on what get_account_info and get_system_info report. The destination
- * defaults to what get_money_box_config holds and only needs supplying to override it.
+ * A bank transfer goes to a saved bank account, here the one get_money_box_config returns. Only a
+ * postal money order to an address other than the saved default needs a PIN or two-factor token.
  */
 declare(strict_types=1);
 
@@ -26,10 +25,12 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
+    $config = polkurier()->moneyBox()->getConfig();
+
     $payout = polkurier()->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
         payoutType: MoneyBoxPayoutTypeEnum::Account,
         feePaymentType: MoneyBoxFeePaymentTypeEnum::MoneyBox,
-        // securityPin / twoFactorToken / twoFactorCode as the account requires.
+        bankAccountNumber: $config->getIban(),
     ));
 
     \printf("Payout %s for %.2f PLN is %s\n",

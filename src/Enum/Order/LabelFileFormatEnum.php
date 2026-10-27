@@ -13,7 +13,7 @@ namespace Polkurier\Webservice\Enum\Order;
  * Without a format you get a PDF, which is what most integrations need. Use one of these only when
  * sending straight to a label printer. Use a value from this enum.
  *
- * Not every carrier supports every language.
+ * Applies to a single order number only, and not every carrier supports every language.
  */
 enum LabelFileFormatEnum: string
 {

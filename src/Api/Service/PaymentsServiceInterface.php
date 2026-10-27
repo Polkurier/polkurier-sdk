@@ -35,14 +35,21 @@ interface PaymentsServiceInterface
     /**
      * Registers an online payment and returns the token needed to complete it.
      *
-     * Registering doesn't move any money. It reserves a transaction with the payment provider. Send
-     * the customer through the provider's flow with the returned access token. The payment settles
-     * only when they finish there.
+     * Registering reserves a transaction with the payment provider. The customer pays in the
+     * provider's flow, using the returned access token.
      *
      * The mode sets what is being paid for and whether the customer chooses the amount. Modes that
      * settle an existing debt charge what is owed, so send an amount only for a prepaid top-up. There
-     * it is required and must be greater than zero. The SDK checks this before sending. The
-     * verification mode has a fixed amount, which `get_system_info` reports.
+     * it is required and must be greater than zero. The SDK checks this before sending.
+     *
+     * Invoice and order payments need their list of numbers; the SDK checks it. Numbers with
+     * nothing to pay are skipped; if none is left, PARAMETER_INVALID.
+     *
+     * An order payment spends the prepaid balance first; if that covers it, the orders are paid at
+     * once (state DONE). Other modes move no money when registering.
+     *
+     * The verification mode fails with UNKNOWN_ERROR; use {@see
+     * \Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface::register()}.
      *
      * The transaction id is what looks the payment up later.
      *
@@ -54,6 +61,15 @@ interface PaymentsServiceInterface
      *     "apimethod": "register_payment",
      *     "authorization": {"login": "12345", "token": "…"},
      *     "data": {"mode": "PREPAID", "amount": 100.00}
+     * }
+     * ```
+     *
+     * Request paying invoices (orders go in `orders` the same way, with `"mode": "ORDERS"`):
+     * ```json
+     * {
+     *     "apimethod": "register_payment",
+     *     "authorization": {"login": "12345", "token": "…"},
+     *     "data": {"mode": "INVOICES", "invoices": ["2520/06/2026/POL"]}
      * }
      * ```
      *
@@ -75,6 +91,20 @@ interface PaymentsServiceInterface
      *  "response": "Błędna wartość parametru [mode]. Musi zawierać się w zbiorze [BALANCE, INVOICES, ORDERS, PREPAID, VERIFICATION]"}
      * ```
      * A missing `mode` gives the same error.
+     * ```json
+     * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
+     *  "response": "Brak faktur do opłacenia"}
+     * ```
+     * ```json
+     * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
+     *  "response": "Brak zamówień do opłacenia"}
+     * ```
+     * Nothing to pay among the listed invoices or orders.
+     * ```json
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
+     *  "response": "Przed dokonaniem płatności należy uzupełnić dane płatnika"}
+     * ```
+     * Order payments and top-ups need the account's payer details.
      *
      * @param RegisterPaymentMessage $registerPaymentMessage
      *
@@ -95,8 +125,8 @@ interface PaymentsServiceInterface
      * This is the reliable result after the customer returns from the provider. The return redirect
      * is not proof of success: it can be forged or reached too early.
      *
-     * The hash is the provider's signature over the transaction, for reconciling against a
-     * provider-side callback. It isn't meant for display.
+     * The state is NEW, REGISTERED, PENDING or DONE, and only DONE means paid.
+     * {@see PaymentInfoMessage} says what each one means.
      *
      * Endpoint: `get_payment_info`
      *
@@ -115,9 +145,7 @@ interface PaymentsServiceInterface
      *     "status": "success",
      *     "response": {
      *         "transaction_id": "TR-2026-000123",
-     *         "state": "PAID",
-     *         "login_id": 12345,
-     *         "hash": "6f1d…"
+     *         "state": "DONE"
      *     }
      * }
      * ```
@@ -131,7 +159,7 @@ interface PaymentsServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Błędny numer płatności"}
      * ```
-     * Thrown both for an unknown transaction and for one that belongs to another account.
+     * Unknown transaction, another account's, or registered over two days ago.
      *
      * @param GetPaymentInfoMessage $getPaymentInfoMessage
      *
@@ -151,6 +179,9 @@ interface PaymentsServiceInterface
      *
      * Amounts are signed: negative for spending, positive for a top-up. The running balance is not
      * included. Read the current balance from `get_account_info`.
+     *
+     * The description is "Doładowanie konta" for a positive amount, "Pobranie środków z konta"
+     * otherwise, sometimes followed by a note.
      *
      * Paging works like the invoice list. There is no `totalpages` either, so work out the last page
      * from the total and the page size.
@@ -178,7 +209,7 @@ interface PaymentsServiceInterface
      *             {"date": "2026-09-01T12:00:00+02:00", "amount": 100.00,
      *              "description": "Doładowanie konta"},
      *             {"date": "2026-09-02T09:15:00+02:00", "amount": -23.99,
-     *              "description": "Zlecenie 12345-678"}
+     *              "description": "Pobranie środków z konta Pobranie środków do zamówienia nr 12345-678"}
      *         ]
      *     }
      * }

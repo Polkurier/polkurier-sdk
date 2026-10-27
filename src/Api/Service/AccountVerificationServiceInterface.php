@@ -31,10 +31,13 @@ use Polkurier\Webservice\Response\Account\AccountVerificationMessage;
 interface AccountVerificationServiceInterface
 {
     /**
-     * Starts an identity verification and returns the token needed to complete it.
+     * Starts an identity verification, or returns the one in progress, with its access token.
      *
-     * The provider's flow needs the access token, and only this response contains it. It is a
-     * one-time secret.
+     * A verification that is neither cancelled nor expired is returned instead of starting a new
+     * one.
+     *
+     * The provider's flow needs the access token, and only this response contains it. Each call
+     * issues a token anew, so call again for a fresh one. A token stays valid for up to three hours.
      *
      * You can pass an order number to tie the verification to a shipment. Without one, a general
      * account verification starts.
@@ -95,8 +98,7 @@ interface AccountVerificationServiceInterface
      * ```json
      * {
      *     "apimethod": "get_account_verification_info",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *

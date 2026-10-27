@@ -19,9 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Pass an id to update that account, or leave it out to register a new one. Setting `default`
  * makes this the account cash on delivery is settled to and removes the flag from the previous one.
  *
- * The API may refuse the change without a confirmed two-factor token. While the account's
- * bank-account lock is engaged, it also needs the access PIN. `get_account_info` and
- * `get_system_info` report which of them an account needs, so both are optional here.
+ * A change may need a confirmed two-factor token, and the access PIN while the bank-account lock is
+ * on; `get_account_info` reports which, so both are optional here. Renaming needs no token.
  */
 readonly class SaveMessage implements MessageInterface
 {

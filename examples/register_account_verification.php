@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * register_account_verification — start identity verification.
+ * register_account_verification — start identity verification, or get the one in progress.
  *
  * Answers with the verification's id and an access token for the provider's flow. An order number
  * can be given when the verification was prompted by a particular consignment.

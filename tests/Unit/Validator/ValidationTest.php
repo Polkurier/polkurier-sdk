@@ -16,6 +16,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Request\Order\CodMessage;
@@ -122,12 +123,19 @@ final class ValidationTest extends TestCase
                 ),
             ],
             'a postcode lookup' => [new FindCityMessage('61-001')],
+            'an empty default carrier, which clears it' => [new ChangeDefaultCourierMessage(courier: '')],
             'a prepaid top-up with an amount' => [
                 new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 100.0),
             ],
             // Every other mode settles a balance the API already knows, so no amount is needed.
             'an invoice payment with no amount' => [
-                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices),
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices, invoiceNumbers: ['2520/06/2026/POL']),
+            ],
+            'an order payment with the order numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders, orderNumbers: ['12345-678']),
+            ],
+            'a balance payment, which needs no list' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Balance),
             ],
             'a lookup outside Poland, which the API answers with an empty list' => [
                 new FindCityMessage('10115', country: 'DE'),
@@ -176,6 +184,22 @@ final class ValidationTest extends TestCase
             'a prepaid top-up of nothing' => [
                 new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 0.0),
                 'amount',
+            ],
+            'an invoice payment with no invoice numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices),
+                'invoices',
+            ],
+            'an invoice payment with a blank invoice number' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices, invoiceNumbers: ['']),
+                'invoices[0]',
+            ],
+            'an order payment with no order numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders),
+                'orders',
+            ],
+            'an order payment with a malformed order number' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders, orderNumbers: ['12345']),
+                'orders[0]',
             ],
             'a parcel with no length' => [
                 self::order(packs: [new PackMessage(length: 0, width: 20, height: 15, weight: 2.5)]),

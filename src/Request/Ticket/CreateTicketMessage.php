@@ -16,9 +16,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Creates a support ticket.
  *
- * Only topics returned by
- * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()} are
- * accepted.
+ * A topic id from {@see
+ * \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()}; an unknown one
+ * files the ticket under a general subject.
  *
  * Attachments are sent inline as base64, see
  * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} for what the API accepts.

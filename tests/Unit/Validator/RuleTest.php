@@ -17,6 +17,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Request\Order\CodMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
@@ -213,6 +214,18 @@ final class RuleTest extends TestCase
             ],
             'RequiredWith: both together pass' => [
                 new GetOrdersMessage(externalApplicationId: 'app', externalOrderId: 'SHOP-1001'),
+                [],
+            ],
+            'RequiredWith: a page of points needs a page size' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], page: 2),
+                ['limit'],
+            ],
+            'RequiredWith: a page size of points works on its own' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], limit: 100),
+                [],
+            ],
+            'RequiredWith: a page of points with its size passes' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], limit: 100, page: 2),
                 [],
             ],
             'IgnoredWhen: a zero amount skips the block' => [

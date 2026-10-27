@@ -105,13 +105,14 @@ interface AddressesServiceInterface
     /**
      * Creates an address, or updates the one the message's id names.
      *
-     * The role is required. An unknown country ISO code is rejected. For the province, use a region
-     * id from getSupportedCountries().
+     * The role is required. An unknown country code is rejected. The province is a region id from
+     * getSupportedCountries(); an unlisted one is saved empty. Poland has no regions.
      *
      * House and flat numbers don't round-trip as separate fields, so the response may split them
      * differently from your request. Read the stored values from the response.
      *
-     * Set a pickup point on recipient addresses only.
+     * A pickup point is for recipients only; `default` is for senders only and makes this the
+     * preselected sender.
      *
      * Endpoint: `save_address`
      *
@@ -128,14 +129,11 @@ interface AddressesServiceInterface
      *         "person": "Jan Kowalski",
      *         "street": "Długa",
      *         "housenumber": "1",
-     *         "flatnumber": "",
      *         "postcode": "61-001",
      *         "city": "Poznań",
-     *         "province": "WP",
      *         "country": "PL",
      *         "email": "jan@example.com",
      *         "phone": "500600700",
-     *         "point_id": "",
      *         "default": false,
      *         "is_cover_address": false
      *     }

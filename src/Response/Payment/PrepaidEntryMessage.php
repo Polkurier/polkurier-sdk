@@ -29,7 +29,8 @@ readonly class PrepaidEntryMessage implements MessageInterface
     /**
      * @param ?\DateTimeInterface $date when the movement happened
      * @param float $amount signed amount in PLN
-     * @param string $description what the movement was for, in Polish
+     * @param string $description what the movement was for, in Polish: "Doładowanie konta" for a
+     *        positive amount, "Pobranie środków z konta" otherwise, sometimes followed by a note
      */
     public function __construct(
         /**

@@ -8,7 +8,7 @@
  *
  * The document the courier signs on collection. Always a PDF, unlike get_label, which can also
  * render printer languages. Several order numbers can go in one request and come back as one
- * document.
+ * document. One unknown number among several fails the whole call.
  */
 declare(strict_types=1);
 

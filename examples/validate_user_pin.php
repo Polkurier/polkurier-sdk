@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * validate_user_pin — check a PIN without spending it.
+ * validate_user_pin — check the security PIN without spending it.
  *
  * Answers with a flag rather than an error, which makes it the right way to check a PIN a customer
  * has just typed before attempting the operation it guards.

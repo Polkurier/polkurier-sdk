@@ -22,8 +22,8 @@ use Psr\Http\Message\RequestInterface;
 /**
  * Builds requests in the format the API accepts.
  *
- * Every call is a POST to the root path with `apimethod`, `authorization` and `data` in the body.
- * The method is a body field, so there is only one endpoint. The `User-Agent` header names your
+ * Every call is a POST to the root path with `apimethod` in the body, plus `authorization` and
+ * `data` when the call has them. The method is a body field, so there is only one endpoint. The `User-Agent` header names your
  * platform and version, followed by the SDK's.
  */
 readonly class RequestFactory implements RequestFactoryInterface

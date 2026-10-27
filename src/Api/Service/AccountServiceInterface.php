@@ -78,8 +78,7 @@ interface AccountServiceInterface
      * ```json
      * {
      *     "apimethod": "get_account_info",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {}
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -185,10 +184,10 @@ interface AccountServiceInterface
     ): AccountInfoMessage;
 
     /**
-     * Sets the carrier preselected on the order form.
+     * Sets or clears the carrier preselected on the order form.
      *
-     * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one this account is
-     * allowed to use.
+     * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one the account
+     * may use; an empty code clears the default.
      *
      * Endpoint: `change_default_courier`
      *
@@ -346,8 +345,8 @@ interface AccountServiceInterface
     /**
      * Changes the account password.
      *
-     * A missing or wrong current password gets a forbidden error, not a validation error, so you
-     * can't tell from the error which it was.
+     * FORBIDDEN: these credentials may not change the password. A wrong current password is a
+     * VALIDATION_ERROR on `previous_password`.
      *
      * Endpoint: `change_password`
      *
@@ -370,6 +369,12 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
      *  "response": "Brak uprawnień"}
      * ```
+     * These credentials may not change the password.
+     * ```json
+     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
+     *  "response": "…", "validation_errors": {"previous_password": ["…"]}}
+     * ```
+     * The current password is wrong.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"password": ["…"]}}
@@ -391,9 +396,8 @@ interface AccountServiceInterface
     /**
      * Sets or changes the account's telephone PIN.
      *
-     * You give this code when contacting support. It also unlocks PIN-protected operations such as
-     * editing bank accounts. The allowed length can change. `get_system_info` reports it under
-     * `security`.
+     * The code given when contacting support: 4 digits, no run of 3 consecutive (123, 321) or
+     * identical (111) digits. Not the security PIN, which validateUserPin() checks.
      *
      * Endpoint: `change_phone_pin`
      *
@@ -432,6 +436,9 @@ interface AccountServiceInterface
 
     /**
      * Checks a security PIN without changing anything.
+     *
+     * The security PIN unlocks PIN-locked operations such as editing bank accounts. Not the
+     * telephone PIN. `get_system_info` reports its length under `security`.
      *
      * A wrong PIN does not cause an error. The response is a success envelope with `valid` set to
      * false, so read the flag.
@@ -573,8 +580,7 @@ interface AccountServiceInterface
      * ```json
      * {
      *     "apimethod": "get_phone_numbers",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -608,8 +614,7 @@ interface AccountServiceInterface
      *
      * Adding a number needs no confirmation, but making it the default does. You need a verified
      * two-factor token registered under CHANGE_DEFAULT_PHONE_NUMBER, because future two-factor codes
-     * go to the default number. The one exception is the first number on an account created without
-     * one. It becomes the default automatically and needs no token.
+     * go to the default number.
      *
      * Endpoint: `save_phone_number`
      *
@@ -636,6 +641,16 @@ interface AccountServiceInterface
      *  "response": "Numer telefonu jest nieprawidłowy [number]",
      *  "validation_errors": {"number": ["Numer telefonu jest nieprawidłowy"]}}
      * ```
+     * ```json
+     * {"status": "error", "status_code": 506001, "error_code": "TWO_FACTOR_CODE_REQUIRED",
+     *  "response": "Wymagany kod weryfikacyjny"}
+     * ```
+     * `default` without a two-factor code.
+     * ```json
+     * {"status": "error", "status_code": 506005, "error_code": "TWO_FACTOR_INVALID_CODE",
+     *  "response": "Błędny kod weryfikacyjny lub kod utracił ważność"}
+     * ```
+     * Wrong or expired code, or a token not registered under CHANGE_DEFAULT_PHONE_NUMBER.
      *
      * @param SavePhoneNumberMessage $savePhoneNumberMessage
      *
@@ -653,11 +668,12 @@ interface AccountServiceInterface
     /**
      * Removes a telephone number from the account.
      *
-     * Both the id and the number are required, and the number must match the id. The SDK checks the
-     * number's format before sending.
+     * The id picks the number; `number` is required but only checked for format, by the SDK too. An
+     * unknown id removes nothing and succeeds.
      *
-     * Removing a number also withdraws any marketing consents given for it, for both calls and text
-     * messages. Adding the number again does not restore them.
+     * The default number can't be removed.
+     *
+     * Removing a number withdraws its marketing consents for calls and text messages.
      *
      * Endpoint: `delete_phone_number`
      *
@@ -682,9 +698,10 @@ interface AccountServiceInterface
      *  "validation_errors": {"number": ["Numer telefonu jest nieprawidłowy"]}}
      * ```
      * ```json
-     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
+     *  "response": "Nie można usunąć domyślnego numeru telefonu. Najpierw ustaw inny numer jako domyślny i spróbuj ponownie."}
      * ```
-     * The number can't be removed, e.g. the default number while it is the only one.
+     * The id names the default number.
      *
      * @param DeletePhoneNumberMessage $deletePhoneNumberMessage
      *

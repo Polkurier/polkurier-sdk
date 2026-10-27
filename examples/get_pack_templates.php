@@ -26,7 +26,7 @@ try {
             $template->getWidth(),
             $template->getHeight(),
             $template->getWeight(),
-            $template->isDefault() ? '(default)' : ''
+            $template->getCourier() ?? 'any carrier'
         );
     }
 } catch (Exception $e) {

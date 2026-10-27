@@ -16,8 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A saved set of parcel details, as stored.
  *
- * To write one, use {@see \Polkurier\Webservice\Request\PackTemplate\SaveMessage}. Whether a
- * template is the account's default is read-only.
+ * To write one, use {@see \Polkurier\Webservice\Request\PackTemplate\SaveMessage}.
  *
  * An order cannot reference a template. To use one, read it and copy its values into the order
  * payload.
@@ -52,7 +51,7 @@ readonly class PackTemplate extends BasePack
      * @param string $description
      * @param string|null $courier
      * @param array $services
-     * @param bool $default
+     * @param bool $default not sent by the API, always false
      */
     public function __construct(
         int $length,
@@ -116,6 +115,7 @@ readonly class PackTemplate extends BasePack
 
         /**
          * @var bool
+         * @deprecated The API does not send this field; it is always false.
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
@@ -189,6 +189,7 @@ readonly class PackTemplate extends BasePack
 
     /**
      * @return bool
+     * @deprecated The API does not send this field; it is always false.
      */
     public function isDefault(): bool
     {

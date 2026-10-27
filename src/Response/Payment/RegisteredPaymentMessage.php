@@ -29,7 +29,8 @@ readonly class RegisteredPaymentMessage implements MessageInterface
 
     /**
      * @param string $transactionId identifier to quote when checking status
-     * @param string $state where the payment has got to
+     * @param string $state NEW, REGISTERED, PENDING or DONE, as in
+     *        {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
      * @param ?string $accessToken token for the provider's hosted flow
      */
     public function __construct(

@@ -40,9 +40,11 @@ interface SystemServiceInterface
     /**
      * Returns the service limits to validate input against.
      *
-     * This covers PIN lengths, the two-factor code length and resend window, attachment size limits,
-     * the minimum coupon length, the bank verification transfer amount, and how long a customer has
-     * to accept revised terms. These values can change without an API version bump.
+     * This covers security PIN lengths, the two-factor code length and resend window, attachment
+     * size limits, the minimum coupon length, the bank verification transfer amount, and how long a
+     * customer has to accept revised terms. These values can change without an API version bump.
+     *
+     * `features` holds feature flags keyed by name.
      *
      * The response has no account data, so you can cache it and share it across a process.
      *
@@ -52,8 +54,7 @@ interface SystemServiceInterface
      * ```json
      * {
      *     "apimethod": "get_system_info",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -63,9 +64,9 @@ interface SystemServiceInterface
      *     "status": "success",
      *     "response": {
      *         "verification_transfer_amount_pln": 2,
-     *         "regulations_acceptance_period": 14,
-     *         "coupons": {"min_length": 4},
-     *         "tickets": {"max_file_size": 10485760, "max_image_size": 5242880, "max_files_count": 5},
+     *         "regulations_acceptance_period": 15,
+     *         "coupons": {"min_length": 6},
+     *         "tickets": {"max_file_size": 10485760, "max_image_size": 20971520, "max_files_count": 5},
      *         "security": {
      *             "user_pin_min_length": 4,
      *             "user_pin_max_length": 8,
@@ -101,10 +102,12 @@ interface SystemServiceInterface
      * ```json
      * {
      *     "apimethod": "get_couriers_messages",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
+     *
+     * `ALERT` notices have `hide_timeout`; `MESSAGE` notices have `title` and `priority` instead.
+     * Alerts come first, then messages by descending `priority`.
      *
      * Response:
      * ```json
@@ -117,6 +120,14 @@ interface SystemServiceInterface
      *             "type": "ALERT",
      *             "severity": "WARNING",
      *             "hide_timeout": 4
+     *         },
+     *         {
+     *             "courier": "FEDEX",
+     *             "title": "Płatność kartą za pobranie",
+     *             "message": "<p>Uwaga! Przewoźnik nalicza opłatę w sytuacji, gdy odbiorca opłaci pobranie kartą…</p>",
+     *             "type": "MESSAGE",
+     *             "severity": "WARNING",
+     *             "priority": 5
      *         }
      *     ]
      * }

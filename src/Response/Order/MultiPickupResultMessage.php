@@ -13,9 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Per-order outcome of `create_multi_order_pickup`.
  *
- * The call can partly succeed: a pickup may be booked for some of the submitted waybills and refused
- * for others, so check both lists. A response with an empty `success` list still counts as an API
- * success.
+ * Orders succeed or fail one by one, and the call succeeds even when none goes through, so check
+ * both lists.
  */
 readonly class MultiPickupResultMessage implements MessageInterface
 {
@@ -28,7 +27,8 @@ readonly class MultiPickupResultMessage implements MessageInterface
 
     /**
      * @param string[] $success order numbers a pickup was booked for
-     * @param array<string, string> $failed reason for each rejection, keyed by waybill number
+     * @param array<string, string> $failed reason for each rejection, keyed by the order number as
+     *        sent in `orders`
      */
     public function __construct(
         /**

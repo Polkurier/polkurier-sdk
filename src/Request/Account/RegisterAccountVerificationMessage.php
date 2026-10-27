@@ -13,7 +13,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Starts an identity verification.
+ * Starts an identity verification, or returns the one in progress.
  *
  * Pass an order number to tie the verification to that shipment. Without one, the API starts a
  * general account verification.

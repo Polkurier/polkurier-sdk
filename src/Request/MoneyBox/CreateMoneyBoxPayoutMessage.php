@@ -18,16 +18,15 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Requests a payout from the money box balance.
  *
- * This moves money and is not idempotent: each accepted call creates a separate payout request. If
- * a call times out, its outcome is unknown. Check
- * {@see \Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface::getPayouts()} before retrying.
+ * Moves money and is not idempotent. After a timeout, check {@see
+ * \Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface::getPayouts()} before retrying.
  *
- * The destination fields depend on the payout type. A bank transfer needs the account number. A
- * money order needs the postal address. Fields you leave out default to the values in
- * `get_money_box_config`.
+ * The payout type, ACCOUNT by default, decides the destination: a saved bank account's number, or a
+ * postal address. Nothing is filled in from `get_money_box_config`.
  *
- * The security PIN is required while the account's money box settings are PIN-locked. A verified
- * two-factor token registered under MONEY_BOX_PAYOUT is required as well.
+ * Only a postal money order to an address other than the saved default needs a confirmation: the
+ * security PIN while the money box is PIN-locked, otherwise a two-factor token registered under
+ * MONEY_BOX_PAYOUT.
  */
 readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 {
@@ -51,16 +50,17 @@ readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 
     /**
      * @param string[] $orders order numbers whose cash-on-delivery amounts to pay out, empty for everything available
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method, defaults to the account's configured one
+     * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method, ACCOUNT when left out
      * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to pay the handling fee, must be one the account can use
-     * @param ?string $bankAccountNumber for a bank transfer
+     * @param ?string $bankAccountNumber for a bank transfer, one of the account's saved bank accounts
      * @param ?string $company for a postal money order
      * @param ?string $person for a postal money order
      * @param ?string $street for a postal money order
      * @param ?string $postcode for a postal money order
      * @param ?string $city for a postal money order
-     * @param ?string $securityPin required while the money box PIN lock is engaged
-     * @param ?string $twoFactorToken token registered under MONEY_BOX_PAYOUT
+     * @param ?string $securityPin for a money order to another address while the money box PIN lock is engaged
+     * @param ?string $twoFactorToken for a money order to another address without the PIN lock, registered under
+     *        MONEY_BOX_PAYOUT
      * @param ?string $twoFactorFormId form identifier issued with the token
      * @param ?string $twoFactorCode the code the customer entered
      */

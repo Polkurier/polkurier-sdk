@@ -21,6 +21,7 @@ use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Response\BasePack;
 use Polkurier\Webservice\Response\CourierPoint;
+use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Address\SaveMessage as AddressSaveMessage;
@@ -315,6 +316,10 @@ final class SerializationTest extends TestCase
             'two factor namespace' => [
                 new RegisterMessage(TwoFactorNamespaceEnum::ChangeBankAccountNumber),
                 ['namespace' => 'CHANGE_BANK_ACCOUNT_NUMBER'],
+            ],
+            'default carrier cleared' => [
+                new ChangeDefaultCourierMessage(courier: ''),
+                ['courier' => ''],
             ],
             'regulations type' => [
                 new GetRegulationsMessage(RegulationsTypeEnum::PrivacyPolicy),

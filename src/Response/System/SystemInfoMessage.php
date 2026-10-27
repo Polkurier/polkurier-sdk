@@ -25,6 +25,7 @@ readonly class SystemInfoMessage implements MessageInterface
     public const string FIELD_COUPONS = 'coupons';
     public const string FIELD_TICKETS = 'tickets';
     public const string FIELD_SECURITY = 'security';
+    public const string FIELD_FEATURES = 'features';
     /**-@#*/
 
     /**
@@ -35,6 +36,7 @@ readonly class SystemInfoMessage implements MessageInterface
      * @param CouponLimitsMessage|null $coupons
      * @param TicketLimitsMessage|null $tickets
      * @param SecurityLimitsMessage|null $security
+     * @param array<string, bool> $features feature flags the service reports, keyed by name
      */
     public function __construct(
         /**
@@ -66,6 +68,12 @@ readonly class SystemInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY)]
         private ?SecurityLimitsMessage $security = null,
+
+        /**
+         * @var array<string, bool>
+         */
+        #[Serializer\SerializedName(self::FIELD_FEATURES)]
+        private array $features = [],
     ) {}
 
     /**
@@ -106,5 +114,15 @@ readonly class SystemInfoMessage implements MessageInterface
     public function getSecurity(): ?SecurityLimitsMessage
     {
         return $this->security;
+    }
+
+    /**
+     * Feature flags the service reports, keyed by name.
+     *
+     * @return array<string, bool> empty if the response leaves them out
+     */
+    public function getFeatures(): array
+    {
+        return $this->features;
     }
 }

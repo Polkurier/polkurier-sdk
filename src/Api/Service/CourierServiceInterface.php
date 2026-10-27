@@ -105,16 +105,18 @@ interface CourierServiceInterface
     ): array;
 
     /**
-     * Books a courier collection.
+     * Checks whether a carrier can collect on one day, and in which time windows.
      *
-     * This is a real booking. Without a date, the pickup is booked for today.
+     * Nothing is booked. A collection is booked with the order, through
+     * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage::getPickup()}, or for several
+     * orders at once with
+     * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::createMultiOrderPickup()}.
+     * Without a date, today is checked.
      *
-     * The reply describes the day. `pickupdate` says whether the carrier accepted a collection on
-     * that date, and `time` lists the windows it offered. Carriers that don't use windows accept the
-     * date and return an empty list, so an empty list doesn't mean a refusal. Check the flag.
+     * `pickupdate` says whether the carrier can collect that day; `time` lists its windows.
+     * Carriers without windows return an empty list, so check the flag, not the list.
      *
-     * To let the customer choose a day, call getCourierPickupTime() first. This method books the
-     * date you give it.
+     * getCourierPickupTime() answers for every day from today.
      *
      * Endpoint: `pickup_courier`
      *
@@ -238,6 +240,8 @@ interface CourierServiceInterface
      * they are joined with ", " into one string. There are no regions here. getSupportedCountries()
      * has them.
      *
+     * A carrier with no countries listed returns `[]`, read as an empty map.
+     *
      * Endpoint: `get_countries`
      *
      * Request:
@@ -275,7 +279,7 @@ interface CourierServiceInterface
      *
      * @param GetCountriesMessage $getCountriesMessage
      *
-     * @return array<string, string> country names keyed by ISO code
+     * @return array<string, string> country names keyed by ISO code, possibly empty
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -301,8 +305,7 @@ interface CourierServiceInterface
      * ```json
      * {
      *     "apimethod": "get_supported_countries_v2",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -316,8 +319,16 @@ interface CourierServiceInterface
      *             "name": "Polska",
      *             "is_ue": true,
      *             "is_default": true,
+     *             "provinces": []
+     *         },
+     *         {
+     *             "id": "CA",
+     *             "name": "Kanada",
+     *             "is_ue": false,
+     *             "is_default": false,
      *             "provinces": [
-     *                 {"id": "WP", "name": "wielkopolskie"}
+     *                 {"id": "AB", "name": "Alberta"},
+     *                 {"id": "BC", "name": "British Columbia"}
      *             ]
      *         }
      *     ]
@@ -343,7 +354,9 @@ interface CourierServiceInterface
      *   for this. The message passed here must not have an id set.
      * - By search phrase: matches the point details and returns up to the first 1000 matches.
      *   Leave `page` and `limit` unset in this mode.
-     * - Neither: pages through the whole filtered set with `page` and `limit`.
+     * - Neither: pages through the whole filtered set with `page` and `limit`. Without `limit` the
+     *   whole set comes back in one reply and `page` has no effect, so the SDK refuses a `page`
+     *   without a `limit` before sending.
      *
      * The function filter keeps only points that support all of the functions given.
      *
@@ -360,7 +373,6 @@ interface CourierServiceInterface
      *     "data": {
      *         "couriers": ["INPOST_PACZKOMAT"],
      *         "functions": ["cod", "send"],
-     *         "searchquery": "",
      *         "page": 1,
      *         "limit": 100
      *     }

@@ -36,7 +36,8 @@ readonly class CreatedOrderMessage implements MessageInterface
 
     /**
      * @param string $orderNumber Polkurier's own order number
-     * @param string|null $consignId carrier-side consignment identifier
+     * @param string|null $consignId carrier-side consignment identifier, GLS_FOREIGN and
+     *        GLS_DOMESTIC orders only
      * @param string[] $label waybill numbers assigned to the order
      * @param float $priceNet
      * @param float $priceGross

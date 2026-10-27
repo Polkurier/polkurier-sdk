@@ -6,9 +6,8 @@
 /**
  * save_address — add an address book entry, or update one.
  *
- * Passing an id updates that entry; leaving it out files a new one. The house and flat numbers go
- * in their own fields rather than on the end of the street, which is what lets the carriers that
- * check them do so. Setting `default` un-defaults whichever entry held that before.
+ * An id updates that entry; without one a new entry is filed. House and flat numbers go in their
+ * own fields. `default` is for senders only.
  */
 declare(strict_types=1);
 

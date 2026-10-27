@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
@@ -17,6 +18,7 @@ use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Http\Request\RequestMessage;
+use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Common\DeleteMessage;
 use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
@@ -329,6 +331,21 @@ final class ServiceCallTest extends TestCase
         $this->client->willAnswerWith('{"status":"success","response":[]}');
 
         self::assertNull($this->sdk->accountVerification()->getInfo());
+    }
+
+    /**
+     * Called without a message, get_regulations asks for the terms of service.
+     */
+    public function testRegulationsWithoutAMessageAskForTheTermsOfService(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"id":"00000000-0000-4000-8000-000000000000",'
+            . '"title":"Regulamin","content":"<p>Regulamin</p>","date":"2026-01-20T15:55:06+01:00"}}');
+
+        $this->sdk->account()->getRegulations();
+
+        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null;
+        self::assertIsArray($data);
+        self::assertSame(RegulationsTypeEnum::Regulations->value, $data[GetRegulationsMessage::FIELD_TYPE] ?? null);
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void

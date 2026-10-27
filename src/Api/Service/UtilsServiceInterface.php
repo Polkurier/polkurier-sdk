@@ -86,8 +86,7 @@ interface UtilsServiceInterface
      * ```json
      * {
      *     "apimethod": "test_auth_api",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *

@@ -38,6 +38,7 @@ readonly class TicketMessage implements MessageInterface
     public const string FIELD_COMPLAINTS = 'complaints';
     public const string FIELD_INVOICES = 'invoices';
     public const string FIELD_MESSAGES = 'messages';
+    public const string FIELD_RESPONSE_TEMPLATE = 'response_template';
     /**-@#*/
 
     /**
@@ -53,6 +54,8 @@ readonly class TicketMessage implements MessageInterface
      * @param TicketReferenceMessage[] $complaints complaints this ticket refers to
      * @param TicketReferenceMessage[] $invoices invoices this ticket refers to
      * @param TicketTimelineItemMessage[] $messages the timeline, when the call asked for it
+     * @param ?TicketResponseTemplateMessage $responseTemplate the fixed answers Polkurier's latest reply
+     *        asks for, with the timeline only
      */
     public function __construct(
         /**
@@ -127,6 +130,12 @@ readonly class TicketMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGES)]
         private array $messages = [],
+
+        /**
+         * @var TicketResponseTemplateMessage|null
+         */
+        #[Serializer\SerializedName(self::FIELD_RESPONSE_TEMPLATE)]
+        private ?TicketResponseTemplateMessage $responseTemplate = null,
     ) {}
 
     /**
@@ -228,5 +237,17 @@ readonly class TicketMessage implements MessageInterface
     public function getMessages(): array
     {
         return $this->messages;
+    }
+
+    /**
+     * The fixed answers the latest reply asks for; a reply must be one of them.
+     *
+     * Comes only with the timeline, and only while the latest reply asks such a question.
+     *
+     * @return ?TicketResponseTemplateMessage null when there is none
+     */
+    public function getResponseTemplate(): ?TicketResponseTemplateMessage
+    {
+        return $this->responseTemplate;
     }
 }

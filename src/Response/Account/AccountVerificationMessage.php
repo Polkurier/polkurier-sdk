@@ -14,8 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * An identity verification attempt and where it has got to.
  *
- * The access token is present only in the response that starts a verification, never when you read
- * one back. It is a one-time secret for the external verification provider's flow.
+ * The access token, for the verification provider's flow, comes only from registering. Each call
+ * issues a new one, valid for up to three hours.
  */
 readonly class AccountVerificationMessage implements MessageInterface
 {

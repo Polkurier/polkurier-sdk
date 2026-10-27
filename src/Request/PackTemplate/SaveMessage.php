@@ -23,8 +23,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * and can be overridden on each order.
  *
  * Setting a carrier ties the template, and its service list, to that carrier. Without one, the
- * template works with any carrier. Whether a template is the account's default is reported on
- * {@see \Polkurier\Webservice\Response\PackTemplate} and cannot be set here.
+ * template works with any carrier.
  */
 readonly class SaveMessage extends BasePackMessage
 {

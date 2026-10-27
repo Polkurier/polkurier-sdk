@@ -4,11 +4,10 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * pickup_courier — book a collection that is not tied to one order.
+ * pickup_courier — check whether a carrier can collect on one day, and in which windows.
  *
- * A standing collection request, for handing over whatever is ready when the courier arrives
- * rather than a specific consignment. An order placed with its own pickup block does not need
- * this. Which carriers accept it, and how far ahead, varies — available_carriers reports it.
+ * Nothing is booked. A collection is booked with the order, through its pickup block, or for
+ * several orders at once with create_multi_order_pickup.
  */
 declare(strict_types=1);
 
@@ -18,11 +17,6 @@ use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 
 require __DIR__ . '/bootstrap.php';
-
-if (!hasFlag('--confirm')) {
-    echo "This example books a real collection. Re-run with --confirm to do it for real.\n";
-    exit(0);
-}
 
 $day = new DateTimeImmutable('+1 weekday');
 
@@ -35,11 +29,11 @@ try {
     ));
 
     if (!$pickup->isPickupDate()) {
-        \printf("The carrier refused a collection on %s.\n", $day->format('Y-m-d'));
+        \printf("The carrier cannot collect on %s.\n", $day->format('Y-m-d'));
         exit(1);
     }
 
-    \printf("Collection booked for %s.\n", $day->format('Y-m-d'));
+    \printf("The carrier can collect on %s.\n", $day->format('Y-m-d'));
     foreach ($pickup->getTime() as $window) {
         \printf(
             "  window offered: %s–%s\n",

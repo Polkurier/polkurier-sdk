@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
+use Polkurier\Webservice\Response\PagedListMessage;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Serializer\UnknownEnumValues;
 use Psr\Http\Message\ResponseInterface;
@@ -164,8 +165,14 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             // Several endpoints return an empty array for "nothing found" even where a single
             // object is documented, e.g. get_courier_point for an unknown id, or
             // get_account_verification_info for an unverified account. An empty or missing payload
-            // means null where an object was expected, and no rows where a list was expected.
-            return \str_ends_with($responseFormat, '[]') ? [] : null;
+            // means null where an object was expected, no rows where a list was expected, and an
+            // empty page where a page was expected, e.g. get_money_box_payouts for an unknown
+            // payout number.
+            return match (true) {
+                \str_ends_with($responseFormat, '[]') => [],
+                \is_subclass_of($responseFormat, PagedListMessage::class) => new $responseFormat(),
+                default => null,
+            };
         }
 
         if (!\is_array($payload)) {

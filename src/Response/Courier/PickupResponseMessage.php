@@ -11,7 +11,7 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Result of booking a collection: whether the date was accepted, and the windows offered.
+ * Whether a carrier can collect on the requested day, and the windows it offers.
  *
  * Carriers that do not report time windows return an empty list even when they accept the date. An
  * empty list is not a refusal.
@@ -26,7 +26,7 @@ readonly class PickupResponseMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param bool $pickupDate whether the courier accepted a pickup on the requested date
+     * @param bool $pickupDate whether the carrier can collect on the requested date
      * @param TimeIntervalMessage[] $time pickup windows, empty for couriers that do not
      *                                             report them
      */

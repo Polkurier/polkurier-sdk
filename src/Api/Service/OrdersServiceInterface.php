@@ -207,7 +207,6 @@ interface OrdersServiceInterface
      *         "person": "Jan Kowalski",
      *         "company": "Acme Store",
      *         "street": "Rynek 1",
-     *         "flat_number": "",
      *         "postcode": "61-001",
      *         "city": "Poznań",
      *         "email": "sklep@example.com",
@@ -215,8 +214,6 @@ interface OrdersServiceInterface
      *     },
      *     "pickup": {"pickupdate": "2026-09-24", "pickuptimefrom": "10:00", "pickuptimeto": "14:00"},
      *     "courierservice": {"SMS_NOTIFICATION_RECIPIENT": true, "COVER_ADDRESS_SENDER": true},
-     *     "additional_fields": {},
-     *     "coupon_code": "",
      *     "external_application_id": "6f1c2b9e-…",
      *     "external_order_id": "SHOP-1001",
      *     "external_order_number": "1001"
@@ -229,17 +226,18 @@ interface OrdersServiceInterface
      *     "status": "success",
      *     "response": {
      *         "order_number": "12345-678",
-     *         "consignid": "1Z999AA10123456784",
      *         "label": ["1Z999AA10123456784"],
      *         "price_net": 19.50,
      *         "price_gross": 23.99,
      *         "unpaid_amount": 23.99,
      *         "is_paid": false,
-     *         "url_tracktrace": "https://www.ups.com/track?tracknum=1Z999AA10123456784",
-     *         "shipment_code": null
+     *         "url_tracktrace": "https://www.ups.com/track?tracknum=1Z999AA10123456784"
      *     }
      * }
      * ```
+     *
+     * Some orders add `consignid` (GLS_FOREIGN, GLS_DOMESTIC) or `shipment_code` (LABELLESS);
+     * either can be null.
      *
      * Common errors:
      * ```json
@@ -247,9 +245,9 @@ interface OrdersServiceInterface
      *  "response": "Brak wymaganego parametru lub jest pusty: [sender]"}
      * ```
      * ```json
-     * {"status": "error", "status_code": 14, "error_code": "COURIER_NAME_NOT_SET",
-     *  "response": "Nazwa kuriera musi zawierać się w zbiorze […]"}
+     * {"status": "error", "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, UPS_ES, …]"}
      * ```
+     * Unknown carrier, or one the account can't use. No code fields.
      * ```json
      * {"status": "error", "status_code": 10, "error_code": "NO_INPUT_OBJECT",
      *  "response": "Brak parametru: [pickupdate]"}
@@ -263,9 +261,10 @@ interface OrdersServiceInterface
      * The carrier does not offer the service. This includes WEEK_COLLECTION (weekend delivery) on
      * anything other than an InPost locker.
      * ```json
-     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR", "response": "…"}
+     * {"status": "error", "response": "Kod pocztowy 00-000 nie występuje w bazie kodów"}
      * ```
-     * A field failed validation, usually an address or a parcel dimension.
+     * A value failed validation, e.g. an unknown postcode, an overweight parcel or an invalid
+     * cash-on-delivery bank account. No code fields.
      *
      * @param CreateOrderMessage $createOrderMessage
      *
@@ -296,6 +295,9 @@ interface OrdersServiceInterface
      * empty when the street can't be split, so rely on `street`. A cover address, when the order has
      * one, has no `email`, `machinename` or `point`, and its `point_id` is always empty.
      *
+     * Without cash on delivery `COD` is `[]` (`null` for an amount of 0); without a pickup `pickup`
+     * is `[]`. The SDK reads both as null.
+     *
      * `external_application_id` lists only the orders placed with that application id, and
      * `external_order_id` narrows it to the one with your id. Both match exactly. The order id only
      * works together with the application id, and the SDK refuses it alone. No match gives an empty
@@ -309,14 +311,12 @@ interface OrdersServiceInterface
      *     "apimethod": "get_orders",
      *     "authorization": {"login": "12345", "token": "…"},
      *     "data": {
-     *         "orderno": "",
      *         "status": "D",
      *         "courier": "UPS",
      *         "cod_min": 0,
      *         "cod_max": 1000,
      *         "date_from": "2026-01-01",
      *         "date_to": "2026-09-23",
-     *         "search": "",
      *         "pagesize": 100,
      *         "page": 1,
      *         "external_application_id": "6f1c2b9e-…",
@@ -362,8 +362,9 @@ interface OrdersServiceInterface
      *                            "point_id": "", "point": null},
      *                 "recipient": {"…": "same shape as sender"},
      *                 "cover_address": null,
-     *                 "COD": {"codtype": "S", "codamount": 420, "status": "PAID",
-     *                         "return_cod": "BA", "return_details": []},
+     *                 "COD": {"codtype": "S", "codamount": 420,
+     *                         "codbankaccount": "34102010260000000000000001", "return_cod": "BA",
+     *                         "status": "PAID", "return_details": []},
      *                 "pickup": {"pickupdate": "2026-06-21", "pickuptimefrom": "10:59",
      *                            "pickuptimeto": "10:59", "nocourierorder": false,
      *                            "multiPickup": false, "pickup_number": null},
@@ -382,8 +383,7 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * Filtered by an order number, the response is the order itself instead of a page. The SDK
-     * returns it as a page with that one order, so the result has the same shape either way.
+     * With an order number, the API returns that order alone. The SDK returns a one-row page.
      *
      * Filtering by an order number that does not exist is an error, not an empty page. It has
      * neither `status_code` nor `error_code`:
@@ -468,21 +468,30 @@ interface OrdersServiceInterface
      * active orders on your account, so it can hold fewer labels than you asked for. The response
      * doesn't say which are missing. Compare against what you sent if that matters.
      *
-     * Labels come back as a base64-encoded PDF unless you ask for a printer language, in which case
-     * you get that instead.
+     * Returns a base64-encoded PDF. A single order number can ask for a printer language, if the
+     * carrier supports it; several always give one merged PDF.
      *
      * Carriers stop serving labels for old shipments. When that happens you get a generic
      * UNKNOWN_ERROR.
      *
      * Endpoint: `get_label`
      *
-     * Request:
+     * Request, several orders in one PDF:
+     * ```json
+     * {
+     *     "apimethod": "get_label",
+     *     "authorization": {"login": "12345", "token": "…"},
+     *     "data": {"orderno": ["12345-678", "12345-679"]}
+     * }
+     * ```
+     *
+     * Request, one order in a printer language:
      * ```json
      * {
      *     "apimethod": "get_label",
      *     "authorization": {"login": "12345", "token": "…"},
      *     "data": {
-     *         "orderno": ["12345-678", "12345-679"],
+     *         "orderno": ["12345-678"],
      *         "file_format": "ZPL"
      *     }
      * }
@@ -496,19 +505,30 @@ interface OrdersServiceInterface
      * }
      * ```
      *
-     * Common errors:
+     * Common errors, worded differently for one number and for several:
      * ```json
      * {"status": "error", "response": "Parametr [orderno] jest pusty"}
      * ```
      * ```json
      * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
      * ```
-     * Returned only when every number is malformed.
+     * One number, malformed.
+     * ```json
+     * {"status": "error", "response": "Tablica [orderno] ma niepoprawny format"}
+     * ```
+     * All of several numbers are malformed.
+     * ```json
+     * {"status": "error", "response": "Brak zamówienia 12345-999"}
+     * ```
+     * One number, unknown or another account's.
+     * ```json
+     * {"status": "error", "response": "Brak etykiety do zamówienia 12345-678"}
+     * ```
+     * One number, cancelled.
      * ```json
      * {"status": "error", "response": "Brak etykiet do pobrania"}
      * ```
-     * The numbers are well-formed, but none of them gives a usable label (unknown, owned by another
-     * account, or cancelled).
+     * None of several numbers gives a label: unknown, another account's or cancelled.
      * ```json
      * {"status": "error", "status_code": 1, "error_code": "UNKNOWN_ERROR",
      *  "response": "Nieznany błąd. Proszę spróbować ponownie"}
@@ -531,8 +551,10 @@ interface OrdersServiceInterface
     /**
      * Fetches the handover protocol (the list the courier signs on collection).
      *
-     * Takes several order numbers, with the same rules as getLabel(). Always returns a base64-encoded
-     * PDF, whatever file format is set.
+     * Takes several order numbers, like getLabel(). Always returns a base64-encoded PDF.
+     *
+     * One unknown number among several fails the whole call with UNKNOWN_ERROR. Numbers of another
+     * account or of cancelled orders are left out.
      *
      * Endpoint: `get_protocol`
      *
@@ -552,6 +574,36 @@ interface OrdersServiceInterface
      *     "response": {"file": "JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…"}
      * }
      * ```
+     *
+     * Common errors, worded differently for one number and for several:
+     * ```json
+     * {"status": "error", "response": "Parametr [orderno] jest pusty"}
+     * ```
+     * ```json
+     * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
+     * ```
+     * One number, malformed.
+     * ```json
+     * {"status": "error", "response": "Tablica [orderno] ma niepoprawny format"}
+     * ```
+     * All of several numbers are malformed.
+     * ```json
+     * {"status": "error", "response": "Brak zamówienia 12345-999"}
+     * ```
+     * One number, unknown or another account's.
+     * ```json
+     * {"status": "error", "response": "Brak protokołu do zamówienia 12345-678"}
+     * ```
+     * One number, cancelled.
+     * ```json
+     * {"status": "error", "response": "Brak protokołów do pobrania"}
+     * ```
+     * Several numbers, all another account's or cancelled.
+     * ```json
+     * {"status": "error", "status_code": 1, "error_code": "UNKNOWN_ERROR",
+     *  "response": "Nieznany błąd. Proszę spróbować ponownie"}
+     * ```
+     * Several numbers, at least one unknown.
      *
      * @param GetDocumentMessage $getDocumentMessage
      *
@@ -704,19 +756,22 @@ interface OrdersServiceInterface
      * whatever the carrier needs. The date must be YYYY-MM-DD and the times HH:MM. They apply to
      * every order in the call.
      *
-     * The list must not be empty, and every entry must be an order number. The SDK checks this
-     * before sending. Duplicates are ignored.
+     * A non-empty list of order numbers, each once; the SDK checks it.
      *
-     * Expect partial success. Each order can be refused on its own while the others go through, so
-     * check both lists. The API reports success even when the success list is empty. Successes are
-     * listed by order number. Failures are keyed by the order number, usually as you sent it, with
-     * one of these messages:
+     * Orders succeed or fail one by one, and the call succeeds even when none goes through, so
+     * check both lists. `success` lists order numbers; `failed` is keyed by the number as sent,
+     * with one of:
      *
-     * - "Nie znaleziono zamówienia": no such order on this account, or it wasn't placed for a
-     *   collective pickup
+     * - "Nie znaleziono zamówienia": no such order on this account, or the order has no pickup
      * - "Nie można zamówić podjazdu zbiorczo dla tego zamówienia": not placed for a collective
      *   pickup, or not accepted yet
      * - "Podjazd już został zamówiony": its collection is already booked
+     * - "Błędna data lub godzina odbioru dla kodu 61-001": the time window has already started or
+     *   passed; the code is the sender's postcode
+     * - the carrier's own message: the carrier refused the booking and gave a reason
+     * - "Błąd walidacji zamówienia": the carrier refused the booking without a reason
+     * - "Nieznany błąd": the order could not be booked, e.g. it has no waybill yet or isn't paid
+     *   for
      *
      * Endpoint: `create_multi_order_pickup`
      *

@@ -12,7 +12,10 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Carries the account's telephone PIN.
+ * Carries one of the account's PINs.
+ *
+ * {@see \Polkurier\Webservice\Request\Account\ChangePinMessage} carries the telephone PIN, {@see
+ * \Polkurier\Webservice\Request\Account\ValidatePinMessage} the security PIN, a different value.
  */
 readonly class PinMessage implements MessageInterface
 {

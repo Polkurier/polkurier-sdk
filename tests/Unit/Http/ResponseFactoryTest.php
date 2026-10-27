@@ -27,6 +27,7 @@ use Polkurier\Webservice\Response\PackTemplate;
 use Polkurier\Webservice\Response\TwoFactorToken;
 use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -112,6 +113,30 @@ final class ResponseFactoryTest extends TestCase
         self::assertInstanceOf(TicketListMessage::class, $list);
         self::assertSame(1, $list->getTotalRows());
         self::assertSame('202610-000009', $list->getResult()[0]->getNumber());
+    }
+
+    /**
+     * Asked for one payout number, the payout list answers with the payout itself.
+     */
+    public function testASinglePayoutWhereAPageIsExpectedReadsAsAOneRowPage(): void
+    {
+        $list = $this->factory->create(
+            $this->jsonResponse(['status' => 'success', 'response' => [
+                'number' => 'WP/2026/000123', 'date' => '2026-09-01T12:00:00+02:00', 'request_type' => 'MANUAL',
+                'payout_type' => 'ACCOUNT', 'bank_account_number' => '34102010260000000000000001',
+                'company' => '', 'person' => '', 'street' => '', 'postcode' => '', 'city' => '',
+                'fee' => 2.46, 'fee_nett' => 2, 'fee_vat_rate' => 23, 'fee_payment_type' => 'INVOICE',
+                'fee_payment_status' => 'UNPAID', 'status' => 'PENDING', 'amount' => 420.0,
+                'to_pay_amount' => 420.0, 'paid_amount' => 0, 'compensation_amount' => 0, 'items_count' => 1,
+                'is_cancellable' => true,
+            ]]),
+            MoneyBoxPayoutListMessage::class
+        )->getParsedResponse()->getResponse();
+
+        self::assertInstanceOf(MoneyBoxPayoutListMessage::class, $list);
+        self::assertSame(1, $list->getTotalRows());
+        self::assertSame(1, $list->getTotalPages());
+        self::assertSame('WP/2026/000123', $list->getResult()[0]->getNumber());
     }
 
     public function testAnOrderFromAListWithoutOptionalKeysReads(): void
