@@ -277,7 +277,11 @@ The integration suite talks to a real API. `composer test` skips it, so run it s
 POLKURIER_API_URL=https://api-sandbox.polkurier.pl composer test:integration
 ```
 
-`POLKURIER_API_LOGIN` and `POLKURIER_API_TOKEN` cover the authenticated methods.
+`POLKURIER_API_LOGIN` and `POLKURIER_API_TOKEN` cover the authenticated methods. Every service
+method is called, and responses are read in strict mode, so a field the SDK doesn't map fails the
+test. Calls that change data run only against the sandbox. Calls that can't be undone or move
+money are sent with values the API rejects. Registering a two-factor token sends a code, so those
+tests also need `POLKURIER_API_SEND_CODES=1`.
 
 License
 -------
