@@ -19,6 +19,7 @@ Start here
 | [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |
 | [Testing](testing.md) | Testing your integration against the SDK |
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
+| [Postman collection](postman/README.md) | Every API method as raw requests with example responses, to try the API from Postman |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
 | [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
 
