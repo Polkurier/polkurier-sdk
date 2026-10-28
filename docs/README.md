@@ -19,6 +19,7 @@ Start here
 | [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |
 | [Testing](testing.md) | Testing your integration against the SDK |
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
+| [Postman collection](postman/README.md) | Every API method as raw requests with example responses, to try the API from Postman |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
 | [Integrations](integrations/README.md) | Symfony, Laravel, Mezzio, Slim, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
 | [Changelog](changelog/) | What changed in each release, one file per version |
@@ -40,15 +41,15 @@ $client = new PolkurierWebservice(new Config(
 $carriers = $client->courier()->availableCarriers();   // Carrier[]
 ```
 
-The client has one service per functional area and one method per API endpoint. Each method
-returns the type it is named for. Errors are thrown as exceptions.
+The client has one service per functional area and a method for each API endpoint. Methods
+return typed results and throw exceptions for errors.
 
 How the API works
 -----------------
 
 **The API has a single endpoint.** Every call is a `POST /` with a JSON envelope containing
-`apimethod`, `authorization` and `data`. There are no paths, HTTP verbs or status codes to deal
-with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
+`apimethod`, plus `authorization` and `data` when the call has them. There are no paths, HTTP
+verbs or status codes to deal with. [`ApiMethodEnum`](../src/Enum/Http/ApiMethodEnum.php) holds the values for `apimethod`, and the code under `src/Http` builds and
 unwraps the envelope.
 
 **The API returns HTTP 200 for everything**, including a bad token and a rejected payload. The SDK
@@ -65,7 +66,7 @@ Messages and examples
 ---------------------
 
 - "Message" means a request payload: a class under `Request` that implements
-  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`, which can be confusing.
-  The namespace tells them apart. [Messages and models](messages.md) explains why.
+  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`;
+  the namespace tells them apart. [Messages and models](messages.md) explains why.
 - [`examples/`](../examples) has runnable versions of most of this, one file per API method. They
   are safe to run, because scripts that write do nothing without `--confirm`.

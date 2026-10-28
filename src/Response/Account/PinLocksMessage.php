@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Which operations the account has put behind its security PIN.
  *
- * When a lock is on, the matching call must carry the PIN or the API refuses it.
+ * When a lock is on, the matching operation takes the security PIN instead of a two-factor code.
  */
 readonly class PinLocksMessage implements MessageInterface
 {
@@ -26,9 +26,10 @@ readonly class PinLocksMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param bool $pinSettings changing the PIN itself is locked
+     * @param bool $pinSettings changing which operations are locked is itself locked; true whenever
+     *        the account has a security PIN
      * @param bool $bankAccountsEdit adding, changing or removing a bank account is locked
-     * @param bool $codMoneyBox money box and cash-on-delivery settlement settings are locked
+     * @param bool $codMoneyBox money box settings and payouts are locked
      */
     public function __construct(
         /**

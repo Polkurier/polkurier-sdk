@@ -132,6 +132,23 @@ final class ErrorPathTest extends TestCase
     }
 
     /**
+     * A rejected contact form answers in capitals and carries the nonce for the next submission.
+     */
+    public function testARejectedContactFormCarriesTheNextNonce(): void
+    {
+        $this->client->willAnswerWith('{"status":"ERROR","status_code":26,"error_code":"VALIDATION_ERROR",'
+            . '"response":"Należy wyrazić zgodę [consent]","validation_errors":{"consent":["Należy wyrazić zgodę"]},'
+            . '"nonce":"n2"}');
+
+        try {
+            $this->sdk->addresses()->getAddresses();
+            self::fail('Expected a WebserviceException.');
+        } catch (WebserviceException $e) {
+            self::assertSame('n2', $e->getErrorMessage()->getNonce());
+        }
+    }
+
+    /**
      * @return array<string, array{string}>
      */
     public static function authorizationErrors(): array

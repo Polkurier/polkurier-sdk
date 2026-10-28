@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Identifies the orders to fetch the label or protocol for.
  *
- * You can request several at once. The API returns one PDF containing all of them.
+ * Several order numbers come back as one PDF.
  */
 readonly class GetDocumentMessage implements MessageInterface
 {
@@ -30,7 +30,7 @@ readonly class GetDocumentMessage implements MessageInterface
     /**
      * @param string[] $orderNo order numbers, at least one
      * @param LabelFileFormatEnum|null $fileFormat printer language for labels instead of PDF. Only
-     *        `get_label` uses it
+     *        `get_label` uses it, and only for a single order number
      */
     public function __construct(
         /**
@@ -60,7 +60,7 @@ readonly class GetDocumentMessage implements MessageInterface
     /**
      * Printer language to render labels in instead of PDF.
      *
-     * Only `get_label` uses this. `get_protocol` always returns a PDF.
+     * Used by `get_label` for a single order number only.
      *
      * @return LabelFileFormatEnum|null
      */

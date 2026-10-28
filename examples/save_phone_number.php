@@ -6,8 +6,8 @@
 /**
  * save_phone_number — add a phone number, or make one the default.
  *
- * Making a number the default is what two-factor codes will be sent to, so the API may require a
- * confirmed two-factor token for that specific change while allowing a plain addition without one.
+ * Making the number the default needs a confirmed two-factor token registered under
+ * CHANGE_DEFAULT_PHONE_NUMBER, and a Polish mobile number; adding it needs neither.
  */
 declare(strict_types=1);
 

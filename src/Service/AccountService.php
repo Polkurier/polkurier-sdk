@@ -202,7 +202,7 @@ class AccountService extends AbstractService implements AccountServiceInterface
         return $this->requestObject(
             ApiMethodEnum::GetRegulations,
             RegulationsMessage::class,
-            $getRegulationsMessage,
+            $getRegulationsMessage ?? new GetRegulationsMessage(),
             authorization: false,
         );
     }

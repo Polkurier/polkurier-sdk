@@ -14,12 +14,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A legal document: the terms of service or the privacy policy.
  *
- * The content is an HTML fragment in Polish (not plain text, and not a full document), meant to be
- * embedded in a page.
+ * The content is an HTML fragment in Polish, meant to be embedded in a page.
  *
  * For the terms, pass the id to
  * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::acceptRegulations()}. Only the
- * version currently in force can be accepted. An id from an earlier version is rejected.
+ * version currently in force can be accepted.
  */
 readonly class RegulationsMessage implements MessageInterface
 {

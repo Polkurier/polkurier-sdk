@@ -59,7 +59,7 @@ Reading orders back
 | Route | Use for |
 |-------|---------|
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current state. Fast. |
-| [`OrdersServiceInterface::getStatus(tracking: true)`](../src/Api/Service/OrdersServiceInterface.php) | The same, plus the carrier's scan history. Slower. |
+| [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) with `tracking: true` | The same, plus the carrier's scan history. Slower. |
 | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Response/Order.php) objects. |
 
 Paging
@@ -87,7 +87,7 @@ Support
 | Route | Use for |
 |-------|---------|
 | [`TicketsServiceInterface::createTicket()`](../src/Api/Service/TicketsServiceInterface.php) + [`TicketsServiceInterface::getTicketMessages()`](../src/Api/Service/TicketsServiceInterface.php) | A conversation you own and can poll |
-| [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) + [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) | A one-way submission whose fields the API defines |
+| [`TicketsServiceInterface::getContactForm()`](../src/Api/Service/TicketsServiceInterface.php) + [`TicketsServiceInterface::saveContactForm()`](../src/Api/Service/TicketsServiceInterface.php) | A submission whose fields the API defines |
 
 Knowledge base
 --------------
@@ -131,7 +131,7 @@ Changing what gets validated
 | Declare rules on your own message subclass | Nothing. Adds your own |
 | Implement [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Everything the SDK had |
 
-[Validation](validation.md#changing-the-rules) shows all 5 with code.
+[Validation](validation.md#changing-the-rules) describes each of them.
 
 Reading a rejection
 -------------------
@@ -167,7 +167,7 @@ Logging
 | Route | Logs |
 |-------|------|
 | No logger | Nothing |
-| A PSR-3 logger, `loggingEnabled: true` | Errors and transport failures |
+| A PSR-3 logger, `loggingEnabled: true` | Errors, transport failures and unknown enum values |
 | The same, plus `methodsToLog: [...]` | The full request and response of those methods |
 | The same, plus `logSensitiveData`, `logPersonalData` or `logFiles` | Also the secrets, personal data or files that are otherwise left out |
 

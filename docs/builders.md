@@ -5,7 +5,7 @@ Messages are readonly and take named arguments. That works well when you have ev
 front:
 
 ```php
-new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], searchQuery: 'Poznań', limit: 5);
+new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], functions: [PointFunctionEnum::Send], limit: 50);
 ```
 
 It gets awkward when you don't, e.g. with an optional filter, a payload assembled over a few steps,
@@ -22,10 +22,8 @@ $search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
 
 if ($query !== null) {
     $search->searchQuery($query);
-}
-
-if ($limit !== null) {
-    $search->limit($limit);
+} else {
+    $search->limit(50)->page($page);
 }
 
 $points = $client->courier()->findCourierPoints($search->build());

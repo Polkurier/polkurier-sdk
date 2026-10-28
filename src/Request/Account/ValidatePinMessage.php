@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Request\Account;
 /**
  * Checks a security PIN without changing anything.
  *
- * It confirms a PIN in your UI before an operation that needs it.
+ * Use it to confirm a PIN before a PIN-locked operation. Not the telephone PIN.
  */
 readonly class ValidatePinMessage extends PinMessage
 {

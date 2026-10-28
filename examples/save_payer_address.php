@@ -6,9 +6,9 @@
 /**
  * save_payer_address — set the billing details invoices are issued to.
  *
- * Which fields are required depends on the address type and on whether the payer is a company or a
- * private person — a company needs its tax number, a private person does not. The SDK checks the
- * combination before sending.
+ * The billing address needs a legal form, which the SDK checks before sending. A company with the
+ * "PL" tax number prefix needs a valid NIP and REGON. Once the account has been issued an invoice,
+ * the call is refused.
  */
 declare(strict_types=1);
 

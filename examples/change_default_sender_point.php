@@ -6,8 +6,8 @@
 /**
  * change_default_sender_point — set the drop-off point preselected for a carrier.
  *
- * Per carrier rather than global: an account can keep a different default point for each one.
- * Passing an empty point clears the default for that carrier.
+ * An account keeps one default point per carrier. Passing an empty point clears the default for
+ * that carrier.
  */
 declare(strict_types=1);
 

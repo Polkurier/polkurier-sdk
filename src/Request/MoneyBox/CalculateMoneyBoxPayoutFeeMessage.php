@@ -30,13 +30,15 @@ readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterface
 
     /**
      * @param string[] $orders order numbers to include, empty for everything available
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType the delivery method, defaults to the account's configured one
+     * @param ?MoneyBoxPayoutTypeEnum $payoutType the delivery method; without it, the quote has no
+     *        postal money order fee
      */
     public function __construct(
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
+        #[OmitWhenEmpty]
         #[Validate\Each(Validate\OrderNumber::class)]
         private array $orders = [],
 

@@ -6,9 +6,8 @@
 /**
  * find_city — look up the towns a postcode covers.
  *
- * One postcode can serve several localities, so the answer is a list rather than a single name.
- * Only Poland is served; asking about any other country answers with an empty list rather than an
- * error.
+ * One postcode can serve several localities. Only Polish postcodes are looked up: any other
+ * country, like an unknown postcode, gives an empty list.
  */
 declare(strict_types=1);
 

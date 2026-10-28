@@ -7,7 +7,7 @@
  * get_label — download shipping labels as a PDF.
  *
  * Several order numbers can be requested at once; the API returns one PDF containing all of their
- * labels. get_protocol works identically for the handover protocol.
+ * labels. get_protocol takes the same request for the handover protocol.
  */
 declare(strict_types=1);
 
@@ -29,7 +29,7 @@ try {
     $path = \sys_get_temp_dir() . '/polkurier-labels.pdf';
     \file_put_contents($path, $document->getDecodedFile());
 
-    \printf("Saved %d label(s) to %s\n", \count($orderNumbers), $path);
+    \printf("Saved the labels for up to %d order(s) to %s\n", \count($orderNumbers), $path);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

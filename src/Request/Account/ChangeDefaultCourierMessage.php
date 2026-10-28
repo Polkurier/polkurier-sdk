@@ -8,13 +8,12 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Sets the carrier preselected on the order form.
+ * Sets or clears the carrier preselected on the order form.
  *
- * The carrier must be one this account can use, i.e. one listed by `available_carriers`.
+ * A carrier listed by `available_carriers`; an empty code clears the default.
  */
 readonly class ChangeDefaultCourierMessage implements MessageInterface
 {
@@ -25,14 +24,13 @@ readonly class ChangeDefaultCourierMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $courier carrier code
+     * @param string $courier carrier code, or an empty string to clear the default
      */
     public function __construct(
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
-        #[Validate\NotBlank]
         private string $courier,
     ) {}
 

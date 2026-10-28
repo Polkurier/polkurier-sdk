@@ -7,7 +7,7 @@
  * delete_bank_account — remove a bank account.
  *
  * Subject to the same PIN lock as registering one: pass the account's security PIN when
- * get_account_info reports the bank-account lock as engaged.
+ * get_account_info reports the bank-account lock as engaged. An unknown id also succeeds.
  */
 declare(strict_types=1);
 

@@ -33,13 +33,11 @@ use Polkurier\Webservice\Response\Account\RegulationsMessage;
 /**
  * The account: profile, balances, preferences, credentials and telephone numbers.
  *
- * Most integrations call getAccountInfo() first. It reports the acceptance, verification and
- * PIN-lock flags. These tell you whether the account can ship at all and which calls here need
- * extra confirmation.
+ * Most integrations call getAccountInfo() first. Its flags say whether the account can place orders
+ * and which operations take the security PIN instead of a two-factor code.
  *
- * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP
- * status. `status_code` and `error_code` are both optional. An error may have one, both or
- * neither:
+ * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
+ * `status_code` and `error_code` are both optional: an error may have both, one or neither:
  * ```json
  * {"status": "error", "status_code": 15, "error_code": "PARAMS_IS_EMPTY",
  *  "response": "Brak wymaganego parametru lub jest pusty: [couriers]"}
@@ -47,26 +45,27 @@ use Polkurier\Webservice\Response\Account\RegulationsMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface AccountServiceInterface
 {
     /**
      * Fetches the account's profile, balances and outstanding obligations.
      *
-     * It matters before placing orders, not just for display. The acceptance flags decide
-     * whether orders are accepted at all. `require_account_verification` and
-     * `require_agreement_verification` block shipping on some accounts. `pin_locks` says which calls
-     * need the security PIN.
+     * Orders are refused while `is_email_verified` is false or `is_delete_requested` is true.
+     * With `require_agreement_verification` true, the account has to complete identity verification,
+     * see {@see \Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface}. `pin_locks`
+     * says which operations take the security PIN instead of a two-factor code.
      *
      * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw
      * now, and the part already committed to a payout.
      *
      * `is_new_regulations` is true in one response per version of the terms of service the account
      * hasn't accepted: the call that reports it also marks the notice as shown, and later calls answer
-     * false, accepted or not. Act on it when it arrives. To know whether the current terms are
-     * accepted, read `is_regulations_accepted`.
+     * false, accepted or not. Act on it when it arrives. `is_regulations_accepted` is false once
+     * acceptance is due: the account has never accepted any terms, or the current ones are
+     * unaccepted and `regulations_acceptance_period` days (see `get_system_info`) have passed since
+     * they took effect.
      *
      * With `external_application_id`, the response also has `external_application_settings`: that
      * application's settings for this account, see
@@ -78,8 +77,7 @@ interface AccountServiceInterface
      * ```json
      * {
      *     "apimethod": "get_account_info",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": {}
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -141,9 +139,10 @@ interface AccountServiceInterface
     /**
      * Changes the account's order-form defaults.
      *
-     * Only the fields you send are changed.
-     *
-     * Returns the full account profile, so you don't need another call to read the new state.
+     * Only the fields you send are changed. A sender address id that names none of the account's
+     * senders is ignored. `default_sender_point` takes InPost locker, Pocztex point, DPD point and
+     * UPS Access Point codes; the InPost codes share one point, as do the Pocztex and the UPS ones.
+     * Other codes are ignored.
      *
      * Endpoint: `save_account_settings`
      *
@@ -160,14 +159,15 @@ interface AccountServiceInterface
      * }
      * ```
      *
-     * Response: the same object getAccountInfo() returns, reflecting the change.
+     * Response: the object getAccountInfo() returns, reflecting the change, without application
+     * settings. It reports `is_new_regulations` once, as getAccountInfo() does.
      *
      * Common errors:
      * ```json
      * {"status": "error",
      *  "response": "Nazwa kuriera musi zawierać się w zbiorze [UPS, DHL, DPD, …]"}
      * ```
-     * Note: this one has neither code field.
+     * It has neither code field.
      *
      * @param SaveAccountSettingsMessage $saveAccountSettingsMessage
      *
@@ -185,10 +185,10 @@ interface AccountServiceInterface
     ): AccountInfoMessage;
 
     /**
-     * Sets the carrier preselected on the order form.
+     * Sets or clears the carrier preselected on the order form.
      *
-     * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one this account is
-     * allowed to use.
+     * Changes only the carrier, unlike saveAccountSettings(). The carrier must be one the account
+     * may use; an empty code clears the default.
      *
      * Endpoint: `change_default_courier`
      *
@@ -229,8 +229,11 @@ interface AccountServiceInterface
     /**
      * Sets, or clears, the default drop-off point for one carrier.
      *
-     * Only carriers that operate points accept this: InPost lockers, Pocztex points, Paczka w
-     * Ruchu, DPD, FedEx, DHL and UPS Access Points.
+     * The carrier codes accepted are `INPOST_PACZKOMAT`, `POCZTEX_PUNKT`, `PACZKA_W_RUCHU`,
+     * `DPD_POINT`, `FEDEX_DTR`, `DHL_POINT` and `UPS_AP_POINT_POINT`. `INPOST_PACZKOMAT_KURIER`,
+     * `INPOST_PACZKOMAT_ALLEGRO`, `INPOST_PACZKOMAT_ECONOMY`, `INPOST_INTERNATIONAL`,
+     * `POCZTEX_PUNKT_PUNKT` and `UPS_AP_POINT_COURIER` are refused as FORBIDDEN, any other code as
+     * PARAMETER_INVALID.
      *
      * The point id must belong to that carrier's network. An empty point clears the default.
      *
@@ -260,6 +263,10 @@ interface AccountServiceInterface
      *  "response": "Błędna wartość parametru [courier]. Musi zawierać się w zbiorze […]"}
      * ```
      * The carrier does not operate points.
+     * ```json
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
+     *  "response": "Nie można ustawić domyślnego punktu dla tego przewoźnika"}
+     * ```
      * ```json
      * {"status": "error", "status_code": 24, "error_code": "PARAMETER_INVALID",
      *  "response": "Punkt POZ01A jest nieprawidłowy"}
@@ -346,8 +353,8 @@ interface AccountServiceInterface
     /**
      * Changes the account password.
      *
-     * A missing or wrong current password gets a forbidden error, not a validation error, so you
-     * can't tell from the error which it was.
+     * FORBIDDEN: these credentials may not change the password. A wrong current password is a
+     * VALIDATION_ERROR on `previous_password`.
      *
      * Endpoint: `change_password`
      *
@@ -370,6 +377,12 @@ interface AccountServiceInterface
      * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
      *  "response": "Brak uprawnień"}
      * ```
+     * These credentials may not change the password.
+     * ```json
+     * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
+     *  "response": "…", "validation_errors": {"previous_password": ["…"]}}
+     * ```
+     * The current password is wrong.
      * ```json
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"password": ["…"]}}
@@ -391,9 +404,8 @@ interface AccountServiceInterface
     /**
      * Sets or changes the account's telephone PIN.
      *
-     * You give this code when contacting support. It also unlocks PIN-protected operations such as
-     * editing bank accounts. The allowed length can change. `get_system_info` reports it under
-     * `security`.
+     * The code given when contacting support: 4 digits, no run of 3 consecutive (123, 321) or
+     * identical (111) digits. Not the security PIN, which validateUserPin() checks.
      *
      * Endpoint: `change_phone_pin`
      *
@@ -433,8 +445,11 @@ interface AccountServiceInterface
     /**
      * Checks a security PIN without changing anything.
      *
+     * The security PIN unlocks PIN-locked operations such as editing bank accounts. Not the
+     * telephone PIN. `get_system_info` reports its length under `security`.
+     *
      * A wrong PIN does not cause an error. The response is a success envelope with `valid` set to
-     * false, so read the flag.
+     * false, as it is for an account without a security PIN.
      *
      * Endpoint: `validate_user_pin`
      *
@@ -524,8 +539,7 @@ interface AccountServiceInterface
      * Records the customer's acceptance of the current terms.
      *
      * The id must match the version in force at the time of the call, so read it from
-     * getRegulations() just before. A customer cannot accept a version that has since been replaced,
-     * so a stale cached id is rejected.
+     * getRegulations() just before.
      *
      * Endpoint: `accept_regulations`
      *
@@ -565,7 +579,7 @@ interface AccountServiceInterface
     /**
      * Lists the account's telephone numbers.
      *
-     * One number is the default, and two-factor codes and carrier notifications go to it.
+     * At most one number is the default. Two-factor codes sent by text message go to it.
      *
      * Endpoint: `get_phone_numbers`
      *
@@ -573,8 +587,7 @@ interface AccountServiceInterface
      * ```json
      * {
      *     "apimethod": "get_phone_numbers",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -608,8 +621,11 @@ interface AccountServiceInterface
      *
      * Adding a number needs no confirmation, but making it the default does. You need a verified
      * two-factor token registered under CHANGE_DEFAULT_PHONE_NUMBER, because future two-factor codes
-     * go to the default number. The one exception is the first number on an account created without
-     * one. It becomes the default automatically and needs no token.
+     * go to the default number. The default must be a Polish mobile number.
+     *
+     * A number already on the account is returned as stored, with its name unchanged. If the
+     * account has given any marketing consent, the number gets the consents for calls and text
+     * messages.
      *
      * Endpoint: `save_phone_number`
      *
@@ -636,6 +652,20 @@ interface AccountServiceInterface
      *  "response": "Numer telefonu jest nieprawidłowy [number]",
      *  "validation_errors": {"number": ["Numer telefonu jest nieprawidłowy"]}}
      * ```
+     * ```json
+     * {"status": "error", "status_code": 506001, "error_code": "TWO_FACTOR_CODE_REQUIRED",
+     *  "response": "Wymagany kod weryfikacyjny"}
+     * ```
+     * `default` without a two-factor code.
+     * ```json
+     * {"status": "error", "status_code": 506005, "error_code": "TWO_FACTOR_INVALID_CODE",
+     *  "response": "Błędny kod weryfikacyjny lub kod utracił ważność"}
+     * ```
+     * Wrong or expired code, or a token not registered under CHANGE_DEFAULT_PHONE_NUMBER.
+     * ```json
+     * {"status": "error", "status_code": 506004, "error_code": "TWO_FACTOR_NUMBER_NOT_VALID_FOR_TWO_FACTOR",
+     *  "response": "Domyślny numer musi być numerem krajowej sieci komórkowej"}
+     * ```
      *
      * @param SavePhoneNumberMessage $savePhoneNumberMessage
      *
@@ -653,11 +683,12 @@ interface AccountServiceInterface
     /**
      * Removes a telephone number from the account.
      *
-     * Both the id and the number are required, and the number must match the id. The SDK checks the
-     * number's format before sending.
+     * The id picks the number; `number` is required but only checked for format, by the SDK too. An
+     * unknown id removes nothing and succeeds.
      *
-     * Removing a number also withdraws any marketing consents given for it, for both calls and text
-     * messages. Adding the number again does not restore them.
+     * The default number can't be removed.
+     *
+     * Removing a number withdraws its marketing consents for calls and text messages.
      *
      * Endpoint: `delete_phone_number`
      *
@@ -682,9 +713,10 @@ interface AccountServiceInterface
      *  "validation_errors": {"number": ["Numer telefonu jest nieprawidłowy"]}}
      * ```
      * ```json
-     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN", "response": "…"}
+     * {"status": "error", "status_code": 403, "error_code": "FORBIDDEN",
+     *  "response": "Nie można usunąć domyślnego numeru telefonu. Najpierw ustaw inny numer jako domyślny i spróbuj ponownie."}
      * ```
-     * The number can't be removed, e.g. the default number while it is the only one.
+     * The id names the default number.
      *
      * @param DeletePhoneNumberMessage $deletePhoneNumberMessage
      *

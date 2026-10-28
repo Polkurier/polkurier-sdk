@@ -6,8 +6,7 @@
 /**
  * get_pack_templates — list the saved parcel templates.
  *
- * A convenience for repeat consignments. Nothing binds an order to a template: read one and copy
- * its values into the payload.
+ * Nothing binds an order to a template: read one and copy its values into the payload.
  */
 declare(strict_types=1);
 
@@ -26,7 +25,7 @@ try {
             $template->getWidth(),
             $template->getHeight(),
             $template->getWeight(),
-            $template->isDefault() ? '(default)' : ''
+            $template->getCourier() ?? 'no carrier'
         );
     }
 } catch (Exception $e) {

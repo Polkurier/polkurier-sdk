@@ -14,10 +14,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Switches a pending two-factor confirmation to a different delivery channel.
  *
- * For a customer who cannot receive the code the way it was first sent, e.g. no signal for
- * a text message. The available channels are listed on the token returned by registering.
+ * For a customer who cannot receive the code the way it was first sent. The available channels are
+ * listed on the token returned by registering.
  *
- * Switching sends the code again over the new channel, so the same rate limit as a resend applies.
+ * Switching sends the code over the new channel at once; the resend window doesn't apply.
  */
 readonly class ChangeTransportMethodMessage implements MessageInterface
 {

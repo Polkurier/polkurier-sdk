@@ -12,11 +12,10 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One topic a support ticket can be raised under.
+ * One topic a support ticket or a contact form can be raised under.
  *
- * Topics form a shallow tree through the parent id. You can raise a ticket only under a topic with
- * `has_form` set. The others group topics and link to help articles, which you can show before the
- * customer opens a ticket.
+ * Topics form a tree through the parent id. A topic can link to help articles, which you can show
+ * before the customer opens a ticket.
  */
 readonly class ContactTopicMessage implements MessageInterface
 {
@@ -33,11 +32,11 @@ readonly class ContactTopicMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $id the id to quote when raising a ticket
+     * @param string $id the id to quote when raising a ticket or fetching the contact form
      * @param ?string $parentId parent topic, null at the top level
      * @param string $title display title, in Polish
-     * @param string $content explanatory text, in Polish
-     * @param bool $hasForm whether a ticket can be raised under this topic
+     * @param string $content explanatory HTML fragment, in Polish
+     * @param bool $hasForm whether the topic has a contact form
      * @param KnowledgeBaseLinkMessage[] $knowledgeBaseArticles help articles suggested for this topic
      * @param KnowledgeBaseLinkMessage[] $knowledgeBaseCategories help categories suggested for this topic
      */

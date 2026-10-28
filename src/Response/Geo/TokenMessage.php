@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The short-lived token the pickup-point map authenticates with.
  *
  * This is not the API token. The map runs in the browser, and this token is safe to send there. It
- * is short-lived, so a cached one soon stops working.
+ * expires 4 hours after it's issued.
  */
 readonly class TokenMessage implements MessageInterface
 {

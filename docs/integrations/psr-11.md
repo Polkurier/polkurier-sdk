@@ -69,10 +69,12 @@ return [
 
     ValidatorInterface::class => factory([DefaultValidatorRegistryFactory::class, 'create']),
 
-    // The services. They all take the same 6 arguments, so autowire handles them
-    // once the interfaces above are bound.
-    OrdersServiceInterface::class  => autowire(OrdersService::class),
-    CourierServiceInterface::class => autowire(CourierService::class),
+    // The services. They all take the same arguments, so autowire handles them once the
+    // interfaces above are bound. Naming the validator applies the rules registered above.
+    OrdersServiceInterface::class  => autowire(OrdersService::class)
+        ->constructorParameter('validator', get(ValidatorInterface::class)),
+    CourierServiceInterface::class => autowire(CourierService::class)
+        ->constructorParameter('validator', get(ValidatorInterface::class)),
 
     PolkurierWebservice::class => factory(
         static fn(ContainerInterface $c): PolkurierWebservice => new PolkurierWebservice(
@@ -85,9 +87,11 @@ return [
 ];
 ```
 
-PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services because each constructor parameter is an interface bound
-above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/): unless it is bound to the application's logger, PHP-DI
-tries to instantiate the interface and fails.
+PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services because each required constructor parameter is an
+interface bound above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/): unless it is bound to the application's
+logger, PHP-DI tries to instantiate the interface and fails. Autowiring leaves optional parameters at
+their defaults, so without the `validator` entry each service builds its own default validator,
+and rules registered on the container's one don't apply.
 
 Slim
 ----
@@ -132,7 +136,8 @@ final readonly class TrackAction
 ```
 
 > With compilation enabled, PHP-DI freezes the definitions, so a deploy clears `var/cache`.
-> [`DI\factory()`](https://php-di.org/doc/php-definitions.html) closures can't be compiled, while invokable factory classes can.
+> [`DI\factory()`](https://php-di.org/doc/php-definitions.html) closures compile only if they import no variables with `use` and don't refer to
+> `$this`, `self`, `static` or `parent`. Invokable factory classes have no such limits.
 
 A middleware can convert SDK exceptions into responses, which keeps error handling out of the
 actions:
@@ -203,8 +208,8 @@ foreach ($client->orders()->getOrders($filter)->getResult() as $order) {
 
 The facade builds what it needs on first use and caches the services after that.
 
-If you only want one service, you can wire it by hand. Every service takes the same 6 arguments,
-in this order:
+If you only want one service, you can wire it by hand. Every service takes the same arguments, and
+these 6 are the ones to pass:
 
 ```php
 use Polkurier\Webservice\ConfigProvider;
@@ -213,7 +218,6 @@ use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Service\OrdersService;
-use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 $configProvider = new ConfigProvider($config);
 $serializer     = new SerializerProvider();
@@ -224,12 +228,8 @@ $orders = new OrdersService(
     logger:          $logger,
     clientFactory:   new ClientFactory($configProvider),
     configProvider:  $configProvider,
-    validator:       DefaultValidatorRegistryFactory::create(),
 );
 ```
-
-> [`AbstractService`](../../src/Service/AbstractService.php) defaults the validator to [`NullValidator`](../../src/Validator/NullValidator.php), so a service constructed by hand
-> doesn't validate anything, while the facade validates by default.
 
 Long-running processes
 ----------------------

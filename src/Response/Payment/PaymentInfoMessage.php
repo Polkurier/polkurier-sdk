@@ -14,8 +14,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The state of a payment.
  *
- * The hash is the provider's signature over the transaction, for reconciling against the
- * provider's callback. It is not meant for display.
+ * The state is one of:
+ *
+ * - `NEW`: registered, not yet passed to the payment provider.
+ * - `REGISTERED`: the provider has the transaction, and the customer has not finished paying.
+ * - `PENDING`: the customer is back from the provider, and the payment is not yet confirmed.
+ * - `DONE`: paid.
  */
 readonly class PaymentInfoMessage implements MessageInterface
 {
@@ -30,9 +34,9 @@ readonly class PaymentInfoMessage implements MessageInterface
 
     /**
      * @param string $transactionId
-     * @param string $state where the payment has got to
-     * @param ?int $loginId the account the payment belongs to
-     * @param ?string $hash the provider's signature over the transaction
+     * @param string $state NEW, REGISTERED, PENDING or DONE
+     * @param ?int $loginId not sent by the API, always null
+     * @param ?string $hash not sent by the API, always null
      */
     public function __construct(
         /**
@@ -49,6 +53,8 @@ readonly class PaymentInfoMessage implements MessageInterface
 
         /**
          * @var ?int
+         *
+         * @deprecated The API does not send this field; it is always null.
          */
         #[Serializer\SerializedName(self::FIELD_LOGIN_ID)]
         #[OmitWhenEmpty]
@@ -56,6 +62,8 @@ readonly class PaymentInfoMessage implements MessageInterface
 
         /**
          * @var ?string
+         *
+         * @deprecated The API does not send this field; it is always null.
          */
         #[Serializer\SerializedName(self::FIELD_HASH)]
         #[OmitWhenEmpty]
@@ -80,6 +88,8 @@ readonly class PaymentInfoMessage implements MessageInterface
 
     /**
      * @return ?int
+     *
+     * @deprecated The API does not send this field; it is always null.
      */
     public function getLoginId(): ?int
     {
@@ -88,6 +98,8 @@ readonly class PaymentInfoMessage implements MessageInterface
 
     /**
      * @return ?string
+     *
+     * @deprecated The API does not send this field; it is always null.
      */
     public function getHash(): ?string
     {

@@ -10,9 +10,8 @@ namespace Polkurier\Webservice\Enum\TwoFactorToken;
 /**
  * The operation a two-factor token authorises.
  *
- * A token is bound to one namespace when it is registered and only works for that operation. A
- * token issued for a bank account change can't be used for a money box payout. The API rejects
- * unknown namespaces.
+ * A token is bound to one namespace when it is registered and only works for that operation. The
+ * API rejects unknown namespaces.
  */
 enum TwoFactorNamespaceEnum: string
 {
@@ -37,10 +36,9 @@ enum TwoFactorNamespaceEnum: string
     case ChangeDefaultPhoneNumber = 'CHANGE_DEFAULT_PHONE_NUMBER';
 
     /**
-     * Adding or changing a bank account that cash-on-delivery funds are paid into.
+     * Registering a bank account, or changing its number or default flag.
      *
-     * The most common one. The bank accounts service requires it unless the account is protected
-     * by a PIN.
+     * The bank accounts service requires it unless bank account editing is PIN-locked.
      */
     case ChangeBankAccountNumber = 'CHANGE_BANK_ACCOUNT_NUMBER';
 

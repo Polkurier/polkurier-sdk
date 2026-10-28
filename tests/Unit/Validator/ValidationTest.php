@@ -16,6 +16,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Request\Order\CodMessage;
@@ -31,6 +32,8 @@ use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
+use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 /**
  * The rules applied to a payload before it leaves.
@@ -59,6 +62,11 @@ final class ValidationTest extends TestCase
     {
         return [
             'a complete order' => [self::order()],
+            'a ticket reply carrying only a file' => [new CreateTicketMessageMessage(
+                ticketId: 't1',
+                content: '',
+                files: [TicketAttachmentMessage::fromContents('a.txt', 'x', 'text/plain')],
+            )],
             'an order with no cash on delivery' => [self::order(cod: null)],
             'cash on delivery zeroed, which the API ignores' => [self::order(cod: new CodMessage(amount: 0.0))],
             // The API stops reading the block at a zero amount, so nothing beside it can be wrong.
@@ -122,12 +130,19 @@ final class ValidationTest extends TestCase
                 ),
             ],
             'a postcode lookup' => [new FindCityMessage('61-001')],
+            'an empty default carrier, which clears it' => [new ChangeDefaultCourierMessage(courier: '')],
             'a prepaid top-up with an amount' => [
                 new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 100.0),
             ],
             // Every other mode settles a balance the API already knows, so no amount is needed.
             'an invoice payment with no amount' => [
-                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices),
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices, invoiceNumbers: ['2520/06/2026/POL']),
+            ],
+            'an order payment with the order numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders, orderNumbers: ['12345-678']),
+            ],
+            'a balance payment, which needs no list' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Balance),
             ],
             'a lookup outside Poland, which the API answers with an empty list' => [
                 new FindCityMessage('10115', country: 'DE'),
@@ -157,6 +172,18 @@ final class ValidationTest extends TestCase
     {
         return [
             'no carrier' => [self::order(courier: ''), 'courier'],
+            'a ticket reply with neither text nor files' => [
+                new CreateTicketMessageMessage(ticketId: 't1', content: ''),
+                'content',
+            ],
+            'a ticket attachment without a media type' => [
+                new CreateTicketMessageMessage(
+                    ticketId: 't1',
+                    content: 'x',
+                    files: [new TicketAttachmentMessage(name: 'a.txt', file: 'eA==', type: '')],
+                ),
+                'files[0].type',
+            ],
             // {@see CreateOrderMessage} rejects an empty pack list in its own constructor, before any
             // validator sees it, so the list rule is exercised through a payload that gets that far.
             'a point search naming no carriers' => [new GetPointMessage(couriers: []), 'couriers'],
@@ -176,6 +203,22 @@ final class ValidationTest extends TestCase
             'a prepaid top-up of nothing' => [
                 new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 0.0),
                 'amount',
+            ],
+            'an invoice payment with no invoice numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices),
+                'invoices',
+            ],
+            'an invoice payment with a blank invoice number' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Invoices, invoiceNumbers: ['']),
+                'invoices[0]',
+            ],
+            'an order payment with no order numbers' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders),
+                'orders',
+            ],
+            'an order payment with a malformed order number' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Orders, orderNumbers: ['12345']),
+                'orders[0]',
             ],
             'a parcel with no length' => [
                 self::order(packs: [new PackMessage(length: 0, width: 20, height: 15, weight: 2.5)]),
@@ -317,23 +360,20 @@ final class ValidationTest extends TestCase
     }
 
     /**
-     * A coupon check only needs the sender's region, as in the validateCouponCode() example.
+     * The API doesn't read the coupon's sender, so a malformed one passes.
      *
      * @return void
      */
-    public function testCouponCheckAcceptsARegionOnlySender(): void
+    public function testCouponCheckIgnoresTheSender(): void
     {
         $this->validator->validate(new ValidateCouponMessage(
             couponCode: 'SPRING10',
-            courier: 'UPS',
-            shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard)],
             sender: new OrderAddressMessage(
                 person: '',
                 street: '',
-                city: 'Poznań',
-                postcode: '61-001',
-                email: '',
+                city: '',
+                postcode: 'not a postcode',
+                email: 'not an email',
                 phone: '',
             ),
         ));

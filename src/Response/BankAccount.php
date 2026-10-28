@@ -12,7 +12,7 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A bank account registered for cash-on-delivery settlement, as stored.
+ * A registered bank account, as stored. A money box payout to a bank account must name one of these.
  *
  * To register or update one, use {@see \Polkurier\Webservice\Request\BankAccount\SaveMessage}.
  * It also carries the confirmation the API may require before it changes where money is paid.
@@ -31,7 +31,7 @@ readonly class BankAccount implements MessageInterface
     /**
      * @param string|null $id
      * @param string $name
-     * @param string $number
+     * @param string $number the national number, digits only
      * @param bool $default
      */
     public function __construct(

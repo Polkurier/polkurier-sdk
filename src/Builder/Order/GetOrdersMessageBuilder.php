@@ -120,8 +120,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * Lists only orders placed with this application id, exact match. Orders without one aren't
-     * listed.
+     * Lists only orders placed with this application id, exact match.
      *
      * @param string|null $externalApplicationId
      *

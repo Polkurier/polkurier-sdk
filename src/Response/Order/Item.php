@@ -13,9 +13,11 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One charge line on an order: carriage of a parcel, or an additional service.
+ * One charge line on an order: carriage of a parcel, an additional service, or the discount, which
+ * comes as a line with negative amounts.
  *
- * Returned only when a listing asks for items.
+ * Returned when the order list asks for items or is filtered by order number, and in webhook
+ * events.
  */
 readonly class Item implements MessageInterface
 {
@@ -136,8 +138,8 @@ readonly class Item implements MessageInterface
     /**
      * Identifier of the additional service this line charges for.
      *
-     * Null on carriage lines, and also on service lines not tied to a specific service. To tell the
-     * two kinds apart, use {@see self::getType()}.
+     * Null on carriage and discount lines, and also on service lines not tied to a specific
+     * service. To tell the kinds apart, use {@see self::getType()}.
      *
      * @return string|null
      */

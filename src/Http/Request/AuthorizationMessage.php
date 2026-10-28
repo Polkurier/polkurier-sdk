@@ -16,8 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The login is the numeric customer id, not an email address. Generate the token in the customer
  * panel under Settings > API token.
  *
- * It is serialized into every authenticated request, so logging a request body also logs the
- * token.
+ * It is serialized into the body of every authenticated request. The SDK's own logs hide the token
+ * unless `logSensitiveData` is on.
  */
 readonly class AuthorizationMessage extends TokenMessage
 {

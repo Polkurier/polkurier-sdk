@@ -13,14 +13,13 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * Current delivery state of one order, with its tracking history.
+ * Current delivery state of one order, optionally with its scan history.
  *
  * `get_status` returns an API error for a cancelled order instead of a cancelled status, so a
  * successful response always describes a live order.
  *
- * The response uses 3 date formats, and they differ from the ones `get_orders` uses. The status
- * timestamp has no seconds, the delivery date has no time, and the scan timestamps in the history
- * are full datetimes. Each field has its own format pinned.
+ * The dates differ from the ones `get_orders` uses: the status timestamp has no seconds, the
+ * delivery date has no time, and the scan timestamps in the history are full datetimes.
  */
 readonly class OrderStatusMessage implements MessageInterface
 {
@@ -40,9 +39,9 @@ readonly class OrderStatusMessage implements MessageInterface
      * @param string $statusCode
      * @param \DateTimeInterface|null $statusDate
      * @param \DateTimeInterface|null $deliveredDate date only, with no time component
-     * @param string $url public track-and-trace URL
-     * @param TrackingEventMessage[] $tracking scan history, oldest first, empty when the carrier
-     *                                         has not reported anything yet
+     * @param string $url public track-and-trace URL, empty while the order has no waybill
+     * @param TrackingEventMessage[] $tracking scan history, empty unless asked for, or when the
+     *                                         carrier has not reported anything yet
      */
     public function __construct(
         /**
@@ -103,7 +102,8 @@ readonly class OrderStatusMessage implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null null if the response leaves it out
+     * @return \DateTimeInterface|null null if the response leaves it out, as it does while the order
+     *         has no waybill
      */
     public function getStatusDate(): ?\DateTimeInterface
     {
@@ -111,7 +111,7 @@ readonly class OrderStatusMessage implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface|null the day, at midnight
+     * @return \DateTimeInterface|null the day, at midnight. Null until the order is delivered
      */
     public function getDeliveredDate(): ?\DateTimeInterface
     {

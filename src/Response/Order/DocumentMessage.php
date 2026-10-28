@@ -12,9 +12,8 @@ use Polkurier\Webservice\Response\DecodesFile;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A document for one or more orders (e.g. waybill labels), as a single PDF.
- *
- * @see DocumentMessage
+ * A label or handover protocol for one or more orders, as a single PDF, or a label in the printer
+ * language asked for.
  */
 readonly class DocumentMessage implements MessageInterface
 {
@@ -27,7 +26,7 @@ readonly class DocumentMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $file base64-encoded PDF
+     * @param string $file base64-encoded PDF or printer-language data
      */
     public function __construct(
         /**
@@ -38,8 +37,8 @@ readonly class DocumentMessage implements MessageInterface
     ) {}
 
     /**
-     * The document as the API sent it, a base64-encoded PDF. {@see self::getDecodedFile()} returns
-     * the raw bytes.
+     * The document as the API sent it, base64-encoded. {@see self::getDecodedFile()} returns the raw
+     * bytes.
      *
      * @return string
      */

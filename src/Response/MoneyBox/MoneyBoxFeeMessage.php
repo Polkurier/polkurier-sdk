@@ -13,10 +13,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * What a payout would cost, quoted before it is requested.
  *
- * This is only a quote. Nothing is reserved and no payout is created. The fee can combine several
- * components, and the breakdown itemises them.
+ * Nothing is reserved and no payout is created. The fee can combine several components, and the
+ * breakdown itemises them.
  *
- * Check the free payout counters as well: an account with free payouts left is charged nothing.
+ * While the account has free payouts left this month, the fee has no PAYOUT_FEE component.
  */
 readonly class MoneyBoxFeeMessage implements MessageInterface
 {
@@ -35,8 +35,8 @@ readonly class MoneyBoxFeeMessage implements MessageInterface
      * @param float $fee total gross fee in PLN
      * @param float $feeNett total net fee in PLN
      * @param float $feeVatRate VAT rate as a percentage
-     * @param int $freePayoutsLeft free payouts still available this period
-     * @param int $freePayoutsTotal free payouts granted per period
+     * @param int $freePayoutsLeft free payouts still available this month
+     * @param int $freePayoutsTotal free payouts granted per month
      * @param MoneyBoxFeeComponentMessage[] $fees itemised components of the total
      */
     public function __construct(

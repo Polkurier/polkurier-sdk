@@ -20,7 +20,7 @@ enum AdditionalFieldTypeEnum: string
     case Text = 'TEXT';
 
     /**
-     * One of a fixed set of options, listed on the field.
+     * One of a fixed set of options.
      */
     case Select = 'SELECT';
 }

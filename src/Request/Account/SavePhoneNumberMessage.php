@@ -20,9 +20,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * on the `number` field.
  *
  * Making the number the default requires a confirmed two-factor token registered under
- * CHANGE_DEFAULT_PHONE_NUMBER. Adding a non-default number needs no confirmation. Exception: on an
- * account created without a number, the first one added becomes the default automatically and
- * skips the check.
+ * CHANGE_DEFAULT_PHONE_NUMBER, and a Polish mobile number. Adding a non-default number needs no
+ * confirmation.
  */
 #[Validate\RequiredWhen(
     field: 'twoFactorToken',

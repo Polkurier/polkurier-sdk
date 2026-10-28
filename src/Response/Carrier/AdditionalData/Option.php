@@ -28,9 +28,8 @@ readonly class Option implements MessageInterface
     /**-@#*/
 
     /**
-     * Every field has a default because a false value may be absent from the response (`status` in
-     * particular). Absent means false. A carrier that does not offer an option may not describe it
-     * at all.
+     * Every field has a default because a carrier may send only one of the 2 flags. Absent means
+     * false.
      *
      * @param bool $status
      * @param bool $required

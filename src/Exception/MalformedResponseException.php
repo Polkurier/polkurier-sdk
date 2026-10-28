@@ -11,8 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * Thrown when the request went through but the body is not a Polkurier API envelope, e.g. a proxy
- * error page, a redirect body or a truncated response. The HTTP response is attached so you can
- * inspect the status line and headers.
+ * error page, a redirect body or a truncated response, or when the envelope's payload doesn't have
+ * the shape the method promises. The HTTP response is attached so you can inspect the status line
+ * and headers.
  *
  * @api
  */

@@ -6,8 +6,8 @@
 /**
  * save_pack_template — add a parcel template, or update one.
  *
- * Passing an id updates that template; leaving it out creates a new one. Naming a carrier ties the
- * template to that carrier's services, which is what makes the service list meaningful.
+ * Passing an id updates that template; leaving it out, or an id that names none of the account's
+ * templates, creates a new one.
  */
 declare(strict_types=1);
 

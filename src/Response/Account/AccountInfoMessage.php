@@ -16,12 +16,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * These fields decide what an integration may do next:
  *
- * - Acceptance flags. Orders are refused for a customer who has not accepted the current terms, the
- *   price list or the carriers' terms. `is_new_regulations` means revised terms are waiting to be
- *   accepted.
- * - Verification flags. On some accounts, `require_account_verification` and
- *   `require_agreement_verification` block shipping entirely.
- * - PIN locks: which calls need the security PIN attached.
+ * - `is_email_verified` and `is_delete_requested`. Orders are refused while the e-mail address is
+ *   unverified or deletion has been requested.
+ * - Acceptance flags. `is_new_regulations` means revised terms are waiting to be accepted.
+ * - `require_agreement_verification`: the account has to complete identity verification.
+ * - PIN locks: which operations take the security PIN instead of a two-factor code.
  *
  * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw now,
  * and the part already committed to a payout.
@@ -63,6 +62,9 @@ readonly class AccountInfoMessage implements MessageInterface
     public const string FIELD_PIN_LOCKS = 'pin_locks';
     public const string FIELD_SETTINGS = 'settings';
     public const string FIELD_EXTERNAL_APPLICATION_SETTINGS = 'external_application_settings';
+    public const string FIELD_PHONE_PIN = 'phone_pin';
+    public const string FIELD_DEFAULT_INPOST_SENDER_POINT = 'default_shipping_point_sender_INPOST_PACZKOMAT';
+    public const string FIELD_DEFAULT_POCZTEX_SENDER_POINT = 'default_shipping_point_sender_KURIER48';
     /**-@#*/
 
     /**
@@ -71,20 +73,22 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param string $email
      * @param string $defaultCourier carrier code preselected on the order form, empty if none
      * @param bool $active an inactive account cannot authenticate
-     * @param bool $regulationsAccepted
+     * @param bool $regulationsAccepted false once acceptance of the terms is due: none accepted yet,
+     *        or the current ones unaccepted past the acceptance period
      * @param bool $newRegulations revised terms are waiting to be accepted, reported in one response
      *        only
-     * @param bool $pricesListAccepted
+     * @param bool $pricesListAccepted always equal to $electronicInvoiceAccepted
      * @param bool $couriersRegulationsAccepted
-     * @param bool $electronicInvoiceAccepted
-     * @param bool $emailVerified
+     * @param bool $electronicInvoiceAccepted always equal to $pricesListAccepted
+     * @param bool $emailVerified orders are refused while false
      * @param bool $payerDataComplete the billing address is complete enough to invoice
-     * @param bool $verified
-     * @param bool $deleteRequested account deletion has been requested
+     * @param bool $verified always true
+     * @param bool $deleteRequested account deletion has been requested; orders are refused while
+     *        true
      * @param bool $hasPhoneNumber
-     * @param bool $requireAccountVerification shipping is blocked until the account is verified
-     * @param bool $requireAgreementVerification shipping is blocked until an agreement is signed
-     * @param string $paymentType how the account settles, e.g. INVOICE or PREPAID
+     * @param bool $requireAccountVerification always false
+     * @param bool $requireAgreementVerification the account has to complete identity verification
+     * @param string $paymentType how the account settles: INVOICE or PREPAID
      * @param float $moneyBoxBalance total held in the money box, in PLN
      * @param float $moneyBoxPayoutAvailableBalance the part that can be withdrawn now
      * @param float $moneyBoxToPayoutBalance the part already committed to a pending payout
@@ -93,14 +97,20 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param string|null $invoicePaymentAccountNumber account to pay invoices into
      * @param float|null $invoiceLimit credit limit, or null when the account has none
      * @param float|null $invoiceLimitUsed how much of that limit is used
-     * @param float $invoiceRebate standing discount, as a percentage
-     * @param float $bonusesSavings cumulative saving from bonuses, in PLN
+     * @param float $invoiceRebate the invoice rebate balance, in PLN
+     * @param float $bonusesSavings how much the account has saved by shipping with
+     *        `INPOST_PACZKOMAT_ECONOMY` instead of the standard service, in PLN
      * @param array<string, string|null> $defaultSenderPoint default drop-off point per carrier code, null
      *        for carriers with none set
      * @param PinLocksMessage|null $pinLocks
      * @param AccountSettingsMessage|null $settings
      * @param array<string, mixed>|null $externalApplicationSettings the external application's
      *        settings by name, present only when the request named one
+     * @param string $phonePin the telephone PIN, the code given when contacting support, empty if
+     *        none is set
+     * @param string|null $defaultInpostSenderPoint the `INPOST_PACZKOMAT` entry of
+     *        $defaultSenderPoint
+     * @param string|null $defaultPocztexSenderPoint the `POCZTEX_PUNKT` entry of $defaultSenderPoint
      */
     public function __construct(
         /**
@@ -298,6 +308,24 @@ readonly class AccountInfoMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_SETTINGS)]
         #[OmitWhenEmpty]
         private ?array $externalApplicationSettings = null,
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_PHONE_PIN)]
+        private string $phonePin = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_DEFAULT_INPOST_SENDER_POINT)]
+        private ?string $defaultInpostSenderPoint = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_DEFAULT_POCZTEX_SENDER_POINT)]
+        private ?string $defaultPocztexSenderPoint = null,
     ) {}
 
     /**
@@ -575,5 +603,37 @@ readonly class AccountInfoMessage implements MessageInterface
         }
 
         return $settings;
+    }
+
+    /**
+     * The telephone PIN, given when contacting support. Not the security PIN.
+     *
+     * @return string empty when none is set
+     */
+    public function getPhonePin(): string
+    {
+        return $this->phonePin;
+    }
+
+    /**
+     * @deprecated The same value as the `INPOST_PACZKOMAT` entry of getDefaultSenderPoint(); read it
+     *             from there.
+     *
+     * @return string|null
+     */
+    public function getDefaultInpostSenderPoint(): ?string
+    {
+        return $this->defaultInpostSenderPoint;
+    }
+
+    /**
+     * @deprecated The same value as the `POCZTEX_PUNKT` entry of getDefaultSenderPoint(); read it
+     *             from there.
+     *
+     * @return string|null
+     */
+    public function getDefaultPocztexSenderPoint(): ?string
+    {
+        return $this->defaultPocztexSenderPoint;
     }
 }

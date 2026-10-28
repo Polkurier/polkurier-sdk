@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Limits and policy to validate input against.
  *
- * The numbers are policy and can change without an API version bump.
+ * These values can change without an API version bump.
  */
 readonly class SystemInfoMessage implements MessageInterface
 {
@@ -25,23 +25,26 @@ readonly class SystemInfoMessage implements MessageInterface
     public const string FIELD_COUPONS = 'coupons';
     public const string FIELD_TICKETS = 'tickets';
     public const string FIELD_SECURITY = 'security';
+    public const string FIELD_FEATURES = 'features';
     /**-@#*/
 
     /**
-     * @param int $verificationTransferAmountPln amount, in PLN, of the token transfer used to
+     * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
      *                                           verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
-     *                                         the account is restricted
+     *        {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::isRegulationsAccepted()}
+     *        turns false
      * @param CouponLimitsMessage|null $coupons
      * @param TicketLimitsMessage|null $tickets
      * @param SecurityLimitsMessage|null $security
+     * @param array<string, bool> $features feature flags the service reports, keyed by name
      */
     public function __construct(
         /**
-         * @var int
+         * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_TRANSFER_AMOUNT_PLN)]
-        private int $verificationTransferAmountPln = 0,
+        private float $verificationTransferAmountPln = 0.0,
 
         /**
          * @var int
@@ -66,12 +69,18 @@ readonly class SystemInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY)]
         private ?SecurityLimitsMessage $security = null,
+
+        /**
+         * @var array<string, bool>
+         */
+        #[Serializer\SerializedName(self::FIELD_FEATURES)]
+        private array $features = [],
     ) {}
 
     /**
-     * @return int
+     * @return float
      */
-    public function getVerificationTransferAmountPln(): int
+    public function getVerificationTransferAmountPln(): float
     {
         return $this->verificationTransferAmountPln;
     }
@@ -106,5 +115,15 @@ readonly class SystemInfoMessage implements MessageInterface
     public function getSecurity(): ?SecurityLimitsMessage
     {
         return $this->security;
+    }
+
+    /**
+     * Feature flags the service reports, keyed by name.
+     *
+     * @return array<string, bool> empty if the response leaves them out
+     */
+    public function getFeatures(): array
+    {
+        return $this->features;
     }
 }

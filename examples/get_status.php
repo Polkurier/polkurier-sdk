@@ -6,9 +6,8 @@
 /**
  * get_status — read where a shipment has got to.
  *
- * The current status always; the carrier's full scan history only when tracking is asked for,
- * which makes the API query the carrier and is noticeably slower. Poll the plain form and fetch
- * the history only when showing it to someone.
+ * The current status always; the carrier's scan history only when tracking is asked for, which is
+ * noticeably slower. Poll the plain form and fetch the history only when showing it to someone.
  */
 declare(strict_types=1);
 

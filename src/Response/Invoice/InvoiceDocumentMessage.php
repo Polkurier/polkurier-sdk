@@ -34,7 +34,7 @@ readonly class InvoiceDocumentMessage implements MessageInterface
      * @param string $file base64-encoded document
      * @param string $filename suggested filename
      * @param string $filetype media type of the document
-     * @param string $invoiceNumber the invoice number this document is for
+     * @param string $invoiceNumber not sent by the API, always empty
      */
     public function __construct(
         /**
@@ -57,6 +57,8 @@ readonly class InvoiceDocumentMessage implements MessageInterface
 
         /**
          * @var string
+         *
+         * @deprecated The API does not send this field; it is always empty.
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_NUMBER)]
         private string $invoiceNumber = '',
@@ -88,6 +90,9 @@ readonly class InvoiceDocumentMessage implements MessageInterface
 
     /**
      * @return string
+     *
+     * @deprecated The API does not send this field; it is always empty. The number is the one
+     *             passed to {@see \Polkurier\Webservice\Api\Service\InvoicesServiceInterface::getInvoicePdf()}.
      */
     public function getInvoiceNumber(): string
     {

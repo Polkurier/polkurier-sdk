@@ -4,10 +4,10 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * set_ticket_status — close a ticket, or reopen it.
+ * set_ticket_status — close a ticket.
  *
- * Answers with the ticket in its new state. Closing one the customer considers unresolved is the
- * usual reason to reopen it, which is the same call with a different status.
+ * CLOSED is the only status the call accepts, so a closed ticket can't be reopened through the API.
+ * Answers with the ticket in its new state.
  */
 declare(strict_types=1);
 

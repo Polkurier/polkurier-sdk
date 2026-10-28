@@ -29,7 +29,7 @@ Catch [`Exception`](../src/Exception/Exception.php) to handle any SDK failure in
 | Exception | Raised when | Was anything sent? | Retry? |
 |-----------|-------------|--------------------|--------|
 | [`ValidationException`](../src/Exception/ValidationException.php) | A payload was rejected before sending | No | Not without changing it |
-| [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) | A message was constructed with values the SDK rejects | No | No |
+| [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) | The SDK rejected a value locally, e.g. a builder missing a field | No | No |
 | [`ConnectionException`](../src/Exception/ConnectionException.php) | The request never completed | **Unknown** | Maybe, see below |
 | [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) | The reply was not an API envelope, or not the promised shape | Yes | Rarely helps |
 | [`AuthorizationException`](../src/Exception/AuthorizationException.php) | Credentials missing, wrong, or inactive | Yes | No |
@@ -81,9 +81,10 @@ details.
 [`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php)
 --------------------------
 
-A message was constructed with values the SDK rejects outright. Examples: a list holding the wrong
-type, a [`ValidatedBy`](../src/Validator/Rule/ValidatedBy.php) that names something that isn't a validator, or a builder's [`build()`](../src/Builder/) called
-without a required field. These are programming errors. They mean the code is wrong, not the data.
+The SDK rejected a value without asking the API: a builder's [`build()`](../src/Builder/) called without a required field, a
+payload the serializer can't write, a [`ValidatedBy`](../src/Validator/Rule/ValidatedBy.php) or [`Each`](../src/Validator/Rule/Each.php) that names the wrong kind of class, or a webhook
+body that isn't an order event. Apart from the webhook body, these mean the code is wrong, not the
+data.
 
 [`ConnectionException`](../src/Exception/ConnectionException.php)
 ---------------------
@@ -100,20 +101,21 @@ through [`Throwable::getPrevious()`](https://www.php.net/manual/en/throwable.get
 ----------------------------
 
 The transport succeeded, but the body wasn't a Polkurier envelope or didn't have the shape the
-endpoint returns. There are four causes, each with its own message:
+endpoint returns. There are five causes, each with its own message:
 
 | Cause | Message reads |
 |-------|---------------|
 | Body was not JSON | `Expected a JSON object from the Polkurier API, got HTTP 502 with body: "…"` |
 | No `status` field | `Polkurier API response (HTTP 200) has no "status" field, body: "…"` |
 | Unrecognised status | `Unknown Polkurier API response status: "…"` |
-| Payload was the wrong shape | `create_order answered with array where …\CreatedOrderMessage was expected.` |
+| Payload didn't map | `The response could not be mapped onto …\CreatedOrderMessage: …` |
+| Payload was the wrong shape | `create_order answered with null where …\CreatedOrderMessage was expected.` |
 
 The first two usually mean something else answered in place of the API, such as a proxy error page,
 a captive portal or a WAF. The message quotes the raw body, truncated to 512 characters so a full
 HTML error page doesn't end up in your logs.
 
-The fourth means the API replied in its normal envelope, but the payload doesn't match what the
+The last two mean the API replied in its normal envelope, but the payload doesn't match what the
 method returns. This is a real incompatibility. The SDK throws so that typed methods never return
 the wrong type.
 
@@ -143,10 +145,10 @@ $error->getResponse();          // string: the human-readable message
 $error->getStatusCode();        // ?int
 $error->getErrorCode();         // ?string
 $error->getValidationErrors();  // ?array<string, string[]>
+$error->getNonce();             // ?string: a rejected contact form's next nonce
 ```
 
-> **Both codes are nullable.** Either one can be missing from an error response. Calling a method on
-> the result of [`ErrorMessage::getStatusCode()`](../src/Http/Response/ErrorMessage.php) without a null check is a fatal error.
+> **Either code can be missing** from an error response, so both getters can return null.
 
 [`ErrorMessage::getValidationErrors()`](../src/Http/Response/ErrorMessage.php) is only set when the API rejects a payload during validation. The main
 message only names the first failing field, but this array has every failure. It uses the same
@@ -186,8 +188,7 @@ like the order status. An unknown code simply won't match, and the response stil
 ------------------------
 
 A [`WebserviceException`](../src/Exception/WebserviceException.php) whose error code or status code says the credentials are the problem. They
-may be missing, malformed, unknown or inactive, or used with an authorization method the account
-isn't allowed to use.
+may be missing, wrong or inactive, or sent with an unknown authorization type.
 
 The SDK classifies it from whichever of the two codes the response has, since either can be
 missing. The code set is public:

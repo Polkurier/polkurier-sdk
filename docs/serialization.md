@@ -55,8 +55,8 @@ new Serializer(
 ```
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
-first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer/SingleRowPageDenormalizer.php) comes first: where a page of orders or
-tickets is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
+first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer/SingleRowPageDenormalizer.php) comes first: where a page of orders,
+tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
 response, an enum value the SDK doesn't know reads as null or is left out of its list (see
@@ -195,7 +195,7 @@ Responses look like this:
 
 ```json
 {"status": "success", "response": { … }}
-{"status": "error", "response": "…", "status_code": 401, "error_code": "INVALID_AUTH_DATA"}
+{"status": "error", "status_code": 7, "error_code": "ERROR_AUTH_DATA", "response": "Błąd autoryzacji. Błędny login lub token"}
 ```
 
 [`ResponseMessage`](../src/Http/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) map these two.
@@ -261,7 +261,7 @@ Debugging a mapping problem
 | A nested object arrives as a plain `array` | The `@var` docblock on the property. The extractor reads that, not the PHP type |
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
 | An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) names it |
-| "Failed to parse time string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
+| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
 | A required-field error on a response | An empty array arrived where an object was expected, or a key with no default was absent |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
 | An unexpected field breaks the call | `rejectUnknownFields: true`. Meant for CI, not production |

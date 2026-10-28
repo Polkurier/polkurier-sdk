@@ -13,6 +13,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Response\System\CouponValidationMessage;
 use Polkurier\Webservice\Response\System\CourierMessage;
@@ -32,17 +33,18 @@ use Polkurier\Webservice\Response\System\SystemInfoMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface SystemServiceInterface
 {
     /**
      * Returns the service limits to validate input against.
      *
-     * This covers PIN lengths, the two-factor code length and resend window, attachment size limits,
-     * the minimum coupon length, the bank verification transfer amount, and how long a customer has
-     * to accept revised terms. These values can change without an API version bump.
+     * This covers security PIN lengths, the two-factor code length and resend window, attachment
+     * size limits, the minimum coupon length, the bank verification transfer amount, and how long a
+     * customer has to accept revised terms. These values can change without an API version bump.
+     *
+     * `features` holds feature flags keyed by name.
      *
      * The response has no account data, so you can cache it and share it across a process.
      *
@@ -52,8 +54,7 @@ interface SystemServiceInterface
      * ```json
      * {
      *     "apimethod": "get_system_info",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *
@@ -63,9 +64,9 @@ interface SystemServiceInterface
      *     "status": "success",
      *     "response": {
      *         "verification_transfer_amount_pln": 2,
-     *         "regulations_acceptance_period": 14,
-     *         "coupons": {"min_length": 4},
-     *         "tickets": {"max_file_size": 10485760, "max_image_size": 5242880, "max_files_count": 5},
+     *         "regulations_acceptance_period": 15,
+     *         "coupons": {"min_length": 6},
+     *         "tickets": {"max_file_size": 10485760, "max_image_size": 20971520, "max_files_count": 5},
      *         "security": {
      *             "user_pin_min_length": 4,
      *             "user_pin_max_length": 8,
@@ -89,11 +90,12 @@ interface SystemServiceInterface
     /**
      * Returns current carrier notices: delays, suspensions and general information.
      *
-     * Each notice has a `type`. Alerts mean orders placed now will be affected. The others are
-     * informational. `severity` is only a display hint.
+     * Each notice has a `type`. An alert usually means orders placed now will be affected. The
+     * others are informational. `severity` is only a display hint.
      *
-     * Show these before a customer picks a carrier. The text is in Polish and ready to display. There
-     * is no machine-readable reason code.
+     * Show these before a customer picks a carrier. The message is HTML in Polish, see
+     * {@see \Polkurier\Webservice\Response\System\CourierMessage::getMessage()}. There is no
+     * machine-readable reason code.
      *
      * Endpoint: `get_couriers_messages`
      *
@@ -101,10 +103,12 @@ interface SystemServiceInterface
      * ```json
      * {
      *     "apimethod": "get_couriers_messages",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
+     *
+     * `ALERT` notices have `hide_timeout`; `MESSAGE` notices have `title` and `priority` instead.
+     * Alerts come first, then messages by descending `priority`.
      *
      * Response:
      * ```json
@@ -117,6 +121,14 @@ interface SystemServiceInterface
      *             "type": "ALERT",
      *             "severity": "WARNING",
      *             "hide_timeout": 4
+     *         },
+     *         {
+     *             "courier": "FEDEX",
+     *             "title": "Płatność kartą za pobranie",
+     *             "message": "<p>Uwaga! Przewoźnik nalicza opłatę w sytuacji, gdy odbiorca opłaci pobranie kartą…</p>",
+     *             "type": "MESSAGE",
+     *             "severity": "WARNING",
+     *             "priority": 5
      *         }
      *     ]
      * }
@@ -124,15 +136,19 @@ interface SystemServiceInterface
      *
      * With nothing to report the response is `[]`.
      *
+     * @param GetCouriersMessagesMessage|null $getCouriersMessagesMessage a carrier to narrow the
+     *        list to
+     *
      * @return CourierMessage[] payload:
      *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getCouriersMessages(): array;
+    public function getCouriersMessages(?GetCouriersMessagesMessage $getCouriersMessagesMessage = null): array;
 
     /**
      * Checks a discount coupon, optionally against a specific order.
@@ -141,13 +157,12 @@ interface SystemServiceInterface
      * order.
      *
      * The response has 2 separate verdicts. `valid` means the coupon exists and this account may use
-     * it. `valid_for_order` also checks it against the carrier, contents and sender region of the
-     * order you pass. Without an order it is always false, meaning "not checked".
+     * it. `valid_for_order` also checks it against the carrier, shipment type and parcels you pass.
+     * Without them it is always false, meaning "not checked".
      *
      * Send the carrier, shipment type and parcels together or not at all. With payload validation
      * on (the default), the SDK throws {@see \Polkurier\Webservice\Exception\ValidationException}
-     * for a partial set before sending the
-     * request, listing every missing field.
+     * for a partial set before sending the request, listing every missing field.
      *
      * Endpoint: `validate_coupon_code`
      *
@@ -169,8 +184,7 @@ interface SystemServiceInterface
      *         "coupon_code": "SPRING10",
      *         "courier": "UPS",
      *         "shipmenttype": "box",
-     *         "packs": [{"length": 30, "width": 20, "height": 15, "weight": 2.5, "type": "ST"}],
-     *         "sender": {"postcode": "61-001", "city": "Poznań", "country": "PL"}
+     *         "packs": [{"length": 30, "width": 20, "height": 15, "weight": 2.5, "type": "ST"}]
      *     }
      * }
      * ```
@@ -186,7 +200,7 @@ interface SystemServiceInterface
      *         "type": "PERCENT",
      *         "value": 10,
      *         "value_used": 0,
-     *         "usage_type": "MULTIPLE",
+     *         "usage_type": "MULTI",
      *         "couriers": ["UPS"],
      *         "valid_to": "2026-12-31T23:59:59+01:00",
      *         "description": "Rabat 10% na przesyłki UPS"
@@ -194,8 +208,8 @@ interface SystemServiceInterface
      * }
      * ```
      *
-     * Response for a code that doesn't exist. This is a success, not an error. Every descriptive field
-     * is null, and `couriers` is null instead of an empty list:
+     * Response for a code that doesn't exist. The descriptive fields are null and `description` is
+     * empty:
      * ```json
      * {
      *     "status": "success",

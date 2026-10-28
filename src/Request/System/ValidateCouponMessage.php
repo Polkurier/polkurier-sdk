@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * With only the code, the API says whether the coupon is valid for the account. If you also send
  * the carrier, shipment type and parcels, it also says whether the coupon applies to that order.
- * Coupons can be restricted by carrier, by value or by sender region.
+ * Coupons can be restricted by carrier, shipment type and parcel size or weight.
  *
  * Send all 3 order fields or none. A carrier without parcels, for example, is an error.
  */
@@ -43,8 +43,7 @@ readonly class ValidateCouponMessage implements MessageInterface
      * @param string|null $courier
      * @param ShipmentTypeEnum|null $shipmentType
      * @param PackMessage[] $packs
-     * @param OrderAddressMessage|null $sender lets the API apply region-restricted coupons
-     *
+     * @param OrderAddressMessage|null $sender
      */
     public function __construct(
         /**
@@ -79,9 +78,9 @@ readonly class ValidateCouponMessage implements MessageInterface
 
         /**
          * @var OrderAddressMessage|null
+         * @deprecated The API does not read this field.
          */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
-        #[Validate\Valid]
         #[OmitWhenEmpty]
         private ?OrderAddressMessage $sender = null,
     ) {}
@@ -120,6 +119,7 @@ readonly class ValidateCouponMessage implements MessageInterface
 
     /**
      * @return OrderAddressMessage|null
+     * @deprecated The API does not read this field.
      */
     public function getSender(): ?OrderAddressMessage
     {

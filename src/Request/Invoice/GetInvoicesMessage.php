@@ -13,9 +13,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Filters and paging for the invoice list.
- *
- * The type is required and must be one of the 2 the API accepts. Any other value is rejected with
- * an error listing the accepted ones.
  */
 readonly class GetInvoicesMessage extends PagedMessage
 {
@@ -27,7 +24,7 @@ readonly class GetInvoicesMessage extends PagedMessage
 
     /**
      * @param InvoiceTypeEnum $type which kind of document to list
-     * @param ?int $pageSize invoices per page
+     * @param ?int $pageSize invoices per page, defaults to 100, capped at 250
      * @param ?int $page 1-based page index
      */
     public function __construct(

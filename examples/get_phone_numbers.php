@@ -6,8 +6,8 @@
 /**
  * get_phone_numbers — list the numbers on the account.
  *
- * Archived numbers are filtered out, so everything listed is live. Exactly one is the default, and
- * it is the one two-factor codes and carrier notifications go to.
+ * Removed numbers are not listed. At most one is the default, and two-factor codes sent by text
+ * message go to it.
  */
 declare(strict_types=1);
 

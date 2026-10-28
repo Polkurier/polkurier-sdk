@@ -101,7 +101,7 @@ final class SerializerProviderFactory
 }
 ```
 
-All the services take the same 6 arguments, so one factory can build any of them:
+All the services take the same arguments, so one factory can build any of them:
 
 ```php
 <?php
@@ -355,5 +355,6 @@ Override one entry in the test container:
 $container->setService(ClientFactoryInterface::class, new RecordingClient($cannedBody));
 ```
 
-ServiceManager allows overrides by default, so this works on the existing container. Where it
-doesn't, a second container built from the same config with that one key replaced does the same.
+ServiceManager accepts this as long as nothing has fetched that entry yet, or always with
+`allow_override` on. Otherwise, a second container built from the same config with that one key
+replaced does the same.

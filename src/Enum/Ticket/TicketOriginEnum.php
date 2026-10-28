@@ -8,10 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Ticket;
 
 /**
- * Where a support ticket or message came from.
+ * The channel a support ticket was raised from.
  *
- * Defaults to {@see self::Api}. A mobile app sends its platform, so the support team can see how
- * the customer contacted them.
+ * Defaults to {@see self::Api}.
  */
 enum TicketOriginEnum: string
 {

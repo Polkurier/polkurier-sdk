@@ -13,8 +13,7 @@ namespace Polkurier\Webservice\Enum\Order;
 enum CodReturnTypeEnum: string
 {
     /**
-     * Transferred to one of the account's registered bank accounts.
-     * Register them through the bank accounts service.
+     * Transferred to the bank account given in the order's cash-on-delivery block.
      */
     case BankAccount = 'BA';
 

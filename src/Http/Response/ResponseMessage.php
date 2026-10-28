@@ -57,8 +57,8 @@ readonly class ResponseMessage implements MessageInterface
     }
 
     /**
-     * The deserialized `response` payload: an entity, a list of entities, or a boolean for
-     * methods that only acknowledge.
+     * The deserialized `response` payload, in the shape the service asked for, e.g. an object, a
+     * list, or a boolean for methods that only acknowledge.
      *
      * @return mixed
      */

@@ -19,9 +19,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * With an id, you get a single point object. With a search phrase, or with neither, you get a
  * list. At least one carrier is always required.
  *
- * Without a search phrase the list is paged. With one, you get the first matches and paging does
- * not apply.
+ * With a search phrase you get up to the first 1000 matches, and `page` and `limit` have no effect.
+ * Without one, `limit` pages the set. `page` requires `limit`: without it the whole set comes back.
  */
+#[Validate\RequiredWith(field: 'limit', with: 'page')]
 readonly class GetPointMessage implements MessageInterface
 {
     /**+@#
@@ -40,8 +41,8 @@ readonly class GetPointMessage implements MessageInterface
      * @param string|null $id
      * @param string|null $searchQuery
      * @param PointFunctionEnum[]|null $functions
-     * @param int|null $limit
-     * @param int|null $page
+     * @param int|null $limit points per page; without it the whole filtered set comes back
+     * @param int|null $page 1-based page number; requires $limit
      */
     public function __construct(
         /**

@@ -9,8 +9,6 @@ namespace Polkurier\Webservice\Enum\Invoice;
 
 /**
  * Which kind of accounting document to list.
- *
- * The 2 types are listed separately, so you need both calls to see everything an account owes.
  */
 enum InvoiceTypeEnum: string
 {

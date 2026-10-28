@@ -6,9 +6,9 @@
 /**
  * get_courier_pickup_time — ask when a carrier could collect.
  *
- * The windows on offer for a given route, which is what to show before an order is placed rather
- * than guessing and having the collection rejected. The date and the time come back as separate
- * fields.
+ * Up to 5 coming days the carrier can collect on from a postcode, each with its time windows, to
+ * offer before an order is placed. Carriers without windows return days with an empty list, which
+ * print nothing here.
  */
 declare(strict_types=1);
 

@@ -55,7 +55,8 @@ foreach ($client->courier()->availableCarriers() as $carrier) {
 }
 ```
 
-`platform` and `platformVersion` identify your integration, e.g. when you contact support.
+`platform` and `platformVersion` identify your integration in the `User-Agent` header of every
+request.
 
 Checking the connection
 -----------------------
@@ -96,9 +97,8 @@ $filter = new GetOrdersMessage(
 );
 ```
 
-Methods with no parameters take no message. Methods whose parameters are all optional take a
-nullable message that defaults to `null`. If you need to build a payload over several steps, the
-larger messages have [builders](builders.md).
+Methods with no parameters take no message, and an optional message defaults to `null`. If you
+need to build a payload over several steps, the larger messages have [builders](builders.md).
 
 **3. Call the method and use the result.**
 
@@ -160,5 +160,5 @@ so you can run all of them to see what each method returns. Scripts that need an
 as the first argument:
 
 ```bash
-php examples/get_status.php POL123456789
+php examples/get_status.php 12345-678
 ```

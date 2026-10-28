@@ -29,18 +29,17 @@ use Polkurier\Webservice\Response\Geo\TokenMessage;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface GeoServiceInterface
 {
     /**
      * Suggests localities for a postcode, e.g. to autocomplete an address form.
      *
-     * Polish postcodes only, so send `PL` as the country. For Poland the SDK checks the NN-NNN
-     * format before sending. An unknown postcode returns an empty list, not an error.
+     * Polish postcodes only: any other country, like an unknown postcode, gives an empty list. For
+     * Poland the SDK checks the NN-NNN format before sending.
      *
-     * One postcode can cover several localities, so the result is a list.
+     * One postcode can cover several localities.
      *
      * Endpoint: `find_city`
      *
@@ -78,8 +77,9 @@ interface GeoServiceInterface
     /**
      * Issues a short-lived token for the pickup point map widget.
      *
-     * Every call returns a new token. Pass it to the map front-end, which authenticates with it
-     * directly. Unlike the API token, it is safe to expose in a browser.
+     * Every call returns a new token, which expires 4 hours after it's issued. Pass it to the map
+     * front-end, which authenticates with it directly. Unlike the API token, it is safe to expose in
+     * a browser.
      *
      * Endpoint: `get_map_token`
      *
@@ -87,8 +87,7 @@ interface GeoServiceInterface
      * ```json
      * {
      *     "apimethod": "get_map_token",
-     *     "authorization": {"login": "12345", "token": "…"},
-     *     "data": []
+     *     "authorization": {"login": "12345", "token": "…"}
      * }
      * ```
      *

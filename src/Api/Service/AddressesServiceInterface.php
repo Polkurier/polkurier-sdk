@@ -33,8 +33,7 @@ use Polkurier\Webservice\Response\Address;
  * ```json
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
- * With the default configuration the SDK throws these as exceptions. Each method lists the ones it
- * can throw.
+ * The SDK throws these as exceptions. Each method lists the ones it can throw.
  */
 interface AddressesServiceInterface
 {
@@ -44,9 +43,9 @@ interface AddressesServiceInterface
      * Without a `type` filter you get one list with senders first, then recipients. An address saved
      * under both roles appears twice, with two different ids.
      *
-     * Sender listings also include addresses other accounts have shared with this one.
-     *
-     * Note: house and flat numbers come back as separate fields.
+     * Senders include the alternative return addresses, marked `is_cover_address`. A sub-account
+     * that shares the main account's address book also gets the main account's recipients, marked
+     * `shared`.
      *
      * Endpoint: `get_addresses`
      *
@@ -105,13 +104,17 @@ interface AddressesServiceInterface
     /**
      * Creates an address, or updates the one the message's id names.
      *
-     * The role is required. An unknown country ISO code is rejected. For the province, use a region
-     * id from getSupportedCountries().
+     * The role is required. An unknown country code is rejected. The province is a region id from
+     * getSupportedCountries(); an unlisted one is saved empty. Poland has no regions.
      *
      * House and flat numbers don't round-trip as separate fields, so the response may split them
      * differently from your request. Read the stored values from the response.
      *
-     * Set a pickup point on recipient addresses only.
+     * A pickup point is for recipients only; `default` is for senders only and makes this the
+     * preselected sender, or the preselected alternative return address.
+     *
+     * Creating an address that is already in the book is refused. Updating an id that names none of
+     * the account's entries for that role fails with NOT_FOUND.
      *
      * Endpoint: `save_address`
      *
@@ -128,14 +131,11 @@ interface AddressesServiceInterface
      *         "person": "Jan Kowalski",
      *         "street": "Długa",
      *         "housenumber": "1",
-     *         "flatnumber": "",
      *         "postcode": "61-001",
      *         "city": "Poznań",
-     *         "province": "WP",
      *         "country": "PL",
      *         "email": "jan@example.com",
      *         "phone": "500600700",
-     *         "point_id": "",
      *         "default": false,
      *         "is_cover_address": false
      *     }
@@ -158,7 +158,12 @@ interface AddressesServiceInterface
      * {"status": "error", "status_code": 26, "error_code": "VALIDATION_ERROR",
      *  "response": "…", "validation_errors": {"housenumber": ["…"]}}
      * ```
-     * Field-level failures. `validation_errors` lists all of them.
+     * Field-level failures. `validation_errors` lists all of them. A duplicate address is reported
+     * under the role, e.g. `"SENDER": ["Taki adres istnieje już w Twojej książce adresowej"]`.
+     * ```json
+     * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
+     *  "response": "Wskazany adres nie istnieje"}
+     * ```
      *
      * @param SaveMessage $saveMessage
      *
@@ -176,9 +181,10 @@ interface AddressesServiceInterface
      * Deletes one address-book entry.
      *
      * The role is part of the address's identity. If an address is saved under both roles, only the
-     * entry for the role you name is removed. The other entry keeps its own id.
+     * entry for the role you name is removed.
      *
-     * Deletion is immediate and permanent. Orders already placed with the address are not affected.
+     * Deletion is permanent. A sub-account that shares the main account's address book can delete
+     * the main account's recipients.
      *
      * Endpoint: `delete_address`
      *
@@ -191,7 +197,7 @@ interface AddressesServiceInterface
      * }
      * ```
      *
-     * Response (the payload is an empty array, but the SDK still returns `true`):
+     * Response:
      * ```json
      * {"status": "success", "response": []}
      * ```
@@ -205,8 +211,7 @@ interface AddressesServiceInterface
      * {"status": "error", "status_code": 404, "error_code": "NOT_FOUND",
      *  "response": "Wskazany adres nie istnieje"}
      * ```
-     * Thrown for an unknown id, and for an id that exists only under the other role. Unlike the bank
-     * account and pack template deletes, this one reports a miss.
+     * Thrown for an unknown id, and for an id that exists only under the other role.
      *
      * @param DeleteMessage $deleteMessage
      *

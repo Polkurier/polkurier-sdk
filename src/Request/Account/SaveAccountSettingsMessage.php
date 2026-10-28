@@ -28,10 +28,15 @@ readonly class SaveAccountSettingsMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string|null $defaultSenderAddressId id of an address-book sender entry
+     * @param string|null $defaultSenderAddressId id of an address-book sender entry; an id that
+     *        names none of the account's senders is ignored
      * @param string|null $defaultCourier carrier code, must be one the account can use
      * @param array<string, string>|null $defaultSenderPoint map of carrier code to default point.
-     *        Carriers not in the map are left unchanged
+     *        Carriers not in the map are left unchanged. Only InPost locker, Pocztex point, DPD
+     *        point and UPS Access Point codes are applied, and the point isn't checked against the
+     *        carrier's network
+     *        ({@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::changeDefaultSenderPoint()}
+     *        checks it)
      */
     public function __construct(
         /**

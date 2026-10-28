@@ -21,6 +21,7 @@ use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Response\BasePack;
 use Polkurier\Webservice\Response\CourierPoint;
+use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
 use Polkurier\Webservice\Request\Address\SaveMessage as AddressSaveMessage;
@@ -45,6 +46,7 @@ use Polkurier\Webservice\Request\Order\PickupMessage;
 use Polkurier\Webservice\Request\PackTemplate\SaveMessage as PackTemplateSaveMessage;
 use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Request\Order\CoverAddressMessage;
 use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
@@ -116,6 +118,36 @@ final class SerializationTest extends TestCase
                     'nonce' => 'n-1',
                     'email' => 'jan@example.com',
                     'consent' => true,
+                ],
+            ],
+            'a contact form files answer, a list of attachments' => [
+                new SaveContactFormMessage(
+                    category: 'wspolpraca',
+                    formId: 'f-1',
+                    nonce: 'n-1',
+                    fields: ['files' => [TicketAttachmentMessage::fromContents('a.txt', "hello\n", 'text/plain')]],
+                ),
+                [
+                    'category' => 'wspolpraca',
+                    'form_id' => 'f-1',
+                    'nonce' => 'n-1',
+                    'files' => [['name' => 'a.txt', 'file' => 'aGVsbG8K', 'type' => 'text/plain']],
+                ],
+            ],
+            'a cover address with a house number and no email or phone' => [
+                new CoverAddressMessage(
+                    person: 'Jan Kowalski',
+                    street: 'Polna',
+                    city: 'Poznań',
+                    postcode: '61-001',
+                    houseNumber: '5',
+                ),
+                [
+                    'person' => 'Jan Kowalski',
+                    'street' => 'Polna',
+                    'city' => 'Poznań',
+                    'postcode' => '61-001',
+                    'housenumber' => '5',
                 ],
             ],
             'a contact form answer never replaces a fixed key' => [
@@ -315,6 +347,10 @@ final class SerializationTest extends TestCase
             'two factor namespace' => [
                 new RegisterMessage(TwoFactorNamespaceEnum::ChangeBankAccountNumber),
                 ['namespace' => 'CHANGE_BANK_ACCOUNT_NUMBER'],
+            ],
+            'default carrier cleared' => [
+                new ChangeDefaultCourierMessage(courier: ''),
+                ['courier' => ''],
             ],
             'regulations type' => [
                 new GetRegulationsMessage(RegulationsTypeEnum::PrivacyPolicy),

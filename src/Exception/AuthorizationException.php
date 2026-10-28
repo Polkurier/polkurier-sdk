@@ -12,9 +12,8 @@ use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
 /**
  * The API rejected the credentials.
  *
- * Thrown for a missing, malformed, unknown or inactive token, and for a token used with an
- * authorization method the account isn't allowed to use. Retrying won't help. The credentials
- * have to change.
+ * Thrown for missing or wrong credentials, an inactive token and an unknown authorization type.
+ * Retrying won't help. The credentials have to change.
  *
  * Detected from `status_code` or `error_code`, whichever the response has. Either one can be
  * missing.

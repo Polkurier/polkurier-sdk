@@ -43,6 +43,14 @@ final class AbsentValueTest extends TestCase
         self::assertNull(self::order(['delivered_date' => ''])->getDeliveredDate());
     }
 
+    /**
+     * An order without a waybill, or before its first status, has an empty status date.
+     */
+    public function testAnOrderWithoutAWaybillHasNoStatusDate(): void
+    {
+        self::assertNull(self::order(['status_date' => ''])->getStatusDate());
+    }
+
     public function testARealDateStillParses(): void
     {
         $order = self::order(['delivered_date' => '2026-09-24']);

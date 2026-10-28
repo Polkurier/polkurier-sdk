@@ -27,9 +27,9 @@ readonly class MoneyBoxFeeComponentMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $type machine-readable component code, e.g. PAYOUT_FEE
+     * @param string $type machine-readable component code: PAYOUT_FEE or POSTAL_TRANSFER_FEE
      * @param string $name display name, in Polish
-     * @param string $description
+     * @param string $description explanation, in Polish, possibly empty
      * @param float $fee gross amount in PLN
      * @param float $feeNett net amount in PLN
      * @param float $vatRate VAT rate as a percentage

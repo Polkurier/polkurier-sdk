@@ -210,6 +210,25 @@ final class ResponseShapeTest extends TestCase
         self::assertSame(0, $list->getPageSize());
     }
 
+    /**
+     * A lookup that finds nothing can answer with an empty array where a page is expected, e.g.
+     * get_money_box_payouts for an unknown payout number. It reads as a page with no rows.
+     *
+     * @param class-string $class
+     */
+    #[DataProvider('pagedLists')]
+    public function testEveryPagedListReadsAnEmptyPayloadAsAnEmptyPage(string $class): void
+    {
+        $list = (new ResponseFactory(new SerializerProvider()))
+            ->create(new Response(200, [], '{"status": "success", "response": []}'), $class)
+            ->getParsedResponse()
+            ->getResponse();
+
+        self::assertInstanceOf($class, $list);
+        self::assertSame(0, $list->getTotalRows());
+        self::assertSame([], $list->getResult());
+    }
+
     private const array BALANCES = [
         'money_box_balance',
         'prepaid_balance',

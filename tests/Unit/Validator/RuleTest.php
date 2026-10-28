@@ -17,6 +17,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Request\Order\CodMessage;
 use Polkurier\Webservice\Request\Order\GetOrdersMessage;
@@ -76,6 +77,7 @@ final class RuleTest extends TestCase
             'the same, as a full IBAN' => [new Iban(), 'PL34102010260000000000000001'],
             'a German IBAN' => [new Iban(), 'DE89370400440532013000'],
             'a British IBAN, which has letters in it' => [new Iban(), 'GB82WEST12345698765432'],
+            'a Polish IBAN under foreign: false' => [new Iban(foreign: false), 'PL34102010260000000000000001'],
             'a telephone number' => [new PhoneNumber(), '500600700'],
             'a telephone number with a country code' => [new PhoneNumber(), '+48 500 600 700'],
             'a positive integer' => [new Positive(), 1],
@@ -126,6 +128,7 @@ final class RuleTest extends TestCase
             'an account number with two digits transposed' => [new Iban(), '58102039580000920202228690'],
             'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
             'an IBAN whose check digits do not hold' => [new Iban(), 'DE89370400440532013001'],
+            'a foreign IBAN under foreign: false' => [new Iban(foreign: false), 'DE89370400440532013000'],
             'a telephone number that is too short' => [new PhoneNumber(), '12345'],
             'zero, where it must be positive' => [new Positive(), 0],
             'a negative number' => [new Positive(), -1],
@@ -213,6 +216,18 @@ final class RuleTest extends TestCase
             ],
             'RequiredWith: both together pass' => [
                 new GetOrdersMessage(externalApplicationId: 'app', externalOrderId: 'SHOP-1001'),
+                [],
+            ],
+            'RequiredWith: a page of points needs a page size' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], page: 2),
+                ['limit'],
+            ],
+            'RequiredWith: a page size of points works on its own' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], limit: 100),
+                [],
+            ],
+            'RequiredWith: a page of points with its size passes' => [
+                new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], limit: 100, page: 2),
                 [],
             ],
             'IgnoredWhen: a zero amount skips the block' => [

@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Request\Account;
 /**
  * Sets or changes the account's telephone PIN.
  *
- * This is the short code you give when contacting support. It also unlocks PIN-protected
- * operations. The allowed length is reported by `get_system_info` under `security`.
+ * The code given when contacting support: 4 digits, no run of 3 consecutive (123, 321) or identical
+ * (111) digits. Not the security PIN.
  */
 readonly class ChangePinMessage extends PinMessage
 {

@@ -12,10 +12,10 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * A payment that has been registered and is waiting to be completed.
+ * A registered payment.
  *
- * The access token is for the payment provider's hosted flow, and is only needed until that flow
- * starts. The transaction id is the only way to look up the payment later.
+ * The transaction id and the access token together open the payment page for the customer. The
+ * transaction id is the only way to look up the payment later.
  */
 readonly class RegisteredPaymentMessage implements MessageInterface
 {
@@ -29,8 +29,9 @@ readonly class RegisteredPaymentMessage implements MessageInterface
 
     /**
      * @param string $transactionId identifier to quote when checking status
-     * @param string $state where the payment has got to
-     * @param ?string $accessToken token for the provider's hosted flow
+     * @param string $state NEW, REGISTERED, PENDING or DONE, as in
+     *        {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
+     * @param ?string $accessToken opens the payment page, together with the transaction id
      */
     public function __construct(
         /**

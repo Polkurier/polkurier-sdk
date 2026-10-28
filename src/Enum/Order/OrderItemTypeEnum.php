@@ -9,8 +9,6 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * What an order line item charges for.
- *
- * Items are only returned if the listing request asks for them.
  */
 enum OrderItemTypeEnum: string
 {
@@ -23,4 +21,9 @@ enum OrderItemTypeEnum: string
      * Carriage of one of the parcels.
      */
     case Pack = 'PACK';
+
+    /**
+     * The order's discount, with negative amounts.
+     */
+    case Rebate = 'REBATE';
 }

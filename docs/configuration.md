@@ -4,7 +4,7 @@ Configuration
 The SDK has two configuration objects.
 
 [`Config`](../src/Config.php) covers the API: the endpoint, your credentials, the timeout and logging.
-[`SerializerConfig`](../src/Serializer/SerializerConfig.php) covers your application: caching, the timezone dates are read into, and whether
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php) covers your application: caching, the timezone for dates without an offset, and whether
 unknown response fields are an error. The two are independent. If your application runs two
 clients against two accounts, they will usually share one serializer.
 
@@ -73,12 +73,11 @@ new Config(
     platform: 'my-shop',
     platformVersion: '1.0.0',
     apiUrl: getenv('POLKURIER_API_URL') ?: null,
-    sandbox: (bool)getenv('POLKURIER_SANDBOX'),
+    sandbox: (bool)getenv('POLKURIER_API_SANDBOX'),
 );
 ```
 
-Every log record the SDK writes includes `sandbox`, so you can see in the log which
-endpoint a request went to.
+Every log record the SDK writes has the `sandbox` flag in its context.
 
 ### Timeouts
 
@@ -157,8 +156,8 @@ new Config(
 ```
 
 With `logFiles` on, each file is saved in `logFilesDirectory` under a name made of the time, the
-method and a random part, e.g. `20261005T101500-get_label-1a2b3c4d-file.pdf`. The log entry says
-where: `[file saved to /var/log/my-shop/polkurier-files/20261005T101500-get_label-1a2b3c4d-file.pdf: 48213 bytes]`.
+method, a random part and the file's own name, e.g. `20261005T101500-get_label-1a2b3c4d-file.pdf`.
+The log entry says where: `[file saved to /var/log/my-shop/polkurier-files/20261005T101500-get_label-1a2b3c4d-file.pdf: 48213 bytes]`.
 The directory is created if it doesn't exist. If a file can't be saved, the note says so and the
 entry is logged anyway. The SDK never deletes saved files.
 Every saved file's name matches [`LoggedFileWriter::FILE_NAME_PATTERN`](../src/Log/LoggedFileWriter.php), so a cleanup job can recognise them
@@ -212,7 +211,7 @@ $client = new PolkurierWebservice(
 |----------|------|---------|---------|
 | `metadataCache` | `?CacheItemPoolInterface` | `null` | PSR-6 pool for mapping metadata |
 | `jsonEncodeOptions` | `int` | see below | Flags for `json_encode` on the request body |
-| `timezone` | `?DateTimeZone` | `null` | The zone dates are read into |
+| `timezone` | `?DateTimeZone` | `null` | The zone a date without an offset is read in |
 | `rejectUnknownFields` | `bool` | `false` | Whether an unrecognised response field is an error |
 
 ### metadataCache
@@ -243,8 +242,8 @@ The default is [`SerializerConfig::DEFAULT_JSON_OPTIONS`](../src/Serializer/Seri
 
 > **Your options replace the default. They are not merged with it.** The first two flags only make
 > logged payloads easier to read. The third one matters: without `JSON_PRESERVE_ZERO_FRACTION`, a
-> cash-on-delivery amount of `250.0` is written as `250`, an integer where the API expects a float.
-> Flags are added by ORing them onto the constant:
+> cash-on-delivery amount of `250.0` is written as `250`. Flags are added by ORing them onto the
+> constant:
 >
 > ```php
 > new SerializerConfig(
@@ -254,15 +253,17 @@ The default is [`SerializerConfig::DEFAULT_JSON_OPTIONS`](../src/Serializer/Seri
 
 ### timezone
 
-If this is not set, dates keep the timezone the API sent. If it is set, every [`DateTimeInterface`](https://www.php.net/manual/en/class.datetimeinterface.php)
-the SDK creates is converted to that zone:
+Most dates the API sends carry their offset, and they keep it. The rest, such as a collection date
+or a pickup time window, have none: they are local Polish time, and they are read in this zone, or
+in PHP's default timezone when it is not set. If that default is anything but Europe/Warsaw, set
+it:
 
 ```php
 new SerializerConfig(timezone: new DateTimeZone('Europe/Warsaw'));
 ```
 
-This is useful if your application runs in UTC and you compare delivery dates against local
-business days.
+Nothing is converted. To show a date in another zone, call its
+[`DateTimeImmutable::setTimezone()`](https://www.php.net/manual/en/datetimeimmutable.settimezone.php).
 
 It only affects dates you read. Dates you send use the format declared on each message property,
 which is fixed by the protocol.

@@ -13,9 +13,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Address fields shared by every message that carries an address.
- *
- * To address a pickup point, set the point id. The street fields then act as contact details, not
- * as the delivery destination.
  */
 readonly class BaseAddress implements MessageInterface
 {
@@ -275,9 +272,7 @@ readonly class BaseAddress implements MessageInterface
     }
 
     /**
-     * Name of the parcel machine, for carriers that identify machines by name instead of by code.
-     *
-     * On an order's sender and recipient, it holds the same value as {@see self::getPointId()}.
+     * On an order's sender and recipient, the same value as {@see self::getPointId()}.
      *
      * @return string|null null if the response leaves it out
      */

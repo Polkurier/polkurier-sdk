@@ -12,6 +12,8 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
+ * An error response: the message, and the codes and field errors that classify it.
+ *
  * @property string $response
  * @method string getResponse():
  */
@@ -23,6 +25,7 @@ final readonly class ErrorMessage extends ResponseMessage
     public const string FIELD_STATUS_CODE = 'status_code';
     public const string FIELD_ERROR_CODE = 'error_code';
     public const string FIELD_VALIDATION_ERRORS = 'validation_errors';
+    public const string FIELD_NONCE = 'nonce';
     /**-@#*/
 
     /**
@@ -31,6 +34,7 @@ final readonly class ErrorMessage extends ResponseMessage
      * @param int|null $statusCode
      * @param string|null $errorCode
      * @param array<string, string[]>|null $validationErrors
+     * @param string|null $nonce
      */
     public function __construct(
         ResponseStatusEnum $status,
@@ -56,6 +60,13 @@ final readonly class ErrorMessage extends ResponseMessage
         #[Serializer\SerializedName(self::FIELD_VALIDATION_ERRORS)]
         #[OmitWhenEmpty]
         private ?array $validationErrors = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\SerializedName(self::FIELD_NONCE)]
+        #[OmitWhenEmpty]
+        private ?string $nonce = null,
     ) {
         parent::__construct($status, $response);
     }
@@ -88,5 +99,15 @@ final readonly class ErrorMessage extends ResponseMessage
     public function getValidationErrors(): ?array
     {
         return $this->validationErrors;
+    }
+
+    /**
+     * The nonce for the next submission of a rejected contact form.
+     *
+     * @return string|null null for any other error
+     */
+    public function getNonce(): ?string
+    {
+        return $this->nonce;
     }
 }

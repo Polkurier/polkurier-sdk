@@ -6,8 +6,8 @@
 /**
  * get_knowledge_base_article — read one help article.
  *
- * The slug comes from the index or from a search. The content is HTML, and any files the article
- * references come with it.
+ * The slug comes from the index or from a search. The content is HTML, and the article's
+ * attachments come with it.
  */
 declare(strict_types=1);
 

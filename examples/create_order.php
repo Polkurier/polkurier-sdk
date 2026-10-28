@@ -6,9 +6,8 @@
 /**
  * order_valuation_v2 + create_order — price an order, then place it.
  *
- * The two methods share one payload, which does not mean both will accept it. A successful quote
- * is a price, not a guarantee that the same payload will be accepted for creation, so this example
- * does both in turn rather than treating the quote as a dry run.
+ * The two methods share one payload, but a payload that gets a quote can still be rejected when
+ * placed, so this example does both in turn.
  *
  * Nothing is placed unless you pass --confirm, so the script is safe to run as-is.
  */
@@ -61,7 +60,7 @@ $order = new CreateOrderMessage(
         pickupTimeTo: new DateTimeImmutable('14:00'),
     ),
     courierService: [AdditionalServiceEnum::SmsOnDispatch],
-    // Limited by {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH}, and carriers may be stricter.
+    // Required to place the order. Cut to fit {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH} bytes.
     description: 'Books',
     // Your own ids for the order, to find it again with get_orders, e.g. after a timeout.
     externalApplicationId: '6f1c2b9e-0d4a-4c3e-9b8f-1a2b3c4d5e6f',

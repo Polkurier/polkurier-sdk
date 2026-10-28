@@ -13,10 +13,12 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * One invoice on the account.
+ * One invoice or invoice correction on the account.
  *
- * The unpaid value is what is still to be settled. Part payments and compensations reduce it, so it
- * can be lower than the full value. The invoice is paid when it reaches zero.
+ * The unpaid value is what is still to be settled after part payments and compensations. The
+ * invoice is paid when it reaches zero.
+ *
+ * A correction carries only number, value and date; its unpaid value reads as zero either way.
  *
  * Both dates have no time component.
  */
@@ -35,9 +37,10 @@ readonly class InvoiceMessage implements MessageInterface
     /**
      * @param string $number the invoice number as printed on the document
      * @param float $value gross total, in PLN
-     * @param float $unpaidValue amount outstanding in PLN, zero when settled
+     * @param float $unpaidValue amount outstanding in PLN, zero when settled, and always zero for
+     *        a correction
      * @param ?\DateTimeInterface $date issue date
-     * @param ?\DateTimeInterface $paymentDeadline due date
+     * @param ?\DateTimeInterface $paymentDeadline due date, always null for a correction
      */
     public function __construct(
         /**
@@ -92,7 +95,7 @@ readonly class InvoiceMessage implements MessageInterface
     }
 
     /**
-     * @return float
+     * @return float zero when settled, and for a correction
      */
     public function getUnpaidValue(): float
     {
@@ -108,7 +111,7 @@ readonly class InvoiceMessage implements MessageInterface
     }
 
     /**
-     * @return ?\DateTimeInterface the day, at midnight
+     * @return ?\DateTimeInterface the day, at midnight; null for a correction
      */
     public function getPaymentDeadline(): ?\DateTimeInterface
     {

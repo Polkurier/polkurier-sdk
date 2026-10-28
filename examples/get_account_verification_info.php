@@ -7,7 +7,6 @@
  * get_account_verification_info — check how identity verification is going.
  *
  * Poll this after register_account_verification to see whether the provider has finished.
- * get_account_info's verified flag is the same fact seen from the account's side.
  */
 declare(strict_types=1);
 

@@ -15,7 +15,7 @@ use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 /**
  * Assembles a query for the times a carrier can collect.
  *
- * The destination and the shipment type are optional. Set them to narrow the result.
+ * The destination and the shipment type are optional.
  */
 class GetPickupTimeMessageBuilder extends AbstractBuilder
 {

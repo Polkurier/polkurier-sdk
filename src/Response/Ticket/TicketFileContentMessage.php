@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Response\DecodesFile;
+use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -27,6 +28,8 @@ readonly class TicketFileContentMessage implements MessageInterface
     public const string FIELD_TYPE = 'type';
     public const string FIELD_SIZE = 'size';
     public const string FIELD_FILE = 'file';
+    public const string FIELD_DATE_CREATED = 'date_created';
+    public const string FIELD_HASH = 'hash';
     /**-@#*/
 
     /**
@@ -34,6 +37,8 @@ readonly class TicketFileContentMessage implements MessageInterface
      * @param string $type media type
      * @param int $size size in bytes
      * @param string $file base64-encoded contents
+     * @param ?\DateTimeInterface $dateCreated when it was attached
+     * @param string $hash SHA-256 of the contents, in hex
      */
     public function __construct(
         /**
@@ -59,6 +64,19 @@ readonly class TicketFileContentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         private string $file = '',
+
+        /**
+         * @var ?\DateTimeInterface
+         */
+        #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
+        #[OmitWhenEmpty]
+        private ?\DateTimeInterface $dateCreated = null,
+
+        /**
+         * @var string
+         */
+        #[Serializer\SerializedName(self::FIELD_HASH)]
+        private string $hash = '',
     ) {}
 
     /**
@@ -91,5 +109,21 @@ readonly class TicketFileContentMessage implements MessageInterface
     public function getFile(): string
     {
         return $this->file;
+    }
+
+    /**
+     * @return ?\DateTimeInterface
+     */
+    public function getDateCreated(): ?\DateTimeInterface
+    {
+        return $this->dateCreated;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHash(): string
+    {
+        return $this->hash;
     }
 }

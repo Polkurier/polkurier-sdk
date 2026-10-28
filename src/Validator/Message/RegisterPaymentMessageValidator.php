@@ -17,13 +17,13 @@ use Polkurier\Webservice\Validator\ViolationPool;
  * Requires the amount for a prepaid top-up.
  *
  * Topping up the prepaid balance is the only mode where the caller sets the amount. For the other
- * modes the amount follows from what is being paid (outstanding invoices, unpaid orders). So the
- * field is required in one mode only, and the rule lives here instead of on the field.
+ * modes the amount follows from what is being paid (outstanding invoices, unpaid orders). That is
+ * why the rule lives here instead of on the field.
  *
  * Zero counts as missing and gets the same message as an absent amount.
  * {@see \Polkurier\Webservice\Validator\Rule\NotBlank} alone would accept zero.
  *
- * The minimum top-up depends on the account and is not checked here.
+ * The API's minimum top-up is not checked here.
  *
  * @extends AbstractMessageValidator<RegisterPaymentMessage>
  */

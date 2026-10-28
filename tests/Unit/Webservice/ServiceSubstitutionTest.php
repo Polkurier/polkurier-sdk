@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
@@ -20,6 +21,7 @@ use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Request\Order\OrderIdMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Service\UtilsService;
@@ -59,6 +61,17 @@ final class ServiceSubstitutionTest extends TestCase
 
         self::assertInstanceOf(UtilsService::class, $sdk->utils());
         self::assertSame($sdk->utils(), $sdk->utils(), 'still built once and kept');
+    }
+
+    public function testAServiceBuiltByHandChecksPayloadsAsTheFacadeDoes(): void
+    {
+        $client = new RecordingClient();
+        $collaborators = self::collaborators($client);
+        unset($collaborators['validator']);
+        $orders = new OrdersService(...$collaborators);
+
+        $this->expectException(ValidationException::class);
+        $orders->cancelOrder(new OrderIdMessage('not an order number'));
     }
 
     /**

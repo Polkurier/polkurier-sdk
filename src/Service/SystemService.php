@@ -15,6 +15,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Response\System\CouponValidationMessage;
 use Polkurier\Webservice\Response\System\CourierMessage;
@@ -39,16 +40,23 @@ class SystemService extends AbstractService implements SystemServiceInterface
     }
 
     /**
+     * @param GetCouriersMessagesMessage|null $getCouriersMessagesMessage
+     *
      * @return CourierMessage[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getCouriersMessages(): array
+    public function getCouriersMessages(?GetCouriersMessagesMessage $getCouriersMessagesMessage = null): array
     {
-        return $this->requestList(ApiMethodEnum::GetCouriersMessages, CourierMessage::class);
+        return $this->requestList(
+            ApiMethodEnum::GetCouriersMessages,
+            CourierMessage::class,
+            $getCouriersMessagesMessage,
+        );
     }
 
     /**

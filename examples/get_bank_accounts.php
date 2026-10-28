@@ -6,8 +6,7 @@
 /**
  * get_bank_accounts — list the accounts cash-on-delivery money is paid into.
  *
- * One of them is the default, and it is the one used when an order asks for collected money to go
- * to a bank account without naming one.
+ * A money box payout to a bank account must name one of these. At most one is the default.
  */
 declare(strict_types=1);
 
