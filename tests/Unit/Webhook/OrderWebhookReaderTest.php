@@ -12,6 +12,8 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Enum\Webhook\OrderWebhookTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Response\Order;
+use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Webhook\OrderWebhookReader;
@@ -29,10 +31,12 @@ final class OrderWebhookReaderTest extends TestCase
     public function testItReadsTheTypeAndTheOrderAsGetOrdersWouldHaveGivenIt(): void
     {
         $order = self::order();
-        $event = (new OrderWebhookReader())->read(self::body(['type' => 'UPDATED', 'data' => $order]));
+        $reader = new OrderWebhookReader();
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
 
         self::assertSame(OrderWebhookTypeEnum::Updated, $event->getType());
         self::assertEquals(self::fromJson($order), $event->getOrder());
+        self::assertSame([], $reader->getLastDrift());
     }
 
     public function testAnOrderWithoutWaybillsOrSenderStillReads(): void
@@ -94,11 +98,119 @@ final class OrderWebhookReaderTest extends TestCase
         (new OrderWebhookReader())->read('type=UPDATED&hash=abc');
     }
 
-    public function testAnEventWhoseOrderCanNotBeReadIsRefused(): void
+    /**
+     * An order missing fields reads with empty values, and the reader reports what was missing.
+     */
+    public function testAnOrderMissingFieldsReadsAndReportsThem(): void
+    {
+        $reader = new OrderWebhookReader();
+
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
+
+        self::assertSame('1', $event->getOrder()->getNumber());
+        self::assertSame('', $event->getOrder()->getStatusCode());
+        $missing = \array_map(static fn(ResponseDrift $drift) => $drift->getPath(), $reader->getLastDrift());
+        self::assertContains('order.statusCode', $missing);
+    }
+
+    /**
+     * A form value that doesn't convert to the field's type reads as the field's empty value, and an
+     * empty one as a missing field.
+     */
+    public function testAFormValueOfAnotherTypeReadsAsAnEmptyValueAndIsReported(): void
+    {
+        $reader = new OrderWebhookReader();
+        $order = [
+            'price_net' => 'abc',
+            'price_gross' => '',
+            'is_paid' => 'maybe',
+            'sender' => 'x',
+            'date' => 'garbage',
+        ] + self::order();
+
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->getOrder();
+
+        self::assertSame(0.0, $event->getPriceNet());
+        self::assertSame(0.0, $event->getPriceGross());
+        self::assertFalse($event->isPaid());
+        self::assertNull($event->getSender());
+        self::assertNull($event->getDate());
+        $drift = \array_map(
+            static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
+            $reader->getLastDrift(),
+        );
+        self::assertEqualsCanonicalizing([
+            'CAST_VALUE order.priceNet',
+            'MISSING_FIELD order.priceGross',
+            'CAST_VALUE order.paid',
+            'CAST_VALUE order.sender',
+            'CAST_VALUE order.date',
+        ], $drift);
+    }
+
+    /**
+     * A form leaves out null values, so the fields that can be null and arrive absent are no
+     * difference, strict or not.
+     */
+    public function testAnOrderWithNullFieldsReadsWithoutDifferences(): void
+    {
+        $order = ['status_date' => null, 'sender' => null] + self::order();
+        $body = self::body(['type' => 'UPDATED', 'data' => $order]);
+        $strict = new SerializerProvider(new SerializerConfig(strictResponses: true));
+
+        $reader = new OrderWebhookReader();
+        $event = $reader->read($body);
+        (new OrderWebhookReader($strict))->read($body);
+
+        self::assertNull($event->getOrder()->getStatusDate());
+        self::assertNull($event->getOrder()->getSender());
+        self::assertSame([], $reader->getLastDrift());
+    }
+
+    /**
+     * A form value that isn't exactly a number or a boolean is converted as in a response, and
+     * reported.
+     */
+    public function testAFormValueThatIsNotExactIsConvertedAndReported(): void
+    {
+        $order = self::order();
+        self::assertIsArray($order['items']);
+        self::assertIsArray($order['items'][0]);
+        $order['items'][0]['amount'] = '2.7';
+        $order['is_paid'] = 'yes';
+        $reader = new OrderWebhookReader();
+
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->getOrder();
+
+        self::assertSame(2, $event->getItems()[0]->getAmount());
+        self::assertTrue($event->isPaid());
+        $drift = \array_map(
+            static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
+            $reader->getLastDrift(),
+        );
+        self::assertEqualsCanonicalizing(['CAST_VALUE order.items[0].amount', 'CAST_VALUE order.paid'], $drift);
+    }
+
+    public function testAnEventWhoseOrderHasNoneOfItsFieldsIsRefused(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        (new OrderWebhookReader())->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1']]));
+        (new OrderWebhookReader())->read(self::body(['type' => 'UPDATED', 'data' => ['id' => '1', 'state' => 'x']]));
+    }
+
+    public function testABodyThatIsNotAnOrderEventClearsTheLastDrift(): void
+    {
+        $reader = new OrderWebhookReader();
+        $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
+        self::assertNotSame([], $reader->getLastDrift());
+
+        try {
+            $reader->read('type=UPDATED&hash=abc');
+            self::fail('The body should have been refused.');
+        } catch (InvalidArgumentException) {
+        }
+
+        self::assertSame([], $reader->getLastDrift());
     }
 
     /**

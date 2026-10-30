@@ -151,15 +151,17 @@ The serializer has its own configuration. Pass a [`SerializerProvider`](src/Seri
 | `metadataCache`       | none                 | A PSR-6 pool to keep mapping metadata in             |
 | `jsonEncodeOptions`   | readable UTF-8       | Flags for `json_encode` on the request body          |
 | `timezone`            | PHP's default        | The zone a date without an offset is read in         |
-| `rejectUnknownFields` | `false`              | Whether an unrecognised response field is an error   |
+| `strictResponses`     | `false`              | Whether a changed response is an error               |
 
 Reading the attributes of around 150 classes is the SDK's biggest start-up cost. The result doesn't
 change between deployments of the same code, so a cache pool saves that cost in every process after
 the first.
 
-With `rejectUnknownFields` on, a response with a field the SDK doesn't read fails to map. Against a
-staging API in CI, that tells you about new fields. In production, it would turn a new field into a
-failed call, which is why it is off by default.
+A response the API has changed still reads: an unknown field is ignored, a missing field gets an
+empty value, a value of another type is converted. Each difference is logged as a warning and
+listed by `PolkurierWebservice::getLastResponseDrift()`. With `strictResponses` on, such a
+response fails to map instead. Against a staging API in CI, that tells you about changes. In
+production, it would turn each change into a failed call, which is why it is off by default.
 
 Error handling
 --------------

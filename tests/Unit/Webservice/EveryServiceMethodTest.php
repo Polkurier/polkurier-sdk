@@ -20,7 +20,6 @@ use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
 use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Calls every method of every service and parses a response of the shape that method expects.
@@ -133,20 +132,7 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
 
     private static function normalized(string $class): mixed
     {
-        $serializer = (new SerializerProvider())->getSerializer();
-        self::assertNormalizer($serializer);
-
         /** @var class-string $class */
-        return $serializer->normalize(Sample::of($class), 'json');
-    }
-
-    /**
-     * @phpstan-assert NormalizerInterface $serializer
-     */
-    private static function assertNormalizer(object $serializer): void
-    {
-        if (!$serializer instanceof NormalizerInterface) {
-            throw new \LogicException('The SDK serializer normalizes.');
-        }
+        return Sample::wire($class);
     }
 }

@@ -117,13 +117,13 @@ real response shows which optional values are really optional, which nested obje
 and which fields your account receives.
 
 With a staging account, tests can run against the real API on a schedule, with
-`rejectUnknownFields` turned on:
+`strictResponses` turned on:
 
 ```php
-new SerializerProvider(new SerializerConfig(rejectUnknownFields: true));
+new SerializerProvider(new SerializerConfig(strictResponses: true));
 ```
 
-A new field in a response then fails the build instead of being silently ignored.
+A changed response then fails the build instead of being read with the change recorded.
 
 ### Summary
 

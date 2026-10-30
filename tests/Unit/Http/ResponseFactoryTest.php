@@ -31,7 +31,7 @@ use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
 use Polkurier\Webservice\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\UnknownEnumValue;
+use Polkurier\Webservice\Serializer\ResponseDrift;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
 #[CoversClass(ResponseFactory::class)]
@@ -279,7 +279,7 @@ final class ResponseFactoryTest extends TestCase
      */
     public function testAnUnknownEnumValueReadsAsNullAndTheRestOfTheResponseStillReads(): void
     {
-        $template = ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Nowy'];
+        $template = ['id' => 'aB3', 'length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'name' => 'Nowy'];
         $wrapper = $this->factory->create(
             $this->jsonResponse([
                 'status' => 'success',
@@ -309,8 +309,8 @@ final class ResponseFactoryTest extends TestCase
         self::assertSame(ShipmentTypeEnum::Box, $templates[1]->getShipmentType());
 
         $unknown = \array_map(
-            static fn(UnknownEnumValue $u) => [$u->getEnum(), $u->getValue(), $u->getPath()],
-            $wrapper->getUnknownEnumValues(),
+            static fn(ResponseDrift $u) => [$u->getExpected(), $u->getValue(), $u->getPath()],
+            $wrapper->getDrift(),
         );
         self::assertEqualsCanonicalizing([
             [PackTypeEnum::class, 'SOMETHING_NEW', '[0].type'],
@@ -326,6 +326,7 @@ final class ResponseFactoryTest extends TestCase
                 'status' => 'success',
                 'response' => [
                     [
+                        'id' => 'aB4',
                         'length' => 60,
                         'width' => 40,
                         'height' => 30,
@@ -342,7 +343,7 @@ final class ResponseFactoryTest extends TestCase
         $templates = $wrapper->getParsedResponse()->getResponse();
 
         self::assertNull($templates[0]->getShipmentType());
-        self::assertSame([], $wrapper->getUnknownEnumValues());
+        self::assertSame([], $wrapper->getDrift());
     }
 
     /**
@@ -411,7 +412,7 @@ final class ResponseFactoryTest extends TestCase
 
         self::assertInstanceOf(CourierPoint::class, $point);
         self::assertSame([PointFunctionEnum::Cod, PointFunctionEnum::Send], $point->getFunctions());
-        self::assertSame([], $wrapper->getUnknownEnumValues());
+        self::assertSame([], $wrapper->getDrift());
     }
 
     /**

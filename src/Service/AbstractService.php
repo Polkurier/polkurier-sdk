@@ -13,6 +13,7 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
+use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -168,7 +169,7 @@ abstract class AbstractService
             $response = $this->client()->sendRequest($request);
             $this->lastResponse->setResponse($response);
             $wrapper = $this->responseFactory->create($response, $responseFormat);
-            $this->lastResponse->setUnknownEnumValues($wrapper->getUnknownEnumValues());
+            $this->lastResponse->setDrift($wrapper->getDrift());
             $this->logResponse(
                 $apiMethod,
                 $wrapper,
@@ -176,7 +177,7 @@ abstract class AbstractService
                 $payload,
                 $wrapper->getParsedResponse()->getStatus() === ResponseStatusEnum::Error
             );
-            $this->logUnknownEnumValues($apiMethod, $wrapper);
+            $this->logResponseDrift($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
             $this->logClientError($e, $apiMethod, $request, $payload);
 
@@ -602,39 +603,50 @@ abstract class AbstractService
     }
 
     /**
-     * Logs a warning for each enum value the response had that the SDK doesn't know, if logging is
+     * Logs a warning for each way the response differed from what the SDK expects, if logging is
      * enabled.
      *
-     * The SDK reads such a value as null, or leaves it out of a list, so the call still succeeds.
-     * The warning names the enum, the value and where in the response it was.
+     * The SDK reads the response anyway, so the call still succeeds. The warning says what differed
+     * and where in the response.
      *
      * @param ApiMethodInterface $apiMethod
      * @param ResponseWrapper $responseWrapper
      *
      * @return void
      */
-    protected function logUnknownEnumValues(
+    protected function logResponseDrift(
         ApiMethodInterface $apiMethod,
         ResponseWrapper $responseWrapper,
     ): void {
         if (!$this->config()->isLoggingEnabled()) {
             return;
         }
-        foreach ($responseWrapper->getUnknownEnumValues() as $unknown) {
-            $value = $unknown->getValue();
+
+        foreach ($responseWrapper->getDrift() as $drift) {
+            $value = $drift->getValue();
+            $shown = \is_string($value) ? '"' . $value . '"' : \get_debug_type($value);
             $this->logger->warning(\sprintf(
-                'Unknown %s value %s at "%s" in the response from method: "%s". This version of the SDK'
-                . ' reads it as null, or leaves it out of a list.',
-                $unknown->getEnum(),
-                \is_string($value) ? '"' . $value . '"' : \get_debug_type($value),
-                $unknown->getPath() ?? '',
+                match ($drift->getType()) {
+                    ResponseDriftTypeEnum::UnknownField => 'Unknown field "%1$s" in the response from method: "%4$s".'
+                        . ' This version of the SDK ignores it.',
+                    ResponseDriftTypeEnum::MissingField => 'Field "%1$s" (%3$s) is missing or null in the response'
+                        . ' from method: "%4$s". This version of the SDK reads it as its default or empty value.',
+                    ResponseDriftTypeEnum::CastValue => 'Field "%1$s" (%3$s) is %2$s in the response from method:'
+                        . ' "%4$s". This version of the SDK converts it, or reads it as its default or empty value.',
+                    ResponseDriftTypeEnum::UnknownEnumValue => 'Unknown %3$s value %2$s at "%1$s" in the response'
+                        . ' from method: "%4$s". This version of the SDK reads it as null, or leaves it out of a list.',
+                },
+                $drift->getPath(),
+                $shown,
+                $drift->getExpected() ?? '',
                 $apiMethod->value,
             ), [
                 'method' => $apiMethod,
                 'sandbox' => $this->config()->isSandbox(),
-                'enum' => $unknown->getEnum(),
+                'type' => $drift->getType(),
+                'path' => $drift->getPath(),
                 'value' => $value,
-                'path' => $unknown->getPath(),
+                'expected' => $drift->getExpected(),
             ]);
         }
     }

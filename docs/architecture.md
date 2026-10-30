@@ -48,10 +48,10 @@ $client->orders()->createOrder($message)
               ├─ c. LoggerInterface                    if this method is in methodsToLog
               ├─ d. ClientInterface::sendRequest()     ← ConnectionException
               ├─ e. ResponseFactoryInterface::create() decode, read status, denormalize,
-              │                                        note enum values the SDK doesn't know
+              │                                        note how the response differs from the SDK
               │                                        ← MalformedResponseException
               ├─ f. LoggerInterface                    on error, or if extended logging is on,
-              │                                        and a warning per unknown enum value
+              │                                        and a warning per difference
               ├─ g. is it an ErrorMessage?             ← Authorization/WebserviceException
               └─ h. type-check the payload             ← MalformedResponseException
 ```
@@ -60,9 +60,9 @@ There are 7 collaborators, each behind an interface you can replace. Steps (a) t
 [`AbstractService`](../src/Service/AbstractService.php). Every service extends it, and it is the only place a request is sent.
 
 Two more objects take part. Before anything is logged, [`LogSanitizer`](../src/Log/LogSanitizer.php) prepares each body as the
-configuration says. After (e), the HTTP response and the unknown enum values go into a
+configuration says. After (e), the HTTP response and its differences from the SDK go into a
 [`LastResponseHolder`](../src/Http/Response/LastResponseHolder.php), which [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php) and
-[`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) read.
+[`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) read.
 
 ### The request helpers
 

@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Response;
 
-use Polkurier\Webservice\Serializer\UnknownEnumValue;
+use Polkurier\Webservice\Serializer\ResponseDrift;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Keeps the HTTP response to the last call, and the enum values in it that the SDK doesn't know.
+ * Keeps the HTTP response to the last call, and how it differed from what the SDK expects.
  *
  * The services the facade builds share one instance, so it reflects the last call made through any
  * of them.
@@ -25,9 +25,9 @@ class LastResponseHolder
     protected ?ResponseInterface $response = null;
 
     /**
-     * @var list<UnknownEnumValue>
+     * @var list<ResponseDrift>
      */
-    protected array $unknownEnumValues = [];
+    protected array $drift = [];
 
     /**
      * Forgets the previous call.
@@ -37,7 +37,7 @@ class LastResponseHolder
     public function clear(): void
     {
         $this->response = null;
-        $this->unknownEnumValues = [];
+        $this->drift = [];
     }
 
     /**
@@ -51,13 +51,13 @@ class LastResponseHolder
     }
 
     /**
-     * @param list<UnknownEnumValue> $unknownEnumValues
+     * @param list<ResponseDrift> $drift
      *
      * @return void
      */
-    public function setUnknownEnumValues(array $unknownEnumValues): void
+    public function setDrift(array $drift): void
     {
-        $this->unknownEnumValues = $unknownEnumValues;
+        $this->drift = $drift;
     }
 
     /**
@@ -70,10 +70,10 @@ class LastResponseHolder
     }
 
     /**
-     * @return list<UnknownEnumValue>
+     * @return list<ResponseDrift>
      */
-    public function getUnknownEnumValues(): array
+    public function getDrift(): array
     {
-        return $this->unknownEnumValues;
+        return $this->drift;
     }
 }

@@ -212,7 +212,7 @@ $client = new PolkurierWebservice(
 | `metadataCache` | `?CacheItemPoolInterface` | `null` | PSR-6 pool for mapping metadata |
 | `jsonEncodeOptions` | `int` | see below | Flags for `json_encode` on the request body |
 | `timezone` | `?DateTimeZone` | `null` | The zone a date without an offset is read in |
-| `rejectUnknownFields` | `bool` | `false` | Whether an unrecognised response field is an error |
+| `strictResponses` | `bool` | `false` | Whether a response that differs from the SDK is an error |
 
 ### metadataCache
 
@@ -268,16 +268,18 @@ Nothing is converted. To show a date in another zone, call its
 It only affects dates you read. Dates you send use the format declared on each message property,
 which is fixed by the protocol.
 
-### rejectUnknownFields
+### strictResponses
 
-By default, unknown fields in a response are ignored, so a field added to the API doesn't break a
-working integration.
+By default, a response that differs from the SDK still reads, so a change to the API doesn't break
+a working integration: an unknown field is ignored, a missing field gets an empty value, a value of
+another type is converted. Each difference is recorded and logged, see
+[Serialization](serialization.md#responses-that-differ-from-the-sdk).
 
-When this option is on, an unknown field throws an exception. Against a staging API in CI, that
-shows when a response gains a field the SDK doesn't read.
+When this option is on, such a response throws an exception instead, except that an unknown enum
+value still reads as null. Against a staging API in CI, that shows when a response changes.
 
 ```php
-new SerializerConfig(rejectUnknownFields: (bool)getenv('CI'));
+new SerializerConfig(strictResponses: (bool)getenv('CI'));
 ```
 
 Per-tenant credentials

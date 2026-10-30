@@ -24,20 +24,20 @@ readonly class HeartbeatMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param \DateTimeInterface $time
+     * @param ?\DateTimeInterface $time
      */
     public function __construct(
         /**
-         * @var \DateTimeInterface
+         * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_TIME)]
-        private \DateTimeInterface $time,
+        private ?\DateTimeInterface $time,
     ) {}
 
     /**
-     * @return \DateTimeInterface
+     * @return ?\DateTimeInterface
      */
-    public function getTime(): \DateTimeInterface
+    public function getTime(): ?\DateTimeInterface
     {
         return $this->time;
     }
