@@ -63,7 +63,9 @@ final class BuilderDriftTest extends TestCase
                 continue;
             }
 
-            $pairs[$reflection->getShortName()] = [$builder, $message];
+            // Several builders share a short name, e.g. Address\SaveMessageBuilder and
+            // BankAccount\SaveMessageBuilder, so the data set is named by the namespace too.
+            $pairs[\str_replace('Polkurier\\Webservice\\Builder\\', '', $builder)] = [$builder, $message];
         }
 
         self::assertNotEmpty($pairs);
@@ -94,7 +96,7 @@ final class BuilderDriftTest extends TestCase
                 $reflection->hasMethod($name),
                 \sprintf(
                     '%s has no setter for $%s, which the message now takes.',
-                    $reflection->getShortName(),
+                    $builder,
                     $name,
                 ),
             );
@@ -104,7 +106,7 @@ final class BuilderDriftTest extends TestCase
                 \ltrim((string)$reflection->getMethod($name)->getParameters()[0]->getType(), '\\'),
                 \sprintf(
                     '%s::%s() takes a different type than the message does',
-                    $reflection->getShortName(),
+                    $builder,
                     $name,
                 ),
             );
@@ -195,7 +197,7 @@ final class BuilderDriftTest extends TestCase
                 $parameters,
                 \sprintf(
                     '%s::%s() sets a field the message no longer takes.',
-                    $reflection->getShortName(),
+                    $builder,
                     $method->getName(),
                 ),
             );
