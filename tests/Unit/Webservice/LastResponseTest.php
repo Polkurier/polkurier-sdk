@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
+use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
@@ -18,7 +19,7 @@ use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Testing\RecordingClient;
 
 /**
- * What the client keeps about the last call: the HTTP response and the enum values it couldn't read.
+ * What the client keeps about the last call: the HTTP response and how it differed from the SDK.
  */
 final class LastResponseTest extends TestCase
 {
@@ -46,7 +47,7 @@ final class LastResponseTest extends TestCase
     public function testNothingIsKeptBeforeTheFirstCall(): void
     {
         self::assertNull($this->sdk->getLastResponse());
-        self::assertSame([], $this->sdk->getLastUnknownEnumValues());
+        self::assertSame([], $this->sdk->getLastResponseDrift());
     }
 
     public function testTheLastResponseAndItsUnknownValuesAreKept(): void
@@ -58,11 +59,12 @@ final class LastResponseTest extends TestCase
         self::assertNull($addresses[0]->getType());
         self::assertSame(self::ADDRESS_WITH_UNKNOWN_TYPE, (string)$this->sdk->getLastResponse()?->getBody());
 
-        $unknown = $this->sdk->getLastUnknownEnumValues();
-        self::assertCount(1, $unknown);
-        self::assertSame(AddressTypeEnum::class, $unknown[0]->getEnum());
-        self::assertSame('SOMETHING_NEW', $unknown[0]->getValue());
-        self::assertSame('[0].type', $unknown[0]->getPath());
+        $drift = $this->sdk->getLastResponseDrift();
+        self::assertCount(1, $drift);
+        self::assertSame(ResponseDriftTypeEnum::UnknownEnumValue, $drift[0]->getType());
+        self::assertSame(AddressTypeEnum::class, $drift[0]->getExpected());
+        self::assertSame('SOMETHING_NEW', $drift[0]->getValue());
+        self::assertSame('[0].type', $drift[0]->getPath());
     }
 
     public function testTheNextCallThroughAnyServiceReplacesIt(): void
@@ -74,7 +76,7 @@ final class LastResponseTest extends TestCase
         $this->sdk->bankAccounts()->getBankAccounts();
 
         self::assertSame('{"status":"success","response":[]}', (string)$this->sdk->getLastResponse()?->getBody());
-        self::assertSame([], $this->sdk->getLastUnknownEnumValues());
+        self::assertSame([], $this->sdk->getLastResponseDrift());
     }
 
     public function testAnErrorResponseIsKept(): void
@@ -105,6 +107,6 @@ final class LastResponseTest extends TestCase
         }
 
         self::assertNull($this->sdk->getLastResponse());
-        self::assertSame([], $this->sdk->getLastUnknownEnumValues());
+        self::assertSame([], $this->sdk->getLastResponseDrift());
     }
 }

@@ -27,6 +27,7 @@ final class UtilsTest extends IntegrationTestCase
     {
         $time = $this->sdk->utils()->heartbeat()->getTime();
 
+        self::assertNotNull($time);
         self::assertLessThan(300, \abs($time->getTimestamp() - \time()));
     }
 

@@ -35,9 +35,9 @@ readonly class TwoFactorToken implements MessageInterface
      * @param string $phoneNumber
      * @param string $operationTitle
      * @param int $operationNumber
-     * @param \DateTimeInterface $operationDate
+     * @param ?\DateTimeInterface $operationDate
      * @param \DateTimeInterface|null $sentAt
-     * @param \DateTimeInterface $expiresAt
+     * @param ?\DateTimeInterface $expiresAt
      * @param TransportMethodMessage|null $transportMethod how the code was sent
      * @param TransportMethodMessage[] $availableMethods the ways the code can be sent, the current
      *        one included
@@ -68,10 +68,10 @@ readonly class TwoFactorToken implements MessageInterface
         private int $operationNumber,
 
         /**
-         * @var \DateTimeInterface
+         * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_OPERATION_DATE)]
-        private \DateTimeInterface $operationDate,
+        private ?\DateTimeInterface $operationDate,
 
         /**
          * @var \DateTimeInterface|null
@@ -80,10 +80,10 @@ readonly class TwoFactorToken implements MessageInterface
         private ?\DateTimeInterface $sentAt,
 
         /**
-         * @var \DateTimeInterface
+         * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_EXPIRES_AT)]
-        private \DateTimeInterface $expiresAt,
+        private ?\DateTimeInterface $expiresAt,
 
         /**
          * @var TransportMethodMessage|null
@@ -132,9 +132,9 @@ readonly class TwoFactorToken implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return ?\DateTimeInterface
      */
-    public function getOperationDate(): \DateTimeInterface
+    public function getOperationDate(): ?\DateTimeInterface
     {
         return $this->operationDate;
     }
@@ -148,9 +148,9 @@ readonly class TwoFactorToken implements MessageInterface
     }
 
     /**
-     * @return \DateTimeInterface
+     * @return ?\DateTimeInterface
      */
-    public function getExpiresAt(): \DateTimeInterface
+    public function getExpiresAt(): ?\DateTimeInterface
     {
         return  $this->expiresAt;
     }

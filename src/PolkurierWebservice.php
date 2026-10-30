@@ -37,7 +37,7 @@ use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Http\Message\ResponseInterface;
-use Polkurier\Webservice\Serializer\UnknownEnumValue;
+use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Service\AccountService;
 use Polkurier\Webservice\Service\AccountVerificationService;
@@ -357,19 +357,22 @@ final class PolkurierWebservice
     }
 
     /**
-     * The enum values in the last response that the SDK doesn't know.
+     * How the last response differed from what this version of the SDK expects.
      *
-     * Such a value reads as null, or is left out of a list, so the call succeeds. Each entry says
-     * which enum, the value as the API sent it, and where in the response it was. With logging on,
-     * each one is also logged as a warning.
+     * The SDK reads such a response anyway, as
+     * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum} describes, so the call
+     * succeeds. Each entry says what differed, where in the response, the value the API sent and the
+     * type the SDK expected. With logging on, each one is also logged as a warning. Strict reading
+     * ({@see \Polkurier\Webservice\Serializer\SerializerConfig}) fails instead, except for unknown
+     * enum values.
      *
      * Tracked for the same calls as {@see self::getLastResponse()}.
      *
-     * @return list<UnknownEnumValue> empty when every value was known
+     * @return list<ResponseDrift> empty when the response was as expected
      */
-    public function getLastUnknownEnumValues(): array
+    public function getLastResponseDrift(): array
     {
-        return $this->lastResponse->getUnknownEnumValues();
+        return $this->lastResponse->getDrift();
     }
 
     /**

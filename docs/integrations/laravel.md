@@ -359,7 +359,7 @@ final class PolkurierPing extends Command
     public function handle(UtilsServiceInterface $utils): int
     {
         try {
-            $this->info('API time: ' . $utils->heartbeat()->getTime()->format('c'));
+            $this->info('API time: ' . $utils->heartbeat()->getTime()?->format('c'));
         } catch (ConnectionException $e) {
             $this->error('Unreachable: ' . $e->getMessage());
 

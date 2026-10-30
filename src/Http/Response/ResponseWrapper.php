@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Http\Response;
 
 
-use Polkurier\Webservice\Serializer\UnknownEnumValue;
+use Polkurier\Webservice\Serializer\ResponseDrift;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -19,21 +19,20 @@ final readonly class ResponseWrapper
     /**
      * @param ResponseInterface $httpResponse
      * @param ResponseMessage $parsedResponse
-     * @param list<UnknownEnumValue> $unknownEnumValues values the SDK read as null, or left out of
-     *        a list, because their enum doesn't have them
+     * @param list<ResponseDrift> $drift how the payload differed from what the SDK expects
      */
     public function __construct(
         private ResponseInterface $httpResponse,
         private ResponseMessage $parsedResponse,
-        private array $unknownEnumValues = [],
+        private array $drift = [],
     ) {}
 
     /**
-     * @return list<UnknownEnumValue>
+     * @return list<ResponseDrift>
      */
-    public function getUnknownEnumValues(): array
+    public function getDrift(): array
     {
-        return $this->unknownEnumValues;
+        return $this->drift;
     }
 
     /**

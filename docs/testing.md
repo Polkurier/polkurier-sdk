@@ -123,7 +123,7 @@ With a staging account, tests can run against the real API on a schedule, with
 new SerializerProvider(new SerializerConfig(rejectUnknownFields: true));
 ```
 
-A new field in a response then fails the build instead of being silently ignored.
+A changed response then fails the build instead of being read with the change recorded.
 
 ### Summary
 

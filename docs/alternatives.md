@@ -167,7 +167,7 @@ Logging
 | Route | Logs |
 |-------|------|
 | No logger | Nothing |
-| A PSR-3 logger, `loggingEnabled: true` | Errors, transport failures and unknown enum values |
+| A PSR-3 logger, `loggingEnabled: true` | Errors, transport failures and responses that differ from the SDK |
 | The same, plus `methodsToLog: [...]` | The full request and response of those methods |
 | The same, plus `logSensitiveData`, `logPersonalData` or `logFiles` | Also the secrets, personal data or files that are otherwise left out |
 
@@ -180,6 +180,6 @@ Testing
 | `services: [Foo::class => $mock]` | Testing your flow through the facade |
 | Replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | [`AttributeValidator`](../src/Validator/AttributeValidator.php) on its own | Testing a payload, with no client at all |
-| The live API with `rejectUnknownFields: true` | Catching a response that has grown a field |
+| The live API with `rejectUnknownFields: true` | Catching a response that has changed |
 
 [Testing](testing.md) covers each of these.

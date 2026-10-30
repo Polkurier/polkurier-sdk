@@ -28,7 +28,7 @@ readonly class SerializerConfig implements SerializerConfigInterface
      * @param CacheItemPoolInterface|null $metadataCache a pool to keep mapping metadata in
      * @param int $jsonEncodeOptions flags for `json_encode` on the request body
      * @param \DateTimeZone|null $timezone the zone a date without an offset is read in
-     * @param bool $rejectUnknownFields whether an unknown response field is an error
+     * @param bool $rejectUnknownFields whether a response that differs from the SDK is an error
      */
     public function __construct(
         /**

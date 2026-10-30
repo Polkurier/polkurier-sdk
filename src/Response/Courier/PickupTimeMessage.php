@@ -24,16 +24,16 @@ readonly class PickupTimeMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param \DateTimeInterface $pickupDate
+     * @param ?\DateTimeInterface $pickupDate
      * @param TimeIntervalMessage[] $time
      */
     public function __construct(
         /**
-         * @var \DateTimeInterface
+         * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
-        private \DateTimeInterface $pickupDate,
+        private ?\DateTimeInterface $pickupDate,
 
         /**
          * @var TimeIntervalMessage[]
@@ -43,9 +43,9 @@ readonly class PickupTimeMessage implements MessageInterface
     ) {}
 
     /**
-     * @return \DateTimeInterface the day, at midnight
+     * @return ?\DateTimeInterface the day, at midnight
      */
-    public function getPickupDate(): \DateTimeInterface
+    public function getPickupDate(): ?\DateTimeInterface
     {
         return $this->pickupDate;
     }

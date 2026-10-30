@@ -64,13 +64,16 @@ interface SerializerConfigInterface
     public function getTimezone(): ?\DateTimeZone;
 
     /**
-     * Whether an unknown field in the response is an error.
+     * Whether a response that differs from the SDK is an error: an unknown field, a missing field
+     * without a default, a null the field can't hold, a value of another type or a date that doesn't
+     * parse. An unknown enum value still reads as null.
      *
-     * Off by default, because the API can add fields at any time, and a new field would otherwise
-     * break a working integration.
+     * Off by default, because the API can change at any time, and a change would otherwise break a
+     * working integration. The SDK then reads such a response and records each difference, see
+     * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}.
      *
-     * Turn it on in CI against a staging API to find out when the response gets a new field, so
-     * the SDK can be updated.
+     * Turn it on in CI against a staging API to find out when a response changes, so the SDK can be
+     * updated.
      *
      * @return bool
      */

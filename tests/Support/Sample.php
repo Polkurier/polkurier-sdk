@@ -7,11 +7,45 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Support;
 
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
+use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
+use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
+use Symfony\Component\Serializer\Serializer;
+
 /**
  * Builds instances with every property set to a non-empty sample value, bypassing constructors.
  */
 final class Sample
 {
+    /**
+     * A sample of a response class as the API sends it: every property under its wire name.
+     *
+     * The SDK's serializer writes an object through its getters, under the getters' names, so it can't
+     * produce a response. This reads the properties instead.
+     *
+     * @param class-string $class
+     *
+     * @return array<array-key, mixed>
+     */
+    public static function wire(string $class): array
+    {
+        $metadata = new ClassMetadataFactory(new AttributeLoader());
+        $serializer = new Serializer([
+            new BackedEnumNormalizer(),
+            new DateTimeNormalizer(),
+            new PropertyNormalizer($metadata, new MetadataAwareNameConverter($metadata)),
+        ]);
+        $wire = $serializer->normalize(self::of($class), 'json');
+        if (!\is_array($wire)) {
+            throw new \LogicException($class . ' is not written as an object.');
+        }
+
+        return $wire;
+    }
+
     /**
      * Builds an instance with every property set to a non-empty value, bypassing the constructor so
      * that its invariants don't get in the way.
