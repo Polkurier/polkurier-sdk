@@ -28,7 +28,7 @@ readonly class SerializerConfig implements SerializerConfigInterface
      * @param CacheItemPoolInterface|null $metadataCache a pool to keep mapping metadata in
      * @param int $jsonEncodeOptions flags for `json_encode` on the request body
      * @param \DateTimeZone|null $timezone the zone a date without an offset is read in
-     * @param bool $rejectUnknownFields whether a response that differs from the SDK is an error
+     * @param bool $strictResponses whether a response that differs from the SDK is an error
      */
     public function __construct(
         /**
@@ -49,7 +49,7 @@ readonly class SerializerConfig implements SerializerConfigInterface
         /**
          * @var bool
          */
-        protected bool $rejectUnknownFields = false,
+        protected bool $strictResponses = false,
     ) {}
 
     /**
@@ -79,8 +79,8 @@ readonly class SerializerConfig implements SerializerConfigInterface
     /**
      * @return bool
      */
-    public function rejectUnknownFields(): bool
+    public function strictResponses(): bool
     {
-        return $this->rejectUnknownFields;
+        return $this->strictResponses;
     }
 }

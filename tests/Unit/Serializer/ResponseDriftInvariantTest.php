@@ -93,7 +93,7 @@ final class ResponseDriftInvariantTest extends TestCase
     {
         $sample = Sample::wire($class);
         $lenient = new ResponseFactory(new SerializerProvider());
-        $strict = new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: true)));
+        $strict = new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true)));
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {
@@ -141,7 +141,7 @@ final class ResponseDriftInvariantTest extends TestCase
     public function testEveryChangedOrderFieldInAnEventReadsAndStrictReadingAgrees(): void
     {
         $sample = Sample::wire(Order::class);
-        $strictProvider = new SerializerProvider(new SerializerConfig(rejectUnknownFields: true));
+        $strictProvider = new SerializerProvider(new SerializerConfig(strictResponses: true));
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {

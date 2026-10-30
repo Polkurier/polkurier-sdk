@@ -76,5 +76,5 @@ from what the SDK expects reads as a response does (see
 [`OrderWebhookReader::getLastDrift()`](../src/Webhook/OrderWebhookReader.php) lists the differences in the last event read. A field
 the form leaves out because it is null isn't one.
 [`OrderWebhookReader::read()`](../src/Webhook/OrderWebhookReader.php) throws [`Exception\InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) for a body that isn't an
-order event, for an order with none of an order's fields, and, with `rejectUnknownFields` on, for an
+order event, for an order with none of an order's fields, and, with `strictResponses` on, for an
 order that differs.

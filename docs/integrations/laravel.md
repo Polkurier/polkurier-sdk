@@ -98,7 +98,7 @@ final class PolkurierServiceProvider extends ServiceProvider
         $this->app->singleton(SerializerProviderInterface::class, static function ($app) {
             return new SerializerProvider(new SerializerConfig(
                 metadataCache: new Psr16Adapter($app->make(CacheRepository::class)->store()),
-                rejectUnknownFields: $app->environment('testing'),
+                strictResponses: $app->environment('testing'),
             ));
         });
 

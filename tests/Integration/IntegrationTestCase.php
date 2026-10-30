@@ -75,7 +75,7 @@ abstract class IntegrationTestCase extends TestCase
                 apiUrl: self::url(),
                 validatePayloads: $validatePayloads,
             ),
-            serializerProvider: new SerializerProvider(new SerializerConfig(rejectUnknownFields: true)),
+            serializerProvider: new SerializerProvider(new SerializerConfig(strictResponses: true)),
         );
     }
 

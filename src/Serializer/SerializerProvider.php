@@ -40,7 +40,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Objects are built through their constructors, so you never get a half-built object that throws on
  * the first getter. A response that differs from what the SDK expects is filled in, see
  * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}, or with
- * {@see SerializerConfigInterface::rejectUnknownFields()} on, fails. Each date property declares its
+ * {@see SerializerConfigInterface::strictResponses()} on, fails. Each date property declares its
  * own format, since the API uses several.
  *
  * Building the serializer is slow, so share one instance across the factories.
@@ -62,7 +62,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
     public function __construct(SerializerConfigInterface $config = new SerializerConfig())
     {
         $metadata = static::metadataFactory($config);
-        $strict = $config->rejectUnknownFields();
+        $strict = $config->strictResponses();
 
         $extractor = new PropertyInfoExtractor(
             typeExtractors: [new PhpStanExtractor(), new ReflectionExtractor()],

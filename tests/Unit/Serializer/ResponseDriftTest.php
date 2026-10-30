@@ -219,7 +219,7 @@ final class ResponseDriftTest extends TestCase
         unset($carrier[0][Carrier::FIELD_NAME]);
 
         $this->expectException(MalformedResponseException::class);
-        self::read($carrier, Carrier::class . '[]', new SerializerConfig(rejectUnknownFields: true));
+        self::read($carrier, Carrier::class . '[]', new SerializerConfig(strictResponses: true));
     }
 
     public function testStrictReadingFailsOnAMissingFieldThatCanBeNull(): void
@@ -228,20 +228,20 @@ final class ResponseDriftTest extends TestCase
         self::read(
             [TimeIntervalMessage::FIELD_TIME_FROM => '10:00'],
             TimeIntervalMessage::class,
-            new SerializerConfig(rejectUnknownFields: true),
+            new SerializerConfig(strictResponses: true),
         );
     }
 
     public function testStrictReadingFailsOnADateThatDoesNotParse(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(['time' => 'garbage'], HeartbeatMessage::class, new SerializerConfig(rejectUnknownFields: true));
+        self::read(['time' => 'garbage'], HeartbeatMessage::class, new SerializerConfig(strictResponses: true));
     }
 
     public function testStrictReadingFailsOnAListItemOfAnotherType(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(['x', ...self::carrier()], Carrier::class . '[]', new SerializerConfig(rejectUnknownFields: true));
+        self::read(['x', ...self::carrier()], Carrier::class . '[]', new SerializerConfig(strictResponses: true));
     }
 
     public function testStrictReadingFailsOnAnEnumValueOfAnotherType(): void
@@ -250,7 +250,7 @@ final class ResponseDriftTest extends TestCase
         self::read(
             [self::address(['type' => 12])],
             Address::class . '[]',
-            new SerializerConfig(rejectUnknownFields: true),
+            new SerializerConfig(strictResponses: true),
         );
     }
 
@@ -259,7 +259,7 @@ final class ResponseDriftTest extends TestCase
         $wrapper = self::read(
             [self::address(['type' => 'SOMETHING_NEW'])],
             Address::class . '[]',
-            new SerializerConfig(rejectUnknownFields: true),
+            new SerializerConfig(strictResponses: true),
         );
 
         /** @var list<Address> $addresses */

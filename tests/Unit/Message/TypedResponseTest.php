@@ -314,7 +314,7 @@ final class TypedResponseTest extends TestCase
         ];
         $body = \json_encode(['status' => 'success', 'response' => $profile], \JSON_THROW_ON_ERROR);
 
-        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: true))))
+        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), AccountInfoMessage::class)
             ->getParsedResponse()
             ->getResponse();
@@ -353,7 +353,7 @@ final class TypedResponseTest extends TestCase
     {
         $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
 
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: $strict))))
+        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: $strict))))
             ->create(new Response(200, [], $body), $format)
             ->getParsedResponse()
             ->getResponse();

@@ -77,5 +77,5 @@ interface SerializerConfigInterface
      *
      * @return bool
      */
-    public function rejectUnknownFields(): bool;
+    public function strictResponses(): bool;
 }

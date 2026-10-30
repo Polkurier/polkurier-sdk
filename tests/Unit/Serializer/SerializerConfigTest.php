@@ -58,7 +58,7 @@ final class SerializerConfigTest extends TestCase
         $tolerant = (new SerializerProvider())->getSerializer();
         self::assertInstanceOf(Pickup::class, $tolerant->denormalize($payload, Pickup::class, 'json'));
 
-        $strict = (new SerializerProvider(new SerializerConfig(rejectUnknownFields: true)))->getSerializer();
+        $strict = (new SerializerProvider(new SerializerConfig(strictResponses: true)))->getSerializer();
 
         $this->expectException(ExtraAttributesException::class);
         $strict->denormalize($payload, Pickup::class, 'json');

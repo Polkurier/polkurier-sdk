@@ -156,7 +156,7 @@ final class OrderWebhookReaderTest extends TestCase
     {
         $order = ['status_date' => null, 'sender' => null] + self::order();
         $body = self::body(['type' => 'UPDATED', 'data' => $order]);
-        $strict = new SerializerProvider(new SerializerConfig(rejectUnknownFields: true));
+        $strict = new SerializerProvider(new SerializerConfig(strictResponses: true));
 
         $reader = new OrderWebhookReader();
         $event = $reader->read($body);
