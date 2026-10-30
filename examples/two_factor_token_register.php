@@ -31,7 +31,7 @@ try {
 
     \printf("Code sent to %s, valid until %s\n",
         $token->getTransportMethod()?->getName() ?? '(unknown)',
-        $token->getExpiresAt()->format('H:i'));
+        $token->getExpiresAt()?->format('H:i'));
     \printf("Token: %s\n", $token->getId());
 
     foreach ($token->getAvailableMethods() as $method) {

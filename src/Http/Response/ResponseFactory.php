@@ -14,7 +14,7 @@ use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Response\PagedListMessage;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
-use Polkurier\Webservice\Serializer\UnknownEnumValues;
+use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -26,8 +26,9 @@ use Psr\Http\Message\ResponseInterface;
  * body that isn't an API envelope, or a payload that doesn't map, throws a
  * {@see \Polkurier\Webservice\Exception\MalformedResponseException}.
  *
- * Enum values the SDK doesn't know read as null, or are left out of a list, and are recorded on the
- * wrapper (see {@see \Polkurier\Webservice\Http\Response\ResponseWrapper::getUnknownEnumValues()}).
+ * A payload that differs from what the SDK expects is read anyway, as
+ * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum} describes, and each difference is
+ * recorded on the wrapper (see {@see \Polkurier\Webservice\Http\Response\ResponseWrapper::getDrift()}).
  */
 readonly class ResponseFactory implements ResponseFactoryInterface
 {
@@ -109,21 +110,20 @@ readonly class ResponseFactory implements ResponseFactoryInterface
         $responseData[ResponseMessage::FIELD_STATUS] = $status->value;
 
         try {
+            $drift = new ResponseDriftCollector();
             if ($status === ResponseStatusEnum::Error) {
                 return new ResponseWrapper(
                     $httpResponse,
-                    $this->serializer->denormalize($responseData, ErrorMessage::class, static::FORMAT),
+                    $this->serializer->denormalize($responseData, ErrorMessage::class, static::FORMAT, [
+                        ResponseDriftCollector::CONTEXT_KEY => $drift,
+                    ]),
+                    $drift->all(),
                 );
             }
 
-            $unknownEnumValues = new UnknownEnumValues();
-            $payload = $this->deserializePayload($responseData, $responseFormat, $unknownEnumValues);
+            $payload = $this->deserializePayload($responseData, $responseFormat, $drift);
 
-            return new ResponseWrapper(
-                $httpResponse,
-                new ResponseMessage($status, $payload),
-                $unknownEnumValues->all(),
-            );
+            return new ResponseWrapper($httpResponse, new ResponseMessage($status, $payload), $drift->all());
         } catch (SerializerException $e) {
             // Serializer exceptions are outside the SDK's hierarchy, so a caller catching the base
             // exception would miss them. A payload that doesn't map is a malformed response.
@@ -134,8 +134,7 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     /**
      * @param array<string, mixed> $responseData
      * @param string $responseFormat
-     * @param UnknownEnumValues $unknownEnumValues receives the enum values the payload had that the
-     *        SDK doesn't know
+     * @param ResponseDriftCollector $drift receives how the payload differs from what the SDK expects
      *
      * @return mixed
      * @throws SerializerException when the payload doesn't map. create() turns it into a
@@ -144,7 +143,7 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     protected function deserializePayload(
         array $responseData,
         string $responseFormat,
-        UnknownEnumValues $unknownEnumValues = new UnknownEnumValues(),
+        ResponseDriftCollector $drift = new ResponseDriftCollector(),
     ): mixed {
         $payload = $responseData[ResponseMessage::FIELD_RESPONSE] ?? null;
 
@@ -183,10 +182,10 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             );
         }
 
-        // An enum value this version of the SDK doesn't know reads as null, and is left out of a
-        // list, so one new value doesn't make the whole response unreadable. Each one is recorded.
+        // A payload that differs from what this version of the SDK expects is read anyway, so one
+        // change on the API's side doesn't make the whole response unreadable. Each one is recorded.
         return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT, [
-            UnknownEnumValues::CONTEXT_KEY => $unknownEnumValues,
+            ResponseDriftCollector::CONTEXT_KEY => $drift,
         ]);
     }
 

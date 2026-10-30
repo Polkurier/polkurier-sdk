@@ -334,7 +334,7 @@ final class PingCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $output->writeln('API time: ' . $this->utils->heartbeat()->getTime()->format('c'));
+            $output->writeln('API time: ' . $this->utils->heartbeat()->getTime()?->format('c'));
 
             return self::SUCCESS;
         } catch (PolkurierException $e) {

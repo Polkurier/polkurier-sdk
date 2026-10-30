@@ -18,17 +18,47 @@ The API's names are inconsistent (`codbankaccount`, `is_cover_address`, `value_n
 into PHP would push that onto every integration, and renaming one later would mean a breaking
 release of the SDK.
 
-Unknown enum values
--------------------
+Responses that differ from the SDK
+----------------------------------
 
-When the SDK reads a response, an enum value it doesn't know reads as null, or is left out of a
-list, and is recorded with its path. After the call,
-[`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) lists the recorded values, and with logging on each is logged as a
-warning. An empty string isn't recorded. Requests are never read this way, so they stay strict.
+A response the API changed after your SDK version was released still reads, so an application
+that hasn't updated the SDK keeps working:
 
-This leniency needs an [`UnknownEnumValues`](../src/Serializer/UnknownEnumValues.php) collector in the denormalization context, under
-[`UnknownEnumValues::CONTEXT_KEY`](../src/Serializer/UnknownEnumValues.php). Without one, as when you call the serializer yourself, an unknown
-value fails as usual.
+| The response has | The SDK reads |
+|------------------|---------------|
+| A field the SDK doesn't know | Nothing: the field is ignored |
+| A missing field without a default, or null in a field that can't be null | The field's default, or an empty value of its type: `''`, `0`, `0.0`, `false`, `[]` or null |
+| A string, number or boolean of another type | The value converted, e.g. `"12"` to `12` |
+| Any other value of another type | The field's default, or an empty value |
+| A list item of another type | The item converted, or left out of the list |
+| A date that doesn't parse | Null |
+| An enum value the SDK doesn't know | Null, or nothing in a list |
+| An enum value of another type | The value converted, e.g. `12` to `"12"`, or null |
+
+With `symfony/property-info` 6.4, the items of a list of strings, numbers or booleans aren't
+checked: they read as the API sent them.
+
+An object that arrives with fields, but none of those its class declares, is a different response
+altogether, so reading it fails with a
+[`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of giving an object of empty values. A
+class with a single field therefore fails when that field is renamed.
+
+A field left out that has a default is optional, so it isn't counted. Each case is recorded with
+its path, the value the API sent and the type the SDK expected. The path names fields by their PHP
+property names, e.g. `[0].serviceCode`, except an unknown field, which keeps the API's name, e.g.
+`[0].brand_new`. After the call,
+[`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) lists the [`ResponseDrift`](../src/Serializer/ResponseDrift.php) entries, and with logging on each is
+logged as a warning. An empty string where an enum belongs isn't recorded. Requests are never
+read this way.
+
+This needs a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php) in the denormalization context, under
+[`ResponseDriftCollector::CONTEXT_KEY`](../src/Serializer/ResponseDriftCollector.php). Without one, as when you call the serializer yourself, Symfony's own
+rules apply: a value of another type, or a missing field that can't be null, fails, and an unknown
+field or a missing field that can be null is ignored unless `strictResponses` is on.
+
+With `strictResponses` on, a response is read the same way, and then fails if anything other than an
+unknown enum value was recorded ([`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php)), so strict reading rejects exactly
+what lenient reading reports.
 
 The stack
 ---------
@@ -43,10 +73,10 @@ new Serializer(
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
         new AbsentDateNormalizer(),
-        new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext)),
+        new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
         new EnumListDenormalizer(),
-        new ArrayDenormalizer(),
-        new OmitEmptyNormalizer($objectNormalizer),
+        new LenientListDenormalizer(new ArrayDenormalizer()),
+        new OmitEmptyNormalizer(new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor)),
     ],
     encoders: [
         new JsonEncoder(new JsonEncode([JsonEncode::OPTIONS => $config->getJsonEncodeOptions()])),
@@ -59,18 +89,21 @@ first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer
 tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
-response, an enum value the SDK doesn't know reads as null or is left out of its list (see
-[unknown enum values](#unknown-enum-values)). [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes last because it
-wraps the general object normalizer, which supports nearly everything.
+response, an enum value the SDK doesn't know reads as null or is left out of its list. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes
+last because it wraps the general object normalizer, which supports nearly everything.
+[`LenientObjectDenormalizer`](../src/Serializer/LenientObjectDenormalizer.php), [`LenientListDenormalizer`](../src/Serializer/LenientListDenormalizer.php) and [`LenientDateDenormalizer`](../src/Serializer/LenientDateDenormalizer.php) read a response that differs from the SDK (see
+[Responses that differ from the SDK](#responses-that-differ-from-the-sdk)). With `strictResponses` on, [`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php) wraps the
+serializer and fails a read that recorded a difference.
 
-The object normalizer is set up with four pieces:
+The object normalizer is set up with five pieces:
 
 | Piece | Why |
 |-------|-----|
 | [`Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Mapping/Factory/ClassMetadataFactory.php) + `AttributeLoader` | Reads `#[SerializedName]` and friends off the classes |
 | `MetadataAwareNameConverter` | Resolves those names in both directions |
 | `PropertyInfoExtractor` with `PhpStanExtractor` | Reads element types out of docblocks |
-| `ALLOW_EXTRA_ATTRIBUTES` | On unless `rejectUnknownFields` says otherwise |
+| `ALLOW_EXTRA_ATTRIBUTES` | On unless `strictResponses` says otherwise |
+| `REQUIRE_ALL_PROPERTIES` | On with `strictResponses`, so a field without a default must be present |
 
 ### Why `PhpStanExtractor` and not `PhpDocExtractor`
 
@@ -94,8 +127,9 @@ denormalizer converts the int to a float **only when it knows the data came from
 
 ### Why objects are built through their constructors
 
-A response is either built in full, or it fails straight away and names the missing field. You
-never get an object whose getters throw.
+A response is built in full, so you never get an object whose getters throw. A field the response
+lacks is filled as [Responses that differ from the SDK](#responses-that-differ-from-the-sdk) describes, or with `strictResponses` on,
+reading fails straight away and names it.
 
 Every response class has a constructor that takes every field. An object filled without its
 constructor would leave a missing key as an uninitialised property, which fails only when
@@ -260,11 +294,12 @@ Debugging a mapping problem
 |---------|---------|
 | A nested object arrives as a plain `array` | The `@var` docblock on the property. The extractor reads that, not the PHP type |
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
-| An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastUnknownEnumValues()`](../src/PolkurierWebservice.php) names it |
+| An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
+| A field is empty, zero or null, or a list is short | The response lacked it or sent another type. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
 | A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
-| A required-field error on a response | An empty array arrived where an object was expected, or a key with no default was absent |
+| A required-field error on a response | `strictResponses: true`, or your own serializer call without a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php) |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
-| An unexpected field breaks the call | `rejectUnknownFields: true`. Meant for CI, not production |
+| A changed response breaks the call | `strictResponses: true`. Meant for CI, not production |
 
 ```php
 // Log the full exchange for one method. Secrets, personal data and files are left out of the log
@@ -273,6 +308,6 @@ new Config(/* … */, methodsToLog: [ApiMethodEnum::CreateOrder]);
 ```
 
 ```php
-// Turn strictness on in a test and let an unknown field fail loudly.
-new SerializerProvider(new SerializerConfig(rejectUnknownFields: true));
+// Turn strictness on in a test and let a changed response fail loudly.
+new SerializerProvider(new SerializerConfig(strictResponses: true));
 ```

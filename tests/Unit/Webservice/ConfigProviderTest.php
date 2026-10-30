@@ -47,7 +47,7 @@ final class ConfigProviderTest extends TestCase
     public function testPayloadValidationFollowsTheCurrentConfiguration(): void
     {
         $provider = new SwitchingConfigProvider(self::config('11111', 'shop-a', validatePayloads: false));
-        $client = new RecordingClient('{"status":"success","response":{"orders":[]}}');
+        $client = new RecordingClient('{"status":"success","response":[]}');
         $sdk = new PolkurierWebservice(
             config: self::config('00000', 'unused'),
             configProvider: $provider,

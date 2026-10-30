@@ -31,9 +31,9 @@ try {
         foreach ($slot->getTime() as $window) {
             \printf(
                 "%s  %s–%s\n",
-                $slot->getPickupDate()->format('Y-m-d'),
-                $window->getTimeFrom()->format('H:i'),
-                $window->getTimeTo()->format('H:i')
+                $slot->getPickupDate()?->format('Y-m-d'),
+                $window->getTimeFrom()?->format('H:i'),
+                $window->getTimeTo()?->format('H:i')
             );
         }
     }

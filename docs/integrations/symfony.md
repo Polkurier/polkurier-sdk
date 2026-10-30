@@ -56,7 +56,7 @@ services:
     Polkurier\Webservice\Serializer\SerializerConfig:
         arguments:
             $metadataCache: '@cache.polkurier'
-            $rejectUnknownFields: '%kernel.debug%'
+            $strictResponses: '%kernel.debug%'
 
     Polkurier\Webservice\Serializer\SerializerProvider: ~
     Polkurier\Webservice\Serializer\SerializerProviderInterface: '@Polkurier\Webservice\Serializer\SerializerProvider'

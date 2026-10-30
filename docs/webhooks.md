@@ -70,6 +70,11 @@ An event is a sign that the order changed rather than the full story. The same e
 more than once, and the order's status is in the order, not only in the event's type. The latest
 state comes from [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) by the order's number.
 
-A type the SDK doesn't know yet reads as null, and the event still reads.
+A type the SDK doesn't know yet reads as null, and the event still reads. An order that differs
+from what the SDK expects reads as a response does (see
+[Serialization](serialization.md#responses-that-differ-from-the-sdk)), and
+[`OrderWebhookReader::getLastDrift()`](../src/Webhook/OrderWebhookReader.php) lists the differences in the last event read. A field
+the form leaves out because it is null isn't one.
 [`OrderWebhookReader::read()`](../src/Webhook/OrderWebhookReader.php) throws [`Exception\InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) for a body that isn't an
-order event, or whose order can't be read.
+order event, for an order with none of an order's fields, and, with `strictResponses` on, for an
+order that differs.

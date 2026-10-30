@@ -479,7 +479,7 @@ $token = $client->twoFactorToken()->twoFactorTokenRegister(
 
 printf("Code sent to %s, valid until %s\n",
     $token->getTransportMethod()?->getName() ?? 'your phone',   // e.g. a masked phone number
-    $token->getExpiresAt()->format('H:i'),
+    $token->getExpiresAt()?->format('H:i'),
 );
 
 // 2. The customer reads the code off their phone and gives it to you.

@@ -37,8 +37,8 @@ try {
     foreach ($pickup->getTime() as $window) {
         \printf(
             "  window offered: %s–%s\n",
-            $window->getTimeFrom()->format('H:i'),
-            $window->getTimeTo()->format('H:i'),
+            $window->getTimeFrom()?->format('H:i'),
+            $window->getTimeTo()?->format('H:i'),
         );
     }
 } catch (Exception $e) {

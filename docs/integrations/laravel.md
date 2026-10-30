@@ -98,7 +98,7 @@ final class PolkurierServiceProvider extends ServiceProvider
         $this->app->singleton(SerializerProviderInterface::class, static function ($app) {
             return new SerializerProvider(new SerializerConfig(
                 metadataCache: new Psr16Adapter($app->make(CacheRepository::class)->store()),
-                rejectUnknownFields: $app->environment('testing'),
+                strictResponses: $app->environment('testing'),
             ));
         });
 
@@ -359,7 +359,7 @@ final class PolkurierPing extends Command
     public function handle(UtilsServiceInterface $utils): int
     {
         try {
-            $this->info('API time: ' . $utils->heartbeat()->getTime()->format('c'));
+            $this->info('API time: ' . $utils->heartbeat()->getTime()?->format('c'));
         } catch (ConnectionException $e) {
             $this->error('Unreachable: ' . $e->getMessage());
 

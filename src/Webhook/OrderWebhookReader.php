@@ -12,7 +12,8 @@ use Polkurier\Webservice\Response\Order;
 use Polkurier\Webservice\Response\Webhook\OrderWebhookMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
-use Polkurier\Webservice\Serializer\UnknownEnumValues;
+use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -38,6 +39,11 @@ class OrderWebhookReader
      * The body to answer an event with, along with HTTP 200.
      */
     public const string ACKNOWLEDGEMENT = 'OK';
+
+    /**
+     * @var list<ResponseDrift>
+     */
+    protected array $lastDrift = [];
 
     /**
      * @param SerializerProviderInterface $serializerProvider
@@ -78,6 +84,7 @@ class OrderWebhookReader
      */
     public function read(string $body): OrderWebhookMessage
     {
+        $this->lastDrift = [];
         $fields = $this->decode($body);
         if (!isset($fields[OrderWebhookMessage::FIELD_TYPE])
             || !\is_array($fields[OrderWebhookMessage::FIELD_DATA] ?? null)
@@ -85,18 +92,22 @@ class OrderWebhookReader
             throw new InvalidArgumentException('The body is not a Polkurier order event: it has no type or no order.');
         }
 
+        $drift = new ResponseDriftCollector();
+
         try {
             // Form fields are all strings. For a text format such as CSV, the serializer casts a
-            // string to the scalar type the property declares. A form can't carry an empty list,
-            // so an order without waybills arrives without the field. An enum value the SDK doesn't
-            // know reads as null, as in a response.
+            // string to the scalar type the property declares. A form leaves out null values and
+            // empty lists, so a field that can be null may be absent, and an order without waybills
+            // arrives without the field. An order that differs from what the SDK expects is read as
+            // in a response, see self::getLastDrift().
             $message = $this->serializerProvider->getSerializer()->denormalize(
                 $fields,
                 OrderWebhookMessage::class,
                 CsvEncoder::FORMAT,
                 [
+                    AbstractNormalizer::REQUIRE_ALL_PROPERTIES => false,
                     AbstractNormalizer::DEFAULT_CONSTRUCTOR_ARGUMENTS => [Order::class => ['waybills' => []]],
-                    UnknownEnumValues::CONTEXT_KEY => new UnknownEnumValues(),
+                    ResponseDriftCollector::CONTEXT_KEY => $drift,
                 ],
             );
         } catch (ExceptionInterface $e) {
@@ -110,8 +121,22 @@ class OrderWebhookReader
         if (!$message instanceof OrderWebhookMessage) {
             throw new InvalidArgumentException('The body is not a Polkurier order event.');
         }
+        $this->lastDrift = $drift->all();
 
         return $message;
+    }
+
+    /**
+     * How the order in the last event read differed from what this version of the SDK expects.
+     *
+     * The event is read anyway, as {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}
+     * describes.
+     *
+     * @return list<ResponseDrift> empty when the order was as expected, or nothing was read
+     */
+    public function getLastDrift(): array
+    {
+        return $this->lastDrift;
     }
 
     /**

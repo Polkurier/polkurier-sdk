@@ -20,7 +20,7 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
 /**
  * Responses shaped as the API sends them still read with unknown fields rejected.
  *
- * With `rejectUnknownFields` on, a single key the response class doesn't map fails the whole call,
+ * With `strictResponses` on, a single key the response class doesn't map fails the whole call,
  * so every key the API sends has to be mapped.
  */
 #[CoversNothing]
@@ -102,7 +102,7 @@ final class StrictReadingTest extends TestCase
     {
         $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
 
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(rejectUnknownFields: true))))
+        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), $format)
             ->getParsedResponse()
             ->getResponse();

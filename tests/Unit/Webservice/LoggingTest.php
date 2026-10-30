@@ -88,6 +88,19 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('[0].type', $this->logger->records[0]['message']);
     }
 
+    public function testAnUnknownFieldIsLoggedAsAWarningAndTheCallSucceeds(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":[{"servicecode":"DPD","name":"DPD",'
+            . '"foreign_shipments":false,"brand_new":1}]}');
+
+        $carriers = $this->sdk()->courier()->availableCarriers();
+
+        self::assertCount(1, $carriers);
+        self::assertCount(1, $this->logger->records);
+        self::assertSame(LogLevel::WARNING, $this->logger->records[0]['level']);
+        self::assertStringContainsString('Unknown field "[0].brand_new"', $this->logger->records[0]['message']);
+    }
+
     public function testAnUnknownEnumValueIsNotLoggedWhenLoggingIsOff(): void
     {
         $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
