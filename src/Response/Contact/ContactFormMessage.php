@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -21,8 +23,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * can only be filled in on the Polkurier website has {@see self::isWebOnly()} set, no fields, and
  * its address in {@see self::getHref()}.
  */
-readonly class ContactFormMessage implements MessageInterface
+readonly class ContactFormMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -46,6 +50,7 @@ readonly class ContactFormMessage implements MessageInterface
      * @param bool $hasForm whether the topic has a form
      * @param bool $webOnly whether the form can only be filled in on the Polkurier website
      * @param string $href the form's address on the Polkurier website, when it is web-only
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -95,6 +100,12 @@ readonly class ContactFormMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_HREF)]
         private string $href = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

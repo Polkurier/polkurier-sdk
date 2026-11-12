@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Response\DecodesFileTrait;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -18,9 +20,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes. The hash
  * identifies the content and stays the same across downloads.
  */
-readonly class OrderFileMessage implements MessageInterface
+readonly class OrderFileMessage implements MessageInterface, ParsedResponseInterface
 {
     use DecodesFileTrait;
+    use KeepsRawResponseTrait;
 
     /**+@#
      * JSON parameter keys
@@ -40,6 +43,7 @@ readonly class OrderFileMessage implements MessageInterface
      * @param string $hash content hash, stable across downloads
      * @param ?\DateTimeInterface $dateCreated when the document was attached, null if unknown
      * @param string $file base64-encoded contents
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -78,6 +82,12 @@ readonly class OrderFileMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         private string $file = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

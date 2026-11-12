@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -16,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A wrong PIN throws no exception: the flag is false, as it is for an account without a security
  * PIN.
  */
-readonly class PinValidityMessage implements MessageInterface
+readonly class PinValidityMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -26,6 +30,7 @@ readonly class PinValidityMessage implements MessageInterface
 
     /**
      * @param bool $valid
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -33,6 +38,12 @@ readonly class PinValidityMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_VALID)]
         private bool $valid = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

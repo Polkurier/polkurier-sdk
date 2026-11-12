@@ -8,13 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Util;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Confirmation that a set of credentials is valid.
  */
-readonly class AuthConfirmationMessage implements MessageInterface
+readonly class AuthConfirmationMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -27,6 +31,12 @@ readonly class AuthConfirmationMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_AUTHORIZATION)]
         private bool $authorized,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Response;
 
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
@@ -21,8 +22,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An order cannot reference a template. To use one, read it and copy its values into the order
  * payload.
  */
-readonly class PackTemplate extends BasePack
+readonly class PackTemplate extends BasePack implements ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -52,6 +55,7 @@ readonly class PackTemplate extends BasePack
      * @param string|null $courier
      * @param AdditionalServiceEnum[] $services
      * @param bool $default not sent by the API, always false
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         int $length,
@@ -119,6 +123,12 @@ readonly class PackTemplate extends BasePack
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {
         parent::__construct($length, $width, $height, $weight, $type);
     }

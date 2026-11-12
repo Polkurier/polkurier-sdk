@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\KnowledgeBase;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -16,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The content is an HTML fragment in Polish, meant to be embedded in a page rather than shown as
  * text.
  */
-readonly class KnowledgeBaseArticleMessage implements MessageInterface
+readonly class KnowledgeBaseArticleMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -32,6 +36,7 @@ readonly class KnowledgeBaseArticleMessage implements MessageInterface
      * @param string $title
      * @param string $content HTML fragment, in Polish
      * @param KnowledgeBaseFileMessage[] $files attachments, if any
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -57,6 +62,12 @@ readonly class KnowledgeBaseArticleMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         private array $files = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

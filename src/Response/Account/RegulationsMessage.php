@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -20,8 +22,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::acceptRegulations()}. Only the
  * version currently in force can be accepted.
  */
-readonly class RegulationsMessage implements MessageInterface
+readonly class RegulationsMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -36,6 +40,7 @@ readonly class RegulationsMessage implements MessageInterface
      * @param string $title
      * @param string $content HTML fragment, in Polish
      * @param \DateTimeInterface|null $date when this version took effect
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -62,6 +67,12 @@ readonly class RegulationsMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]
         private ?\DateTimeInterface $date = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

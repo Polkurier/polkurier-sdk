@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Invoice;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Response\DecodesFileTrait;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -17,9 +19,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes. The filename is
  * the one the API suggests, and you can use it as-is in a download header.
  */
-readonly class InvoiceDocumentMessage implements MessageInterface
+readonly class InvoiceDocumentMessage implements MessageInterface, ParsedResponseInterface
 {
     use DecodesFileTrait;
+    use KeepsRawResponseTrait;
 
     /**+@#
      * JSON parameter keys
@@ -35,6 +38,7 @@ readonly class InvoiceDocumentMessage implements MessageInterface
      * @param string $filename suggested filename
      * @param string $filetype media type of the document
      * @param string $invoiceNumber not sent by the API, always empty
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -62,6 +66,12 @@ readonly class InvoiceDocumentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_NUMBER)]
         private string $invoiceNumber = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

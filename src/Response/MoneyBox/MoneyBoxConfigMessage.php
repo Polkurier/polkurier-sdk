@@ -8,8 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -19,8 +21,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * options it may use and the destination details on file. A destination with nothing saved comes
  * back blank.
  */
-readonly class MoneyBoxConfigMessage implements MessageInterface
+readonly class MoneyBoxConfigMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -46,6 +50,7 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
      * @param string $street postal payout address
      * @param string $postcode postal payout address
      * @param string $city postal payout address
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -101,6 +106,12 @@ readonly class MoneyBoxConfigMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         private string $city = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

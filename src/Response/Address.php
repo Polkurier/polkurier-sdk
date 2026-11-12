@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Response;
 
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -18,8 +19,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * read-only. The address book sends no street name, machine name or point, so those getters return
  * null.
  */
-readonly class Address extends BaseAddress
+readonly class Address extends BaseAddress implements ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -57,6 +60,7 @@ readonly class Address extends BaseAddress
      * @param string|null $streetName
      * @param string|null $machineName
      * @param CourierPoint|null $point
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         string $person,
@@ -125,6 +129,12 @@ readonly class Address extends BaseAddress
         ?string $machineName = null,
 
         ?CourierPoint $point = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {
         parent::__construct(
             person: $person,

@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Ticket\TicketStatusEnum;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -21,8 +23,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * at least once and nothing on the ticket is still unseen. A ticket with no replies yet is reported
  * as unread. Treat the flag as "awaiting your attention", not as a read receipt.
  */
-readonly class TicketMessage implements MessageInterface
+readonly class TicketMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -56,6 +60,7 @@ readonly class TicketMessage implements MessageInterface
      * @param TicketTimelineItemMessage[] $messages the timeline, when the call asked for it
      * @param ?TicketResponseTemplateMessage $responseTemplate the fixed answers Polkurier's latest reply
      *        asks for, with the timeline only
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -136,6 +141,12 @@ readonly class TicketMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_RESPONSE_TEMPLATE)]
         private ?TicketResponseTemplateMessage $responseTemplate = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

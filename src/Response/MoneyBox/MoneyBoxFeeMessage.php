@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -18,8 +20,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * While the account has free payouts left this month, the fee has no PAYOUT_FEE component.
  */
-readonly class MoneyBoxFeeMessage implements MessageInterface
+readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -38,6 +42,7 @@ readonly class MoneyBoxFeeMessage implements MessageInterface
      * @param int $freePayoutsLeft free payouts still available this month
      * @param int $freePayoutsTotal free payouts granted per month
      * @param MoneyBoxFeeComponentMessage[] $fees itemised components of the total
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -75,6 +80,12 @@ readonly class MoneyBoxFeeMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FEES)]
         private array $fees = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

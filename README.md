@@ -163,6 +163,9 @@ listed by `PolkurierWebservice::getLastResponseDrift()`. With `strictResponses` 
 response fails to map instead. Against a staging API in CI, that tells you about changes. In
 production, it would turn each change into a failed call, which is why it is off by default.
 
+An object a service method returns keeps the body as the API sent it, from
+`ParsedResponseInterface::getRawResponse()`, for values the SDK misreads or drops.
+
 Error handling
 --------------
 

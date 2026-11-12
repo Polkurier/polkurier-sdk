@@ -8,16 +8,19 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Response\DecodesFileTrait;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A label or handover protocol for one or more orders, as a single PDF, or a label in the printer
  * language asked for.
  */
-readonly class DocumentMessage implements MessageInterface
+readonly class DocumentMessage implements MessageInterface, ParsedResponseInterface
 {
     use DecodesFileTrait;
+    use KeepsRawResponseTrait;
 
     /**+@#
      * JSON parameter keys
@@ -27,6 +30,7 @@ readonly class DocumentMessage implements MessageInterface
 
     /**
      * @param string $file base64-encoded PDF or printer-language data
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -34,6 +38,12 @@ readonly class DocumentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         private string $file = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

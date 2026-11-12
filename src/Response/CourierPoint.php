@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -17,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Put the id in an address's point id field. Check the functions before offering a point for a
  * particular use. Not every point accepts drop-offs, collections or cash on delivery.
  */
-readonly class CourierPoint implements MessageInterface
+readonly class CourierPoint implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -71,6 +74,7 @@ readonly class CourierPoint implements MessageInterface
      * @param string $countryIso
      * @param string $address postcode, city and street on one line
      * @param int $courierId Polkurier's numeric carrier id, not the API carrier code
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -210,6 +214,12 @@ readonly class CourierPoint implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_ID)]
         private int $courierId = 0,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

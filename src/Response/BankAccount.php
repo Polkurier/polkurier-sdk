@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -17,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * To register or update one, use {@see \Polkurier\Webservice\Request\BankAccount\SaveMessage}.
  * It also carries the confirmation the API may require before it changes where money is paid.
  */
-readonly class BankAccount implements MessageInterface
+readonly class BankAccount implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -33,6 +36,7 @@ readonly class BankAccount implements MessageInterface
      * @param string $name
      * @param string $number the national number, digits only
      * @param bool $default
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -59,6 +63,12 @@ readonly class BankAccount implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**
