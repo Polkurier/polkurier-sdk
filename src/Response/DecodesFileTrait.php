@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Response;
 /**
  * Decodes the base64 file of a response that carries one.
  */
-trait DecodesFile
+trait DecodesFileTrait
 {
     /**
      * The file as the API sent it, base64-encoded.

@@ -115,7 +115,7 @@ Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessa
 | Route | Gives you |
 |-------|-----------|
 | [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
-| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFile.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
+| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFileTrait.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
 
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.

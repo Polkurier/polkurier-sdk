@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Response\DecodesFile;
+use Polkurier\Webservice\Response\DecodesFileTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class TicketFileContentMessage implements MessageInterface
 {
-    use DecodesFile;
+    use DecodesFileTrait;
 
     /**+@#
      * JSON parameter keys

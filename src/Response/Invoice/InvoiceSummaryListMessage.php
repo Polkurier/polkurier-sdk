@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Invoice;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Response\DecodesFile;
+use Polkurier\Webservice\Response\DecodesFileTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class InvoiceSummaryListMessage implements MessageInterface
 {
-    use DecodesFile;
+    use DecodesFileTrait;
 
     /**+@#
      * JSON parameter keys
