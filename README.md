@@ -236,7 +236,7 @@ itself.
 Rejecting a payload the API would accept is a bug in the SDK. `validatePayloads: false` turns off
 all checks.
 
-To drop a single rule, add your own or replace the validator, see
+To add your own rules or replace the validator, see
 [Validation: changing the rules](docs/validation.md#changing-the-rules).
 
 Architecture
@@ -254,9 +254,8 @@ new PolkurierWebservice(
 );
 ```
 
-Only the facade, the JSON envelope classes and a few small helpers are final. Everything else can
-be subclassed: the configuration, the serializer wiring, the factories, the services, the request
-and response classes, and the validation layer including the individual rules.
+What a minor release never breaks, and what it may change, is on the
+[architecture page](docs/architecture.md#what-a-release-can-change).
 
 Requests and responses are separate classes, even where they describe the same thing, so a response
 field can be non-nullable when the API always sends it. Properties are named for what they mean,

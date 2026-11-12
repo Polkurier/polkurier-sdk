@@ -15,7 +15,7 @@ backwards and so matches nothing, a page size above the documented maximum, or a
 number in a batch.
 
 A disagreement with the API is a bug in the SDK. `validatePayloads: false` turns off every check,
-and [changing the rules](#changing-the-rules) shows how to drop a single rule and keep the rest.
+and [changing the rules](#changing-the-rules) shows how to add rules or replace the validator.
 
 What is not checked
 -------------------
@@ -203,7 +203,7 @@ the address itself doesn't know. Registering a payment and checking a coupon aga
 rules of this kind too.
 
 The message names its validators, and a validator doesn't name its messages, so the link is
-declared in one place only. To write one, see [Add rules of your own](#3-add-rules-of-your-own).
+declared in one place only. To write one, see [Add rules of your own](#2-add-rules-of-your-own).
 
 Changing the rules
 ------------------
@@ -216,49 +216,7 @@ new Config(/* … */, validatePayloads: false);
 
 The services then skip validation entirely.
 
-### 2. Drop one rule, keep the rest
-
-[`AttributeValidator`](../src/Validator/AttributeValidator.php) isn't final and its internals are `protected`, so a subclass can filter what
-[`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php) returns:
-
-```php
-use Polkurier\Webservice\Validator\AttributeValidator;
-use Polkurier\Webservice\Validator\Rule\Iban;
-
-final class WithoutIbanCheck extends AttributeValidator
-{
-    protected static function rulesFor(string $class): array
-    {
-        $rules = parent::rulesFor($class);
-
-        foreach ($rules['values'] as $property => $validators) {
-            $rules['values'][$property] = array_values(array_filter(
-                $validators,
-                static fn($rule): bool => !$rule instanceof Iban,
-            ));
-        }
-
-        return $rules;
-    }
-}
-```
-
-This filters the parent's result rather than replacing it, so two differently configured
-validators can run in the same process.
-
-It is then registered like this:
-
-```php
-use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Validator\ValidatorRegistry;
-
-$validator = (new ValidatorRegistry())
-    ->register(MessageInterface::class, new WithoutIbanCheck());
-
-$client = new PolkurierWebservice(config: $config, validator: $validator);
-```
-
-### 3. Add rules of your own
+### 2. Add rules of your own
 
 The registry runs every validator that applies and collects all findings. You can register
 against a class or an interface. A validator registered for a base message covers every message
@@ -299,13 +257,13 @@ final class MyOrderPolicy extends AbstractMessageValidator
 them only if a condition holds) and [`ViolationPool::mergeUnder()`](../src/Validator/ViolationPool.php) (add a nested report under a prefix).
 [`MessageFields::field()`](../src/Validator/MessageFields.php) gives the wire name, so field names match the SDK's.
 
-### 4. Attach a rule to your own message
+### 3. Attach a rule to your own message
 
 A subclassed message can declare rules of its own. The attribute engine reads
 inherited declarations, and `#[ValidatedBy]` on your subclass runs in addition to anything the
 parent declares.
 
-### 5. Replace the validator
+### 4. Replace the validator
 
 [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) has one method. An implementation passed as `validator:` replaces all of the
 SDK's rules:

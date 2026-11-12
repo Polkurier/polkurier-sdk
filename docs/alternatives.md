@@ -126,7 +126,6 @@ Changing what gets validated
 | Route | Takes away |
 |-------|-----------|
 | `validatePayloads: false` | Everything |
-| Subclass [`AttributeValidator`](../src/Validator/AttributeValidator.php), filter [`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php) | One rule |
 | Register an extra validator on the registry | Nothing. Adds your own |
 | Declare rules on your own message subclass | Nothing. Adds your own |
 | Implement [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Everything the SDK had |
@@ -156,7 +155,7 @@ Changing how requests are made
 | [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) | How the envelope is read |
 | [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | The whole mapping stack |
 | [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Caching, JSON flags, timezone, strictness |
-| Subclassing a service | One method |
+| Subclassing a service | One method, at the risk of changes in any release |
 | `services: [...]` with your own implementation | One service entirely |
 
 See [Architecture: extension points](architecture.md#extension-points).

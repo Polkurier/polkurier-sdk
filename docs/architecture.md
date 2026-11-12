@@ -99,26 +99,30 @@ object is an error and throws.
 `response` could read an empty value as a failure, so the envelope's success status is used
 instead. The result is `true` unless the payload explicitly says `false`.
 
-Which classes are final
------------------------
+What a release can change
+-------------------------
 
-**Final:** [`PolkurierWebservice`](../src/PolkurierWebservice.php), and the JSON envelope: [`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) and
-[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php). So are the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and
-[`InlineFields`](../src/Serializer/Attribute/InlineFields.php), the test double [`RecordingClient`](../src/Testing/RecordingClient.php), and [`LogJson`](../src/Log/LogJson.php), a small helper.
+A minor or patch release doesn't break code that relies only on:
 
-**Open:** everything else. That covers [`Config`](../src/Config.php) and [`ConfigProvider`](../src/ConfigProvider.php), the serializer wiring
-([`SerializerProvider`](../src/Serializer/SerializerProvider.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) and the normalizers), the log preparation
-([`LogSanitizer`](../src/Log/LogSanitizer.php) and the redactors), the three factories
-([`ClientFactory`](../src/Http/ClientFactory.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php), [`ResponseFactory`](../src/Http/Response/ResponseFactory.php)), every service, request and response class and
-builder, and the validation layer down to the individual rules. Subclass one to change a single
-step, or implement its interface (where it has one) to replace it outright. A broken change to the
-configuration, the serializer or a factory affects every call and tends to look like an API
-problem.
+- the facade [`PolkurierWebservice`](../src/PolkurierWebservice.php) and [`Config`](../src/Config.php);
+- the interfaces under [`Api`](../src/Api/): the services, the configuration, validation and the messages;
+- the interfaces of the other replaceable collaborators: [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php),
+  [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php), [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) and [`SerializerConfigInterface`](../src/Serializer/SerializerConfigInterface.php);
+- the request and response messages and the enums they use, the envelope ([`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php),
+  [`ResponseMessage`](../src/Http/Response/ResponseMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
+- the exceptions, the builders, [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php) and [`RecordingClient`](../src/Testing/RecordingClient.php);
+- what you write validation rules with: [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php), [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php),
+  [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`ViolationPool`](../src/Validator/ViolationPool.php), [`MessageFields`](../src/Validator/MessageFields.php) and the rule attributes under
+  [`Validator\Rule`](../src/Validator/Rule/).
 
-Most internals in the open classes are `protected`, so you can override them in a subclass.
+Anything else can change in any release: the concrete factories, services and serializer setup, the
+normalizers, the log preparation, and the `protected` members of every class not listed above. Most
+classes aren't `final`, so you can subclass one to change a single step, but such a subclass may
+need changes after an update. An implementation of an interface doesn't.
 
-[`AbstractBuilder::__construct()`](../src/Builder/AbstractBuilder.php) takes no arguments, and a subclass that declares its own must keep it that
-way, so [`AbstractBuilder::create()`](../src/Builder/AbstractBuilder.php) is safe to call on a subclass.
+The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php),
+[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and [`InlineFields`](../src/Serializer/Attribute/InlineFields.php), [`RecordingClient`](../src/Testing/RecordingClient.php)
+and [`LogJson`](../src/Log/LogJson.php).
 
 Extension points
 ----------------
@@ -227,7 +231,8 @@ final readonly class CachingOrders implements OrdersServiceInterface
 }
 ```
 
-Or subclass the concrete service. That is shorter when you only want to change one method:
+Or subclass the concrete service. That is shorter when you only want to change one method, but a
+concrete service can change in any release (see [What a release can change](#what-a-release-can-change)):
 
 ```php
 final class RetryingOrders extends OrdersService

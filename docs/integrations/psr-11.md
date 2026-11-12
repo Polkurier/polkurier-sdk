@@ -258,7 +258,4 @@ harmless. With real concurrency, coroutines that share a client overwrite it for
 
 **Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFields`](../../src/Validator/MessageFields.php),
 [`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php) and [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php) each keep a static reflection cache keyed by class
-name. Once filled, they stay filled. As a result, an [`AttributeValidator`](../../src/Validator/AttributeValidator.php) subclass that filters
-rules must filter what [`AttributeValidator::rulesFor()`](../../src/Validator/AttributeValidator.php) returns. If it replaces the cached entry, two
-validators with different settings will overwrite each other's rules. See
-[Validation](../validation.md#2-drop-one-rule-keep-the-rest).
+name. Once filled, they stay filled for every client in the process.

@@ -244,8 +244,8 @@ rejected. See [Configuration](configuration.md#serializerconfig).
 
 ### 2. Replace or add a normalizer
 
-You can subclass [`SerializerProvider`](../src/Serializer/SerializerProvider.php), or implement [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) to build the
-serializer from scratch. A misconfigured serializer fails in ways that look like the API
+Implement [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) to build the serializer from scratch. Subclassing
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) works too, but its setup and the SDK's normalizers can change in any release. A misconfigured serializer fails in ways that look like the API
 misbehaving. Implementing the interface looks like this:
 
 ```php

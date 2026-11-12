@@ -46,9 +46,7 @@ use Polkurier\Webservice\Validator\Rule\ValidatedBy;
  * depends on the role a value plays. For example, an address needs an email when it is the sender
  * but not when it is the recipient.
  *
- * Reflection runs once per class and is cached. Nothing here is final or private, so a subclass can
- * drop a rule by filtering what {@see static::rulesFor()} returns. The cache holds the unfiltered
- * rules, which lets 2 differently configured validators run in the same process.
+ * Reflection runs once per class and is cached.
  */
 class AttributeValidator implements ValidatorInterface
 {
