@@ -130,7 +130,7 @@ final class RawResponseTest extends TestCase
 
         $info = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $stream), SystemInfoMessage::class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
@@ -144,7 +144,7 @@ final class RawResponseTest extends TestCase
 
         $info = (new ResponseFactory(new SerializerProvider()))
             ->create($response, SystemInfoMessage::class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
@@ -158,7 +158,7 @@ final class RawResponseTest extends TestCase
 
         $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), SystemInfoMessage::class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
@@ -199,7 +199,7 @@ final class RawResponseTest extends TestCase
     {
         return (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $format)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
     }
 

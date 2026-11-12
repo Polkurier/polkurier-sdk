@@ -12,18 +12,19 @@ use Polkurier\Webservice\Serializer\ResponseDrift;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Pairs the parsed payload with the HTTP response it came from.
+ * Pairs the envelope read from a response, its status and payload, with the HTTP response it came
+ * from.
  */
 final readonly class ResponseWrapper
 {
     /**
      * @param ResponseInterface $httpResponse
-     * @param ResponseMessage $parsedResponse
+     * @param ResponseMessage $envelope
      * @param list<ResponseDrift> $drift how the payload differed from what the SDK expects
      */
     public function __construct(
         private ResponseInterface $httpResponse,
-        private ResponseMessage $parsedResponse,
+        private ResponseMessage $envelope,
         private array $drift = [],
     ) {}
 
@@ -46,8 +47,8 @@ final readonly class ResponseWrapper
     /**
      * @return ResponseMessage
      */
-    public function getParsedResponse(): ResponseMessage
+    public function getEnvelope(): ResponseMessage
     {
-        return $this->parsedResponse;
+        return $this->envelope;
     }
 }

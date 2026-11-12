@@ -117,7 +117,7 @@ final class ResponseDriftInvariantTest extends TestCase
                     $this->expectStrictFailure($strict, $body, $class, $case);
                     continue;
                 }
-                self::assertReadable($wrapper->getParsedResponse()->getResponse());
+                self::assertReadable($wrapper->getEnvelope()->getResponse());
                 $reported = \array_filter(
                     $wrapper->getDrift(),
                     static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,

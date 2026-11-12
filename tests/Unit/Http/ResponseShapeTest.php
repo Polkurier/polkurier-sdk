@@ -201,7 +201,7 @@ final class ResponseShapeTest extends TestCase
 
         $list = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf(PagedListMessage::class, $list);
@@ -221,7 +221,7 @@ final class ResponseShapeTest extends TestCase
     {
         $list = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], '{"status": "success", "response": []}'), $class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf($class, $list);
@@ -258,7 +258,7 @@ final class ResponseShapeTest extends TestCase
         );
         $result = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $format)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertNotNull($result);

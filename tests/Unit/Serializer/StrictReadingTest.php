@@ -104,7 +104,7 @@ final class StrictReadingTest extends TestCase
 
         return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), $format)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
     }
 }
