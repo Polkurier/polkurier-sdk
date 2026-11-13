@@ -38,7 +38,7 @@ final readonly class DeletePhoneNumberMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[Validate\NotBlank]
-        private string $id,
+        public string $id,
 
         /**
          * @var string
@@ -46,22 +46,6 @@ final readonly class DeletePhoneNumberMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
-        private string $number,
+        public string $number,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
 }

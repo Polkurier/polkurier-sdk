@@ -11,6 +11,7 @@ use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
@@ -23,7 +24,6 @@ use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
-use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
@@ -175,7 +175,7 @@ abstract class AbstractService
                 $wrapper,
                 $request,
                 $payload,
-                $wrapper->getEnvelope()->getStatus() === ResponseStatusEnum::Error
+                $wrapper->getEnvelope()->status === ResponseStatusEnum::Error
             );
             $this->logResponseDrift($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
@@ -195,7 +195,7 @@ abstract class AbstractService
 
         $this->lastHttpResponse = $response;
 
-        return $envelope->getResponse();
+        return $envelope->response;
     }
 
     /**
@@ -485,8 +485,8 @@ abstract class AbstractService
         RequestInterface $request,
         ResponseInterface $response,
     ): WebserviceException {
-        $statusCode = $errorMessage->getStatusCode();
-        $errorCode = $errorMessage->getErrorCode();
+        $statusCode = $errorMessage->statusCode;
+        $errorCode = $errorMessage->errorCode;
 
         $isAuthorizationError =
             ($statusCode !== null && AuthorizationException::isAuthorizationErrorStatus($statusCode))

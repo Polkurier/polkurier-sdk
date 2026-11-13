@@ -40,57 +40,25 @@ final readonly class Carrier implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_SERVICE_CODE)]
-        private string $serviceCode,
+        public string $serviceCode,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name,
+        public string $name,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_FOREIGN_SHIPMENTS)]
-        private bool $foreignShipments,
+        public bool $foreignShipments,
 
         /**
-         * @var AdditionalData|null
+         * @var AdditionalData|null null unless the listing asked for the additional data
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_DATA)]
         #[OmitWhenEmpty]
-        private ?AdditionalData $additionalData = null,
+        public ?AdditionalData $additionalData = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getServiceCode(): string
-    {
-        return $this->serviceCode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isForeignShipments(): bool
-    {
-        return $this->foreignShipments;
-    }
-
-    /**
-     * @return AdditionalData|null null unless the listing asked for the additional data
-     */
-    public function getAdditionalData(): ?AdditionalData
-    {
-        return $this->additionalData;
-    }
 }

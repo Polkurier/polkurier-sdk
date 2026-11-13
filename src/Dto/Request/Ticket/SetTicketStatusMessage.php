@@ -36,28 +36,12 @@ final readonly class SetTicketStatusMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
-        private string $ticketId,
+        public string $ticketId,
 
         /**
          * @var TicketStatusEnum
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private TicketStatusEnum $status = TicketStatusEnum::Closed,
+        public TicketStatusEnum $status = TicketStatusEnum::Closed,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTicketId(): string
-    {
-        return $this->ticketId;
-    }
-
-    /**
-     * @return TicketStatusEnum
-     */
-    public function getStatus(): TicketStatusEnum
-    {
-        return $this->status;
-    }
 }

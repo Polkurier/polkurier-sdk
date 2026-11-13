@@ -76,7 +76,9 @@ new Serializer(
         new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
         new EnumListDenormalizer(),
         new LenientListDenormalizer(new ArrayDenormalizer()),
-        new OmitEmptyNormalizer(new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor)),
+        new OmitEmptyNormalizer(new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+            new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+        ))),
     ],
     encoders: [
         new JsonEncoder(new JsonEncode([JsonEncode::OPTIONS => $config->getJsonEncodeOptions()])),
@@ -94,6 +96,15 @@ last because it wraps the general object normalizer, which supports nearly every
 [`LenientObjectDenormalizer`](../src/Serializer/LenientObjectDenormalizer.php), [`LenientListDenormalizer`](../src/Serializer/LenientListDenormalizer.php) and [`LenientDateDenormalizer`](../src/Serializer/LenientDateDenormalizer.php) read a response that differs from the SDK (see
 [Responses that differ from the SDK](#responses-that-differ-from-the-sdk)). With `strictResponses` on, [`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php) wraps the
 serializer and fails a read that recorded a difference.
+
+Two more pieces wrap the object normalizer when reading. [`WireFormatDenormalizer`](../src/Serializer/WireFormatDenormalizer.php) reads the fields
+whose wire format differs from the value the property holds, as the property declares:
+[`#[Base64]`](../src/Serializer/Attribute/Base64.php) and [`#[Base64DataUrl]`](../src/Serializer/Attribute/Base64DataUrl.php) for files, which the property holds as bytes, and
+[`#[NamedValues]`](../src/Serializer/Attribute/NamedValues.php) for values keyed by name, which the property holds as a list of name and value pairs.
+[`ResponseQuirksDenormalizer`](../src/Serializer/ResponseQuirksDenormalizer.php) repairs the API's known oddities, each for one class and the fields it
+names: null paging numbers, null tracking texts and default flags, a contact-form field whose
+`options` names a form property instead of listing choices, carrier-specific point functions,
+and transport methods keyed by method. A field that differs in any other way is drift.
 
 The object normalizer is set up with five pieces:
 
@@ -232,7 +243,7 @@ Responses look like this:
 {"status": "error", "status_code": 7, "error_code": "ERROR_AUTH_DATA", "response": "Błąd autoryzacji. Błędny login lub token"}
 ```
 
-[`ResponseMessage`](../src/Http/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) map these two.
+[`ResponseMessage`](../src/Dto/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php) map these two.
 
 Extending the serializer
 ------------------------

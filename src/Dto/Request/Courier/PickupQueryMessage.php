@@ -39,7 +39,7 @@ abstract readonly class PickupQueryMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
-        private string $courier,
+        public string $courier,
 
         /**
          * @var string
@@ -47,7 +47,7 @@ abstract readonly class PickupQueryMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_SHIP_FROM)]
         #[Validate\NotBlank]
         #[Validate\Postcode]
-        private string $shipFrom,
+        public string $shipFrom,
 
         /**
          * @var string|null
@@ -55,45 +55,13 @@ abstract readonly class PickupQueryMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_SHIP_TO)]
         #[Validate\Postcode]
         #[OmitWhenEmpty]
-        private ?string $shipTo = null,
+        public ?string $shipTo = null,
 
         /**
          * @var ShipmentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_PARCEL)]
         #[OmitWhenEmpty]
-        private ?ShipmentTypeEnum $parcel = null,
+        public ?ShipmentTypeEnum $parcel = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * @return string
-     */
-    public function getShipFrom(): string
-    {
-        return $this->shipFrom;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getShipTo(): ?string
-    {
-        return $this->shipTo;
-    }
-
-    /**
-     * @return ShipmentTypeEnum|null
-     */
-    public function getParcel(): ?ShipmentTypeEnum
-    {
-        return $this->parcel;
-    }
 }

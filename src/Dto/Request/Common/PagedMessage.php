@@ -38,7 +38,7 @@ abstract readonly class PagedMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
         #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
-        private ?int $pageSize = null,
+        public ?int $pageSize = null,
 
         /**
          * @var int|null
@@ -46,22 +46,6 @@ abstract readonly class PagedMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_PAGE)]
         #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
-        private ?int $page = null,
+        public ?int $page = null,
     ) {}
-
-    /**
-     * @return int|null
-     */
-    public function getPageSize(): ?int
-    {
-        return $this->pageSize;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
 }

@@ -31,28 +31,12 @@ final readonly class Province implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id,
+        public string $id,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name,
+        public string $name,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
 }

@@ -34,14 +34,6 @@ abstract readonly class PinMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PIN)]
         #[Validate\NotBlank]
-        private string $pin,
+        public string $pin,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getPin(): string
-    {
-        return $this->pin;
-    }
 }

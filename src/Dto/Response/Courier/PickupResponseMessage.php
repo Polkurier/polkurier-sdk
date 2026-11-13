@@ -39,13 +39,13 @@ final readonly class PickupResponseMessage implements MessageInterface, ParsedRe
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
-        private bool $pickupDate = false,
+        public bool $pickupDate = false,
 
         /**
          * @var TimeIntervalMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_TIME)]
-        private array $time = [],
+        public array $time = [],
 
         /**
          * @var string|null
@@ -53,20 +53,4 @@ final readonly class PickupResponseMessage implements MessageInterface, ParsedRe
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isPickupDate(): bool
-    {
-        return $this->pickupDate;
-    }
-
-    /**
-     * @return TimeIntervalMessage[]
-     */
-    public function getTime(): array
-    {
-        return $this->time;
-    }
 }

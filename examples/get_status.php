@@ -24,14 +24,14 @@ try {
         new GetStatusMessage(orderNo: $orderNumber, tracking: true)
     );
 
-    \printf("%s: %s (%s)\n", $orderNumber, $status->getStatus(), $status->getStatusCode());
+    \printf("%s: %s (%s)\n", $orderNumber, $status->status, $status->statusCode);
 
-    foreach ($status->getTracking() as $event) {
+    foreach ($status->tracking as $event) {
         \printf(
             "  %-18s %-24s %s\n",
-            $event->getStatusDate()?->format('Y-m-d H:i') ?? '-',
-            $event->getLocation(),
-            $event->getDescription()
+            $event->statusDate?->format('Y-m-d H:i') ?? '-',
+            $event->location,
+            $event->description
         );
     }
 } catch (Exception $e) {

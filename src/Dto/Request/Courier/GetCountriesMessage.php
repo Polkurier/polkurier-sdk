@@ -31,14 +31,6 @@ final readonly class GetCountriesMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIERS)]
         #[Validate\NotBlank]
-        private string $couriers,
+        public string $couriers,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCouriers(): string
-    {
-        return $this->couriers;
-    }
 }

@@ -30,11 +30,11 @@ try {
     $payout = polkurier()->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
         payoutType: MoneyBoxPayoutTypeEnum::Account,
         feePaymentType: MoneyBoxFeePaymentTypeEnum::MoneyBox,
-        bankAccountNumber: $config->getIban(),
+        bankAccountNumber: $config->bankAccountNumber,
     ));
 
     \printf("Payout %s for %.2f PLN is %s\n",
-        $payout->getNumber(), $payout->getAmount(), $payout->getStatus());
+        $payout->number, $payout->amount, $payout->status);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -24,8 +24,8 @@ try {
         new CalculateMoneyBoxPayoutFeeMessage(payoutType: MoneyBoxPayoutTypeEnum::Account)
     );
 
-    \printf("Fee: %.2f PLN gross (%.2f net)\n", $fee->getFee(), $fee->getFeeNett());
-    \printf("Free payouts left: %d of %d\n", $fee->getFreePayoutsLeft(), $fee->getFreePayoutsTotal());
+    \printf("Fee: %.2f PLN gross (%.2f net)\n", $fee->fee, $fee->feeNet);
+    \printf("Free payouts left: %d of %d\n", $fee->freePayoutsLeft, $fee->freePayoutsTotal);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

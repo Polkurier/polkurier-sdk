@@ -39,70 +39,30 @@ final readonly class KnowledgeBaseFileMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
-        private int $size = 0,
+        public int $size = 0,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_URL)]
-        private string $url = '',
+        public string $url = '',
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return int
-     */
-    public function getSize(): int
-    {
-        return $this->size;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
 }

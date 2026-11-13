@@ -31,7 +31,7 @@ try {
         files: attachments(\array_slice(arguments(), 1)),
     ));
 
-    \printf("Replied at %s as entry %s.\n", $entry->getDate()?->format('Y-m-d H:i') ?? '', $entry->getId());
+    \printf("Replied at %s as entry %s.\n", $entry->date?->format('Y-m-d H:i') ?? '', $entry->id);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

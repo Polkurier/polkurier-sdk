@@ -30,14 +30,6 @@ final readonly class GetRegulationsMessage implements MessageInterface
          * @var RegulationsTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private RegulationsTypeEnum $type = RegulationsTypeEnum::Regulations,
+        public RegulationsTypeEnum $type = RegulationsTypeEnum::Regulations,
     ) {}
-
-    /**
-     * @return RegulationsTypeEnum
-     */
-    public function getType(): RegulationsTypeEnum
-    {
-        return $this->type;
-    }
 }

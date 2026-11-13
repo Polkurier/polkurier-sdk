@@ -31,14 +31,6 @@ final readonly class GetCouriersMessagesMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
-        private ?string $courier = null,
+        public ?string $courier = null,
     ) {}
-
-    /**
-     * @return string|null
-     */
-    public function getCourier(): ?string
-    {
-        return $this->courier;
-    }
 }

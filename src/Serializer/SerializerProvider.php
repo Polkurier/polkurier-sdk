@@ -17,12 +17,12 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -99,7 +99,9 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 // Must come before the array normalizer, so unknown enum values never reach it.
                 new EnumListDenormalizer(),
                 new LenientListDenormalizer(new ArrayDenormalizer()),
-                new OmitEmptyNormalizer(new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor)),
+                new OmitEmptyNormalizer(new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+                    new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+                ))),
             ],
             encoders: [
                 new JsonEncoder(

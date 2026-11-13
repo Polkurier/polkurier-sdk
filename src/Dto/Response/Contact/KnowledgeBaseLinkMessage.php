@@ -31,31 +31,15 @@ final readonly class KnowledgeBaseLinkMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var string
+         * @var string the entry's slug
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
     ) {}
-
-    /**
-     * @return string the entry's slug
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
 }

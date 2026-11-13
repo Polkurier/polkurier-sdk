@@ -36,7 +36,7 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
      * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
      *                                           verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
-     *        {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::isRegulationsAccepted()}
+     *        {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::$regulationsAccepted}
      *        turns false
      * @param CouponLimitsMessage|null $coupons
      * @param TicketLimitsMessage|null $tickets
@@ -49,37 +49,39 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_TRANSFER_AMOUNT_PLN)]
-        private float $verificationTransferAmountPln = 0.0,
+        public float $verificationTransferAmountPln = 0.0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ACCEPTANCE_PERIOD)]
-        private int $regulationsAcceptancePeriod = 0,
+        public int $regulationsAcceptancePeriod = 0,
 
         /**
-         * @var CouponLimitsMessage|null
+         * @var CouponLimitsMessage|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_COUPONS)]
-        private ?CouponLimitsMessage $coupons = null,
+        public ?CouponLimitsMessage $coupons = null,
 
         /**
-         * @var TicketLimitsMessage|null
+         * @var TicketLimitsMessage|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_TICKETS)]
-        private ?TicketLimitsMessage $tickets = null,
+        public ?TicketLimitsMessage $tickets = null,
 
         /**
-         * @var SecurityLimitsMessage|null
+         * @var SecurityLimitsMessage|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY)]
-        private ?SecurityLimitsMessage $security = null,
+        public ?SecurityLimitsMessage $security = null,
 
         /**
-         * @var array<string, bool>
+         * Feature flags the service reports, keyed by name.
+         *
+         * @var array<string, bool> empty if the response leaves them out
          */
         #[Serializer\SerializedName(self::FIELD_FEATURES)]
-        private array $features = [],
+        public array $features = [],
 
         /**
          * @var string|null
@@ -87,54 +89,4 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return float
-     */
-    public function getVerificationTransferAmountPln(): float
-    {
-        return $this->verificationTransferAmountPln;
-    }
-
-    /**
-     * @return int
-     */
-    public function getRegulationsAcceptancePeriod(): int
-    {
-        return $this->regulationsAcceptancePeriod;
-    }
-
-    /**
-     * @return CouponLimitsMessage|null null if the response leaves it out
-     */
-    public function getCoupons(): ?CouponLimitsMessage
-    {
-        return $this->coupons;
-    }
-
-    /**
-     * @return TicketLimitsMessage|null null if the response leaves it out
-     */
-    public function getTickets(): ?TicketLimitsMessage
-    {
-        return $this->tickets;
-    }
-
-    /**
-     * @return SecurityLimitsMessage|null null if the response leaves it out
-     */
-    public function getSecurity(): ?SecurityLimitsMessage
-    {
-        return $this->security;
-    }
-
-    /**
-     * Feature flags the service reports, keyed by name.
-     *
-     * @return array<string, bool> empty if the response leaves them out
-     */
-    public function getFeatures(): array
-    {
-        return $this->features;
-    }
 }

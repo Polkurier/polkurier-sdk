@@ -43,10 +43,10 @@ final class StrictReadingTest extends TestCase
         self::assertCount(1, $notices);
         [$notice] = $notices;
         self::assertInstanceOf(CourierMessage::class, $notice);
-        self::assertSame(CourierMessageTypeEnum::Message, $notice->getType());
-        self::assertSame('Płatność kartą za pobranie', $notice->getTitle());
-        self::assertSame(5, $notice->getPriority());
-        self::assertSame(0, $notice->getHideTimeout());
+        self::assertSame(CourierMessageTypeEnum::Message, $notice->type);
+        self::assertSame('Płatność kartą za pobranie', $notice->title);
+        self::assertSame(5, $notice->priority);
+        self::assertSame(0, $notice->hideTimeout);
     }
 
     public function testACarrierNoticeOfTheAlertKindReads(): void
@@ -64,10 +64,10 @@ final class StrictReadingTest extends TestCase
         self::assertIsArray($notices);
         [$notice] = $notices;
         self::assertInstanceOf(CourierMessage::class, $notice);
-        self::assertSame(CourierMessageTypeEnum::Alert, $notice->getType());
-        self::assertSame(4, $notice->getHideTimeout());
-        self::assertSame('', $notice->getTitle());
-        self::assertSame(0, $notice->getPriority());
+        self::assertSame(CourierMessageTypeEnum::Alert, $notice->type);
+        self::assertSame(4, $notice->hideTimeout);
+        self::assertSame('', $notice->title);
+        self::assertSame(0, $notice->priority);
     }
 
     public function testTheSystemInfoReadsWithItsFeatureFlags(): void
@@ -87,9 +87,9 @@ final class StrictReadingTest extends TestCase
         ]);
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
-        self::assertSame(['sample_feature' => true, 'other_feature' => false], $info->getFeatures());
-        self::assertSame(15, $info->getRegulationsAcceptancePeriod());
-        self::assertSame(6, $info->getCoupons()?->getMinLength());
+        self::assertSame(['sample_feature' => true, 'other_feature' => false], $info->features);
+        self::assertSame(15, $info->regulationsAcceptancePeriod);
+        self::assertSame(6, $info->coupons?->minLength);
     }
 
     /**
@@ -105,6 +105,6 @@ final class StrictReadingTest extends TestCase
         return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
     }
 }

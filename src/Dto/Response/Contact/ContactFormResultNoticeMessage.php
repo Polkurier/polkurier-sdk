@@ -33,42 +33,18 @@ final readonly class ContactFormResultNoticeMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content = '',
+        public string $content = '',
 
         /**
          * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_CREATED_AT)]
-        private ?\DateTimeInterface $createdAt = null,
+        public ?\DateTimeInterface $createdAt = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
 }

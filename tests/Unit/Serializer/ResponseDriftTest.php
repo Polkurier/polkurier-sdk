@@ -14,11 +14,11 @@ use Polkurier\Webservice\Dto\Response\Carrier;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
 use Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
 use Polkurier\Webservice\Entity\Address\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
-use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\Serializer\LenientDateDenormalizer;
@@ -46,7 +46,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(self::carrier(['brand_new' => 'x']), Carrier::class . '[]');
 
-        self::assertSame('DPD', self::carriers($wrapper)[0]->getServiceCode());
+        self::assertSame('DPD', self::carriers($wrapper)[0]->serviceCode);
         self::assertSame([['UNKNOWN_FIELD', '[0].brand_new', 'x', null]], self::drift($wrapper));
     }
 
@@ -57,7 +57,7 @@ final class ResponseDriftTest extends TestCase
 
         $wrapper = self::read($carrier, Carrier::class . '[]');
 
-        self::assertSame('', self::carriers($wrapper)[0]->getName());
+        self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['MISSING_FIELD', '[0].name', null, 'string']], self::drift($wrapper));
     }
 
@@ -65,7 +65,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(self::carrier([Carrier::FIELD_NAME => null]), Carrier::class . '[]');
 
-        self::assertSame('', self::carriers($wrapper)[0]->getName());
+        self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['MISSING_FIELD', '[0].name', null, 'string']], self::drift($wrapper));
     }
 
@@ -82,8 +82,8 @@ final class ResponseDriftTest extends TestCase
         );
 
         $carrier = self::carriers($wrapper)[0];
-        self::assertSame('12', $carrier->getServiceCode());
-        self::assertTrue($carrier->isForeignShipments());
+        self::assertSame('12', $carrier->serviceCode);
+        self::assertTrue($carrier->foreignShipments);
         self::assertSame([
             ['CAST_VALUE', '[0].serviceCode', 12, 'string'],
             ['CAST_VALUE', '[0].foreignShipments', 'true', 'bool'],
@@ -94,7 +94,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(self::carrier([Carrier::FIELD_NAME => ['x']]), Carrier::class . '[]');
 
-        self::assertSame('', self::carriers($wrapper)[0]->getName());
+        self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['CAST_VALUE', '[0].name', ['x'], 'string']], self::drift($wrapper));
     }
 
@@ -102,9 +102,9 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read([TimeIntervalMessage::FIELD_TIME_TO => '12:00'], TimeIntervalMessage::class);
 
-        $interval = $wrapper->getEnvelope()->getResponse();
+        $interval = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(TimeIntervalMessage::class, $interval);
-        self::assertNull($interval->getTimeFrom());
+        self::assertNull($interval->timeFrom);
         self::assertSame([['MISSING_FIELD', 'timeFrom', null, \DateTimeInterface::class]], self::drift($wrapper));
     }
 
@@ -112,9 +112,9 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(['time' => 'garbage'], HeartbeatMessage::class);
 
-        $heartbeat = $wrapper->getEnvelope()->getResponse();
+        $heartbeat = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(HeartbeatMessage::class, $heartbeat);
-        self::assertNull($heartbeat->getTime());
+        self::assertNull($heartbeat->time);
         self::assertSame([['CAST_VALUE', 'time', 'garbage', \DateTimeInterface::class]], self::drift($wrapper));
     }
 
@@ -127,9 +127,9 @@ final class ResponseDriftTest extends TestCase
             PointsMap::class,
         );
 
-        $map = $wrapper->getEnvelope()->getResponse();
+        $map = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(PointsMap::class, $map);
-        self::assertSame(['INPOST', '7', 'DPD'], $map->getAvailableProviders());
+        self::assertSame(['INPOST', '7', 'DPD'], $map->availableProviders);
         self::assertSame([
             ['CAST_VALUE', 'availableProviders[1]', 7, 'string'],
             ['CAST_VALUE', 'availableProviders[2]', ['x'], 'string'],
@@ -141,7 +141,7 @@ final class ResponseDriftTest extends TestCase
         $wrapper = self::read(['x', ...self::carrier()], Carrier::class . '[]');
 
         self::assertCount(1, self::carriers($wrapper));
-        self::assertSame('DPD', self::carriers($wrapper)[0]->getServiceCode());
+        self::assertSame('DPD', self::carriers($wrapper)[0]->serviceCode);
         self::assertSame([['CAST_VALUE', '[0]', 'x', Carrier::class]], self::drift($wrapper));
     }
 
@@ -150,7 +150,7 @@ final class ResponseDriftTest extends TestCase
         $wrapper = self::read([self::address(['type' => 12])], Address::class . '[]');
 
         /** @var list<Address> $addresses */
-        $addresses = $wrapper->getEnvelope()->getResponse();
+        $addresses = $wrapper->getEnvelope()->response;
         self::assertNull($addresses[0]->getType());
         self::assertSame([['CAST_VALUE', '[0].type', 12, AddressTypeEnum::class]], self::drift($wrapper));
     }
@@ -159,9 +159,9 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(['name' => 'phone', 'value' => ['x']], ContactFormValueMessage::class);
 
-        $value = $wrapper->getEnvelope()->getResponse();
+        $value = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(ContactFormValueMessage::class, $value);
-        self::assertNull($value->getValue());
+        self::assertNull($value->value);
         self::assertSame([['CAST_VALUE', 'value', ['x'], 'string|int|float|bool']], self::drift($wrapper));
     }
 
@@ -180,7 +180,7 @@ final class ResponseDriftTest extends TestCase
 
         $error = $wrapper->getEnvelope();
         self::assertInstanceOf(ErrorMessage::class, $error);
-        self::assertSame(['phone' => ['Zły numer', '5']], $error->getValidationErrors());
+        self::assertSame(['phone' => ['Zły numer', '5']], $error->validationErrors);
         self::assertSame([
             ['CAST_VALUE', 'validationErrors[name]', 'Pole wymagane', 'array'],
             ['CAST_VALUE', 'validationErrors[phone][1]', 5, 'string'],
@@ -199,7 +199,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read([[Carrier::FIELD_NAME => 'DPD Classic', 'label' => 'x']], Carrier::class . '[]');
 
-        self::assertSame('DPD Classic', self::carriers($wrapper)[0]->getName());
+        self::assertSame('DPD Classic', self::carriers($wrapper)[0]->name);
     }
 
     public function testAnErrorEnvelopeRecordsItsUnknownFields(): void
@@ -263,7 +263,7 @@ final class ResponseDriftTest extends TestCase
         );
 
         /** @var list<Address> $addresses */
-        $addresses = $wrapper->getEnvelope()->getResponse();
+        $addresses = $wrapper->getEnvelope()->response;
         self::assertNull($addresses[0]->getType());
         self::assertSame(
             [['UNKNOWN_ENUM_VALUE', '[0].type', 'SOMETHING_NEW', AddressTypeEnum::class]],
@@ -339,7 +339,7 @@ final class ResponseDriftTest extends TestCase
     private static function carriers(ResponseWrapper $wrapper): array
     {
         /** @var list<Carrier> $carriers */
-        $carriers = $wrapper->getEnvelope()->getResponse();
+        $carriers = $wrapper->getEnvelope()->response;
 
         return $carriers;
     }

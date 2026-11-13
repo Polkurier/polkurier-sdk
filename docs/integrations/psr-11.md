@@ -128,7 +128,7 @@ final readonly class TrackAction
     ): ResponseInterface {
         $status = $this->orders->getStatus(new GetStatusMessage(orderNo: $args['number']));
 
-        $response->getBody()->write(json_encode(['status' => $status->getStatus()]));
+        $response->getBody()->write(json_encode(['status' => $status->status]));
 
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -161,8 +161,8 @@ final readonly class PolkurierErrorMiddleware implements MiddlewareInterface
             return $this->json(422, ['errors' => $e->getValidationErrors()]);
         } catch (WebserviceException $e) {
             return $this->json(502, [
-                'error'  => $e->getErrorMessage()->getResponse(),
-                'errors' => $e->getErrorMessage()->getValidationErrors() ?? [],
+                'error'  => $e->getErrorMessage()->response,
+                'errors' => $e->getErrorMessage()->validationErrors ?? [],
             ]);
         } catch (ConnectionException $e) {
             return $this->json(504, ['error' => 'The carrier API did not answer.']);
@@ -201,7 +201,7 @@ $client = new PolkurierWebservice(new Config(
     platformVersion: '1.0.0',
 ));
 
-foreach ($client->orders()->getOrders($filter)->getResult() as $order) {
+foreach ($client->orders()->getOrders($filter)->result as $order) {
     // …
 }
 ```

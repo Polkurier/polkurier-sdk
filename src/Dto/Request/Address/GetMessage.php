@@ -30,14 +30,6 @@ final readonly class GetMessage implements MessageInterface
          * @var AddressTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private AddressTypeEnum $type,
+        public AddressTypeEnum $type,
     ) {}
-
-    /**
-     * @return AddressTypeEnum
-     */
-    public function getType(): AddressTypeEnum
-    {
-        return $this->type;
-    }
 }

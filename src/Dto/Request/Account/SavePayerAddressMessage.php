@@ -74,178 +74,82 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          * @var PayerAddressTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_ADDRESS_TYPE)]
-        private PayerAddressTypeEnum $addressType,
+        public PayerAddressTypeEnum $addressType,
 
         /**
          * @var ?PayerUserTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_USER_TYPE)]
         #[OmitWhenEmpty]
-        private ?PayerUserTypeEnum $userType = null,
+        public ?PayerUserTypeEnum $userType = null,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_SAME_AS_PAYER)]
-        private bool $sameAsPayer = false,
+        public bool $sameAsPayer = false,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[OmitWhenEmpty]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
-        private string $street = '',
+        public string $street = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_BUILDING_NUMBER)]
         #[OmitWhenEmpty]
-        private string $buildingNumber = '',
+        public string $buildingNumber = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POST_CODE)]
         #[OmitWhenEmpty]
-        private string $postCode = '',
+        public string $postCode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
-        private string $city = '',
+        public string $city = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
         #[OmitWhenEmpty]
-        private string $country = '',
+        public string $country = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NIP_PREFIX)]
         #[OmitWhenEmpty]
-        private string $nipPrefix = '',
+        public string $nipPrefix = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NIP)]
         #[OmitWhenEmpty]
-        private string $nip = '',
+        public string $nip = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_REGON)]
         #[OmitWhenEmpty]
-        private string $regon = '',
+        public string $regon = '',
     ) {}
-
-    /**
-     * @return PayerAddressTypeEnum
-     */
-    public function getAddressType(): PayerAddressTypeEnum
-    {
-        return $this->addressType;
-    }
-
-    /**
-     * @return PayerUserTypeEnum|null
-     */
-    public function getUserType(): ?PayerUserTypeEnum
-    {
-        return $this->userType;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSameAsPayer(): bool
-    {
-        return $this->sameAsPayer;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStreet(): string
-    {
-        return $this->street;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBuildingNumber(): string
-    {
-        return $this->buildingNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPostCode(): string
-    {
-        return $this->postCode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCity(): string
-    {
-        return $this->city;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCountry(): string
-    {
-        return $this->country;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNipPrefix(): string
-    {
-        return $this->nipPrefix;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNip(): string
-    {
-        return $this->nip;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRegon(): string
-    {
-        return $this->regon;
-    }
 }

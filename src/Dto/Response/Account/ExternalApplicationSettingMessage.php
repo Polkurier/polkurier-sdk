@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One setting of an external application, as configured for the account in the Polkurier panel.
@@ -17,6 +18,13 @@ use Polkurier\Webservice\Api\MessageInterface;
  */
 final readonly class ExternalApplicationSettingMessage implements MessageInterface
 {
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_NAME = 'name';
+    public const string FIELD_VALUE = 'value';
+    /**-@#*/
+
     /**
      * @param string $name the setting's name
      * @param string|int|float|bool|null $value the setting's value
@@ -25,27 +33,13 @@ final readonly class ExternalApplicationSettingMessage implements MessageInterfa
         /**
          * @var string
          */
-        private string $name,
+        #[Serializer\SerializedName(self::FIELD_NAME)]
+        public string $name,
 
         /**
-         * @var string|int|float|bool|null
+         * @var string|int|float|bool|null a list or other compound value as its JSON
          */
-        private string|int|float|bool|null $value,
+        #[Serializer\SerializedName(self::FIELD_VALUE)]
+        public string|int|float|bool|null $value,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string|int|float|bool|null a list or other compound value as its JSON
-     */
-    public function getValue(): string|int|float|bool|null
-    {
-        return $this->value;
-    }
 }

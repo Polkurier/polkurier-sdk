@@ -33,8 +33,8 @@ try {
         orders: $orderNumbers ?: ['12345-678'],
     ));
 
-    \printf("Booked:  %s\n", \implode(', ', $result->getSuccess()) ?: '(none)');
-    foreach ($result->getFailed() as $orderNumber => $reason) {
+    \printf("Booked:  %s\n", \implode(', ', $result->success) ?: '(none)');
+    foreach ($result->failed as $orderNumber => $reason) {
         \printf("Refused: %s: %s\n", $orderNumber, $reason);
     }
 } catch (Exception $e) {

@@ -31,9 +31,9 @@ final class PaymentsTest extends IntegrationTestCase
             new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 100.0),
         );
 
-        self::assertNotSame('', $payment->getTransactionId());
+        self::assertNotSame('', $payment->transactionId);
 
-        return $payment->getTransactionId();
+        return $payment->transactionId;
     }
 
     #[Depends('testATopUpIsRegistered')]

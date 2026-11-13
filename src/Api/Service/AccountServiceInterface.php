@@ -69,7 +69,7 @@ interface AccountServiceInterface
      *
      * With `external_application_id`, the response also has `external_application_settings`: that
      * application's settings for this account, see
-     * {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::getExternalApplicationSettings()}.
+     * {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::$externalApplicationSettings}.
      *
      * Endpoint: `get_account_info`
      *

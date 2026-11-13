@@ -21,8 +21,8 @@ $search = new GetPointMessage(
 );
 ```
 
-Properties are private and have getters. Because the class is readonly, a message can't change
-between being validated and being serialized.
+A DTO's properties are public and readonly; an entity class has getters. Either way a message can't
+change between being validated and being serialized.
 
 ### Three ways to build one
 
@@ -85,9 +85,9 @@ Responses
 
 Response classes are built through their constructors. If a required field is missing from the
 reply, mapping fails straight away and the error names the field. You never get an object whose
-getters throw, so a method that returns an [`Order`](../src/Entity/Order/Order.php) always returns a complete one.
+properties are unset, so a method that returns an [`Order`](../src/Entity/Order/Order.php) always returns a complete one.
 
-Response classes are readonly too, and have getters only. To change a value, build a new request
+Response DTOs are readonly too, with public properties. To change a value, build a new request
 message, e.g. an [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) from an [`Address`](../src/Entity/Address/Address.php) you read.
 
 ### Lists, maps and pages
@@ -104,17 +104,17 @@ Apart from a `bool` for calls that only acknowledge, responses come in four shap
 A page has its own navigation getters:
 
 ```php
-$list->getResult();       // Order[]
-$list->getTotalRows();
-$list->getTotalPages();
-$list->getCurrentPage();
-$list->getPageSize();
+$list->result;       // Order[]
+$list->totalRows;
+$list->totalPages;
+$list->currentPage;
+$list->pageSize;
 ```
 
 Five endpoints return pages, and they do **not** all have the same fields:
 
-| Class | `getResult()` | Rows | Pages | Current page | Page size |
-|-------|---------------|------|-------|--------------|-----------|
+| Class | `$result` | Rows | Pages | Current page | Page size |
+|-------|-----------|------|-------|--------------|-----------|
 | [`Order\OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) | `Order[]` | yes | **yes** | yes | yes |
 | [`MoneyBox\MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
 | [`Invoice\InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php) | `InvoiceMessage[]` | yes | no | yes | yes |

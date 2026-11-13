@@ -43,24 +43,24 @@ try {
 
     $saved = polkurier()->tickets()->saveContactForm(new SaveContactFormMessage(
         category: $category,
-        formId: $form->getId(),
-        nonce: $form->getNonce(),
+        formId: $form->id,
+        nonce: $form->nonce,
         fields: $answers,
     ));
 
-    if ($saved->getData()?->isRequireAuthCode()) {
-        echo "Enter the code sent by e-mail and submit again with nonce {$saved->getNonce()}.\n";
+    if ($saved->data?->requireAuthCode) {
+        echo "Enter the code sent by e-mail and submit again with nonce {$saved->nonce}.\n";
         exit(0);
     }
 
-    echo $saved->getMessage(), "\n";
-    $ticket = $saved->getData()?->getTicketNumber();
+    echo $saved->message, "\n";
+    $ticket = $saved->data?->ticketNumber;
     if ($ticket !== null) {
         echo "Ticket {$ticket}\n";
     }
 } catch (WebserviceException $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
-    foreach ($e->getErrorMessage()->getValidationErrors() ?? [] as $field => $messages) {
+    foreach ($e->getErrorMessage()->validationErrors ?? [] as $field => $messages) {
         \fwrite(STDERR, "  $field: " . \implode(', ', $messages) . "\n");
     }
     exit(1);

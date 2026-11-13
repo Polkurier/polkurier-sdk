@@ -500,10 +500,10 @@ final class SerializationTest extends TestCase
             'json'
         );
 
-        self::assertSame('POZ01A', $point->getId());
+        self::assertSame('POZ01A', $point->id);
         self::assertEquals(
             [PointFunctionEnum::Cod, PointFunctionEnum::Send, PointFunctionEnum::Collect],
-            $point->getFunctions()
+            $point->functions
         );
     }
 }

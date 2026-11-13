@@ -48,21 +48,21 @@ final readonly class MultiPickupRequestMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
-        private \DateTimeInterface $pickupDate,
+        public \DateTimeInterface $pickupDate,
 
         /**
          * @var \DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
-        private \DateTimeInterface $pickupTimeFrom,
+        public \DateTimeInterface $pickupTimeFrom,
 
         /**
          * @var \DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
-        private \DateTimeInterface $pickupTimeTo,
+        public \DateTimeInterface $pickupTimeTo,
 
         /**
          * @var string[]
@@ -72,38 +72,6 @@ final readonly class MultiPickupRequestMessage implements MessageInterface
         #[Validate\Each(Validate\NotBlank::class)]
         #[Validate\Each(Validate\OrderNumber::class)]
         #[Validate\Each(Validate\OfType::class, 'string')]
-        private array $orders,
+        public array $orders,
     ) {}
-
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getPickupDate(): \DateTimeInterface
-    {
-        return $this->pickupDate;
-    }
-
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getPickupTimeFrom(): \DateTimeInterface
-    {
-        return $this->pickupTimeFrom;
-    }
-
-    /**
-     * @return \DateTimeInterface
-     */
-    public function getPickupTimeTo(): \DateTimeInterface
-    {
-        return $this->pickupTimeTo;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getOrders(): array
-    {
-        return $this->orders;
-    }
 }

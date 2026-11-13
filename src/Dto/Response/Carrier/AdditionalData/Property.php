@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Carrier\AdditionalData;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -27,54 +26,29 @@ final readonly class Property implements MessageInterface
     /**
      * @param bool $available
      * @param string $description
-     * @param bool|null $default
+     * @param bool $default
      */
     public function __construct(
         /**
+         * Whether the carrier offers it.
+         *
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
-        private bool $available,
+        public bool $available,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description,
+        public string $description,
 
         /**
-         * @var bool|null
+         * Whether this is on by default for the carrier.
+         *
+         * @var bool false when the carrier doesn't say
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
-        #[OmitWhenEmpty]
-        private ?bool $default = null,
+        public bool $default = false,
     ) {}
-
-    /**
-     * Whether the carrier offers it.
-     *
-     * @return bool
-     */
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * Whether this is on by default for the carrier. False when the carrier doesn't say.
-     *
-     * @return bool
-     */
-    public function isDefault(): bool
-    {
-        return (bool)$this->default;
-    }
 }

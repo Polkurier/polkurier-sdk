@@ -43,25 +43,25 @@ final readonly class KnowledgeBaseArticleMessage implements MessageInterface, Pa
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content = '',
+        public string $content = '',
 
         /**
          * @var KnowledgeBaseFileMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
-        private array $files = [],
+        public array $files = [],
 
         /**
          * @var string|null
@@ -69,36 +69,4 @@ final readonly class KnowledgeBaseArticleMessage implements MessageInterface, Pa
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return KnowledgeBaseFileMessage[]
-     */
-    public function getFiles(): array
-    {
-        return $this->files;
-    }
 }

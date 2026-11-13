@@ -37,7 +37,7 @@ final readonly class TokenMessage implements MessageInterface, ParsedResponseInt
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
-        private string $token = '',
+        public string $token = '',
 
         /**
          * @var string|null
@@ -45,12 +45,4 @@ final readonly class TokenMessage implements MessageInterface, ParsedResponseInt
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getToken(): string
-    {
-        return $this->token;
-    }
 }

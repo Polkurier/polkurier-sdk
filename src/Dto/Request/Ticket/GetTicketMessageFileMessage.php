@@ -35,29 +35,13 @@ final readonly class GetTicketMessageFileMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGE_ID)]
         #[Validate\NotBlank]
-        private string $messageId,
+        public string $messageId,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         #[Validate\NotBlank]
-        private string $filename,
+        public string $filename,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getMessageId(): string
-    {
-        return $this->messageId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
 }

@@ -36,14 +36,14 @@ final readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_NUMBER)]
         #[OmitWhenEmpty]
-        private ?string $payoutNumber = null,
+        public ?string $payoutNumber = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]
-        private ?string $searchQuery = null,
+        public ?string $searchQuery = null,
 
         ?int $pageSize = null,
 
@@ -51,21 +51,4 @@ final readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
     ) {
         parent::__construct(pageSize: $pageSize, page: $page);
     }
-
-    /**
-     * @return ?string
-     */
-    public function getPayoutNumber(): ?string
-    {
-        return $this->payoutNumber;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getSearchQuery(): ?string
-    {
-        return $this->searchQuery;
-    }
-
 }

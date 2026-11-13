@@ -43,20 +43,20 @@ final readonly class RegisteredPaymentMessage implements MessageInterface, Parse
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
-        private string $transactionId = '',
+        public string $transactionId = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATE)]
-        private string $state = '',
+        public string $state = '',
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]
-        private ?string $accessToken = null,
+        public ?string $accessToken = null,
 
         /**
          * @var string|null
@@ -64,28 +64,4 @@ final readonly class RegisteredPaymentMessage implements MessageInterface, Parse
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTransactionId(): string
-    {
-        return $this->transactionId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getState(): string
-    {
-        return $this->state;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getAccessToken(): ?string
-    {
-        return $this->accessToken;
-    }
 }

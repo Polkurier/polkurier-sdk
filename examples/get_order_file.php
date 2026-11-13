@@ -25,10 +25,10 @@ try {
         new GetOrderFileMessage(orderNo: $orderNumber, filename: $filename)
     );
 
-    $path = \sys_get_temp_dir() . '/' . $file->getName();
-    \file_put_contents($path, $file->getDecodedFile());
+    $path = \sys_get_temp_dir() . '/' . $file->name;
+    \file_put_contents($path, $file->file);
 
-    \printf("Saved %s (%s, %d bytes)\n", $path, $file->getType(), $file->getSize());
+    \printf("Saved %s (%s, %d bytes)\n", $path, $file->type, $file->size);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

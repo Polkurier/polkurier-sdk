@@ -35,64 +35,32 @@ final readonly class Pickup implements MessageInterface
      */
     public function __construct(
         /**
-         * @var Option|null
+         * @var Option|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
-        private ?Option $pickupDate = null,
+        public ?Option $pickupDate = null,
 
         /**
-         * @var Option|null
+         * @var Option|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_FROM)]
-        private ?Option $pickupTimeFrom = null,
+        public ?Option $pickupTimeFrom = null,
 
         /**
-         * @var Option|null
+         * @var Option|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_TO)]
-        private ?Option $pickupTimeTo = null,
+        public ?Option $pickupTimeTo = null,
 
         /**
-         * @var Property|null
+         * Whether the parcel can be dropped off at a sending point or handed to a courier instead of
+         * booking a collection.
+         * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Property::$default} says
+         * whether that's the usual way for this carrier, as for parcel lockers.
+         *
+         * @var Property|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_NO_COURIER_ORDER)]
-        private ?Property $noCourierOrder = null,
+        public ?Property $noCourierOrder = null,
     ) {}
-
-    /**
-     * @return Option|null null if the carrier's entry leaves it out
-     */
-    public function getPickupDate(): ?Option
-    {
-        return $this->pickupDate;
-    }
-
-    /**
-     * @return Option|null null if the carrier's entry leaves it out
-     */
-    public function getPickupTimeFrom(): ?Option
-    {
-        return $this->pickupTimeFrom;
-    }
-
-    /**
-     * @return Option|null null if the carrier's entry leaves it out
-     */
-    public function getPickupTimeTo(): ?Option
-    {
-        return $this->pickupTimeTo;
-    }
-
-    /**
-     * Whether the parcel can be dropped off at a sending point or handed to a courier instead of
-     * booking a collection.
-     * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Property::isDefault()} says
-     * whether that's the usual way for this carrier, as for parcel lockers.
-     *
-     * @return Property|null null if the carrier's entry leaves it out
-     */
-    public function getNoCourierOrder(): ?Property
-    {
-        return $this->noCourierOrder;
-    }
 }

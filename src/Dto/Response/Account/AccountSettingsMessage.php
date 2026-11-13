@@ -34,28 +34,12 @@ final readonly class AccountSettingsMessage implements MessageInterface
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_DELIVERY_PICKUP_MYSELF)]
-        private bool $deliveryPickupMyself = false,
+        public bool $deliveryPickupMyself = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS_SENDER_CHECKED)]
-        private bool $coverAddressSenderChecked = false,
+        public bool $coverAddressSenderChecked = false,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isDeliveryPickupMyself(): bool
-    {
-        return $this->deliveryPickupMyself;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCoverAddressSenderChecked(): bool
-    {
-        return $this->coverAddressSenderChecked;
-    }
 }

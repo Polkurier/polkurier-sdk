@@ -72,17 +72,17 @@ $sdk = polkurier();
 try {
     $quote = null;
     foreach ($sdk->orders()->orderValuation($order) as $valuation) {
-        if ($valuation->getServiceCode() === $order->getCourier()) {
+        if ($valuation->serviceCode === $order->getCourier()) {
             $quote = $valuation;
         }
     }
 
-    if ($quote === null || !$quote->isShipment()) {
+    if ($quote === null || !$quote->shipment) {
         echo "{$order->getCourier()} gives no quote for this shipment.\n";
         exit(1);
     }
 
-    \printf("Quote: %.2f PLN net, %.2f PLN gross.\n", $quote->getNetPrice(), $quote->getGrossPrice());
+    \printf("Quote: %.2f PLN net, %.2f PLN gross.\n", $quote->netPrice, $quote->grossPrice);
 
     if (!hasFlag('--confirm')) {
         echo "\nRe-run with --confirm to place this order.\n";
@@ -93,9 +93,9 @@ try {
 
     \printf(
         "\nOrder %s placed. Waybills: %s. Gross: %.2f PLN\n",
-        $created->getOrderNumber(),
-        \implode(', ', $created->getLabel()) ?: '(pending)',
-        $created->getPriceGross()
+        $created->orderNumber,
+        \implode(', ', $created->label) ?: '(pending)',
+        $created->priceGross
     );
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

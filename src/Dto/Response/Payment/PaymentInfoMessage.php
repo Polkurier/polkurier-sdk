@@ -32,15 +32,11 @@ final readonly class PaymentInfoMessage implements MessageInterface, ParsedRespo
      */
     public const string FIELD_TRANSACTION_ID = 'transaction_id';
     public const string FIELD_STATE = 'state';
-    public const string FIELD_LOGIN_ID = 'login_id';
-    public const string FIELD_HASH = 'hash';
     /**-@#*/
 
     /**
      * @param string $transactionId
      * @param string $state NEW, REGISTERED, PENDING or DONE
-     * @param ?int $loginId not sent by the API, always null
-     * @param ?string $hash not sent by the API, always null
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
@@ -48,31 +44,13 @@ final readonly class PaymentInfoMessage implements MessageInterface, ParsedRespo
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
-        private string $transactionId = '',
+        public string $transactionId = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATE)]
-        private string $state = '',
-
-        /**
-         * @var ?int
-         *
-         * @deprecated The API does not send this field; it is always null.
-         */
-        #[Serializer\SerializedName(self::FIELD_LOGIN_ID)]
-        #[OmitWhenEmpty]
-        private ?int $loginId = null,
-
-        /**
-         * @var ?string
-         *
-         * @deprecated The API does not send this field; it is always null.
-         */
-        #[Serializer\SerializedName(self::FIELD_HASH)]
-        #[OmitWhenEmpty]
-        private ?string $hash = null,
+        public string $state = '',
 
         /**
          * @var string|null
@@ -80,40 +58,4 @@ final readonly class PaymentInfoMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTransactionId(): string
-    {
-        return $this->transactionId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getState(): string
-    {
-        return $this->state;
-    }
-
-    /**
-     * @return ?int
-     *
-     * @deprecated The API does not send this field; it is always null.
-     */
-    public function getLoginId(): ?int
-    {
-        return $this->loginId;
-    }
-
-    /**
-     * @return ?string
-     *
-     * @deprecated The API does not send this field; it is always null.
-     */
-    public function getHash(): ?string
-    {
-        return $this->hash;
-    }
 }

@@ -30,9 +30,9 @@ try {
         packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
     ));
 
-    \printf("%s: %s", $coupon->getCode(), $coupon->isValid() ? 'valid' : 'not valid');
-    \printf(", %s for this order\n", $coupon->isValidForOrder() ? 'usable' : 'not usable');
-    \printf("  %s\n", $coupon->getDescription());
+    \printf("%s: %s", $coupon->code, $coupon->valid ? 'valid' : 'not valid');
+    \printf(", %s for this order\n", $coupon->validForOrder ? 'usable' : 'not usable');
+    \printf("  %s\n", $coupon->description);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

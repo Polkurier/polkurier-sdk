@@ -21,9 +21,9 @@ try {
     foreach (polkurier()->system()->getCouriersMessages() as $message) {
         \printf(
             "[%s] %s: %s\n",
-            $message->getSeverity()->value ?? 'unknown',
-            $message->getCourier(),
-            $message->getMessage()
+            $message->severity->value ?? 'unknown',
+            $message->courier,
+            $message->message
         );
     }
 } catch (Exception $e) {

@@ -22,17 +22,17 @@ try {
         new GetMoneyBoxPayoutsMessage(pageSize: 20, page: 1)
     );
 
-    foreach ($list->getResult() as $payout) {
+    foreach ($list->result as $payout) {
         \printf(
             "%-16s %10.2f PLN  %-14s %s\n",
-            $payout->getNumber(),
-            $payout->getAmount(),
-            $payout->getStatus(),
-            $payout->isCancellable() ? '(cancellable)' : ''
+            $payout->number,
+            $payout->amount,
+            $payout->status,
+            $payout->cancellable ? '(cancellable)' : ''
         );
     }
 
-    \printf("-- page %d of %d\n", $list->getCurrentPage(), $list->getTotalPages());
+    \printf("-- page %d of %d\n", $list->currentPage, $list->totalPages);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

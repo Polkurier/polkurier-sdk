@@ -40,94 +40,46 @@ final readonly class ReturnDetails implements MessageInterface
      */
     public function __construct(
         /**
-         * @var CodReturnReasonEnum|null
+         * @var CodReturnReasonEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_REASON)]
-        private ?CodReturnReasonEnum $reason,
+        public ?CodReturnReasonEnum $reason,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description,
+        public string $description,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
-        private float $amount,
+        public float $amount,
 
         /**
+         * Reference of the document the amount was applied to, where one exists.
+         *
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_DOCUMENT_NUMBER)]
         #[OmitWhenEmpty]
-        private ?string $documentNumber = null,
+        public ?string $documentNumber = null,
 
         /**
+         * When the amount was applied. Null until the settlement has a date.
+         *
          * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $date = null,
+        public ?\DateTimeInterface $date = null,
 
         /**
-         * @var string[]|null
+         * @var string[]|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_NUMBER)]
         #[OmitWhenEmpty]
-        private ?array $invoiceNumbers = null,
+        public ?array $invoiceNumbers = null,
     ) {}
-
-    /**
-     * @return CodReturnReasonEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getReason(): ?CodReturnReasonEnum
-    {
-        return $this->reason;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * Reference of the document the amount was applied to, where one exists.
-     *
-     * @return string|null
-     */
-    public function getDocumentNumber(): ?string
-    {
-        return $this->documentNumber;
-    }
-
-    /**
-     * @return string[]|null null if the response leaves it out
-     */
-    public function getInvoiceNumbers(): ?array
-    {
-        return $this->invoiceNumbers;
-    }
-
-    /**
-     * When the amount was applied. Null until the settlement has a date.
-     *
-     * @return \DateTimeInterface|null
-     */
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    /**
-     * @return float
-     */
-    public function getAmount(): float
-    {
-        return $this->amount;
-    }
 }

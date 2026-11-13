@@ -40,13 +40,13 @@ final readonly class MultiPickupResultMessage implements MessageInterface, Parse
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_SUCCESS)]
-        private array $success = [],
+        public array $success = [],
 
         /**
          * @var array<string, string>
          */
         #[Serializer\SerializedName(self::FIELD_FAILED)]
-        private array $failed = [],
+        public array $failed = [],
 
         /**
          * @var string|null
@@ -54,20 +54,4 @@ final readonly class MultiPickupResultMessage implements MessageInterface, Parse
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string[]
-     */
-    public function getSuccess(): array
-    {
-        return $this->success;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function getFailed(): array
-    {
-        return $this->failed;
-    }
 }

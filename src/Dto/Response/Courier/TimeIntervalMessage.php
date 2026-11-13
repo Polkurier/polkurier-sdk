@@ -26,38 +26,22 @@ final readonly class TimeIntervalMessage
     /**-@#*/
 
     /**
-     * @param ?\DateTimeInterface $timeFrom
-     * @param ?\DateTimeInterface $timeTo
+     * @param \DateTimeInterface|null $timeFrom
+     * @param \DateTimeInterface|null $timeTo
      */
     public function __construct(
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null the time of day, on 1 January 1970
          */
         #[Serializer\SerializedName(self::FIELD_TIME_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
-        private ?\DateTimeInterface $timeFrom,
+        public ?\DateTimeInterface $timeFrom,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null the time of day, on 1 January 1970
          */
         #[Serializer\SerializedName(self::FIELD_TIME_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
-        private ?\DateTimeInterface $timeTo,
+        public ?\DateTimeInterface $timeTo,
     ) {}
-
-    /**
-     * @return ?\DateTimeInterface the time of day, on 1 January 1970
-     */
-    public function getTimeFrom(): ?\DateTimeInterface
-    {
-        return $this->timeFrom;
-    }
-
-    /**
-     * @return ?\DateTimeInterface the time of day, on 1 January 1970
-     */
-    public function getTimeTo(): ?\DateTimeInterface
-    {
-        return $this->timeTo;
-    }
 }

@@ -34,16 +34,8 @@ final readonly class VerifyMessage extends TokenMessage
          */
         #[Serializer\SerializedName(self::FIELD_CODE)]
         #[Validate\NotBlank]
-        private string $code,
+        public string $code,
     ) {
         parent::__construct($token);
-    }
-
-    /**
-     * @return string
-     */
-    public function getCode(): string
-    {
-        return $this->code;
     }
 }

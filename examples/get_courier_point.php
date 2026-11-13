@@ -32,7 +32,7 @@ try {
 
     // A search ignores `limit`, so the first few matches are cut here.
     foreach (\array_slice($points, 0, 5) as $point) {
-        \printf("%-10s %-30s %s\n", $point->getId(), $point->getName(), $point->getAddress());
+        \printf("%-10s %-30s %s\n", $point->id, $point->name, $point->address);
     }
 
     if ($points === []) {
@@ -41,14 +41,14 @@ try {
     }
 
     // The same endpoint, asked for one point. An id that matches nothing gives null.
-    $one = $sdk->courier()->getCourierPoint($points[0]->getId(), $couriers);
+    $one = $sdk->courier()->getCourierPoint($points[0]->id, $couriers);
 
     if ($one === null) {
         echo "That id is no longer listed.\n";
         exit(0);
     }
 
-    \printf("\n%s is %s\n", $one->getId(), $one->isAvailable() ? 'open' : 'closed');
+    \printf("\n%s is %s\n", $one->id, $one->available ? 'open' : 'closed');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

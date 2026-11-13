@@ -25,7 +25,7 @@ custom/plugins/PolkurierShipping/
     "name": "your-vendor/polkurier-shipping",
     "type": "shopware-platform-plugin",
     "require": {
-        "shopware/core": "~6.6.10.12 || ~6.7.7",
+        "shopware/core": "~6.5.8 || ~6.6.10.12 || ~6.7.7",
         "polkurier/polkurier-sdk": "^2.0"
     },
     "extra": {
@@ -431,7 +431,7 @@ final class LabelController extends AbstractController
 
         $document = $this->orders->getLabel(new GetDocumentMessage(orderNo: $numbers));
 
-        return new Response($document->getDecodedFile(), 200, [
+        return new Response($document->file, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="labels.pdf"',
         ]);

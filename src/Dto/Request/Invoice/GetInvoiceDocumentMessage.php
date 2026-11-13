@@ -33,14 +33,6 @@ final readonly class GetInvoiceDocumentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
-        private string $number,
+        public string $number,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
 }

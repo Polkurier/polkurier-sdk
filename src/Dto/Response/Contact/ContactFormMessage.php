@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\Contact;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Serializer\Attribute\NamedValues;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -19,9 +20,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * form's id and nonce. Both change on every fetch. The nonce works once, within an hour, so fetch
  * the form just before showing it.
  *
- * A topic without a form gives one with {@see self::hasForm()} false and nothing else. A form that
- * can only be filled in on the Polkurier website has {@see self::isWebOnly()} set, no fields, and
- * its address in {@see self::getHref()}.
+ * A topic without a form gives one with {@see self::$hasForm} false and nothing else. A form that
+ * can only be filled in on the Polkurier website has {@see self::$webOnly} set, no fields, and
+ * its address in {@see self::$href}.
  */
 final readonly class ContactFormMessage implements MessageInterface, ParsedResponseInterface
 {
@@ -43,9 +44,9 @@ final readonly class ContactFormMessage implements MessageInterface, ParsedRespo
     /**
      * @param string $id the form's id, to quote when submitting it
      * @param ContactFormFieldMessage[] $fields the fields, in display order
-     * @param array<string, mixed> $properties named values the fields' conditions and choices
+     * @param ContactFormValueMessage[] $properties named values the fields' conditions and choices
      *        refer to
-     * @param array<string, mixed> $state starting values by field name
+     * @param ContactFormValueMessage[] $state starting values by field name
      * @param string $nonce to quote when submitting the form
      * @param bool $hasForm whether the topic has a form
      * @param bool $webOnly whether the form can only be filled in on the Polkurier website
@@ -54,52 +55,54 @@ final readonly class ContactFormMessage implements MessageInterface, ParsedRespo
      */
     public function __construct(
         /**
-         * @var string
+         * @var string the form's id, to quote when submitting it
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
-         * @var ContactFormFieldMessage[]
+         * @var ContactFormFieldMessage[] in display order
          */
         #[Serializer\SerializedName(self::FIELD_FIELDS)]
-        private array $fields = [],
+        public array $fields = [],
 
         /**
-         * @var array<string, mixed>
+         * @var ContactFormValueMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_PROPERTIES)]
-        private array $properties = [],
+        #[NamedValues(name: ContactFormValueMessage::FIELD_NAME, value: ContactFormValueMessage::FIELD_VALUE)]
+        public array $properties = [],
 
         /**
-         * @var array<string, mixed>
+         * @var ContactFormValueMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_STATE)]
-        private array $state = [],
+        #[NamedValues(name: ContactFormValueMessage::FIELD_NAME, value: ContactFormValueMessage::FIELD_VALUE)]
+        public array $state = [],
 
         /**
-         * @var string
+         * @var string to quote when submitting the form
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
-        private string $nonce = '',
+        public string $nonce = '',
 
         /**
-         * @var bool
+         * @var bool whether the topic has a form
          */
         #[Serializer\SerializedName(self::FIELD_HAS_FORM)]
-        private bool $hasForm = false,
+        public bool $hasForm = false,
 
         /**
-         * @var bool
+         * @var bool whether the form can only be filled in on the Polkurier website
          */
         #[Serializer\SerializedName(self::FIELD_WEB_ONLY)]
-        private bool $webOnly = false,
+        public bool $webOnly = false,
 
         /**
-         * @var string
+         * @var string the form's address on the Polkurier website, when it is web-only
          */
         #[Serializer\SerializedName(self::FIELD_HREF)]
-        private string $href = '',
+        public string $href = '',
 
         /**
          * @var string|null
@@ -107,74 +110,4 @@ final readonly class ContactFormMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string the form's id, to quote when submitting it
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return ContactFormFieldMessage[] in display order
-     */
-    public function getFields(): array
-    {
-        return $this->fields;
-    }
-
-    /**
-     * Named values the fields' conditions and choices refer to, e.g. the list a drop-down field's
-     * {@see \Polkurier\Webservice\Dto\Response\Contact\ContactFormFieldMessage::getOptionsSource()}
-     * names.
-     *
-     * @return list<ContactFormValueMessage>
-     */
-    public function getProperties(): array
-    {
-        return ContactFormValueMessage::listOf($this->properties);
-    }
-
-    /**
-     * Starting values, by field name.
-     *
-     * @return list<ContactFormValueMessage>
-     */
-    public function getState(): array
-    {
-        return ContactFormValueMessage::listOf($this->state);
-    }
-
-    /**
-     * @return string to quote when submitting the form
-     */
-    public function getNonce(): string
-    {
-        return $this->nonce;
-    }
-
-    /**
-     * @return bool whether the topic has a form
-     */
-    public function hasForm(): bool
-    {
-        return $this->hasForm;
-    }
-
-    /**
-     * @return bool whether the form can only be filled in on the Polkurier website
-     */
-    public function isWebOnly(): bool
-    {
-        return $this->webOnly;
-    }
-
-    /**
-     * @return string the form's address on the Polkurier website, when it is web-only
-     */
-    public function getHref(): string
-    {
-        return $this->href;
-    }
 }

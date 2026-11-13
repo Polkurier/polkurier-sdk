@@ -116,8 +116,7 @@ a captive portal or a WAF. The message quotes the raw body, truncated to 512 cha
 HTML error page doesn't end up in your logs.
 
 The last two mean the API replied in its normal envelope, but the payload doesn't match what the
-method returns. This is a real incompatibility. The SDK throws so that typed methods never return
-the wrong type.
+method returns.
 
 An enum value the SDK doesn't know isn't treated as the wrong shape. See [enums](messages.md#enums).
 
@@ -136,21 +135,21 @@ $e->getRequest();        // Psr\Http\Message\RequestInterface  (body contains th
 $e->getResponse();       // Psr\Http\Message\ResponseInterface
 ```
 
-[`ErrorMessage`](../src/Http/Response/ErrorMessage.php) is the error form of the envelope:
+[`ErrorMessage`](../src/Dto/Response/ErrorMessage.php) is the error form of the envelope:
 
 ```php
 $error = $e->getErrorMessage();
 
-$error->getResponse();          // string: the human-readable message
-$error->getStatusCode();        // ?int
-$error->getErrorCode();         // ?string
-$error->getValidationErrors();  // ?array<string, string[]>
-$error->getNonce();             // ?string: a rejected contact form's next nonce
+$error->response;          // string: the human-readable message
+$error->statusCode;        // ?int
+$error->errorCode;         // ?string
+$error->validationErrors;  // ?array<string, string[]>
+$error->nonce;             // ?string: a rejected contact form's next nonce
 ```
 
 > **Either code can be missing** from an error response, so both getters can return null.
 
-[`ErrorMessage::getValidationErrors()`](../src/Http/Response/ErrorMessage.php) is only set when the API rejects a payload during validation. The main
+[`ErrorMessage::$validationErrors`](../src/Dto/Response/ErrorMessage.php) is only set when the API rejects a payload during validation. The main
 message only names the first failing field, but this array has every failure. It uses the same
 shape as [`ValidationException`](../src/Exception/ValidationException.php), so you can handle both together:
 
@@ -159,7 +158,7 @@ function fieldErrors(\Throwable $e): array
 {
     return match (true) {
         $e instanceof ValidationException => $e->getValidationErrors(),
-        $e instanceof WebserviceException => $e->getErrorMessage()->getValidationErrors() ?? [],
+        $e instanceof WebserviceException => $e->getErrorMessage()->validationErrors ?? [],
         default => [],
     };
 }
@@ -177,8 +176,8 @@ than one condition (the two-factor 506006, for one), and those map back to null,
 use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
 
 $error = $e->getErrorMessage();
-if ($error->getErrorCode() === ApiErrorCodeEnum::TokenNotActive->value) { … }
-if ($error->getStatusCode() === ApiErrorCodeEnum::TokenNotActive->statusCode()) { … }
+if ($error->errorCode === ApiErrorCodeEnum::TokenNotActive->value) { … }
+if ($error->statusCode === ApiErrorCodeEnum::TokenNotActive->statusCode()) { … }
 ```
 
 You compare against `->value` because the properties are plain strings and ints, not enums, just
@@ -245,7 +244,7 @@ try {
         externalOrderId: $myOrderId,
     ));
 
-    if ($existing->getTotalRows() === 0) {
+    if ($existing->totalRows === 0) {
         $created = $client->orders()->createOrder($order);
     }
 }
@@ -261,7 +260,7 @@ $recent = $client->orders()->getOrders(new GetOrdersMessage(
     pageSize: 100,
 ));
 
-$match = $this->findMatchingOrder($recent->getResult(), $order);   // your comparison
+$match = $this->findMatchingOrder($recent->result, $order);   // your comparison
 ```
 
 The comparison is your own, since only you know what makes two of your orders the same. Usually
@@ -306,14 +305,14 @@ try {
     return $this->rejectWithFieldErrors($e->getValidationErrors());
 } catch (Polkurier\AuthorizationException $e) {
     // A configuration problem. Retrying won't help until the credentials change.
-    $this->alerts->credentialsRejected($e->getErrorMessage()->getResponse());
+    $this->alerts->credentialsRejected($e->getErrorMessage()->response);
     throw $e;
 } catch (Polkurier\WebserviceException $e) {
     $error = $e->getErrorMessage();
 
     // Rejected by the API. A validation failure also has field errors.
     return $this->rejectWithFieldErrors(
-        $error->getValidationErrors() ?? ['_' => [$error->getResponse()]],
+        $error->validationErrors ?? ['_' => [$error->response]],
     );
 } catch (Polkurier\ConnectionException $e) {
     // Unknown outcome: the order may or may not have been placed.

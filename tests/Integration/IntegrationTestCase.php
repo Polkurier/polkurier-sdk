@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
 use Polkurier\Webservice\Entity\Order\PackMessage;
@@ -17,7 +18,6 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
-use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -118,7 +118,7 @@ abstract class IntegrationTestCase extends TestCase
             $call();
         } catch (WebserviceException $e) {
             $error = $e->getErrorMessage();
-            $actual = \is_int($code) ? $error->getStatusCode() : $error->getErrorCode();
+            $actual = \is_int($code) ? $error->statusCode : $error->errorCode;
             self::assertSame($code, $actual, $e->getMessage());
 
             return $error;

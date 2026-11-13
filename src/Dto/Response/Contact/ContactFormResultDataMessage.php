@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Serializer\Attribute\Base64DataUrl;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -26,93 +27,42 @@ final readonly class ContactFormResultDataMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * What separates a `data:` URL's media type from its base64 contents.
-     */
-    protected const string DATA_URL_MARKER = ';base64,';
-
-    /**
-     * @param ?string $ticketNumber the ticket the form opened
+     * @param string|null $ticketNumber the ticket the form opened
      * @param bool $requireAuthCode the form needs the code sent by e-mail: fill in its
      *        {@see \Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum::AuthCode} field
-     * @param ?string $file a generated document, as a base64 `data:` URL
-     * @param ?string $fileName the document's file name
+     * @param string|null $file a generated document's bytes
+     * @param string|null $fileName the document's file name
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_TICKET_NUMBER)]
         #[OmitWhenEmpty]
-        private ?string $ticketNumber = null,
+        public ?string $ticketNumber = null,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_AUTH_CODE)]
         #[OmitWhenEmpty]
-        private bool $requireAuthCode = false,
+        public bool $requireAuthCode = false,
 
         /**
-         * @var ?string
+         * A generated document's bytes, decoded from the base64 `data:` URL the API sends.
+         *
+         * @var string|null null without a document
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         #[OmitWhenEmpty]
-        private ?string $file = null,
+        #[Base64DataUrl]
+        public ?string $file = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_FILE_NAME)]
         #[OmitWhenEmpty]
-        private ?string $fileName = null,
+        public ?string $fileName = null,
     ) {}
-
-    /**
-     * @return ?string
-     */
-    public function getTicketNumber(): ?string
-    {
-        return $this->ticketNumber;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequireAuthCode(): bool
-    {
-        return $this->requireAuthCode;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getFile(): ?string
-    {
-        return $this->file;
-    }
-
-    /**
-     * The document's raw bytes, ready to write to disk or stream to a browser.
-     *
-     * @return ?string null without a document, empty when it isn't a valid base64 `data:` URL
-     */
-    public function getDecodedFile(): ?string
-    {
-        if ($this->file === null) {
-            return null;
-        }
-        $marker = \strpos($this->file, self::DATA_URL_MARKER);
-
-        return $marker === false
-            ? ''
-            : (string)\base64_decode(\substr($this->file, $marker + \strlen(self::DATA_URL_MARKER)), true);
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getFileName(): ?string
-    {
-        return $this->fileName;
-    }
 }

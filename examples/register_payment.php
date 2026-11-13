@@ -29,7 +29,7 @@ try {
         new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 100.0)
     );
 
-    \printf("Transaction %s is %s\n", $payment->getTransactionId(), $payment->getState());
+    \printf("Transaction %s is %s\n", $payment->transactionId, $payment->state);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

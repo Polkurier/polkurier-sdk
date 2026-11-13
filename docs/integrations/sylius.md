@@ -248,7 +248,7 @@ final readonly class ExportShipmentHandler
             throw $e;   // Retry. The tracking guard above makes that safe.
         }
 
-        $shipment->setTracking($created->getOrderNumber());
+        $shipment->setTracking($created->orderNumber);
         $this->entityManager->flush();
     }
 }
@@ -367,7 +367,7 @@ public function labels(Request $request): Response
 
     $document = $this->orders->getLabel(new GetDocumentMessage(orderNo: $numbers));
 
-    return new Response($document->getDecodedFile(), 200, [
+    return new Response($document->file, 200, [
         'Content-Type' => 'application/pdf',
         'Content-Disposition' => 'attachment; filename="labels.pdf"',
     ]);

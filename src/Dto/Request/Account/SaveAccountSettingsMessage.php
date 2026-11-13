@@ -44,44 +44,20 @@ final readonly class SaveAccountSettingsMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_SENDER_ADDRESS_ID)]
         #[OmitWhenEmpty]
-        private ?string $defaultSenderAddressId = null,
+        public ?string $defaultSenderAddressId = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_COURIER)]
         #[OmitWhenEmpty]
-        private ?string $defaultCourier = null,
+        public ?string $defaultCourier = null,
 
         /**
          * @var array<string, string>|null
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_SENDER_POINT)]
         #[OmitWhenEmpty]
-        private ?array $defaultSenderPoint = null,
+        public ?array $defaultSenderPoint = null,
     ) {}
-
-    /**
-     * @return string|null
-     */
-    public function getDefaultSenderAddressId(): ?string
-    {
-        return $this->defaultSenderAddressId;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getDefaultCourier(): ?string
-    {
-        return $this->defaultCourier;
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    public function getDefaultSenderPoint(): ?array
-    {
-        return $this->defaultSenderPoint;
-    }
 }

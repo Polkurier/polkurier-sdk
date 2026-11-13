@@ -168,7 +168,7 @@ use Polkurier\Webservice\Log\LoggedFileWriter;
 
 foreach (new DirectoryIterator($directory) as $file) {
     if ($file->isFile()
-        && preg_match(LoggedFileWriter::FILE_NAME_PATTERN, $file->getFilename())
+        && preg_match(LoggedFileWriter::FILE_NAME_PATTERN, $file->filename)
         && $file->getMTime() < strtotime('-7 days')
     ) {
         unlink($file->getPathname());

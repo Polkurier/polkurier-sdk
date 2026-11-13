@@ -37,28 +37,12 @@ final readonly class DeleteMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[Validate\NotBlank]
-        private string $id,
+        public string $id,
 
         /**
          * @var AddressTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private AddressTypeEnum $type,
+        public AddressTypeEnum $type,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return AddressTypeEnum
-     */
-    public function getType(): AddressTypeEnum
-    {
-        return $this->type;
-    }
 }

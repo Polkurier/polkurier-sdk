@@ -25,7 +25,7 @@ final class MoneyBoxTest extends IntegrationTestCase
 
     public function testThePayoutFeeIsQuoted(): void
     {
-        self::assertGreaterThanOrEqual(0.0, $this->sdk->moneyBox()->calculatePayoutFee()->getFee());
+        self::assertGreaterThanOrEqual(0.0, $this->sdk->moneyBox()->calculatePayoutFee()->fee);
     }
 
     public function testPayoutsRead(): void

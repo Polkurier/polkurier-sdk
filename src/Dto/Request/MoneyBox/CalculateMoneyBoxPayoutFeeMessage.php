@@ -40,29 +40,13 @@ final readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterfa
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
         #[OmitWhenEmpty]
         #[Validate\Each(Validate\OrderNumber::class)]
-        private array $orders = [],
+        public array $orders = [],
 
         /**
          * @var ?MoneyBoxPayoutTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
         #[OmitWhenEmpty]
-        private ?MoneyBoxPayoutTypeEnum $payoutType = null,
+        public ?MoneyBoxPayoutTypeEnum $payoutType = null,
     ) {}
-
-    /**
-     * @return string[]
-     */
-    public function getOrders(): array
-    {
-        return $this->orders;
-    }
-
-    /**
-     * @return ?MoneyBoxPayoutTypeEnum
-     */
-    public function getPayoutType(): ?MoneyBoxPayoutTypeEnum
-    {
-        return $this->payoutType;
-    }
 }

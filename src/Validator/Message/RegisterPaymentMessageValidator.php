@@ -38,11 +38,11 @@ class RegisterPaymentMessageValidator extends AbstractMessageValidator
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
         /** @var RegisterPaymentMessage $data */
-        if ($data->getMode() !== PaymentModeEnum::Prepaid) {
+        if ($data->mode !== PaymentModeEnum::Prepaid) {
             return;
         }
 
-        if (($data->getAmount() ?? 0.0) > 0.0) {
+        if (($data->amount ?? 0.0) > 0.0) {
             return;
         }
 

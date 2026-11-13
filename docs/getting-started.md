@@ -51,7 +51,7 @@ $client = new PolkurierWebservice(new Config(
 ));
 
 foreach ($client->courier()->availableCarriers() as $carrier) {
-    printf("%s — %s\n", $carrier->getServiceCode(), $carrier->getName());
+    printf("%s — %s\n", $carrier->serviceCode, $carrier->name);
 }
 ```
 
@@ -105,7 +105,7 @@ need to build a payload over several steps, the larger messages have [builders](
 ```php
 $list = $client->orders()->getOrders($filter);   // OrderListMessage
 
-foreach ($list->getResult() as $order) {         // Order[]
+foreach ($list->result as $order) {         // Order[]
     echo $order->getNumber();
 }
 ```

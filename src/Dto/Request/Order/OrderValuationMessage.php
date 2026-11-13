@@ -42,29 +42,13 @@ final readonly class OrderValuationMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDER)]
         #[InlineFields]
         #[Validate\Valid]
-        private CreateOrderMessage $order,
+        public CreateOrderMessage $order,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_RETURN_VALUATIONS)]
         #[Validate\NotBlank]
-        private string $courier,
+        public string $courier,
     ) {}
-
-    /**
-     * @return CreateOrderMessage
-     */
-    public function getOrder(): CreateOrderMessage
-    {
-        return $this->order;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
 }

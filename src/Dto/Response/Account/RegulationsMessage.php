@@ -47,26 +47,26 @@ final readonly class RegulationsMessage implements MessageInterface, ParsedRespo
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content = '',
+        public string $content = '',
 
         /**
          * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $date = null,
+        public ?\DateTimeInterface $date = null,
 
         /**
          * @var string|null
@@ -74,36 +74,4 @@ final readonly class RegulationsMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return \DateTimeInterface|null
-     */
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
 }

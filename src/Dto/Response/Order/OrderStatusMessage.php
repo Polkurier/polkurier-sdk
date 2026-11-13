@@ -53,41 +53,41 @@ final readonly class OrderStatusMessage implements MessageInterface, ParsedRespo
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private string $status = '',
+        public string $status = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
-        private string $statusCode = '',
+        public string $statusCode = '',
 
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null null if the response leaves it out, as it does while the order has no waybill
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d H:i'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $statusDate = null,
+        public ?\DateTimeInterface $statusDate = null,
 
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null the day, at midnight. Null until the order is delivered
          */
         #[Serializer\SerializedName(self::FIELD_DELIVERED_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $deliveredDate = null,
+        public ?\DateTimeInterface $deliveredDate = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_URL)]
-        private string $url = '',
+        public string $url = '',
 
         /**
          * @var TrackingEventMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING)]
-        private array $tracking = [],
+        public array $tracking = [],
 
         /**
          * @var string|null
@@ -95,53 +95,4 @@ final readonly class OrderStatusMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatusCode(): string
-    {
-        return $this->statusCode;
-    }
-
-    /**
-     * @return \DateTimeInterface|null null if the response leaves it out, as it does while the order
-     *         has no waybill
-     */
-    public function getStatusDate(): ?\DateTimeInterface
-    {
-        return $this->statusDate;
-    }
-
-    /**
-     * @return \DateTimeInterface|null the day, at midnight. Null until the order is delivered
-     */
-    public function getDeliveredDate(): ?\DateTimeInterface
-    {
-        return $this->deliveredDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
-
-    /**
-     * @return TrackingEventMessage[]
-     */
-    public function getTracking(): array
-    {
-        return $this->tracking;
-    }
 }

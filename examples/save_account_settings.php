@@ -28,7 +28,7 @@ try {
         defaultCourier: 'UPS',
     ));
 
-    \printf("Default carrier is now %s\n", $account->getDefaultCourier());
+    \printf("Default carrier is now %s\n", $account->defaultCourier);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

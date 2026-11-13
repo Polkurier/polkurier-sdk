@@ -30,45 +30,21 @@ final readonly class ShipmentType implements MessageInterface
      */
     public function __construct(
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier reported nothing for this type
          */
         #[Serializer\SerializedName(self::FIELD_ENVELOPE)]
-        private ?Property $envelope = null,
+        public ?Property $envelope = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier reported nothing for this type
          */
         #[Serializer\SerializedName(self::FIELD_BOX)]
-        private ?Property $box = null,
+        public ?Property $box = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier reported nothing for this type
          */
         #[Serializer\SerializedName(self::FIELD_PALETTE)]
-        private ?Property $palette = null,
+        public ?Property $palette = null,
     ) {}
-
-    /**
-     * @return Property|null null if the carrier reported nothing for this type
-     */
-    public function getEnvelope(): ?Property
-    {
-        return $this->envelope;
-    }
-
-    /**
-     * @return Property|null null if the carrier reported nothing for this type
-     */
-    public function getBox(): ?Property
-    {
-        return $this->box;
-    }
-
-    /**
-     * @return Property|null null if the carrier reported nothing for this type
-     */
-    public function getPalette(): ?Property
-    {
-        return $this->palette;
-    }
 }

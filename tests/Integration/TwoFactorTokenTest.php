@@ -38,7 +38,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
             new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeDefaultPhoneNumber),
         );
 
-        self::assertNotSame('', $token->getId());
+        self::assertNotSame('', $token->id);
 
         return $token;
     }
@@ -46,27 +46,27 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     #[Depends('testATokenIsRegistered')]
     public function testTheCodeIsSentAgain(TwoFactorToken $token): void
     {
-        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new ResendMessage(token: $token->getId()));
+        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new ResendMessage(token: $token->id));
 
-        self::assertSame($token->getId(), $resent->getId());
+        self::assertSame($token->id, $resent->id);
     }
 
     #[Depends('testATokenIsRegistered')]
     public function testTheChannelIsSwitched(TwoFactorToken $token): void
     {
         $other = \array_values(\array_filter(
-            $token->getAvailableMethods(),
-            static fn($method): bool => $method->getId() !== $token->getTransportMethod()?->getId(),
+            $token->availableMethods,
+            static fn($method): bool => $method->id !== $token->transportMethod?->id,
         ));
         if ($other === []) {
             self::markTestSkipped('The account has one channel only.');
         }
 
         $switched = $this->sdk->twoFactorToken()->twoFactorTokenChangeTransportMethod(
-            new ChangeTransportMethodMessage(token: $token->getId(), method: $other[0]->getId()),
+            new ChangeTransportMethodMessage(token: $token->id, method: $other[0]->id),
         );
 
-        self::assertSame($other[0]->getId(), $switched->getTransportMethod()?->getId());
+        self::assertSame($other[0]->id, $switched->transportMethod?->id);
     }
 
     public function testAWrongCodeForAnUnknownTokenIsInvalid(): void
@@ -75,7 +75,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
             new VerifyMessage(token: self::UNKNOWN_TOKEN, code: '123456'),
         );
 
-        self::assertFalse($validity->isValid());
+        self::assertFalse($validity->valid);
     }
 
     public function testResendingNeedsAToken(): void

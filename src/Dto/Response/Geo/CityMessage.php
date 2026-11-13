@@ -29,14 +29,6 @@ final readonly class CityMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name,
+        public string $name,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
 }

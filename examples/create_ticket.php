@@ -35,9 +35,9 @@ try {
 
     \printf(
         "Ticket %s opened (%s). Its id, for the other ticket examples: %s\n",
-        $ticket->getNumber(),
-        $ticket->getStatus()->value ?? 'unknown',
-        $ticket->getId()
+        $ticket->number,
+        $ticket->status->value ?? 'unknown',
+        $ticket->id
     );
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

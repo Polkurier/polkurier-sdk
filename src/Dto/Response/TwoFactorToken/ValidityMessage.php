@@ -34,7 +34,7 @@ final readonly class ValidityMessage implements MessageInterface, ParsedResponse
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_VALID)]
-        private bool $valid,
+        public bool $valid = false,
 
         /**
          * @var string|null
@@ -42,12 +42,4 @@ final readonly class ValidityMessage implements MessageInterface, ParsedResponse
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isValid(): bool
-    {
-        return $this->valid;
-    }
 }

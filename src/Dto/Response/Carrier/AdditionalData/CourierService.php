@@ -51,171 +51,75 @@ final readonly class CourierService implements MessageInterface
      */
     public function __construct(
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_ROD)]
-        private ?Property $returnOfDocuments = null,
+        public ?Property $returnOfDocuments = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS_SENDER)]
-        private ?Property $coverSenderAddress = null,
+        public ?Property $coverSenderAddress = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_BRINGING_DELIVERED_PARCEL)]
-        private ?Property $carryIn = null,
+        public ?Property $carryIn = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_WITH_LABEL)]
-        private ?Property $courierBringsLabel = null,
+        public ?Property $courierBringsLabel = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_SATURDAY_DELIVERY)]
-        private ?Property $saturdayDelivery = null,
+        public ?Property $saturdayDelivery = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_PHONE_NOTIFICATION_RECIPIENT)]
-        private ?Property $phoneCallBeforeDelivery = null,
+        public ?Property $phoneCallBeforeDelivery = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_TIRES)]
-        private ?Property $tires = null,
+        public ?Property $tires = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_HAND_DELIVERY)]
-        private ?Property $handDelivery = null,
+        public ?Property $handDelivery = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_END_OF_WEEK_COLLECTION)]
-        private ?Property $weekendDelivery = null,
+        public ?Property $weekendDelivery = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_LABELLESS)]
-        private ?Property $labelless = null,
+        public ?Property $labelless = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_HANDLE_WITH_CARE)]
-        private ?Property $handleWithCare = null,
+        public ?Property $handleWithCare = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier doesn't list this service
          */
         #[Serializer\SerializedName(self::FIELD_DELIVERY_TO_TIME)]
-        private ?Property $deliveryByTime = null,
+        public ?Property $deliveryByTime = null,
     ) {}
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getReturnOfDocuments(): ?Property
-    {
-        return $this->returnOfDocuments;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getCoverSenderAddress(): ?Property
-    {
-        return $this->coverSenderAddress;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getCarryIn(): ?Property
-    {
-        return $this->carryIn;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getCourierBringsLabel(): ?Property
-    {
-        return $this->courierBringsLabel;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getSaturdayDelivery(): ?Property
-    {
-        return $this->saturdayDelivery;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getPhoneCallBeforeDelivery(): ?Property
-    {
-        return $this->phoneCallBeforeDelivery;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getTires(): ?Property
-    {
-        return $this->tires;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getHandDelivery(): ?Property
-    {
-        return $this->handDelivery;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getWeekendDelivery(): ?Property
-    {
-        return $this->weekendDelivery;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getLabelless(): ?Property
-    {
-        return $this->labelless;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getHandleWithCare(): ?Property
-    {
-        return $this->handleWithCare;
-    }
-
-    /**
-     * @return Property|null null if the carrier doesn't list this service
-     */
-    public function getDeliveryByTime(): ?Property
-    {
-        return $this->deliveryByTime;
-    }
 }

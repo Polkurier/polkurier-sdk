@@ -194,12 +194,12 @@ final class ResponseShapeTest extends TestCase
         $list = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $class)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
 
         self::assertInstanceOf(PagedListMessage::class, $list);
-        self::assertSame(0, $list->getTotalRows());
-        self::assertSame(0, $list->getCurrentPage());
-        self::assertSame(0, $list->getPageSize());
+        self::assertSame(0, $list->totalRows);
+        self::assertSame(0, $list->currentPage);
+        self::assertSame(0, $list->pageSize);
     }
 
     /**
@@ -214,11 +214,11 @@ final class ResponseShapeTest extends TestCase
         $list = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], '{"status": "success", "response": []}'), $class)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
 
         self::assertInstanceOf($class, $list);
-        self::assertSame(0, $list->getTotalRows());
-        self::assertSame([], $list->getResult());
+        self::assertSame(0, $list->totalRows);
+        self::assertSame([], $list->result);
     }
 
     private const array BALANCES = [
@@ -251,7 +251,7 @@ final class ResponseShapeTest extends TestCase
         $result = (new ResponseFactory(new SerializerProvider()))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
 
         self::assertNotNull($result);
     }

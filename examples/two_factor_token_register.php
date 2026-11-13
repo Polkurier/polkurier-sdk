@@ -30,12 +30,12 @@ try {
     );
 
     \printf("Code sent to %s, valid until %s\n",
-        $token->getTransportMethod()?->getName() ?? '(unknown)',
-        $token->getExpiresAt()?->format('H:i'));
-    \printf("Token: %s\n", $token->getId());
+        $token->transportMethod->name ?? '(unknown)',
+        $token->expiresAt?->format('H:i'));
+    \printf("Token: %s\n", $token->id);
 
-    foreach ($token->getAvailableMethods() as $method) {
-        \printf("Can send it to %s (method id %s)\n", $method->getName(), $method->getId());
+    foreach ($token->availableMethods as $method) {
+        \printf("Can send it to %s (method id %s)\n", $method->name, $method->id);
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

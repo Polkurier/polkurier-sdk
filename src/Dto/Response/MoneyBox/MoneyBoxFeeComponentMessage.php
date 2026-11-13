@@ -22,7 +22,7 @@ final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
     public const string FIELD_NAME = 'name';
     public const string FIELD_DESCRIPTION = 'description';
     public const string FIELD_FEE = 'fee';
-    public const string FIELD_FEE_NETT = 'fee_nett';
+    public const string FIELD_FEE_NET = 'fee_nett';
     public const string FIELD_VAT_RATE = 'vat_rate';
     /**-@#*/
 
@@ -31,7 +31,7 @@ final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
      * @param string $name display name, in Polish
      * @param string $description explanation, in Polish, possibly empty
      * @param float $fee gross amount in PLN
-     * @param float $feeNett net amount in PLN
+     * @param float $feeNet net amount in PLN
      * @param float $vatRate VAT rate as a percentage
      */
     public function __construct(
@@ -39,84 +39,36 @@ final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description = '',
+        public string $description = '',
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_FEE)]
-        private float $fee = 0.0,
+        public float $fee = 0.0,
 
         /**
          * @var float
          */
-        #[Serializer\SerializedName(self::FIELD_FEE_NETT)]
-        private float $feeNett = 0.0,
+        #[Serializer\SerializedName(self::FIELD_FEE_NET)]
+        public float $feeNet = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VAT_RATE)]
-        private float $vatRate = 0.0,
+        public float $vatRate = 0.0,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return float
-     */
-    public function getFee(): float
-    {
-        return $this->fee;
-    }
-
-    /**
-     * @return float
-     */
-    public function getFeeNett(): float
-    {
-        return $this->feeNett;
-    }
-
-    /**
-     * @return float
-     */
-    public function getVatRate(): float
-    {
-        return $this->vatRate;
-    }
 }

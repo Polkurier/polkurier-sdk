@@ -35,59 +35,27 @@ final readonly class IndividualPricing implements MessageInterface
      */
     public function __construct(
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null null if the offer hasn't been sent yet
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_SENT_DATE)]
-        private ?\DateTimeInterface $offerSentDate,
+        public ?\DateTimeInterface $offerSentDate,
 
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_VALID_DATE)]
-        private ?\DateTimeInterface $offerValidDate = null,
+        public ?\DateTimeInterface $offerValidDate = null,
 
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null null until the customer confirms the offer
          */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_CONFIRMED_DATE)]
-        private ?\DateTimeInterface $customerConfirmedDate = null,
+        public ?\DateTimeInterface $customerConfirmedDate = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_REMARKS)]
-        private string $customerRemarks = '',
+        public string $customerRemarks = '',
     ) {}
-
-    /**
-     * @return \DateTimeInterface|null null if the offer hasn't been sent yet
-     */
-    public function getOfferSentDate(): ?\DateTimeInterface
-    {
-        return $this->offerSentDate;
-    }
-
-    /**
-     * @return \DateTimeInterface|null null if the response leaves it out
-     */
-    public function getOfferValidDate(): ?\DateTimeInterface
-    {
-        return $this->offerValidDate;
-    }
-
-    /**
-     * @return \DateTimeInterface|null null until the customer confirms the offer
-     */
-    public function getCustomerConfirmedDate(): ?\DateTimeInterface
-    {
-        return $this->customerConfirmedDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCustomerRemarks(): string
-    {
-        return $this->customerRemarks;
-    }
 }

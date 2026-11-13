@@ -41,7 +41,7 @@ final class TicketsTest extends IntegrationTestCase
     {
         $form = $this->sdk->tickets()->getContactForm(new GetContactFormMessage(category: self::TOPIC));
 
-        self::assertNotSame('', $form->getNonce());
+        self::assertNotSame('', $form->nonce);
     }
 
     public function testARejectedContactFormAnswerIsReported(): void
@@ -51,14 +51,14 @@ final class TicketsTest extends IntegrationTestCase
         $error = self::assertApiError(
             fn() => $this->sdk->tickets()->saveContactForm(new SaveContactFormMessage(
                 category: self::INVOICE_TOPIC,
-                formId: $form->getId(),
-                nonce: $form->getNonce(),
+                formId: $form->id,
+                nonce: $form->nonce,
                 fields: ['invoice_number' => 'FV/0000/00/00000'],
             )),
             'VALIDATION_ERROR',
         );
 
-        self::assertNotEmpty($error->getNonce());
+        self::assertNotEmpty($error->nonce);
     }
 
     public function testTicketsReadAsAPage(): void
@@ -77,9 +77,9 @@ final class TicketsTest extends IntegrationTestCase
             files: [self::attachment()],
         ));
 
-        self::assertNotSame('', $ticket->getId());
+        self::assertNotSame('', $ticket->id);
 
-        return $ticket->getId();
+        return $ticket->id;
     }
 
     #[Depends('testATicketIsOpenedWithAFile')]
@@ -87,7 +87,7 @@ final class TicketsTest extends IntegrationTestCase
     {
         $page = $this->sdk->tickets()->getTickets(new GetTicketsMessage(id: $id));
 
-        self::assertSame($id, $page->getResult()[0]->getId());
+        self::assertSame($id, $page->result[0]->id);
     }
 
     #[Depends('testATicketIsOpenedWithAFile')]
@@ -97,16 +97,16 @@ final class TicketsTest extends IntegrationTestCase
             new CreateTicketMessageMessage(ticketId: $id, content: '', files: [self::attachment()]),
         );
         $timeline = $this->sdk->tickets()->getTicketMessages(new TicketIdMessage(ticketId: $id));
-        $entry = \array_values(\array_filter($timeline, static fn($item): bool => $item->getId() === $reply->getId()));
+        $entry = \array_values(\array_filter($timeline, static fn($item): bool => $item->id === $reply->id));
         self::assertNotEmpty($entry);
-        self::assertNotEmpty($entry[0]->getFiles());
+        self::assertNotEmpty($entry[0]->files);
 
         $file = $this->sdk->tickets()->getTicketMessageFile(new GetTicketMessageFileMessage(
-            messageId: $reply->getId(),
-            filename: $entry[0]->getFiles()[0]->getName(),
+            messageId: $reply->id,
+            filename: $entry[0]->files[0]->name,
         ));
 
-        self::assertSame("Example attachment\n", $file->getDecodedFile());
+        self::assertSame("Example attachment\n", $file->file);
     }
 
     #[Depends('testATicketIsOpenedWithAFile')]
@@ -114,7 +114,7 @@ final class TicketsTest extends IntegrationTestCase
     {
         $ticket = $this->sdk->tickets()->setTicketStatus(new SetTicketStatusMessage(ticketId: $id));
 
-        self::assertSame(TicketStatusEnum::Closed, $ticket->getStatus());
+        self::assertSame(TicketStatusEnum::Closed, $ticket->status);
     }
 
     /**

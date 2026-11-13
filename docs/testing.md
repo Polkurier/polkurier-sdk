@@ -34,7 +34,7 @@ $client = new PolkurierWebservice(config: $config, clientFactory: $http);
 
 $carriers = $client->courier()->availableCarriers();
 
-self::assertSame('UPS', $carriers[0]->getServiceCode());
+self::assertSame('UPS', $carriers[0]->serviceCode);
 self::assertSame('available_carriers', $http->lastPayload()['apimethod']);
 ```
 

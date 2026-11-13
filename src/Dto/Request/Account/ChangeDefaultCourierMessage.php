@@ -31,14 +31,6 @@ final readonly class ChangeDefaultCourierMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
-        private string $courier,
+        public string $courier,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
 }

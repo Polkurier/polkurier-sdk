@@ -94,7 +94,7 @@ interface SystemServiceInterface
      * others are informational. `severity` is only a display hint.
      *
      * Show these before a customer picks a carrier. The message is HTML in Polish, see
-     * {@see \Polkurier\Webservice\Dto\Response\System\CourierMessage::getMessage()}. There is no
+     * {@see \Polkurier\Webservice\Dto\Response\System\CourierMessage::$message}. There is no
      * machine-readable reason code.
      *
      * Endpoint: `get_couriers_messages`

@@ -47,45 +47,45 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
      */
     public function __construct(
         /**
-         * @var ContactFormResultStatusEnum|null
+         * @var ContactFormResultStatusEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private ?ContactFormResultStatusEnum $status = null,
+        public ?ContactFormResultStatusEnum $status = null,
 
         /**
-         * @var ContactFormResultActionEnum|null
+         * @var ContactFormResultActionEnum|null null when absent or for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_ACTION)]
         #[OmitWhenEmpty]
-        private ?ContactFormResultActionEnum $action = null,
+        public ?ContactFormResultActionEnum $action = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
         #[OmitWhenEmpty]
-        private string $message = '',
+        public string $message = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[OmitWhenEmpty]
-        private string $nonce = '',
+        public string $nonce = '',
 
         /**
          * @var ?ContactFormResultDataMessage
          */
         #[Serializer\SerializedName(self::FIELD_DATA)]
         #[OmitWhenEmpty]
-        private ?ContactFormResultDataMessage $data = null,
+        public ?ContactFormResultDataMessage $data = null,
 
         /**
          * @var ContactFormResultNoticeMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGES)]
         #[OmitWhenEmpty]
-        private array $messages = [],
+        public array $messages = [],
 
         /**
          * @var string|null
@@ -93,53 +93,4 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return ContactFormResultStatusEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getStatus(): ?ContactFormResultStatusEnum
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return ContactFormResultActionEnum|null null when absent or for a value this version of the
-     *         SDK doesn't know
-     */
-    public function getAction(): ?ContactFormResultActionEnum
-    {
-        return $this->action;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMessage(): string
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNonce(): string
-    {
-        return $this->nonce;
-    }
-
-    /**
-     * @return ?ContactFormResultDataMessage
-     */
-    public function getData(): ?ContactFormResultDataMessage
-    {
-        return $this->data;
-    }
-
-    /**
-     * @return ContactFormResultNoticeMessage[]
-     */
-    public function getMessages(): array
-    {
-        return $this->messages;
-    }
 }

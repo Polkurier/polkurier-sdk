@@ -26,7 +26,7 @@ try {
         new VerifyMessage(token: $token, code: $code)
     );
 
-    echo $validity->isValid() ? "That code is correct.\n" : "That code is wrong.\n";
+    echo $validity->valid ? "That code is correct.\n" : "That code is wrong.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

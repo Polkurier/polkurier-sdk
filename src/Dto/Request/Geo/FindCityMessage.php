@@ -36,32 +36,16 @@ final readonly class FindCityMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\NotBlank]
-        private string $postcode,
+        public string $postcode,
 
         /**
+         * ISO country code the postcode belongs to.
+         *
+         * Any country other than PL gives an empty list.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
-        private string $country = self::DEFAULT_COUNTRY,
+        public string $country = self::DEFAULT_COUNTRY,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getPostcode(): string
-    {
-        return $this->postcode;
-    }
-
-    /**
-     * ISO country code the postcode belongs to.
-     *
-     * Any country other than PL gives an empty list.
-     *
-     * @return string
-     */
-    public function getCountry(): string
-    {
-        return $this->country;
-    }
 }

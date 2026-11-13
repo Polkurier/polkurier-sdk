@@ -31,14 +31,6 @@ final readonly class TicketIdMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
-        private string $ticketId,
+        public string $ticketId,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTicketId(): string
-    {
-        return $this->ticketId;
-    }
 }

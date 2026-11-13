@@ -25,31 +25,31 @@ final readonly class MoneyBoxPayoutListMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int|null $totalRows
-     * @param int|null $totalPages
-     * @param int|null $currentPage
-     * @param int|null $pageSize
+     * @param int $totalRows
+     * @param int $totalPages
+     * @param int $currentPage
+     * @param int $pageSize
      * @param MoneyBoxPayoutMessage[] $result the payouts on this page
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        ?int $totalRows = 0,
+        int $totalRows = 0,
 
         /**
-         * @var int|null
+         * @var int 0 when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_TOTAL_PAGES)]
-        private ?int $totalPages = 0,
+        public int $totalPages = 0,
 
-        ?int $currentPage = 0,
+        int $currentPage = 0,
 
-        ?int $pageSize = 0,
+        int $pageSize = 0,
 
         /**
          * @var MoneyBoxPayoutMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
-        private array $result = [],
+        public array $result = [],
         ?string $rawResponse = null,
     ) {
         parent::__construct(
@@ -58,21 +58,5 @@ final readonly class MoneyBoxPayoutListMessage extends PagedListMessage
             pageSize: $pageSize,
             rawResponse: $rawResponse,
         );
-    }
-
-    /**
-     * @return int 0 when the API sends none
-     */
-    public function getTotalPages(): int
-    {
-        return $this->totalPages ?? 0;
-    }
-
-    /**
-     * @return MoneyBoxPayoutMessage[]
-     */
-    public function getResult(): array
-    {
-        return $this->result;
     }
 }

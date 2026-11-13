@@ -28,23 +28,13 @@ final readonly class GetStatusMessage extends OrderIdMessage
         string $orderNo,
 
         /**
+         * Off by default. Turning it on makes the call slower.
+         *
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING)]
-        private bool $tracking = false,
+        public bool $tracking = false,
     ) {
         parent::__construct($orderNo);
-    }
-
-    /**
-     * Whether to also fetch the carrier's scan history.
-     *
-     * Off by default. Turning it on makes the call slower.
-     *
-     * @return bool
-     */
-    public function isTracking(): bool
-    {
-        return $this->tracking;
     }
 }

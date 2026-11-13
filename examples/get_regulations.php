@@ -23,8 +23,8 @@ try {
         new GetRegulationsMessage(type: RegulationsTypeEnum::Regulations)
     );
 
-    \printf("%s (%s)\n\n", $regulations->getTitle(), $regulations->getId());
-    echo \substr(\strip_tags($regulations->getContent()), 0, 400), "…\n";
+    \printf("%s (%s)\n\n", $regulations->title, $regulations->id);
+    echo \substr(\strip_tags($regulations->content), 0, 400), "…\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

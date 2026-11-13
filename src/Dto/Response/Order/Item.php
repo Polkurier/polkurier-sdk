@@ -47,104 +47,48 @@ final readonly class Item implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description,
+        public string $description,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
-        private int $amount,
+        public int $amount,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_PRICE)]
-        private float $price,
+        public float $price,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VALUE_NET)]
-        private float $valueNet,
+        public float $valueNet,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VALUE_GROSS)]
-        private float $valueGross,
+        public float $valueGross,
 
         /**
-         * @var OrderItemTypeEnum|null
+         * @var OrderItemTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?OrderItemTypeEnum $type,
+        public ?OrderItemTypeEnum $type,
 
         /**
+         * Identifier of the additional service this line charges for.
+         *
+         * Null on carriage and discount lines, and also on service lines not tied to a specific
+         * service. To tell the kinds apart, use {@see self::$type}.
+         *
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SERVICE_ID)]
         #[OmitWhenEmpty]
-        private ?string $serviceId = null,
+        public ?string $serviceId = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAmount(): int
-    {
-        return $this->amount;
-    }
-
-    /**
-     * @return float
-     */
-    public function getPrice(): float
-    {
-        return $this->price;
-    }
-
-    /**
-     * @return float
-     */
-    public function getValueNet(): float
-    {
-        return $this->valueNet;
-    }
-
-    /**
-     * @return float
-     */
-    public function getValueGross(): float
-    {
-        return $this->valueGross;
-    }
-
-    /**
-     * @return OrderItemTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?OrderItemTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * Identifier of the additional service this line charges for.
-     *
-     * Null on carriage and discount lines, and also on service lines not tied to a specific
-     * service. To tell the kinds apart, use {@see self::getType()}.
-     *
-     * @return string|null
-     */
-    public function getServiceId(): ?string
-    {
-        return $this->serviceId;
-    }
 }

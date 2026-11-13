@@ -38,28 +38,12 @@ final readonly class ChangeDefaultSenderPointMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
-        private string $courier,
+        public string $courier,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POINT)]
-        private string $point = '',
+        public string $point = '',
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPoint(): string
-    {
-        return $this->point;
-    }
 }

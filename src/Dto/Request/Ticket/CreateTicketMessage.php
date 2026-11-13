@@ -51,26 +51,26 @@ final readonly class CreateTicketMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TOPIC_ID)]
         #[Validate\NotBlank]
-        private string $topicId,
+        public string $topicId,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content,
+        public string $content,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var ?TicketOriginEnum
          */
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
         #[OmitWhenEmpty]
-        private ?TicketOriginEnum $origin = null,
+        public ?TicketOriginEnum $origin = null,
 
         /**
          * @var TicketAttachmentMessage[]
@@ -79,46 +79,6 @@ final readonly class CreateTicketMessage implements MessageInterface
         #[OmitWhenEmpty]
         #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, TicketAttachmentMessage::class)]
-        private array $files = [],
+        public array $files = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTopicId(): string
-    {
-        return $this->topicId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return ?TicketOriginEnum
-     */
-    public function getOrigin(): ?TicketOriginEnum
-    {
-        return $this->origin;
-    }
-
-    /**
-     * @return TicketAttachmentMessage[]
-     */
-    public function getFiles(): array
-    {
-        return $this->files;
-    }
 }

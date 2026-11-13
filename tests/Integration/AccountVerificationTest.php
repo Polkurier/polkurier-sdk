@@ -19,7 +19,7 @@ final class AccountVerificationTest extends IntegrationTestCase
     public function testAVerificationIsStartedAndReadBack(): void
     {
         self::requireSandbox();
-        $orders = $this->sdk->orders()->getOrders(new GetOrdersMessage(pageSize: 1, page: 1))->getResult();
+        $orders = $this->sdk->orders()->getOrders(new GetOrdersMessage(pageSize: 1, page: 1))->result;
         if ($orders === []) {
             self::markTestSkipped('The account has no order to tie the verification to.');
         }

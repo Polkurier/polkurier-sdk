@@ -29,7 +29,7 @@ try {
                 packs: true,
             ));
 
-        foreach ($list->getResult() as $order) {
+        foreach ($list->result as $order) {
             \printf(
                 "%-16s %-12s %-28s %8.2f PLN\n",
                 $order->getNumber(),
@@ -41,12 +41,12 @@ try {
 
         \printf(
             "-- page %d of %d (%d orders total)\n",
-            $list->getCurrentPage(),
-            $list->getTotalPages(),
-            $list->getTotalRows(),
+            $list->currentPage,
+            $list->totalPages,
+            $list->totalRows,
         );
         $page++;
-    } while ($page <= $list->getTotalPages());
+    } while ($page <= $list->totalPages);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -38,42 +38,18 @@ final readonly class PrepaidEntryMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $date = null,
+        public ?\DateTimeInterface $date = null,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
-        private float $amount = 0.0,
+        public float $amount = 0.0,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description = '',
+        public string $description = '',
     ) {}
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    /**
-     * @return float
-     */
-    public function getAmount(): float
-    {
-        return $this->amount;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
 }

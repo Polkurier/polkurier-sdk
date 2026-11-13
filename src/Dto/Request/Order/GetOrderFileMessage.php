@@ -34,29 +34,13 @@ final readonly class GetOrderFileMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\NotBlank]
         #[Validate\OrderNumber]
-        private string $orderNo,
+        public string $orderNo,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         #[Validate\NotBlank]
-        private string $filename,
+        public string $filename,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getOrderNo(): string
-    {
-        return $this->orderNo;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
 }

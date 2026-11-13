@@ -9,19 +9,17 @@ namespace Polkurier\Webservice\Dto\Response\Invoice;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
-use Polkurier\Webservice\Dto\Response\DecodesFileTrait;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Serializer\Attribute\Base64;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * An invoice document as the API returns it.
  *
- * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes. The filename is
- * the one the API suggests, and you can use it as-is in a download header.
+ * The filename is the one the API suggests, and you can use it as-is in a download header.
  */
 final readonly class InvoiceDocumentMessage implements MessageInterface, ParsedResponseInterface
 {
-    use DecodesFileTrait;
     use KeepsRawResponseTrait;
 
     /**+@#
@@ -30,42 +28,35 @@ final readonly class InvoiceDocumentMessage implements MessageInterface, ParsedR
     public const string FIELD_FILE = 'file';
     public const string FIELD_FILENAME = 'filename';
     public const string FIELD_FILETYPE = 'filetype';
-    public const string FIELD_INVOICE_NUMBER = 'faktura_nr';
     /**-@#*/
 
     /**
-     * @param string $file base64-encoded document
+     * @param string $file the document's bytes
      * @param string $filename suggested filename
      * @param string $filetype media type of the document
-     * @param string $invoiceNumber not sent by the API, always empty
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
-         * @var string
+         * The file's bytes, decoded from the base64 the API sends.
+         *
+         * @var string empty when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
-        private string $file = '',
+        #[Base64]
+        public string $file = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
-        private string $filename = '',
+        public string $filename = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILETYPE)]
-        private string $filetype = '',
-
-        /**
-         * @var string
-         *
-         * @deprecated The API does not send this field; it is always empty.
-         */
-        #[Serializer\SerializedName(self::FIELD_INVOICE_NUMBER)]
-        private string $invoiceNumber = '',
+        public string $filetype = '',
 
         /**
          * @var string|null
@@ -73,39 +64,4 @@ final readonly class InvoiceDocumentMessage implements MessageInterface, ParsedR
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getFile(): string
-    {
-        return $this->file;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFilename(): string
-    {
-        return $this->filename;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFiletype(): string
-    {
-        return $this->filetype;
-    }
-
-    /**
-     * @return string
-     *
-     * @deprecated The API does not send this field; it is always empty. The number is the one
-     *             passed to {@see \Polkurier\Webservice\Api\Service\InvoicesServiceInterface::getInvoicePdf()}.
-     */
-    public function getInvoiceNumber(): string
-    {
-        return $this->invoiceNumber;
-    }
 }

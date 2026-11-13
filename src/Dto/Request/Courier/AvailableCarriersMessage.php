@@ -37,29 +37,13 @@ final readonly class AvailableCarriersMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_DATA)]
         #[OmitWhenEmpty]
-        private ?bool $additionalData = null,
+        public ?bool $additionalData = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_RETURN_CARRIER)]
         #[OmitWhenEmpty]
-        private ?string $returnCarrier = null,
+        public ?string $returnCarrier = null,
     ) {}
-
-    /**
-     * @return bool|null
-     */
-    public function isAdditionalData(): ?bool
-    {
-        return $this->additionalData;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getReturnCarrier(): ?string
-    {
-        return $this->returnCarrier;
-    }
 }

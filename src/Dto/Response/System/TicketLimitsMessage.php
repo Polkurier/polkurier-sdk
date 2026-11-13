@@ -33,42 +33,18 @@ final readonly class TicketLimitsMessage implements MessageInterface
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_MAX_FILE_SIZE)]
-        private int $maxFileSize = 0,
+        public int $maxFileSize = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_MAX_IMAGE_SIZE)]
-        private int $maxImageSize = 0,
+        public int $maxImageSize = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_MAX_FILES_COUNT)]
-        private int $maxFilesCount = 0,
+        public int $maxFilesCount = 0,
     ) {}
-
-    /**
-     * @return int
-     */
-    public function getMaxFileSize(): int
-    {
-        return $this->maxFileSize;
-    }
-
-    /**
-     * @return int
-     */
-    public function getMaxImageSize(): int
-    {
-        return $this->maxImageSize;
-    }
-
-    /**
-     * @return int
-     */
-    public function getMaxFilesCount(): int
-    {
-        return $this->maxFilesCount;
-    }
 }

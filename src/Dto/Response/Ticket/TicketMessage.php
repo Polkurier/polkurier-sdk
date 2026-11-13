@@ -52,13 +52,13 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
      * @param TicketStatusEnum|null $status
      * @param bool $hasEmployeeResponses whether Polkurier has replied at all
      * @param bool $read true when there are replies and none is unseen
-     * @param ?\DateTimeInterface $dateCreated
+     * @param \DateTimeInterface|null $dateCreated
      * @param string $employeeName first name of the handler, if assigned
      * @param TicketReferenceMessage[] $orders orders this ticket refers to
      * @param TicketReferenceMessage[] $complaints complaints this ticket refers to
      * @param TicketReferenceMessage[] $invoices invoices this ticket refers to
      * @param TicketTimelineItemMessage[] $messages the timeline, when the call asked for it
-     * @param ?TicketResponseTemplateMessage $responseTemplate the fixed answers Polkurier's latest reply
+     * @param TicketResponseTemplateMessage|null $responseTemplate the fixed answers Polkurier's latest reply
      *        asks for, with the timeline only
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
@@ -67,80 +67,90 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
-        private string $number = '',
+        public string $number = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_SUBJECT)]
-        private string $subject = '',
+        public string $subject = '',
 
         /**
-         * @var TicketStatusEnum|null
+         * @var TicketStatusEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private ?TicketStatusEnum $status = TicketStatusEnum::Opened,
+        public ?TicketStatusEnum $status = null,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_HAS_EMPLOYEE_RESPONSES)]
-        private bool $hasEmployeeResponses = false,
+        public bool $hasEmployeeResponses = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_READ)]
-        private bool $read = false,
+        public bool $read = false,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateCreated = null,
+        public ?\DateTimeInterface $dateCreated = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_EMPLOYEE_NAME)]
-        private string $employeeName = '',
+        public string $employeeName = '',
 
         /**
          * @var TicketReferenceMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
-        private array $orders = [],
+        public array $orders = [],
 
         /**
          * @var TicketReferenceMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_COMPLAINTS)]
-        private array $complaints = [],
+        public array $complaints = [],
 
         /**
          * @var TicketReferenceMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_INVOICES)]
-        private array $invoices = [],
+        public array $invoices = [],
 
         /**
+         * The timeline, as createTicket() and setTicketStatus() return it, and getTickets() when asked
+         * for one ticket by id. A list of tickets leaves it out, and
+         * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessages()}
+         * returns it on its own.
+         *
          * @var TicketTimelineItemMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGES)]
-        private array $messages = [],
+        public array $messages = [],
 
         /**
-         * @var TicketResponseTemplateMessage|null
+         * The fixed answers the latest reply asks for; a reply must be one of them.
+         *
+         * Comes only with the timeline, and only while the ticket's latest message is a reply from
+         * Polkurier that asks such a question.
+         *
+         * @var TicketResponseTemplateMessage|null null when there is none
          */
         #[Serializer\SerializedName(self::FIELD_RESPONSE_TEMPLATE)]
-        private ?TicketResponseTemplateMessage $responseTemplate = null,
+        public ?TicketResponseTemplateMessage $responseTemplate = null,
 
         /**
          * @var string|null
@@ -148,118 +158,4 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSubject(): string
-    {
-        return $this->subject;
-    }
-
-    /**
-     * @return TicketStatusEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getStatus(): ?TicketStatusEnum
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasEmployeeResponses(): bool
-    {
-        return $this->hasEmployeeResponses;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRead(): bool
-    {
-        return $this->read;
-    }
-
-    /**
-     * @return ?\DateTimeInterface null if the response leaves it out
-     */
-    public function getDateCreated(): ?\DateTimeInterface
-    {
-        return $this->dateCreated;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEmployeeName(): string
-    {
-        return $this->employeeName;
-    }
-
-    /**
-     * @return TicketReferenceMessage[]
-     */
-    public function getOrders(): array
-    {
-        return $this->orders;
-    }
-
-    /**
-     * @return TicketReferenceMessage[]
-     */
-    public function getComplaints(): array
-    {
-        return $this->complaints;
-    }
-
-    /**
-     * @return TicketReferenceMessage[]
-     */
-    public function getInvoices(): array
-    {
-        return $this->invoices;
-    }
-
-    /**
-     * The timeline, as createTicket() and setTicketStatus() return it, and getTickets() when asked
-     * for one ticket by id. A list of tickets leaves it out, and
-     * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessages()}
-     * returns it on its own.
-     *
-     * @return TicketTimelineItemMessage[]
-     */
-    public function getMessages(): array
-    {
-        return $this->messages;
-    }
-
-    /**
-     * The fixed answers the latest reply asks for; a reply must be one of them.
-     *
-     * Comes only with the timeline, and only while the ticket's latest message is a reply from
-     * Polkurier that asks such a question.
-     *
-     * @return ?TicketResponseTemplateMessage null when there is none
-     */
-    public function getResponseTemplate(): ?TicketResponseTemplateMessage
-    {
-        return $this->responseTemplate;
-    }
 }

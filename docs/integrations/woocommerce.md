@@ -240,7 +240,9 @@ use Psr\Log\AbstractLogger;
 
 final class WooLogger extends AbstractLogger
 {
-    public function log($level, \Stringable|string $message, array $context = []): void
+    // Untyped, because psr/log 1.x and 2.x declare the parameter without a type and a child
+    // may not narrow it.
+    public function log($level, $message, array $context = []): void
     {
         wc_get_logger()->log((string)$level, (string)$message, ['source' => 'polkurier']);
     }
@@ -305,10 +307,10 @@ final class ShipmentDispatcher
             throw $e;
         }
 
-        $order->update_meta_data('_polkurier_number', $created->getOrderNumber());
+        $order->update_meta_data('_polkurier_number', $created->orderNumber);
         $order->add_order_note(sprintf(
             __('Polkurier shipment %s created.', 'woo-polkurier'),
-            $created->getOrderNumber(),
+            $created->orderNumber,
         ));
         $order->save();
     }
@@ -496,7 +498,7 @@ add_filter('handle_bulk_actions-woocommerce_page_wc-orders', static function (
 
     header('Content-Type: application/pdf');
     header('Content-Disposition: attachment; filename="polkurier-labels.pdf"');
-    echo $document->getDecodedFile();
+    echo $document->file;
     exit;
 }, 10, 3);
 ```

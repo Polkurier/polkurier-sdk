@@ -30,29 +30,29 @@ abstract readonly class PagedListMessage implements MessageInterface, ParsedResp
     /**-@#*/
 
     /**
-     * @param int|null $totalRows rows across all pages
-     * @param int|null $currentPage 1-based index of this page
-     * @param int|null $pageSize rows per page, as applied to this response
+     * @param int $totalRows rows across all pages
+     * @param int $currentPage 1-based index of this page
+     * @param int $pageSize rows per page, as applied to this response
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
-         * @var int|null
+         * @var int 0 when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_TOTAL_ROWS)]
-        private ?int $totalRows = 0,
+        public int $totalRows = 0,
 
         /**
-         * @var int|null
+         * @var int 0 when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_CURRENT_PAGE)]
-        private ?int $currentPage = 0,
+        public int $currentPage = 0,
 
         /**
-         * @var int|null
+         * @var int 0 when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        private ?int $pageSize = 0,
+        public int $pageSize = 0,
 
         /**
          * @var string|null
@@ -60,28 +60,4 @@ abstract readonly class PagedListMessage implements MessageInterface, ParsedResp
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return int 0 when the API sends none
-     */
-    public function getTotalRows(): int
-    {
-        return $this->totalRows ?? 0;
-    }
-
-    /**
-     * @return int 0 when the API sends none
-     */
-    public function getCurrentPage(): int
-    {
-        return $this->currentPage ?? 0;
-    }
-
-    /**
-     * @return int 0 when the API sends none
-     */
-    public function getPageSize(): int
-    {
-        return $this->pageSize ?? 0;
-    }
 }

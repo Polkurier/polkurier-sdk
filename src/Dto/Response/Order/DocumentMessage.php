@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
-use Polkurier\Webservice\Dto\Response\DecodesFileTrait;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Serializer\Attribute\Base64;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -19,7 +19,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 final readonly class DocumentMessage implements MessageInterface, ParsedResponseInterface
 {
-    use DecodesFileTrait;
     use KeepsRawResponseTrait;
 
     /**+@#
@@ -29,15 +28,18 @@ final readonly class DocumentMessage implements MessageInterface, ParsedResponse
     /**-@#*/
 
     /**
-     * @param string $file base64-encoded PDF or printer-language data
+     * @param string $file the PDF or printer-language data
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
+         * The document's bytes, decoded from the base64 the API sends.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
-        private string $file = '',
+        #[Base64]
+        public string $file = '',
 
         /**
          * @var string|null
@@ -45,15 +47,4 @@ final readonly class DocumentMessage implements MessageInterface, ParsedResponse
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * The document as the API sent it, base64-encoded. {@see self::getDecodedFile()} returns the raw
-     * bytes.
-     *
-     * @return string
-     */
-    public function getFile(): string
-    {
-        return $this->file;
-    }
 }

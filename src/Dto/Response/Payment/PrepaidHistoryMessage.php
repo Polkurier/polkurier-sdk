@@ -24,24 +24,24 @@ final readonly class PrepaidHistoryMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int|null $totalRows movements across all pages
-     * @param int|null $currentPage 1-based index of this page
-     * @param int|null $pageSize movements per page as the API applied it
+     * @param int $totalRows movements across all pages
+     * @param int $currentPage 1-based index of this page
+     * @param int $pageSize movements per page as the API applied it
      * @param PrepaidEntryMessage[] $result the movements on this page
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        ?int $totalRows = 0,
+        int $totalRows = 0,
 
-        ?int $currentPage = 0,
+        int $currentPage = 0,
 
-        ?int $pageSize = 0,
+        int $pageSize = 0,
 
         /**
          * @var PrepaidEntryMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
-        private array $result = [],
+        public array $result = [],
         ?string $rawResponse = null,
     ) {
         parent::__construct(
@@ -50,13 +50,5 @@ final readonly class PrepaidHistoryMessage extends PagedListMessage
             pageSize: $pageSize,
             rawResponse: $rawResponse,
         );
-    }
-
-    /**
-     * @return PrepaidEntryMessage[]
-     */
-    public function getResult(): array
-    {
-        return $this->result;
     }
 }

@@ -35,29 +35,13 @@ final readonly class ChangePasswordMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PASSWORD)]
         #[Validate\NotBlank]
-        private string $password,
+        public string $password,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PREVIOUS_PASSWORD)]
         #[Validate\NotBlank]
-        private string $previousPassword,
+        public string $previousPassword,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPreviousPassword(): string
-    {
-        return $this->previousPassword;
-    }
 }

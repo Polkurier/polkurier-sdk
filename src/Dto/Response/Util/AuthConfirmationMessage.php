@@ -30,7 +30,7 @@ final readonly class AuthConfirmationMessage implements MessageInterface, Parsed
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AUTHORIZATION)]
-        private bool $authorized,
+        public bool $authorized,
 
         /**
          * @var string|null
@@ -38,12 +38,4 @@ final readonly class AuthConfirmationMessage implements MessageInterface, Parsed
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isAuthorized(): bool
-    {
-        return $this->authorized;
-    }
 }

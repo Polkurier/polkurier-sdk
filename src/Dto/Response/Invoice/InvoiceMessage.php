@@ -39,82 +39,42 @@ final readonly class InvoiceMessage implements MessageInterface
      * @param float $value gross total, in PLN
      * @param float $unpaidValue amount outstanding in PLN, zero when settled, and always zero for
      *        a correction
-     * @param ?\DateTimeInterface $date issue date
-     * @param ?\DateTimeInterface $paymentDeadline due date, always null for a correction
+     * @param \DateTimeInterface|null $date issue date
+     * @param \DateTimeInterface|null $paymentDeadline due date, always null for a correction
      */
     public function __construct(
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
-        private string $number = '',
+        public string $number = '',
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
-        private float $value = 0.0,
+        public float $value = 0.0,
 
         /**
-         * @var float
+         * @var float zero when settled, and for a correction
          */
         #[Serializer\SerializedName(self::FIELD_UNPAID_VALUE)]
-        private float $unpaidValue = 0.0,
+        public float $unpaidValue = 0.0,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null the day, at midnight
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $date = null,
+        public ?\DateTimeInterface $date = null,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null the day, at midnight; null for a correction
          */
         #[Serializer\SerializedName(self::FIELD_PAYMENT_DEADLINE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $paymentDeadline = null,
+        public ?\DateTimeInterface $paymentDeadline = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @return float
-     */
-    public function getValue(): float
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return float zero when settled, and for a correction
-     */
-    public function getUnpaidValue(): float
-    {
-        return $this->unpaidValue;
-    }
-
-    /**
-     * @return ?\DateTimeInterface the day, at midnight
-     */
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    /**
-     * @return ?\DateTimeInterface the day, at midnight; null for a correction
-     */
-    public function getPaymentDeadline(): ?\DateTimeInterface
-    {
-        return $this->paymentDeadline;
-    }
 }

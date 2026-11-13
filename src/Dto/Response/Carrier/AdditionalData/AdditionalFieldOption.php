@@ -31,28 +31,12 @@ final readonly class AdditionalFieldOption implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
-        private string $value,
+        public string $value,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
-        private string $label,
+        public string $label,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getValue(): string
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
 }

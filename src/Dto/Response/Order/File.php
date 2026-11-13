@@ -34,78 +34,38 @@ final readonly class File implements MessageInterface
      * @param string $type media type
      * @param int $size size in bytes
      * @param string $hash content hash, stable across downloads
-     * @param ?\DateTimeInterface $dateCreated when the document was attached, null if unknown
+     * @param \DateTimeInterface|null $dateCreated when the document was attached, null if unknown
      */
     public function __construct(
         /**
-         * @var string
+         * @var string filename, the one getOrderFile() takes
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
-         * @var string
+         * @var string media type
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
-         * @var int
+         * @var int size in bytes
          */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
-        private int $size = 0,
+        public int $size = 0,
 
         /**
-         * @var string
+         * @var string content hash, stable across downloads
          */
         #[Serializer\SerializedName(self::FIELD_HASH)]
-        private string $hash = '',
+        public string $hash = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null null if the date is unknown
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateCreated = null,
+        public ?\DateTimeInterface $dateCreated = null,
     ) {}
-
-    /**
-     * @return string filename, the one getOrderFile() takes
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string media type
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return int size in bytes
-     */
-    public function getSize(): int
-    {
-        return $this->size;
-    }
-
-    /**
-     * @return string content hash, stable across downloads
-     */
-    public function getHash(): string
-    {
-        return $this->hash;
-    }
-
-    /**
-     * @return ?\DateTimeInterface null if the date is unknown
-     */
-    public function getDateCreated(): ?\DateTimeInterface
-    {
-        return $this->dateCreated;
-    }
 }

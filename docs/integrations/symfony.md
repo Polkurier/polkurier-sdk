@@ -309,7 +309,7 @@ final readonly class PlaceShipmentHandler
             throw $e;
         }
 
-        $order->polkurierNumber = $created->getOrderNumber();
+        $order->polkurierNumber = $created->orderNumber;
         $this->repository->save($order);
     }
 }
@@ -417,7 +417,7 @@ function applyToForm(ValidationException $e, FormInterface $form, array $fieldMa
 }
 ```
 
-[`WebserviceException::getErrorMessage()`](../../src/Exception/WebserviceException.php) followed by [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) returns the same shape, so the same
+[`WebserviceException::getErrorMessage()`](../../src/Exception/WebserviceException.php) followed by [`ErrorMessage::$validationErrors`](../../src/Dto/Response/ErrorMessage.php) returns the same shape, so the same
 function works when the API rejects the payload.
 
 Testing

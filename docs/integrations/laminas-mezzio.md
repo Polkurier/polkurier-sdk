@@ -238,7 +238,7 @@ final readonly class TrackHandler implements RequestHandlerInterface
             new GetStatusMessage(orderNo: $request->getAttribute('number')),
         );
 
-        return new JsonResponse(['status' => $status->getStatus()]);
+        return new JsonResponse(['status' => $status->status]);
     }
 }
 ```
@@ -274,9 +274,9 @@ final class PolkurierErrorMiddleware implements MiddlewareInterface
             $error = $e->getErrorMessage();
 
             return new JsonResponse([
-                'error'  => $error->getResponse(),
-                'code'   => $error->getErrorCode(),
-                'errors' => $error->getValidationErrors() ?? [],
+                'error'  => $error->response,
+                'code'   => $error->errorCode,
+                'errors' => $error->validationErrors ?? [],
             ], 502);
         } catch (ConnectionException) {
             return new JsonResponse(['error' => 'The carrier API did not answer.'], 504);
@@ -334,7 +334,7 @@ final class PingCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $output->writeln('API time: ' . $this->utils->heartbeat()->getTime()?->format('c'));
+            $output->writeln('API time: ' . $this->utils->heartbeat()->time?->format('c'));
 
             return self::SUCCESS;
         } catch (PolkurierException $e) {

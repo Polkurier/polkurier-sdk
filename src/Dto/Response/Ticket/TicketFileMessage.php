@@ -39,57 +39,25 @@ final readonly class TicketFileMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
-        private int $size = 0,
+        public int $size = 0,
 
         /**
          * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateCreated = null,
+        public ?\DateTimeInterface $dateCreated = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return int
-     */
-    public function getSize(): int
-    {
-        return $this->size;
-    }
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getDateCreated(): ?\DateTimeInterface
-    {
-        return $this->dateCreated;
-    }
 }

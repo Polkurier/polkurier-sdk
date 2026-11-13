@@ -20,8 +20,8 @@ final class SystemTest extends IntegrationTestCase
     {
         $info = $this->sdk->system()->getSystemInfo();
 
-        self::assertGreaterThan(0, $info->getRegulationsAcceptancePeriod());
-        self::assertNotNull($info->getSecurity());
+        self::assertGreaterThan(0, $info->regulationsAcceptancePeriod);
+        self::assertNotNull($info->security);
     }
 
     public function testCarrierNoticesRead(): void
@@ -34,7 +34,7 @@ final class SystemTest extends IntegrationTestCase
         $notices = $this->sdk->system()->getCouriersMessages(new GetCouriersMessagesMessage(courier: 'DPD'));
 
         foreach ($notices as $notice) {
-            self::assertSame('DPD', $notice->getCourier());
+            self::assertSame('DPD', $notice->courier);
         }
     }
 
@@ -42,6 +42,6 @@ final class SystemTest extends IntegrationTestCase
     {
         $result = $this->sdk->system()->validateCouponCode(new ValidateCouponMessage(couponCode: 'NOPE123'));
 
-        self::assertFalse($result->isValid());
+        self::assertFalse($result->valid);
     }
 }

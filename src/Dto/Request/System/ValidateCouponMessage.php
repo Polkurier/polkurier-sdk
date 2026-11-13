@@ -51,21 +51,21 @@ final readonly class ValidateCouponMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COUPON_CODE)]
         #[Validate\NotBlank]
-        private string $couponCode,
+        public string $couponCode,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
-        private ?string $courier = null,
+        public ?string $courier = null,
 
         /**
          * @var ShipmentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
         #[OmitWhenEmpty]
-        private ?ShipmentTypeEnum $shipmentType = null,
+        public ?ShipmentTypeEnum $shipmentType = null,
 
         /**
          * @var PackMessage[]
@@ -74,7 +74,7 @@ final readonly class ValidateCouponMessage implements MessageInterface
         #[Validate\Valid]
         #[OmitWhenEmpty]
         #[Validate\Each(Validate\OfType::class, PackMessage::class)]
-        private array $packs = [],
+        public array $packs = [],
 
         /**
          * @var OrderAddressMessage|null
@@ -82,48 +82,6 @@ final readonly class ValidateCouponMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
         #[OmitWhenEmpty]
-        private ?OrderAddressMessage $sender = null,
+        public ?OrderAddressMessage $sender = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCouponCode(): string
-    {
-        return $this->couponCode;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getCourier(): ?string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * @return ShipmentTypeEnum|null
-     */
-    public function getShipmentType(): ?ShipmentTypeEnum
-    {
-        return $this->shipmentType;
-    }
-
-    /**
-     * @return PackMessage[]
-     */
-    public function getPacks(): array
-    {
-        return $this->packs;
-    }
-
-    /**
-     * @return OrderAddressMessage|null
-     * @deprecated The API does not read this field.
-     */
-    public function getSender(): ?OrderAddressMessage
-    {
-        return $this->sender;
-    }
-
 }

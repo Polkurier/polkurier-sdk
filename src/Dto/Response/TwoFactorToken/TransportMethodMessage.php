@@ -43,77 +43,37 @@ final readonly class TransportMethodMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id,
+        public string $id,
 
         /**
+         * Where the code goes, e.g. a phone number or email address with part of it masked with `***`,
+         * or the customer's label for an authenticator app. Show this to tell the customer where to
+         * look.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
-         * @var TwoFactorTransportTypeEnum|null
+         * @var TwoFactorTransportTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?TwoFactorTransportTypeEnum $type = null,
+        public ?TwoFactorTransportTypeEnum $type = null,
 
         /**
-         * @var string
+         * @var string a sentence describing the method, in Polish
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description = '',
+        public string $description = '',
 
         /**
+         * The method's display name, in Polish. For labels in your own language, switch on
+         * {@see self::$type} instead.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE_NAME)]
-        private string $typeName = '',
+        public string $typeName = '',
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * Where the code goes, e.g. a phone number or email address with part of it masked with `***`,
-     * or the customer's label for an authenticator app. Show this to tell the customer where to
-     * look.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return TwoFactorTransportTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?TwoFactorTransportTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string a sentence describing the method, in Polish
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * The method's display name, in Polish. For labels in your own language, switch on
-     * {@see self::getType()} instead.
-     *
-     * @return string
-     */
-    public function getTypeName(): string
-    {
-        return $this->typeName;
-    }
 }

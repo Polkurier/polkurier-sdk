@@ -36,45 +36,21 @@ final readonly class OrderWebhookMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var ?OrderWebhookTypeEnum
+         * @var ?OrderWebhookTypeEnum null when the SDK doesn't know the type
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?OrderWebhookTypeEnum $type,
+        public ?OrderWebhookTypeEnum $type,
 
         /**
-         * @var Order
+         * @var Order the order, as it was when the event was sent
          */
         #[Serializer\SerializedName(self::FIELD_DATA)]
-        private Order $order,
+        public Order $order,
 
         /**
-         * @var string
+         * @var string the event's checksum
          */
         #[Serializer\SerializedName(self::FIELD_HASH)]
-        private string $hash = '',
+        public string $hash = '',
     ) {}
-
-    /**
-     * @return ?OrderWebhookTypeEnum null when the SDK doesn't know the type
-     */
-    public function getType(): ?OrderWebhookTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return Order the order, as it was when the event was sent
-     */
-    public function getOrder(): Order
-    {
-        return $this->order;
-    }
-
-    /**
-     * @return string the event's checksum
-     */
-    public function getHash(): string
-    {
-        return $this->hash;
-    }
 }

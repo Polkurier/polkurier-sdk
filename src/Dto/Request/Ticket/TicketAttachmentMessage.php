@@ -51,21 +51,21 @@ final readonly class TicketAttachmentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[Validate\NotBlank]
-        private string $name,
+        public string $name,
 
         /**
-         * @var string
+         * @var string base64-encoded
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         #[Validate\NotBlank]
-        private string $file,
+        public string $file,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[Validate\NotBlank]
-        private string $type,
+        public string $type,
     ) {}
 
     /**
@@ -80,29 +80,5 @@ final readonly class TicketAttachmentMessage implements MessageInterface
     public static function fromContents(string $name, string $contents, string $type): self
     {
         return new self($name, \base64_encode($contents), $type);
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string base64-encoded
-     */
-    public function getFile(): string
-    {
-        return $this->file;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
     }
 }

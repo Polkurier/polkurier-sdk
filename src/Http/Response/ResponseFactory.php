@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Http\Response;
 
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\PagedListMessage;
+use Polkurier\Webservice\Dto\Response\ResponseMessage;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
@@ -24,7 +26,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * {@see \Polkurier\Webservice\Http\Response\ResponseWrapper}.
  *
  * Decodes the body, reads the envelope's status, and maps the payload into the type the service
- * asked for, or into an {@see \Polkurier\Webservice\Http\Response\ErrorMessage} for an error. A
+ * asked for, or into an {@see \Polkurier\Webservice\Dto\Response\ErrorMessage} for an error. A
  * body that isn't an API envelope, or a payload that doesn't map, throws a
  * {@see \Polkurier\Webservice\Exception\MalformedResponseException}.
  *

@@ -36,14 +36,6 @@ final readonly class RegisterAccountVerificationMessage implements MessageInterf
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\OrderNumber]
         #[OmitWhenEmpty]
-        private ?string $orderNo = null,
+        public ?string $orderNo = null,
     ) {}
-
-    /**
-     * @return string|null
-     */
-    public function getOrderNo(): ?string
-    {
-        return $this->orderNo;
-    }
 }

@@ -96,7 +96,7 @@ final class AddressTest extends TestCase
         self::assertNull($address->getFlatNumber());
         self::assertSame('Długa', $address->getStreetName());
         self::assertSame('POZ01A', $address->getMachineName());
-        self::assertSame('POZ01A', $address->getPoint()?->getId());
+        self::assertSame('POZ01A', $address->getPoint()?->id);
     }
 
     /**

@@ -30,7 +30,7 @@ try {
         new SetTicketStatusMessage(ticketId: $ticketId, status: TicketStatusEnum::Closed)
     );
 
-    \printf("%s is now %s\n", $ticket->getNumber(), $ticket->getStatus()->value ?? 'unknown');
+    \printf("%s is now %s\n", $ticket->number, $ticket->status->value ?? 'unknown');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

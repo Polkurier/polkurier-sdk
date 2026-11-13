@@ -36,42 +36,18 @@ final readonly class PinLocksMessage implements MessageInterface
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_PIN_SETTINGS)]
-        private bool $pinSettings = false,
+        public bool $pinSettings = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNTS_EDIT)]
-        private bool $bankAccountsEdit = false,
+        public bool $bankAccountsEdit = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_COD_MONEY_BOX)]
-        private bool $codMoneyBox = false,
+        public bool $codMoneyBox = false,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isPinSettings(): bool
-    {
-        return $this->pinSettings;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isBankAccountsEdit(): bool
-    {
-        return $this->bankAccountsEdit;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCodMoneyBox(): bool
-    {
-        return $this->codMoneyBox;
-    }
 }

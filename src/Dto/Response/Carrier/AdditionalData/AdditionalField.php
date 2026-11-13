@@ -43,98 +43,42 @@ final readonly class AdditionalField implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name,
+        public string $name,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
-        private string $label,
+        public string $label,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description,
+        public string $description,
 
         /**
-         * @var AdditionalFieldTypeEnum|null
+         * @var AdditionalFieldTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?AdditionalFieldTypeEnum $type,
+        public ?AdditionalFieldTypeEnum $type,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRED)]
-        private bool $required,
+        public bool $required,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_ENABLED)]
-        private bool $enabled,
+        public bool $enabled,
 
         /**
-         * @var AdditionalFieldOption[]|null
+         * @var AdditionalFieldOption[]|null the allowed values, null when any value goes
          */
         #[Serializer\SerializedName(self::FIELD_OPTIONS)]
-        private ?array $options = null,
+        public ?array $options = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return AdditionalFieldTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?AdditionalFieldTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequired(): bool
-    {
-        return $this->required;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
-    }
-
-    /**
-     * @return AdditionalFieldOption[]|null the allowed values, null when any value goes
-     */
-    public function getOptions(): ?array
-    {
-        return $this->options;
-    }
 }

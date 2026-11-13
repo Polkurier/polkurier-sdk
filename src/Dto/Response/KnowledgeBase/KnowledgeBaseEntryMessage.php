@@ -36,7 +36,7 @@ final readonly class KnowledgeBaseEntryMessage implements MessageInterface
 
     /**
      * @param string $id opaque key of the entry
-     * @param ?string $parentId id of the parent category, null at the top level
+     * @param string|null $parentId id of the parent category, null at the top level
      * @param string $slug URL-friendly name, which getArticle() takes for an article
      * @param string $title display title, in Polish
      * @param KnowledgeBaseEntryTypeEnum|null $type whether this is an article or a category
@@ -47,85 +47,37 @@ final readonly class KnowledgeBaseEntryMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PARENT_ID)]
         #[OmitWhenEmpty]
-        private ?string $parentId = null,
+        public ?string $parentId = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_SLUG)]
-        private string $slug = '',
+        public string $slug = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
 
         /**
-         * @var KnowledgeBaseEntryTypeEnum|null
+         * @var KnowledgeBaseEntryTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?KnowledgeBaseEntryTypeEnum $type = KnowledgeBaseEntryTypeEnum::Article,
+        public ?KnowledgeBaseEntryTypeEnum $type = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_URL)]
-        private string $url = '',
+        public string $url = '',
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getParentId(): ?string
-    {
-        return $this->parentId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @return KnowledgeBaseEntryTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?KnowledgeBaseEntryTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url;
-    }
 }

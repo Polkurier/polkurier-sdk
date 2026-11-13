@@ -126,8 +126,8 @@ final class ErrorPathTest extends TestCase
         } catch (AuthorizationException) {
             self::fail('A missing parameter is not an authorization error.');
         } catch (WebserviceException $e) {
-            self::assertSame(15, $e->getErrorMessage()->getStatusCode());
-            self::assertSame('PARAMS_IS_EMPTY', $e->getErrorMessage()->getErrorCode());
+            self::assertSame(15, $e->getErrorMessage()->statusCode);
+            self::assertSame('PARAMS_IS_EMPTY', $e->getErrorMessage()->errorCode);
         }
     }
 
@@ -144,7 +144,7 @@ final class ErrorPathTest extends TestCase
             $this->sdk->addresses()->getAddresses();
             self::fail('Expected a WebserviceException.');
         } catch (WebserviceException $e) {
-            self::assertSame('n2', $e->getErrorMessage()->getNonce());
+            self::assertSame('n2', $e->getErrorMessage()->nonce);
         }
     }
 

@@ -25,7 +25,7 @@ final class UtilsTest extends IntegrationTestCase
 
     public function testHeartbeatReportsTheServerTime(): void
     {
-        $time = $this->sdk->utils()->heartbeat()->getTime();
+        $time = $this->sdk->utils()->heartbeat()->time;
 
         self::assertNotNull($time);
         self::assertLessThan(300, \abs($time->getTimestamp() - \time()));

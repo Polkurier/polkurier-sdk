@@ -28,7 +28,7 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
      * JSON parameter keys
      */
     public const string FIELD_FEE = 'fee';
-    public const string FIELD_FEE_NETT = 'fee_nett';
+    public const string FIELD_FEE_NET = 'fee_nett';
     public const string FIELD_FEE_VAT_RATE = 'fee_vat_rate';
     public const string FIELD_FREE_PAYOUTS_LEFT = 'free_payouts_left';
     public const string FIELD_FREE_PAYOUTS_TOTAL = 'free_payouts_total';
@@ -37,7 +37,7 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
 
     /**
      * @param float $fee total gross fee in PLN
-     * @param float $feeNett total net fee in PLN
+     * @param float $feeNet total net fee in PLN
      * @param float $feeVatRate VAT rate as a percentage
      * @param int $freePayoutsLeft free payouts still available this month
      * @param int $freePayoutsTotal free payouts granted per month
@@ -49,37 +49,37 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_FEE)]
-        private float $fee = 0.0,
+        public float $fee = 0.0,
 
         /**
          * @var float
          */
-        #[Serializer\SerializedName(self::FIELD_FEE_NETT)]
-        private float $feeNett = 0.0,
+        #[Serializer\SerializedName(self::FIELD_FEE_NET)]
+        public float $feeNet = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_FEE_VAT_RATE)]
-        private float $feeVatRate = 0.0,
+        public float $feeVatRate = 0.0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_FREE_PAYOUTS_LEFT)]
-        private int $freePayoutsLeft = 0,
+        public int $freePayoutsLeft = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_FREE_PAYOUTS_TOTAL)]
-        private int $freePayoutsTotal = 0,
+        public int $freePayoutsTotal = 0,
 
         /**
          * @var MoneyBoxFeeComponentMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_FEES)]
-        private array $fees = [],
+        public array $fees = [],
 
         /**
          * @var string|null
@@ -87,52 +87,4 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return float
-     */
-    public function getFee(): float
-    {
-        return $this->fee;
-    }
-
-    /**
-     * @return float
-     */
-    public function getFeeNett(): float
-    {
-        return $this->feeNett;
-    }
-
-    /**
-     * @return float
-     */
-    public function getFeeVatRate(): float
-    {
-        return $this->feeVatRate;
-    }
-
-    /**
-     * @return int
-     */
-    public function getFreePayoutsLeft(): int
-    {
-        return $this->freePayoutsLeft;
-    }
-
-    /**
-     * @return int
-     */
-    public function getFreePayoutsTotal(): int
-    {
-        return $this->freePayoutsTotal;
-    }
-
-    /**
-     * @return MoneyBoxFeeComponentMessage[]
-     */
-    public function getFees(): array
-    {
-        return $this->fees;
-    }
 }

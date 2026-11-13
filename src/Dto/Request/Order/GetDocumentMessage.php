@@ -39,33 +39,13 @@ final readonly class GetDocumentMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\Each(Validate\OrderNumber::class)]
         #[Validate\NotEmptyList]
-        private array $orderNo,
+        public array $orderNo,
 
         /**
          * @var LabelFileFormatEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_FILE_FORMAT)]
         #[OmitWhenEmpty]
-        private ?LabelFileFormatEnum $fileFormat = null,
+        public ?LabelFileFormatEnum $fileFormat = null,
     ) {}
-
-    /**
-     * @return string[]
-     */
-    public function getOrderNo(): array
-    {
-        return $this->orderNo;
-    }
-
-    /**
-     * Printer language to render labels in instead of PDF.
-     *
-     * Used by `get_label` for a single order number only.
-     *
-     * @return LabelFileFormatEnum|null
-     */
-    public function getFileFormat(): ?LabelFileFormatEnum
-    {
-        return $this->fileFormat;
-    }
 }

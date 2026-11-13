@@ -36,28 +36,12 @@ final readonly class GetInvoiceSummaryListMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
-        private string $number,
+        public string $number,
 
         /**
          * @var InvoiceSummaryFormatEnum
          */
         #[Serializer\SerializedName(self::FIELD_FORMAT)]
-        private InvoiceSummaryFormatEnum $format = InvoiceSummaryFormatEnum::Pdf,
+        public InvoiceSummaryFormatEnum $format = InvoiceSummaryFormatEnum::Pdf,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @return InvoiceSummaryFormatEnum
-     */
-    public function getFormat(): InvoiceSummaryFormatEnum
-    {
-        return $this->format;
-    }
 }

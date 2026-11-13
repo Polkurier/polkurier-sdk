@@ -35,14 +35,6 @@ final readonly class AcceptRegulationsMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ID)]
         #[Validate\NotBlank]
-        private string $regulationsId,
+        public string $regulationsId,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getRegulationsId(): string
-    {
-        return $this->regulationsId;
-    }
 }

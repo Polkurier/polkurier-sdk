@@ -29,23 +29,23 @@ final class AccountTest extends IntegrationTestCase
 {
     public function testTheProfileReads(): void
     {
-        self::assertSame(self::login(), (string)$this->sdk->account()->getAccountInfo()->getId());
+        self::assertSame(self::login(), (string)$this->sdk->account()->getAccountInfo()->id);
     }
 
     public function testTheCurrentTermsAreReadAndAccepted(): void
     {
         $terms = $this->sdk->account()->getRegulations();
-        self::assertNotSame('', $terms->getId());
+        self::assertNotSame('', $terms->id);
 
         self::requireSandbox();
         self::assertTrue($this->sdk->account()->acceptRegulations(
-            new AcceptRegulationsMessage(regulationsId: $terms->getId()),
+            new AcceptRegulationsMessage(regulationsId: $terms->id),
         ));
     }
 
     public function testAWrongPinIsReported(): void
     {
-        self::assertFalse($this->sdk->account()->validateUserPin(new ValidatePinMessage(pin: '0000'))->isValid());
+        self::assertFalse($this->sdk->account()->validateUserPin(new ValidatePinMessage(pin: '0000'))->valid);
     }
 
     public function testThePhoneNumbersRead(): void
@@ -84,7 +84,7 @@ final class AccountTest extends IntegrationTestCase
             defaultSenderPoint: ['INPOST_PACZKOMAT' => 'POZ01A'],
         ));
 
-        self::assertSame('DPD', $settings->getDefaultCourier());
+        self::assertSame('DPD', $settings->defaultCourier);
         self::assertTrue($account->changeDefaultCourier(new ChangeDefaultCourierMessage(courier: 'INPOST_PACZKOMAT')));
         self::assertTrue($account->changeDefaultSenderPoint(
             new ChangeDefaultSenderPointMessage(courier: 'INPOST_PACZKOMAT', point: 'POZ01A'),

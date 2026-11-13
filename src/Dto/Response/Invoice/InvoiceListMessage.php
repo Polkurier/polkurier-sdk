@@ -25,24 +25,24 @@ final readonly class InvoiceListMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int|null $totalRows invoices matching the filter, across all pages
-     * @param int|null $currentPage 1-based index of this page
-     * @param int|null $pageSize invoices per page as the API applied it
+     * @param int $totalRows invoices matching the filter, across all pages
+     * @param int $currentPage 1-based index of this page
+     * @param int $pageSize invoices per page as the API applied it
      * @param InvoiceMessage[] $result the invoices on this page
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        ?int $totalRows = 0,
+        int $totalRows = 0,
 
-        ?int $currentPage = 0,
+        int $currentPage = 0,
 
-        ?int $pageSize = 0,
+        int $pageSize = 0,
 
         /**
          * @var InvoiceMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
-        private array $result = [],
+        public array $result = [],
         ?string $rawResponse = null,
     ) {
         parent::__construct(
@@ -51,13 +51,5 @@ final readonly class InvoiceListMessage extends PagedListMessage
             pageSize: $pageSize,
             rawResponse: $rawResponse,
         );
-    }
-
-    /**
-     * @return InvoiceMessage[]
-     */
-    public function getResult(): array
-    {
-        return $this->result;
     }
 }

@@ -24,9 +24,9 @@ try {
     foreach ($carriers as $carrier) {
         \printf(
             "%-24s %-40s %s\n",
-            $carrier->getServiceCode(),
-            $carrier->getName(),
-            $carrier->isForeignShipments() ? 'international' : 'domestic'
+            $carrier->serviceCode,
+            $carrier->name,
+            $carrier->foreignShipments ? 'international' : 'domestic'
         );
     }
 } catch (Exception $e) {

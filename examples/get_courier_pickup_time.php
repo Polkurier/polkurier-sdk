@@ -28,12 +28,12 @@ try {
     ));
 
     foreach ($slots as $slot) {
-        foreach ($slot->getTime() as $window) {
+        foreach ($slot->time as $window) {
             \printf(
                 "%s  %s–%s\n",
-                $slot->getPickupDate()?->format('Y-m-d'),
-                $window->getTimeFrom()?->format('H:i'),
-                $window->getTimeTo()?->format('H:i')
+                $slot->pickupDate?->format('Y-m-d'),
+                $window->timeFrom?->format('H:i'),
+                $window->timeTo?->format('H:i')
             );
         }
     }

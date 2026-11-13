@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\Account;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Serializer\Attribute\NamedValues;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -68,7 +69,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
     public const string FIELD_EXTERNAL_APPLICATION_SETTINGS = 'external_application_settings';
     public const string FIELD_PHONE_PIN = 'phone_pin';
     public const string FIELD_DEFAULT_INPOST_SENDER_POINT = 'default_shipping_point_sender_INPOST_PACZKOMAT';
-    public const string FIELD_DEFAULT_POCZTEX_SENDER_POINT = 'default_shipping_point_sender_KURIER48';
+    public const string FIELD_DEFAULT_KURIER48_SENDER_POINT = 'default_shipping_point_sender_KURIER48';
     /**-@#*/
 
     /**
@@ -86,11 +87,11 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
      * @param bool $electronicInvoiceAccepted always equal to $pricesListAccepted
      * @param bool $emailVerified orders are refused while false
      * @param bool $payerDataComplete the billing address is complete enough to invoice
-     * @param bool $verified always true
+     * @param bool $verified hard-coded true by the API
      * @param bool $deleteRequested account deletion has been requested; orders are refused while
      *        true
      * @param bool $hasPhoneNumber
-     * @param bool $requireAccountVerification always false
+     * @param bool $requireAccountVerification hard-coded false by the API
      * @param bool $requireAgreementVerification the account has to complete identity verification
      * @param string $paymentType how the account settles: INVOICE or PREPAID
      * @param float $moneyBoxBalance total held in the money box, in PLN
@@ -108,13 +109,15 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
      *        for carriers with none set
      * @param PinLocksMessage|null $pinLocks
      * @param AccountSettingsMessage|null $settings
-     * @param array<string, mixed>|null $externalApplicationSettings the external application's
-     *        settings by name, present only when the request named one
+     * @param ExternalApplicationSettingMessage[]|null $externalApplicationSettings the settings of
+     *        the external application the request named
      * @param string $phonePin the telephone PIN, the code given when contacting support, empty if
      *        none is set
      * @param string|null $defaultInpostSenderPoint the `INPOST_PACZKOMAT` entry of
      *        $defaultSenderPoint
-     * @param string|null $defaultPocztexSenderPoint the `POCZTEX_PUNKT` entry of $defaultSenderPoint
+     * @param string|null $defaultKurier48SenderPoint the point the API reports under
+     *        `default_shipping_point_sender_KURIER48`, which names no carrier code the SDK
+     *        knows; read $defaultSenderPoint to address a carrier by its code
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
@@ -122,215 +125,230 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private int $id = 0,
+        public int $id = 0,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DISPLAY_NAME)]
-        private string $displayName = '',
+        public string $displayName = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
-        private string $email = '',
+        public string $email = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_COURIER)]
-        private string $defaultCourier = '',
+        public string $defaultCourier = '',
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_ACTIVE)]
-        private bool $active = false,
+        public bool $active = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ACCEPTED)]
-        private bool $regulationsAccepted = false,
+        public bool $regulationsAccepted = false,
 
         /**
+         * Revised terms are waiting to be accepted. True in one response per version of the terms: the
+         * call that reports it marks the notice as shown, and later calls answer false, accepted or not.
+         *
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_NEW_REGULATIONS)]
-        private bool $newRegulations = false,
+        public bool $newRegulations = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_PRICES_LIST_ACCEPTED)]
-        private bool $pricesListAccepted = false,
+        public bool $pricesListAccepted = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_COURIERS_REGULATIONS_ACCEPTED)]
-        private bool $couriersRegulationsAccepted = false,
+        public bool $couriersRegulationsAccepted = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_ELECTRONIC_INVOICE_ACCEPTED)]
-        private bool $electronicInvoiceAccepted = false,
+        public bool $electronicInvoiceAccepted = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_EMAIL_VERIFIED)]
-        private bool $emailVerified = false,
+        public bool $emailVerified = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_PAYER_DATA_COMPLETE)]
-        private bool $payerDataComplete = false,
+        public bool $payerDataComplete = false,
 
         /**
          * @var bool
+         * @deprecated The API hard-codes this to true; it says nothing about the account.
          */
         #[Serializer\SerializedName(self::FIELD_VERIFIED)]
-        private bool $verified = false,
+        public bool $verified = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_DELETE_REQUESTED)]
-        private bool $deleteRequested = false,
+        public bool $deleteRequested = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_HAS_PHONE_NUMBER)]
-        private bool $hasPhoneNumber = false,
+        public bool $hasPhoneNumber = false,
 
         /**
          * @var bool
+         * @deprecated The API hard-codes this to false; it says nothing about the account.
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_ACCOUNT_VERIFICATION)]
-        private bool $requireAccountVerification = false,
+        public bool $requireAccountVerification = false,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_AGREEMENT_VERIFICATION)]
-        private bool $requireAgreementVerification = false,
+        public bool $requireAgreementVerification = false,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PAYMENT_TYPE)]
-        private string $paymentType = '',
+        public string $paymentType = '',
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_BALANCE)]
-        private float $moneyBoxBalance = 0.0,
+        public float $moneyBoxBalance = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_PAYOUT_AVAILABLE_BALANCE)]
-        private float $moneyBoxPayoutAvailableBalance = 0.0,
+        public float $moneyBoxPayoutAvailableBalance = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_TO_PAYOUT_BALANCE)]
-        private float $moneyBoxToPayoutBalance = 0.0,
+        public float $moneyBoxToPayoutBalance = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_PREPAID_BALANCE)]
-        private float $prepaidBalance = 0.0,
+        public float $prepaidBalance = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_BALANCE)]
-        private float $invoiceBalance = 0.0,
+        public float $invoiceBalance = 0.0,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_PAYMENT_ACCOUNT_NUMBER)]
         #[OmitWhenEmpty]
-        private ?string $invoicePaymentAccountNumber = null,
+        public ?string $invoicePaymentAccountNumber = null,
 
         /**
-         * @var ?float
+         * @var float|null
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_LIMIT)]
         #[OmitWhenEmpty]
-        private ?float $invoiceLimit = null,
+        public ?float $invoiceLimit = null,
 
         /**
-         * @var ?float
+         * @var float|null
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_LIMIT_USED)]
         #[OmitWhenEmpty]
-        private ?float $invoiceLimitUsed = null,
+        public ?float $invoiceLimitUsed = null,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_REBATE)]
-        private float $invoiceRebate = 0.0,
+        public float $invoiceRebate = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_BONUSES_SAVINGS)]
-        private float $bonusesSavings = 0.0,
+        public float $bonusesSavings = 0.0,
 
         /**
-         * @var array<string, string|null>
+         * @var array<string, string|null> default drop-off point per carrier code, null for carriers with none set
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_SENDER_POINT)]
-        private array $defaultSenderPoint = [],
+        public array $defaultSenderPoint = [],
 
         /**
-         * @var ?PinLocksMessage
+         * @var PinLocksMessage|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_PIN_LOCKS)]
-        private ?PinLocksMessage $pinLocks = null,
+        public ?PinLocksMessage $pinLocks = null,
 
         /**
-         * @var ?AccountSettingsMessage
+         * @var AccountSettingsMessage|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_SETTINGS)]
-        private ?AccountSettingsMessage $settings = null,
+        public ?AccountSettingsMessage $settings = null,
 
         /**
-         * @var array<string, mixed>|null
+         * The settings of the external application the request named, one entry per setting.
+         *
+         * Empty when the application has none, and also when the id doesn't match one of the
+         * account's applications, which isn't reported as an error.
+         *
+         * @var ExternalApplicationSettingMessage[]|null null when the request named no application
          */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_SETTINGS)]
-        #[OmitWhenEmpty]
-        private ?array $externalApplicationSettings = null,
+        #[NamedValues(
+            name: ExternalApplicationSettingMessage::FIELD_NAME,
+            value: ExternalApplicationSettingMessage::FIELD_VALUE,
+        )]
+        public ?array $externalApplicationSettings = null,
 
         /**
-         * @var string
+         * The telephone PIN, given when contacting support. Not the security PIN.
+         *
+         * @var string empty when none is set
          */
         #[Serializer\SerializedName(self::FIELD_PHONE_PIN)]
-        private string $phonePin = '',
+        public string $phonePin = '',
 
         /**
-         * @var string|null
+         * @var string|null the `INPOST_PACZKOMAT` entry of $defaultSenderPoint, repeated by the API
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_INPOST_SENDER_POINT)]
-        private ?string $defaultInpostSenderPoint = null,
+        public ?string $defaultInpostSenderPoint = null,
 
         /**
-         * @var string|null
+         * @var string|null the point reported under `default_shipping_point_sender_KURIER48`
          */
-        #[Serializer\SerializedName(self::FIELD_DEFAULT_POCZTEX_SENDER_POINT)]
-        private ?string $defaultPocztexSenderPoint = null,
+        #[Serializer\SerializedName(self::FIELD_DEFAULT_KURIER48_SENDER_POINT)]
+        public ?string $defaultKurier48SenderPoint = null,
 
         /**
          * @var string|null
@@ -338,313 +356,4 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return int
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDisplayName(): string
-    {
-        return $this->displayName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDefaultCourier(): string
-    {
-        return $this->defaultCourier;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isActive(): bool
-    {
-        return $this->active;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRegulationsAccepted(): bool
-    {
-        return $this->regulationsAccepted;
-    }
-
-    /**
-     * Revised terms are waiting to be accepted. True in one response per version of the terms: the
-     * call that reports it marks the notice as shown, and later calls answer false, accepted or not.
-     *
-     * @return bool
-     */
-    public function isNewRegulations(): bool
-    {
-        return $this->newRegulations;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPricesListAccepted(): bool
-    {
-        return $this->pricesListAccepted;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCouriersRegulationsAccepted(): bool
-    {
-        return $this->couriersRegulationsAccepted;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isElectronicInvoiceAccepted(): bool
-    {
-        return $this->electronicInvoiceAccepted;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isEmailVerified(): bool
-    {
-        return $this->emailVerified;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPayerDataComplete(): bool
-    {
-        return $this->payerDataComplete;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isVerified(): bool
-    {
-        return $this->verified;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDeleteRequested(): bool
-    {
-        return $this->deleteRequested;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasPhoneNumber(): bool
-    {
-        return $this->hasPhoneNumber;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequireAccountVerification(): bool
-    {
-        return $this->requireAccountVerification;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequireAgreementVerification(): bool
-    {
-        return $this->requireAgreementVerification;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPaymentType(): string
-    {
-        return $this->paymentType;
-    }
-
-    /**
-     * @return float
-     */
-    public function getMoneyBoxBalance(): float
-    {
-        return $this->moneyBoxBalance;
-    }
-
-    /**
-     * @return float
-     */
-    public function getMoneyBoxPayoutAvailableBalance(): float
-    {
-        return $this->moneyBoxPayoutAvailableBalance;
-    }
-
-    /**
-     * @return float
-     */
-    public function getMoneyBoxToPayoutBalance(): float
-    {
-        return $this->moneyBoxToPayoutBalance;
-    }
-
-    /**
-     * @return float
-     */
-    public function getPrepaidBalance(): float
-    {
-        return $this->prepaidBalance;
-    }
-
-    /**
-     * @return float
-     */
-    public function getInvoiceBalance(): float
-    {
-        return $this->invoiceBalance;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getInvoicePaymentAccountNumber(): ?string
-    {
-        return $this->invoicePaymentAccountNumber;
-    }
-
-    /**
-     * @return float|null
-     */
-    public function getInvoiceLimit(): ?float
-    {
-        return $this->invoiceLimit;
-    }
-
-    /**
-     * @return float|null
-     */
-    public function getInvoiceLimitUsed(): ?float
-    {
-        return $this->invoiceLimitUsed;
-    }
-
-    /**
-     * @return float
-     */
-    public function getInvoiceRebate(): float
-    {
-        return $this->invoiceRebate;
-    }
-
-    /**
-     * @return float
-     */
-    public function getBonusesSavings(): float
-    {
-        return $this->bonusesSavings;
-    }
-
-    /**
-     * @return array<string, string|null> default drop-off point per carrier code, null for carriers
-     *         with none set
-     */
-    public function getDefaultSenderPoint(): array
-    {
-        return $this->defaultSenderPoint;
-    }
-
-    /**
-     * @return PinLocksMessage|null null if the response leaves it out
-     */
-    public function getPinLocks(): ?PinLocksMessage
-    {
-        return $this->pinLocks;
-    }
-
-    /**
-     * @return AccountSettingsMessage|null null if the response leaves it out
-     */
-    public function getSettings(): ?AccountSettingsMessage
-    {
-        return $this->settings;
-    }
-
-    /**
-     * The settings of the external application the request named, one entry per setting.
-     *
-     * Empty when the application has none, and also when the id doesn't match one of the
-     * account's applications, which isn't reported as an error.
-     *
-     * @return ExternalApplicationSettingMessage[]|null null when the request named no application
-     */
-    public function getExternalApplicationSettings(): ?array
-    {
-        if ($this->externalApplicationSettings === null) {
-            return null;
-        }
-
-        $settings = [];
-        foreach ($this->externalApplicationSettings as $name => $value) {
-            $settings[] = new ExternalApplicationSettingMessage(
-                (string)$name,
-                $value === null || \is_scalar($value) ? $value : (string)\json_encode($value, \JSON_UNESCAPED_UNICODE),
-            );
-        }
-
-        return $settings;
-    }
-
-    /**
-     * The telephone PIN, given when contacting support. Not the security PIN.
-     *
-     * @return string empty when none is set
-     */
-    public function getPhonePin(): string
-    {
-        return $this->phonePin;
-    }
-
-    /**
-     * @deprecated The same value as the `INPOST_PACZKOMAT` entry of getDefaultSenderPoint(); read it
-     *             from there.
-     *
-     * @return string|null
-     */
-    public function getDefaultInpostSenderPoint(): ?string
-    {
-        return $this->defaultInpostSenderPoint;
-    }
-
-    /**
-     * @deprecated The same value as the `POCZTEX_PUNKT` entry of getDefaultSenderPoint(); read it
-     *             from there.
-     *
-     * @return string|null
-     */
-    public function getDefaultPocztexSenderPoint(): ?string
-    {
-        return $this->defaultPocztexSenderPoint;
-    }
 }

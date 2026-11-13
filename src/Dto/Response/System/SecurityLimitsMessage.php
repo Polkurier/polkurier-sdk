@@ -38,56 +38,24 @@ final readonly class SecurityLimitsMessage implements MessageInterface
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_USER_PIN_MIN_LENGTH)]
-        private int $userPinMinLength = 0,
+        public int $userPinMinLength = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_USER_PIN_MAX_LENGTH)]
-        private int $userPinMaxLength = 0,
+        public int $userPinMaxLength = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE_LENGTH)]
-        private int $twoFactorCodeLength = 0,
+        public int $twoFactorCodeLength = 0,
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_RESEND_THROTTLE)]
-        private int $twoFactorResendThrottle = 0,
+        public int $twoFactorResendThrottle = 0,
     ) {}
-
-    /**
-     * @return int
-     */
-    public function getUserPinMinLength(): int
-    {
-        return $this->userPinMinLength;
-    }
-
-    /**
-     * @return int
-     */
-    public function getUserPinMaxLength(): int
-    {
-        return $this->userPinMaxLength;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTwoFactorCodeLength(): int
-    {
-        return $this->twoFactorCodeLength;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTwoFactorResendThrottle(): int
-    {
-        return $this->twoFactorResendThrottle;
-    }
 }

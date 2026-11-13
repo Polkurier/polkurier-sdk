@@ -30,14 +30,6 @@ final readonly class RegisterMessage implements MessageInterface
          * @var TwoFactorNamespaceEnum
          */
         #[Serializer\SerializedName(self::FIELD_NAMESPACE)]
-        private TwoFactorNamespaceEnum $namespace,
+        public TwoFactorNamespaceEnum $namespace,
     ) {}
-
-    /**
-     * @return TwoFactorNamespaceEnum
-     */
-    public function getNamespace(): TwoFactorNamespaceEnum
-    {
-        return $this->namespace;
-    }
 }

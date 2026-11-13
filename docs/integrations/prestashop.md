@@ -280,16 +280,16 @@ final class ShipmentDispatcher
             $error = $e->getErrorMessage();
 
             return [false, $this->formatErrors(
-                $error->getValidationErrors() ?? ['' => [$error->getResponse()]],
+                $error->validationErrors ?? ['' => [$error->response]],
             )];
         } catch (ConnectionException) {
             // Unknown outcome. It stays queued and isn't sent again in this pass.
             return [false, 'Polkurier did not answer. The shipment stays queued.'];
         }
 
-        $this->store($order, $created->getOrderNumber());
+        $this->store($order, $created->orderNumber);
 
-        return [true, sprintf('Shipment %s created.', $created->getOrderNumber())];
+        return [true, sprintf('Shipment %s created.', $created->orderNumber)];
     }
 
     /** @param array<string, string[]> $errors */
@@ -309,7 +309,7 @@ final class ShipmentDispatcher
 ```
 
 `ShipmentDispatcher::formatErrors()` works for both exception types because [`ValidationException::getValidationErrors()`](../../src/Exception/ValidationException.php)
-and [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) return the same shape. The merchant sees local and API
+and [`ErrorMessage::$validationErrors`](../../src/Dto/Response/ErrorMessage.php) return the same shape. The merchant sees local and API
 rejections in the same format.
 
 Mapping a PrestaShop address
@@ -398,7 +398,7 @@ $document = Client::build()->orders()->getLabel(new GetDocumentMessage(orderNo: 
 
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="label.pdf"');
-echo $document->getDecodedFile();
+echo $document->file;
 exit;
 ```
 

@@ -29,14 +29,6 @@ final readonly class CouponLimitsMessage implements MessageInterface
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_MIN_LENGTH)]
-        private int $minLength = 0,
+        public int $minLength = 0,
     ) {}
-
-    /**
-     * @return int
-     */
-    public function getMinLength(): int
-    {
-        return $this->minLength;
-    }
 }

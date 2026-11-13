@@ -36,9 +36,9 @@ class ValidateCouponMessageValidator extends AbstractMessageValidator
     {
         /** @var ValidateCouponMessage $data */
         $supplied = [
-            ValidateCouponMessage::FIELD_COURIER => $data->getCourier() !== null,
-            ValidateCouponMessage::FIELD_SHIPMENT_TYPE => $data->getShipmentType() !== null,
-            ValidateCouponMessage::FIELD_PACKS => $data->getPacks() !== [],
+            ValidateCouponMessage::FIELD_COURIER => $data->courier !== null,
+            ValidateCouponMessage::FIELD_SHIPMENT_TYPE => $data->shipmentType !== null,
+            ValidateCouponMessage::FIELD_PACKS => $data->packs !== [],
         ];
 
         if (!\in_array(true, $supplied, true) || !\in_array(false, $supplied, true)) {

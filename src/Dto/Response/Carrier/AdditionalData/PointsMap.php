@@ -26,51 +26,27 @@ final readonly class PointsMap implements MessageInterface
 
     public function __construct(
         /**
+         * The carrier codes to pass, all together, to
+         * {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::findCourierPoints()} for
+         * this carrier's points.
+         *
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE_PROVIDERS)]
-        private array $availableProviders = [],
+        public array $availableProviders = [],
 
         /**
-         * @var PointRequirementEnum|null
+         * @var PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
+         *         the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_SENDER_POINT)]
-        private ?PointRequirementEnum $senderPoint = null,
+        public ?PointRequirementEnum $senderPoint = null,
 
         /**
-         * @var PointRequirementEnum|null
+         * @var PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
+         *         the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_RECIPIENT_POINT)]
-        private ?PointRequirementEnum $recipientPoint = null,
+        public ?PointRequirementEnum $recipientPoint = null,
     ) {}
-
-    /**
-     * The carrier codes to pass, all together, to
-     * {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::findCourierPoints()} for
-     * this carrier's points.
-     *
-     * @return string[]
-     */
-    public function getAvailableProviders(): array
-    {
-        return $this->availableProviders;
-    }
-
-    /**
-     * @return PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
-     *         this version of the SDK doesn't know
-     */
-    public function getSenderPoint(): ?PointRequirementEnum
-    {
-        return $this->senderPoint;
-    }
-
-    /**
-     * @return PointRequirementEnum|null null if the carrier's entry leaves it out, or for a value
-     *         this version of the SDK doesn't know
-     */
-    public function getRecipientPoint(): ?PointRequirementEnum
-    {
-        return $this->recipientPoint;
-    }
 }

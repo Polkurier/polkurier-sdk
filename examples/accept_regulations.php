@@ -31,10 +31,10 @@ try {
     );
 
     $accepted = $sdk->account()->acceptRegulations(
-        new AcceptRegulationsMessage(regulationsId: $regulations->getId())
+        new AcceptRegulationsMessage(regulationsId: $regulations->id)
     );
 
-    echo $accepted ? "Accepted {$regulations->getId()}.\n" : "Acceptance was not recorded.\n";
+    echo $accepted ? "Accepted {$regulations->id}.\n" : "Acceptance was not recorded.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

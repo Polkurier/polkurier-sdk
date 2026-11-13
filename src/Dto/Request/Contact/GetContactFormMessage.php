@@ -31,14 +31,6 @@ final readonly class GetContactFormMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CATEGORY)]
         #[Validate\NotBlank]
-        private string $category,
+        public string $category,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCategory(): string
-    {
-        return $this->category;
-    }
 }

@@ -33,42 +33,18 @@ final readonly class Cod implements MessageInterface
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
-        private bool $available,
+        public bool $available,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description,
+        public string $description,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_INSURANCE)]
-        private bool $requireInsurance,
+        public bool $requireInsurance,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequireInsurance(): bool
-    {
-        return $this->requireInsurance;
-    }
 }

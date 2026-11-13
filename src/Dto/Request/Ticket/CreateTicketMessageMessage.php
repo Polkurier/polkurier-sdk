@@ -39,13 +39,13 @@ final readonly class CreateTicketMessageMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
-        private string $ticketId,
+        public string $ticketId,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content,
+        public string $content,
 
         /**
          * @var TicketAttachmentMessage[]
@@ -54,30 +54,6 @@ final readonly class CreateTicketMessageMessage implements MessageInterface
         #[OmitWhenEmpty]
         #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, TicketAttachmentMessage::class)]
-        private array $files = [],
+        public array $files = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTicketId(): string
-    {
-        return $this->ticketId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return TicketAttachmentMessage[]
-     */
-    public function getFiles(): array
-    {
-        return $this->files;
-    }
 }

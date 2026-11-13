@@ -47,26 +47,26 @@ final readonly class AccountVerificationMessage implements MessageInterface, Par
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_ID)]
-        private string $verificationId = '',
+        public string $verificationId = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private string $status = '',
+        public string $status = '',
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]
-        private ?string $accessToken = null,
+        public ?string $accessToken = null,
 
         /**
          * @var string|null
@@ -74,36 +74,4 @@ final readonly class AccountVerificationMessage implements MessageInterface, Par
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getVerificationId(): string
-    {
-        return $this->verificationId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getAccessToken(): ?string
-    {
-        return $this->accessToken;
-    }
 }

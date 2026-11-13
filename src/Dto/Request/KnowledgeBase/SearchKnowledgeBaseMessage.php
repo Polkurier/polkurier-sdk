@@ -31,14 +31,6 @@ final readonly class SearchKnowledgeBaseMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_QUERY)]
         #[Validate\NotBlank]
-        private string $query,
+        public string $query,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getQuery(): string
-    {
-        return $this->query;
-    }
 }

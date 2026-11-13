@@ -106,9 +106,9 @@ final class BuilderBehaviourTest extends TestCase
 
         $message = $builder->build();
 
-        self::assertSame('Poznań', $message->getSearchQuery());
-        self::assertSame(5, $message->getLimit());
-        self::assertNull($message->getPage(), 'a filter that did not apply was never set');
+        self::assertSame('Poznań', $message->searchQuery);
+        self::assertSame(5, $message->limit);
+        self::assertNull($message->page, 'a filter that did not apply was never set');
     }
 
     /**
@@ -141,7 +141,7 @@ final class BuilderBehaviourTest extends TestCase
             ->limit(10)
             ->build();
 
-        self::assertSame(10, $message->getLimit());
+        self::assertSame(10, $message->limit);
     }
 
     public function testResetForgetsEveryValue(): void
@@ -168,7 +168,7 @@ final class BuilderBehaviourTest extends TestCase
             ->build();
 
         self::assertInstanceOf(PickupMessage::class, $message);
-        self::assertSame('61-001', $message->getShipFrom());
+        self::assertSame('61-001', $message->shipFrom);
     }
 
     /**

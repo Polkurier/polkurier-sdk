@@ -53,9 +53,9 @@ final class CourierTest extends IntegrationTestCase
         ));
         self::assertNotEmpty($points);
 
-        $point = $this->sdk->courier()->getCourierPoint($points[0]->getId(), ['INPOST_PACZKOMAT']);
+        $point = $this->sdk->courier()->getCourierPoint($points[0]->id, ['INPOST_PACZKOMAT']);
 
-        self::assertSame($points[0]->getId(), $point?->getId());
+        self::assertSame($points[0]->id, $point?->id);
     }
 
     public function testPickupDaysRead(): void

@@ -32,93 +32,45 @@ final readonly class TrackingEventMessage implements MessageInterface
      * @param string $statusCode Polkurier's status code, e.g. "WP"
      * @param string $status Polkurier's status label
      * @param string $trackingStatus the carrier's own status name
-     * @param string|null $location where the scan happened; null when the carrier doesn't say
-     * @param string|null $description
+     * @param string $location where the scan happened, empty when the carrier doesn't say
+     * @param string $description
      */
     public function __construct(
         /**
-         * @var \DateTimeInterface|null
+         * @var \DateTimeInterface|null null if the event comes without a date
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d H:i:s'])]
-        private ?\DateTimeInterface $statusDate = null,
+        public ?\DateTimeInterface $statusDate = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
-        private string $statusCode = '',
+        public string $statusCode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        private string $status = '',
+        public string $status = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING_STATUS)]
-        private string $trackingStatus = '',
+        public string $trackingStatus = '',
 
         /**
-         * @var string|null
+         * @var string empty when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_LOCATION)]
-        private ?string $location = '',
+        public string $location = '',
 
         /**
-         * @var string|null
+         * @var string empty when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private ?string $description = '',
+        public string $description = '',
     ) {}
-
-    /**
-     * @return \DateTimeInterface|null null if the event comes without a date
-     */
-    public function getStatusDate(): ?\DateTimeInterface
-    {
-        return $this->statusDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatusCode(): string
-    {
-        return $this->statusCode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTrackingStatus(): string
-    {
-        return $this->trackingStatus;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLocation(): string
-    {
-        return $this->location ?? '';
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description ?? '';
-    }
 }

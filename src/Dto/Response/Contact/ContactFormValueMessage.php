@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A named value on a contact form: one of the form's properties or starting values, or one of a
@@ -18,6 +19,13 @@ use Polkurier\Webservice\Api\MessageInterface;
  */
 final readonly class ContactFormValueMessage implements MessageInterface
 {
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_NAME = 'name';
+    public const string FIELD_VALUE = 'value';
+    /**-@#*/
+
     /**
      * @param string $name
      * @param string|int|float|bool|null $value a list or other compound value as its JSON
@@ -26,47 +34,13 @@ final readonly class ContactFormValueMessage implements MessageInterface
         /**
          * @var string
          */
-        private string $name,
+        #[Serializer\SerializedName(self::FIELD_NAME)]
+        public string $name,
 
         /**
-         * @var string|int|float|bool|null
+         * @var string|int|float|bool|null a list or other compound value as its JSON
          */
-        private string|int|float|bool|null $value,
+        #[Serializer\SerializedName(self::FIELD_VALUE)]
+        public string|int|float|bool|null $value,
     ) {}
-
-    /**
-     * Turns values keyed by name into a list of them.
-     *
-     * @param array<array-key, mixed> $values
-     *
-     * @return list<self>
-     */
-    public static function listOf(array $values): array
-    {
-        $list = [];
-        foreach ($values as $name => $value) {
-            $list[] = new self(
-                (string)$name,
-                $value === null || \is_scalar($value) ? $value : (string)\json_encode($value, \JSON_UNESCAPED_UNICODE),
-            );
-        }
-
-        return $list;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string|int|float|bool|null a list or other compound value as its JSON
-     */
-    public function getValue(): string|int|float|bool|null
-    {
-        return $this->value;
-    }
 }

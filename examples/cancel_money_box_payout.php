@@ -29,7 +29,7 @@ try {
         new CancelMoneyBoxPayoutMessage(payoutNumber: $payoutNumber)
     );
 
-    \printf("Payout %s for %.2f PLN cancelled\n", $payout->getNumber(), $payout->getAmount());
+    \printf("Payout %s for %.2f PLN cancelled\n", $payout->number, $payout->amount);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

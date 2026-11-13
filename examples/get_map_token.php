@@ -19,7 +19,7 @@ require __DIR__ . '/bootstrap.php';
 try {
     $token = polkurier()->geo()->getMapToken();
 
-    \printf("Map token: %s\n", $token->getToken());
+    \printf("Map token: %s\n", $token->token);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -25,12 +25,12 @@ try {
     foreach ($timeline as $entry) {
         \printf(
             "[%s] %s (%s):\n%s\n%s\n",
-            $entry->getDate()?->format('Y-m-d H:i') ?? '',
-            $entry->getAuthorName(),
-            $entry->getType()->value ?? 'unknown',
-            $entry->getContent(),
-            $entry->getFiles() === [] ? '' : "Attached (entry {$entry->getId()}): "
-                . \implode(', ', \array_map(static fn($file) => $file->getName(), $entry->getFiles())) . "\n"
+            $entry->date?->format('Y-m-d H:i') ?? '',
+            $entry->authorName,
+            $entry->type->value ?? 'unknown',
+            $entry->content,
+            $entry->files === [] ? '' : "Attached (entry {$entry->id}): "
+                . \implode(', ', \array_map(static fn($file) => $file->name, $entry->files)) . "\n"
         );
     }
 } catch (Exception $e) {

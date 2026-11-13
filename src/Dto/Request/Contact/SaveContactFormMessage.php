@@ -45,59 +45,27 @@ final readonly class SaveContactFormMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CATEGORY)]
         #[Validate\NotBlank]
-        private string $category,
+        public string $category,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FORM_ID)]
         #[Validate\NotBlank]
-        private string $formId,
+        public string $formId,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[Validate\NotBlank]
-        private string $nonce,
+        public string $nonce,
 
         /**
          * @var array<string, scalar|list<\Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage>>
          */
         #[Serializer\SerializedName(self::FIELD_FIELDS)]
         #[InlineFields]
-        private array $fields = [],
+        public array $fields = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCategory(): string
-    {
-        return $this->category;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFormId(): string
-    {
-        return $this->formId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNonce(): string
-    {
-        return $this->nonce;
-    }
-
-    /**
-     * @return array<string, scalar|list<\Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage>>
-     */
-    public function getFields(): array
-    {
-        return $this->fields;
-    }
 }

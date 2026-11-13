@@ -38,29 +38,13 @@ final readonly class ChangeTransportMethodMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Validate\NotBlank]
-        private string $token,
+        public string $token,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_METHOD)]
         #[Validate\NotBlank]
-        private string $method,
+        public string $method,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getToken(): string
-    {
-        return $this->token;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMethod(): string
-    {
-        return $this->method;
-    }
 }

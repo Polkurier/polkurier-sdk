@@ -34,8 +34,8 @@ final class OrderWebhookReaderTest extends TestCase
         $reader = new OrderWebhookReader();
         $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
 
-        self::assertSame(OrderWebhookTypeEnum::Updated, $event->getType());
-        self::assertEquals(self::fromJson($order), $event->getOrder());
+        self::assertSame(OrderWebhookTypeEnum::Updated, $event->type);
+        self::assertEquals(self::fromJson($order), $event->order);
         self::assertSame([], $reader->getLastDrift());
     }
 
@@ -44,8 +44,8 @@ final class OrderWebhookReaderTest extends TestCase
         $order = ['waybills' => [], 'sender' => null] + self::order();
         $event = (new OrderWebhookReader())->read(self::body(['type' => 'CREATED', 'data' => $order]));
 
-        self::assertSame([], $event->getOrder()->getWaybills());
-        self::assertNull($event->getOrder()->getSender());
+        self::assertSame([], $event->order->getWaybills());
+        self::assertNull($event->order->getSender());
     }
 
     public function testAnOrderWithMoreFieldsThanMaxInputVarsReads(): void
@@ -58,7 +58,7 @@ final class OrderWebhookReaderTest extends TestCase
 
         $event = (new OrderWebhookReader())->read($body);
 
-        self::assertCount(300, $event->getOrder()->getItems());
+        self::assertCount(300, $event->order->getItems());
         self::assertTrue((new OrderWebhookReader())->isAuthentic($body, self::SECRET));
     }
 
@@ -66,7 +66,7 @@ final class OrderWebhookReaderTest extends TestCase
     {
         $event = (new OrderWebhookReader())->read(self::body(['type' => 'MERGED', 'data' => self::order()]));
 
-        self::assertNull($event->getType());
+        self::assertNull($event->type);
     }
 
     public function testOnlyTheWebhookSecretMakesAnEventAuthentic(): void
@@ -107,8 +107,8 @@ final class OrderWebhookReaderTest extends TestCase
 
         $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
 
-        self::assertSame('1', $event->getOrder()->getNumber());
-        self::assertSame('', $event->getOrder()->getStatusCode());
+        self::assertSame('1', $event->order->getNumber());
+        self::assertSame('', $event->order->getStatusCode());
         $missing = \array_map(static fn(ResponseDrift $drift) => $drift->getPath(), $reader->getLastDrift());
         self::assertContains('order.statusCode', $missing);
     }
@@ -128,7 +128,7 @@ final class OrderWebhookReaderTest extends TestCase
             'date' => 'garbage',
         ] + self::order();
 
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->getOrder();
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->order;
 
         self::assertSame(0.0, $event->getPriceNet());
         self::assertSame(0.0, $event->getPriceGross());
@@ -162,8 +162,8 @@ final class OrderWebhookReaderTest extends TestCase
         $event = $reader->read($body);
         (new OrderWebhookReader($strict))->read($body);
 
-        self::assertNull($event->getOrder()->getStatusDate());
-        self::assertNull($event->getOrder()->getSender());
+        self::assertNull($event->order->getStatusDate());
+        self::assertNull($event->order->getSender());
         self::assertSame([], $reader->getLastDrift());
     }
 
@@ -180,9 +180,9 @@ final class OrderWebhookReaderTest extends TestCase
         $order['is_paid'] = 'yes';
         $reader = new OrderWebhookReader();
 
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->getOrder();
+        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->order;
 
-        self::assertSame(2, $event->getItems()[0]->getAmount());
+        self::assertSame(2, $event->getItems()[0]->amount);
         self::assertTrue($event->isPaid());
         $drift = \array_map(
             static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),

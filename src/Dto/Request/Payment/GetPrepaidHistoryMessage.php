@@ -31,5 +31,4 @@ final readonly class GetPrepaidHistoryMessage extends PagedMessage
     ) {
         parent::__construct(pageSize: $pageSize, page: $page);
     }
-
 }

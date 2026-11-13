@@ -15853,7 +15853,7 @@
                                         ""
                                     ]
                                 },
-                                "description": "`external_application_settings` maps each setting name to its value; the SDK reads them with `AccountInfoMessage::getExternalApplicationSettings()`.\n\n*Manual request: skipped unless the `runManualRequests` variable is `true`. It needs data or codes you supply, or it changes things the collection can't put back. Its saved example response is illustrative.*"
+                                "description": "`external_application_settings` maps each setting name to its value; the SDK reads them into `AccountInfoMessage::$externalApplicationSettings`.\n\n*Manual request: skipped unless the `runManualRequests` variable is `true`. It needs data or codes you supply, or it changes things the collection can't put back. Its saved example response is illustrative.*"
                             },
                             "response": [
                                 {

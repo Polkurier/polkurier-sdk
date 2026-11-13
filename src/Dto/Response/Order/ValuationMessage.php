@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The net and gross prices are the totals the order would be charged, with the promotion and the
  * rebate already taken off. The promotion and rebate amounts only say how much that saved.
  *
- * A price means something only when {@see self::isShipment()} is true: a carrier priced on its own
+ * A price means something only when {@see self::$shipment} is true: a carrier priced on its own
  * that can't carry the shipment is quoted at 0. A conditional price of 0 likewise means no
  * conditional offer applies, not that the order is free.
  */
@@ -63,183 +63,78 @@ final readonly class ValuationMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_SERVICE_CODE)]
-        private string $serviceCode = '',
+        public string $serviceCode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_SERVICE_NAME)]
-        private string $serviceName = '',
+        public string $serviceName = '',
 
         /**
-         * @var float
+         * @var float total net price in PLN, after the promotion and the rebate
          */
         #[Serializer\SerializedName(self::FIELD_NET_PRICE)]
-        private float $netPrice = 0.0,
+        public float $netPrice = 0.0,
 
         /**
-         * @var float
+         * @var float total gross price in PLN, after the promotion and the rebate
          */
         #[Serializer\SerializedName(self::FIELD_GROSS_PRICE)]
-        private float $grossPrice = 0.0,
+        public float $grossPrice = 0.0,
 
         /**
-         * @var float
+         * @var float a lower net total offered on a condition, 0 when no such offer applies
          */
         #[Serializer\SerializedName(self::FIELD_CONDITIONAL_NET_PRICE)]
-        private float $conditionalNetPrice = 0.0,
+        public float $conditionalNetPrice = 0.0,
 
         /**
-         * @var float
+         * @var float a lower gross total offered on a condition, 0 when no such offer applies
          */
         #[Serializer\SerializedName(self::FIELD_CONDITIONAL_GROSS_PRICE)]
-        private float $conditionalGrossPrice = 0.0,
+        public float $conditionalGrossPrice = 0.0,
 
         /**
-         * @var float
+         * @var float promotion already included in the net price
          */
         #[Serializer\SerializedName(self::FIELD_PROMOTION_NET)]
-        private float $promotionNet = 0.0,
+        public float $promotionNet = 0.0,
 
         /**
-         * @var float
+         * @var float promotion already included in the gross price
          */
         #[Serializer\SerializedName(self::FIELD_PROMOTION_GROSS)]
-        private float $promotionGross = 0.0,
+        public float $promotionGross = 0.0,
 
         /**
-         * @var float
+         * @var float rebate already taken off the net price
          */
         #[Serializer\SerializedName(self::FIELD_REBATE_NET)]
-        private float $rebateNet = 0.0,
+        public float $rebateNet = 0.0,
 
         /**
-         * @var float
+         * @var float rebate already taken off the gross price
          */
         #[Serializer\SerializedName(self::FIELD_REBATE_GROSS)]
-        private float $rebateGross = 0.0,
+        public float $rebateGross = 0.0,
 
         /**
-         * @var bool
+         * @var bool whether the carrier can carry this shipment. When false, the prices are 0
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT)]
-        private bool $shipment = false,
+        public bool $shipment = false,
 
         /**
-         * @var bool
+         * @var bool whether the account can use the carrier for this order
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
-        private bool $available = false,
+        public bool $available = false,
 
         /**
-         * @var string
+         * @var string why the account can't use the carrier, possibly with HTML markup, empty otherwise
          */
         #[Serializer\SerializedName(self::FIELD_UNAVAILABLE_MESSAGE)]
-        private string $unavailableMessage = '',
+        public string $unavailableMessage = '',
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getServiceCode(): string
-    {
-        return $this->serviceCode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getServiceName(): string
-    {
-        return $this->serviceName;
-    }
-
-    /**
-     * @return float total net price in PLN, after the promotion and the rebate
-     */
-    public function getNetPrice(): float
-    {
-        return $this->netPrice;
-    }
-
-    /**
-     * @return float total gross price in PLN, after the promotion and the rebate
-     */
-    public function getGrossPrice(): float
-    {
-        return $this->grossPrice;
-    }
-
-    /**
-     * @return float a lower net total offered on a condition, 0 when no such offer applies
-     */
-    public function getConditionalNetPrice(): float
-    {
-        return $this->conditionalNetPrice;
-    }
-
-    /**
-     * @return float a lower gross total offered on a condition, 0 when no such offer applies
-     */
-    public function getConditionalGrossPrice(): float
-    {
-        return $this->conditionalGrossPrice;
-    }
-
-    /**
-     * @return float promotion already included in the net price
-     */
-    public function getPromotionNet(): float
-    {
-        return $this->promotionNet;
-    }
-
-    /**
-     * @return float promotion already included in the gross price
-     */
-    public function getPromotionGross(): float
-    {
-        return $this->promotionGross;
-    }
-
-    /**
-     * @return float rebate already taken off the net price
-     */
-    public function getRebateNet(): float
-    {
-        return $this->rebateNet;
-    }
-
-    /**
-     * @return float rebate already taken off the gross price
-     */
-    public function getRebateGross(): float
-    {
-        return $this->rebateGross;
-    }
-
-    /**
-     * @return bool whether the carrier can carry this shipment. When false, the prices are 0
-     */
-    public function isShipment(): bool
-    {
-        return $this->shipment;
-    }
-
-    /**
-     * @return bool whether the account can use the carrier for this order
-     */
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
-
-    /**
-     * @return string why the account can't use the carrier, possibly with HTML markup, empty
-     *         otherwise
-     */
-    public function getUnavailableMessage(): string
-    {
-        return $this->unavailableMessage;
-    }
 }

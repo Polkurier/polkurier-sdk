@@ -35,7 +35,7 @@ final readonly class MultiPickupAvailabilityMessage implements MessageInterface,
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
-        private bool $available = false,
+        public bool $available = false,
 
         /**
          * @var string|null
@@ -43,12 +43,4 @@ final readonly class MultiPickupAvailabilityMessage implements MessageInterface,
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isAvailable(): bool
-    {
-        return $this->available;
-    }
 }

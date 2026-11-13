@@ -11,6 +11,8 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\ResponseMessage;
 use Polkurier\Webservice\Dto\Response\Webhook\OrderWebhookMessage;
 use Polkurier\Webservice\Entity\Order\Order;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
@@ -48,7 +50,8 @@ final class ResponseDriftInvariantTest extends TestCase
     ];
 
     /**
-     * Every response class, except the order event, which has a test of its own.
+     * Every response class, except the order event, which has a test of its own, and the envelopes,
+     * which the response factory reads before any payload.
      *
      * @return array<string, array{class-string}>
      */
@@ -56,7 +59,11 @@ final class ResponseDriftInvariantTest extends TestCase
     {
         $classes = \array_filter(
             MessageClasses::responses(),
-            static fn(string $class): bool => $class !== OrderWebhookMessage::class,
+            static fn(string $class): bool => !\in_array(
+                $class,
+                [OrderWebhookMessage::class, ResponseMessage::class, ErrorMessage::class],
+                true,
+            ),
         );
 
         return \array_map(static fn(string $class): array => [$class], $classes);
@@ -96,7 +103,7 @@ final class ResponseDriftInvariantTest extends TestCase
                     $this->expectStrictFailure($strict, $body, $class, $case);
                     continue;
                 }
-                self::assertReadable($wrapper->getEnvelope()->getResponse());
+                self::assertReadable($wrapper->getEnvelope()->response);
                 $reported = \array_filter(
                     $wrapper->getDrift(),
                     static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,

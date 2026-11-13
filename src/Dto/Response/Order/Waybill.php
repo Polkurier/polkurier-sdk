@@ -34,28 +34,12 @@ final readonly class Waybill implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
-        private string $number,
+        public string $number,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
-        private bool $default = false,
+        public bool $default = false,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDefault(): bool
-    {
-        return $this->default;
-    }
 }

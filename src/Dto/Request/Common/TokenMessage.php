@@ -35,14 +35,6 @@ abstract readonly class TokenMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Validate\NotBlank]
-        private string $token,
+        public string $token,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getToken(): string
-    {
-        return $this->token;
-    }
 }

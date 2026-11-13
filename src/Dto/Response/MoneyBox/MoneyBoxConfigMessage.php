@@ -54,58 +54,58 @@ final readonly class MoneyBoxConfigMessage implements MessageInterface, ParsedRe
      */
     public function __construct(
         /**
-         * @var MoneyBoxPayoutTypeEnum|null
+         * @var MoneyBoxPayoutTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
-        private ?MoneyBoxPayoutTypeEnum $payoutType = MoneyBoxPayoutTypeEnum::Account,
+        public ?MoneyBoxPayoutTypeEnum $payoutType = null,
 
         /**
-         * @var MoneyBoxFeePaymentTypeEnum|null
+         * @var MoneyBoxFeePaymentTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT)]
-        private ?MoneyBoxFeePaymentTypeEnum $feePayment = MoneyBoxFeePaymentTypeEnum::Invoice,
+        public ?MoneyBoxFeePaymentTypeEnum $feePayment = null,
 
         /**
          * @var MoneyBoxFeePaymentTypeEnum[]
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENTS_TYPES_AVAILABLE)]
-        private array $feePaymentsTypesAvailable = [],
+        public array $feePaymentsTypesAvailable = [],
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
-        private string $bankAccountNumber = '',
+        public string $bankAccountNumber = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
-        private string $company = '',
+        public string $company = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
-        private string $person = '',
+        public string $person = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
-        private string $street = '',
+        public string $street = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
-        private string $postcode = '',
+        public string $postcode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
-        private string $city = '',
+        public string $city = '',
 
         /**
          * @var string|null
@@ -113,76 +113,4 @@ final readonly class MoneyBoxConfigMessage implements MessageInterface, ParsedRe
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return MoneyBoxPayoutTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getPayoutType(): ?MoneyBoxPayoutTypeEnum
-    {
-        return $this->payoutType;
-    }
-
-    /**
-     * @return MoneyBoxFeePaymentTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getFeePayment(): ?MoneyBoxFeePaymentTypeEnum
-    {
-        return $this->feePayment;
-    }
-
-    /**
-     * @return MoneyBoxFeePaymentTypeEnum[]
-     */
-    public function getFeePaymentsTypesAvailable(): array
-    {
-        return $this->feePaymentsTypesAvailable;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIban(): string
-    {
-        return $this->bankAccountNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCompany(): string
-    {
-        return $this->company;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPerson(): string
-    {
-        return $this->person;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStreet(): string
-    {
-        return $this->street;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPostcode(): string
-    {
-        return $this->postcode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCity(): string
-    {
-        return $this->city;
-    }
 }

@@ -28,7 +28,7 @@ try {
         shipmentType: ShipmentTypeEnum::Box,
     ));
 
-    echo $availability->isAvailable()
+    echo $availability->available
         ? "This shipment can join a collective pickup.\n"
         : "A collective pickup is not available for this shipment.\n";
 } catch (Exception $e) {

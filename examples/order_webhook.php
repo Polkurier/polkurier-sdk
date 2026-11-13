@@ -40,8 +40,8 @@ try {
 
 \printf(
     "%s: order %s, status %s (%s)\n",
-    $event->getType()->value ?? 'unknown event',
-    $event->getOrder()->getNumber(),
-    $event->getOrder()->getStatus(),
-    $event->getOrder()->getStatusCode(),
+    $event->type->value ?? 'unknown event',
+    $event->order->getNumber(),
+    $event->order->getStatus(),
+    $event->order->getStatusCode(),
 );

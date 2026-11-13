@@ -20,9 +20,9 @@ try {
     foreach (polkurier()->tickets()->getContactTopics() as $topic) {
         \printf(
             "%-8s %-44s %s\n",
-            $topic->getId(),
-            $topic->getTitle(),
-            $topic->hasForm() ? '(has a form)' : ''
+            $topic->id,
+            $topic->title,
+            $topic->hasForm ? '(has a form)' : ''
         );
     }
 } catch (Exception $e) {

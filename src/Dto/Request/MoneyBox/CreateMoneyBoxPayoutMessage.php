@@ -72,21 +72,21 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
         #[OmitWhenEmpty]
         #[Validate\Each(Validate\OrderNumber::class)]
-        private array $orders = [],
+        public array $orders = [],
 
         /**
          * @var ?MoneyBoxPayoutTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
         #[OmitWhenEmpty]
-        private ?MoneyBoxPayoutTypeEnum $payoutType = null,
+        public ?MoneyBoxPayoutTypeEnum $payoutType = null,
 
         /**
          * @var ?MoneyBoxFeePaymentTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT_TYPE)]
         #[OmitWhenEmpty]
-        private ?MoneyBoxFeePaymentTypeEnum $feePaymentType = null,
+        public ?MoneyBoxFeePaymentTypeEnum $feePaymentType = null,
 
         /**
          * @var ?string
@@ -94,28 +94,28 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
         #[Validate\Iban]
         #[OmitWhenEmpty]
-        private ?string $bankAccountNumber = null,
+        public ?string $bankAccountNumber = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
-        private ?string $company = null,
+        public ?string $company = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[OmitWhenEmpty]
-        private ?string $person = null,
+        public ?string $person = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
-        private ?string $street = null,
+        public ?string $street = null,
 
         /**
          * @var ?string
@@ -123,129 +123,41 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\Postcode]
         #[OmitWhenEmpty]
-        private ?string $postcode = null,
+        public ?string $postcode = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
-        private ?string $city = null,
+        public ?string $city = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY_PIN)]
         #[OmitWhenEmpty]
-        private ?string $securityPin = null,
+        public ?string $securityPin = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
-        private ?string $twoFactorToken = null,
+        public ?string $twoFactorToken = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_FORM_ID)]
         #[OmitWhenEmpty]
-        private ?string $twoFactorFormId = null,
+        public ?string $twoFactorFormId = null,
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
-        private ?string $twoFactorCode = null,
+        public ?string $twoFactorCode = null,
     ) {}
-
-    /**
-     * @return string[]
-     */
-    public function getOrders(): array
-    {
-        return $this->orders;
-    }
-
-    /**
-     * @return ?MoneyBoxPayoutTypeEnum
-     */
-    public function getPayoutType(): ?MoneyBoxPayoutTypeEnum
-    {
-        return $this->payoutType;
-    }
-
-    /**
-     * @return ?MoneyBoxFeePaymentTypeEnum
-     */
-    public function getFeePaymentType(): ?MoneyBoxFeePaymentTypeEnum
-    {
-        return $this->feePaymentType;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getBankAccountNumber(): ?string
-    {
-        return $this->bankAccountNumber;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getCompany(): ?string
-    {
-        return $this->company;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getPerson(): ?string
-    {
-        return $this->person;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getStreet(): ?string
-    {
-        return $this->street;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getPostcode(): ?string
-    {
-        return $this->postcode;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getCity(): ?string
-    {
-        return $this->city;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getSecurityPin(): ?string
-    {
-        return $this->securityPin;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getTwoFactorFormId(): ?string
-    {
-        return $this->twoFactorFormId;
-    }
 }

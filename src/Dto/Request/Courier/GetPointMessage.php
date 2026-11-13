@@ -51,21 +51,21 @@ final readonly class GetPointMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_COURIERS)]
         #[Validate\NotEmptyList]
         #[Validate\Each(Validate\OfType::class, 'string')]
-        private array $couriers,
+        public array $couriers,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
-        private ?string $id = null,
+        public ?string $id = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]
-        private ?string $searchQuery = null,
+        public ?string $searchQuery = null,
 
         /**
          * @var PointFunctionEnum[]|null
@@ -73,7 +73,7 @@ final readonly class GetPointMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_FUNCTIONS)]
         #[OmitWhenEmpty]
         #[Validate\Each(Validate\OfType::class, PointFunctionEnum::class)]
-        private ?array $functions = null,
+        public ?array $functions = null,
 
         /**
          * @var int|null
@@ -81,7 +81,7 @@ final readonly class GetPointMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_LIMIT)]
         #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
-        private ?int $limit = null,
+        public ?int $limit = null,
 
         /**
          * @var int|null
@@ -89,54 +89,6 @@ final readonly class GetPointMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_PAGE)]
         #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
-        private ?int $page = null,
+        public ?int $page = null,
     ) {}
-
-    /**
-     * @return string[]
-     */
-    public function getCouriers(): array
-    {
-        return $this->couriers;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getSearchQuery(): ?string
-    {
-        return $this->searchQuery;
-    }
-
-    /**
-     * @return PointFunctionEnum[]|null
-     */
-    public function getFunctions(): ?array
-    {
-        return $this->functions;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getLimit(): ?int
-    {
-        return $this->limit;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getPage(): ?int
-    {
-        return $this->page;
-    }
 }

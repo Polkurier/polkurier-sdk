@@ -31,7 +31,7 @@ try {
         new ChangeTransportMethodMessage(token: $token, method: $method)
     );
 
-    \printf("Code now going to %s\n", $changed->getTransportMethod()?->getName() ?? '(unknown)');
+    \printf("Code now going to %s\n", $changed->transportMethod->name ?? '(unknown)');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

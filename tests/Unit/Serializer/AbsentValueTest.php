@@ -70,9 +70,9 @@ final class AbsentValueTest extends TestCase
         ], IndividualPricing::class, 'json');
 
         self::assertInstanceOf(IndividualPricing::class, $pricing);
-        self::assertNull($pricing->getOfferValidDate());
-        self::assertNull($pricing->getCustomerConfirmedDate());
-        self::assertSame('', $pricing->getCustomerRemarks());
+        self::assertNull($pricing->offerValidDate);
+        self::assertNull($pricing->customerConfirmedDate);
+        self::assertSame('', $pricing->customerRemarks);
     }
 
     /**
@@ -95,13 +95,13 @@ final class AbsentValueTest extends TestCase
 
         self::assertIsArray($carriers);
         self::assertInstanceOf(Carrier::class, $carriers[0]);
-        $data = $carriers[0]->getAdditionalData();
+        $data = $carriers[0]->additionalData;
         self::assertNotNull($data);
-        self::assertNull($data->getCod());
-        self::assertNull($data->getInsurance());
-        self::assertNull($data->getPickup()?->getPickupTimeFrom());
-        self::assertNull($data->getPointsMap()?->getRecipientPoint());
-        self::assertSame([], $data->getPointsMap()?->getAvailableProviders());
+        self::assertNull($data->cod);
+        self::assertNull($data->insurance);
+        self::assertNull($data->pickup?->pickupTimeFrom);
+        self::assertNull($data->pointsMap?->recipientPoint);
+        self::assertSame([], $data->pointsMap?->availableProviders);
     }
 
     /**

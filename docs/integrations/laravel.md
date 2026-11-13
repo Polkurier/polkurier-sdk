@@ -260,7 +260,7 @@ final class PlaceShipment implements ShouldQueue
             return;
         }
 
-        $this->order->forceFill(['polkurier_number' => $created->getOrderNumber()])->save();
+        $this->order->forceFill(['polkurier_number' => $created->orderNumber])->save();
     }
 }
 ```
@@ -307,7 +307,7 @@ try {
 
 `$fieldMap` maps the API's wire names (`sender.postcode`) to your form's field names
 (`shipping.postal_code`). The same code works for a rejection from the API, because
-[`WebserviceException::getErrorMessage()->getValidationErrors()`](../../src/Exception/WebserviceException.php) returns the same shape.
+[`WebserviceException::getErrorMessage()->validationErrors`](../../src/Exception/WebserviceException.php) returns the same shape.
 
 Per-tenant credentials
 ----------------------
@@ -359,7 +359,7 @@ final class PolkurierPing extends Command
     public function handle(UtilsServiceInterface $utils): int
     {
         try {
-            $this->info('API time: ' . $utils->heartbeat()->getTime()?->format('c'));
+            $this->info('API time: ' . $utils->heartbeat()->time?->format('c'));
         } catch (ConnectionException $e) {
             $this->error('Unreachable: ' . $e->getMessage());
 

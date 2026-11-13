@@ -47,103 +47,47 @@ final readonly class CourierMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
-        private string $courier = '',
+        public string $courier = '',
 
         /**
+         * The notice as HTML, with tags such as `<p>`, `<strong>` and `<a>`. Sanitise it before you
+         * display it, or strip the tags for plain text.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
-        private string $message = '',
+        public string $message = '',
 
         /**
-         * @var CourierMessageTypeEnum|null
+         * @var CourierMessageTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?CourierMessageTypeEnum $type = CourierMessageTypeEnum::Message,
+        public ?CourierMessageTypeEnum $type = null,
 
         /**
-         * @var CourierMessageSeverityEnum|null
+         * @var CourierMessageSeverityEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_SEVERITY)]
-        private ?CourierMessageSeverityEnum $severity = CourierMessageSeverityEnum::Warning,
+        public ?CourierMessageSeverityEnum $severity = null,
 
         /**
-         * @var int
+         * @var int 0 for a notice of type MESSAGE, which has no timeout
          */
         #[Serializer\SerializedName(self::FIELD_HIDE_TIMEOUT)]
-        private int $hideTimeout = 0,
+        public int $hideTimeout = 0,
 
         /**
-         * @var string
+         * @var string empty for a notice of type ALERT, which has no title
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
 
         /**
-         * @var int
+         * Messages are listed by descending priority.
+         *
+         * @var int 0 for a notice of type ALERT, which has no priority
          */
         #[Serializer\SerializedName(self::FIELD_PRIORITY)]
-        private int $priority = 0,
+        public int $priority = 0,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * The notice as HTML, with tags such as `<p>`, `<strong>` and `<a>`. Sanitise it before you
-     * display it, or strip the tags for plain text.
-     *
-     * @return string
-     */
-    public function getMessage(): string
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return CourierMessageTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?CourierMessageTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return CourierMessageSeverityEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getSeverity(): ?CourierMessageSeverityEnum
-    {
-        return $this->severity;
-    }
-
-    /**
-     * @return int 0 for a notice of type MESSAGE, which has no timeout
-     */
-    public function getHideTimeout(): int
-    {
-        return $this->hideTimeout;
-    }
-
-    /**
-     * @return string empty for a notice of type ALERT, which has no title
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * Messages are listed by descending priority.
-     *
-     * @return int 0 for a notice of type ALERT, which has no priority
-     */
-    public function getPriority(): int
-    {
-        return $this->priority;
-    }
 }

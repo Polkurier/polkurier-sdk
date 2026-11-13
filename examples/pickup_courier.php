@@ -28,17 +28,17 @@ try {
         pickupDate: $day,
     ));
 
-    if (!$pickup->isPickupDate()) {
+    if (!$pickup->pickupDate) {
         \printf("The carrier cannot collect on %s.\n", $day->format('Y-m-d'));
         exit(1);
     }
 
     \printf("The carrier can collect on %s.\n", $day->format('Y-m-d'));
-    foreach ($pickup->getTime() as $window) {
+    foreach ($pickup->time as $window) {
         \printf(
             "  window offered: %s–%s\n",
-            $window->getTimeFrom()?->format('H:i'),
-            $window->getTimeTo()?->format('H:i'),
+            $window->timeFrom?->format('H:i'),
+            $window->timeTo?->format('H:i'),
         );
     }
 } catch (Exception $e) {

@@ -33,28 +33,12 @@ final readonly class TicketResponseTemplateMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
-        private string $message = '',
+        public string $message = '',
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_RESPONSES)]
-        private array $responses = [],
+        public array $responses = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getMessage(): string
-    {
-        return $this->message;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getResponses(): array
-    {
-        return $this->responses;
-    }
 }

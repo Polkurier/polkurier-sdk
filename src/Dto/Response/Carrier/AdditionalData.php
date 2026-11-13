@@ -49,102 +49,46 @@ final readonly class AdditionalData implements MessageInterface
      */
     public function __construct(
         /**
-         * @var Cod|null
+         * @var Cod|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_COD)]
-        private ?Cod $cod = null,
+        public ?Cod $cod = null,
 
         /**
-         * @var Property|null
+         * @var Property|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_INSURANCE)]
-        private ?Property $insurance = null,
+        public ?Property $insurance = null,
 
         /**
-         * @var CourierService|null
+         * @var CourierService|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_SERVICE)]
-        private ?CourierService $courierService = null,
+        public ?CourierService $courierService = null,
 
         /**
-         * @var ShipmentType|null
+         * @var ShipmentType|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
-        private ?ShipmentType $shipmentType = null,
+        public ?ShipmentType $shipmentType = null,
 
         /**
-         * @var Pickup|null
+         * @var Pickup|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP)]
-        private ?Pickup $pickup = null,
+        public ?Pickup $pickup = null,
 
         /**
-         * @var PointsMap|null
+         * @var PointsMap|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_POINTS_MAP)]
         #[OmitWhenEmpty]
-        private ?PointsMap $pointsMap = null,
+        public ?PointsMap $pointsMap = null,
 
         /**
          * @var AdditionalField[] $additionalFields
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_FIELDS)]
-        private array $additionalFields = [],
+        public array $additionalFields = [],
     ) {}
-
-    /**
-     * @return Cod|null null if the carrier's entry leaves it out
-     */
-    public function getCod(): ?Cod
-    {
-        return $this->cod;
-    }
-
-    /**
-     * @return Property|null null if the carrier's entry leaves it out
-     */
-    public function getInsurance(): ?Property
-    {
-        return $this->insurance;
-    }
-
-    /**
-     * @return CourierService|null null if the carrier's entry leaves it out
-     */
-    public function getCourierService(): ?CourierService
-    {
-        return $this->courierService;
-    }
-
-    /**
-     * @return ShipmentType|null null if the carrier's entry leaves it out
-     */
-    public function getShipmentType(): ?ShipmentType
-    {
-        return $this->shipmentType;
-    }
-
-    /**
-     * @return Pickup|null null if the carrier's entry leaves it out
-     */
-    public function getPickup(): ?Pickup
-    {
-        return $this->pickup;
-    }
-
-    /**
-     * @return PointsMap|null null if the carrier's entry leaves it out
-     */
-    public function getPointsMap(): ?PointsMap
-    {
-        return $this->pointsMap;
-    }
-
-    /**
-     * @return AdditionalField[]
-     */
-    public function getAdditionalFields(): array
-    {
-        return $this->additionalFields;
-    }
 }

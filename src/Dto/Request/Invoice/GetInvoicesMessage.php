@@ -32,7 +32,7 @@ final readonly class GetInvoicesMessage extends PagedMessage
          * @var InvoiceTypeEnum
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private InvoiceTypeEnum $type,
+        public InvoiceTypeEnum $type,
 
         ?int $pageSize = null,
 
@@ -40,13 +40,4 @@ final readonly class GetInvoicesMessage extends PagedMessage
     ) {
         parent::__construct(pageSize: $pageSize, page: $page);
     }
-
-    /**
-     * @return InvoiceTypeEnum
-     */
-    public function getType(): InvoiceTypeEnum
-    {
-        return $this->type;
-    }
-
 }

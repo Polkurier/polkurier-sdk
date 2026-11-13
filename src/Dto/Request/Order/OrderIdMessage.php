@@ -32,14 +32,6 @@ abstract readonly class OrderIdMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\NotBlank]
         #[Validate\OrderNumber]
-        private string $orderNo,
+        public string $orderNo,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getOrderNo(): string
-    {
-        return $this->orderNo;
-    }
 }

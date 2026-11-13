@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\Contact;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
+use Polkurier\Webservice\Serializer\Attribute\NamedValues;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -41,6 +42,11 @@ final readonly class ContactFormFieldMessage implements MessageInterface
     public const string FIELD_ALLOWED_FILE_MIME_TYPES = 'allowedFileMimeTypes';
     public const string FIELD_ALLOWED_FILE_EXTENSIONS = 'allowedFileExtensions';
     public const string FIELD_OPTIONS = 'options';
+    /**
+     * Not a wire field: the API sends a choices reference in `options`, and the SDK reads it into
+     * {@see self::$optionsSource}.
+     */
+    public const string FIELD_OPTIONS_SOURCE = 'options_source';
     public const string FIELD_CONDITION = 'condition';
     public const string FIELD_DISABLED = 'disabled';
     public const string FIELD_GROUP = 'group';
@@ -52,7 +58,7 @@ final readonly class ContactFormFieldMessage implements MessageInterface
 
     /**
      * @param string $id the field's id on this form
-     * @param ?ContactFormFieldTypeEnum $type what the field is, null when the SDK doesn't know the type
+     * @param ContactFormFieldTypeEnum|null $type what the field is, null when the SDK doesn't know the type
      * @param string $name the name to submit the answer under, empty for a field that takes no answer
      * @param string $value the starting value. For a checkbox or a radio button, the value it submits when chosen
      * @param string $label display text, in Polish. It may contain HTML
@@ -60,351 +66,171 @@ final readonly class ContactFormFieldMessage implements MessageInterface
      * @param string $description help text shown with the field
      * @param string $placeholder hint shown in an empty input
      * @param string $pattern regular expression the answer must match, empty when there is none
-     * @param ?int $maxLength the longest answer, in characters. For files, the most files
-     * @param ?int $maxFileSize the largest file, in bytes
-     * @param ?int $maxImageFileSize the largest image file, in bytes
+     * @param int|null $maxLength the longest answer, in characters. For files, the most files
+     * @param int|null $maxFileSize the largest file, in bytes
+     * @param int|null $maxImageFileSize the largest image file, in bytes
      * @param string[] $allowedFileMimeTypes media types a file may have
      * @param string[] $allowedFileExtensions extensions a file name may have
-     * @param ContactFormOptionMessage[]|string|null $options the choices of a drop-down field
+     * @param ContactFormOptionMessage[] $options the choices of a drop-down field
+     * @param string $optionsSource the form property a drop-down field takes its choices from
      * @param string $condition when the field is shown, as the form states it. Empty when it always is
      * @param string $disabled when the field is disabled, as the form states it. Empty when it never is
      * @param string $group the group of checkboxes the field belongs to
      * @param string $groupParent the group whose checkboxes this one ticks or clears
-     * @param ?ContactFormSeverityEnum $severity how a notice should be shown, null for other fields
+     * @param ContactFormSeverityEnum|null $severity how a notice should be shown, null for other fields
      *        and for a severity the SDK doesn't know
      * @param string $href where a button leads
-     * @param array<string, mixed> $props display properties
+     * @param ContactFormValueMessage[] $props display properties
      */
     public function __construct(
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
-         * @var ?ContactFormFieldTypeEnum
+         * @var ContactFormFieldTypeEnum|null null when the SDK doesn't know the type
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[OmitWhenEmpty]
-        private ?ContactFormFieldTypeEnum $type = null,
+        public ?ContactFormFieldTypeEnum $type = null,
 
         /**
-         * @var string
+         * @var string the name to submit the answer under, empty for a field that takes no answer
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
-         * @var string
+         * @var string the starting value. For a checkbox or a radio button, the value it submits when chosen
          */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
-        private string $value = '',
+        public string $value = '',
 
         /**
-         * @var string
+         * @var string display text, in Polish. It may contain HTML
          */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
-        private string $label = '',
+        public string $label = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_LABEL_AFTER)]
-        private string $labelAfter = '',
+        public string $labelAfter = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
-        private string $description = '',
+        public string $description = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PLACEHOLDER)]
-        private string $placeholder = '',
+        public string $placeholder = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PATTERN)]
-        private string $pattern = '',
+        public string $pattern = '',
 
         /**
-         * @var ?int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_MAX_LENGTH)]
         #[OmitWhenEmpty]
-        private ?int $maxLength = null,
+        public ?int $maxLength = null,
 
         /**
-         * @var ?int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_MAX_FILE_SIZE)]
         #[OmitWhenEmpty]
-        private ?int $maxFileSize = null,
+        public ?int $maxFileSize = null,
 
         /**
-         * @var ?int
+         * @var int|null
          */
         #[Serializer\SerializedName(self::FIELD_MAX_IMAGE_FILE_SIZE)]
         #[OmitWhenEmpty]
-        private ?int $maxImageFileSize = null,
+        public ?int $maxImageFileSize = null,
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ALLOWED_FILE_MIME_TYPES)]
-        private array $allowedFileMimeTypes = [],
+        public array $allowedFileMimeTypes = [],
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ALLOWED_FILE_EXTENSIONS)]
-        private array $allowedFileExtensions = [],
+        public array $allowedFileExtensions = [],
 
         /**
-         * @var ContactFormOptionMessage[]|string|null
+         * The choices of a drop-down field. A field that takes them from the form's properties has
+         * none, and names the property in {@see self::$optionsSource}.
+         *
+         * @var ContactFormOptionMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_OPTIONS)]
-        #[OmitWhenEmpty]
-        private array|string|null $options = null,
+        public array $options = [],
+
+        /**
+         * The form property a drop-down field takes its choices from, as the form gives it, e.g.
+         * `@COURIERS`.
+         *
+         * @var string empty when the field lists its choices or has none
+         */
+        #[Serializer\SerializedName(self::FIELD_OPTIONS_SOURCE)]
+        public string $optionsSource = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONDITION)]
-        private string $condition = '',
+        public string $condition = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DISABLED)]
-        private string $disabled = '',
+        public string $disabled = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_GROUP)]
-        private string $group = '',
+        public string $group = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_GROUP_PARENT)]
-        private string $groupParent = '',
+        public string $groupParent = '',
 
         /**
-         * @var ?ContactFormSeverityEnum
+         * @var ContactFormSeverityEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SEVERITY)]
         #[OmitWhenEmpty]
-        private ?ContactFormSeverityEnum $severity = null,
+        public ?ContactFormSeverityEnum $severity = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_HREF)]
-        private string $href = '',
+        public string $href = '',
 
         /**
-         * @var array<string, mixed>
+         * @var ContactFormValueMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_PROPS)]
-        private array $props = [],
+        #[NamedValues(name: ContactFormValueMessage::FIELD_NAME, value: ContactFormValueMessage::FIELD_VALUE)]
+        public array $props = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return ?ContactFormFieldTypeEnum null when the SDK doesn't know the type
-     */
-    public function getType(): ?ContactFormFieldTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string the name to submit the answer under, empty for a field that takes no answer
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string the starting value. For a checkbox or a radio button, the value it submits when chosen
-     */
-    public function getValue(): string
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return string display text, in Polish. It may contain HTML
-     */
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabelAfter(): string
-    {
-        return $this->labelAfter;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPlaceholder(): string
-    {
-        return $this->placeholder;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPattern(): string
-    {
-        return $this->pattern;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getMaxLength(): ?int
-    {
-        return $this->maxLength;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getMaxFileSize(): ?int
-    {
-        return $this->maxFileSize;
-    }
-
-    /**
-     * @return ?int
-     */
-    public function getMaxImageFileSize(): ?int
-    {
-        return $this->maxImageFileSize;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAllowedFileMimeTypes(): array
-    {
-        return $this->allowedFileMimeTypes;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAllowedFileExtensions(): array
-    {
-        return $this->allowedFileExtensions;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCondition(): string
-    {
-        return $this->condition;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDisabled(): string
-    {
-        return $this->disabled;
-    }
-
-    /**
-     * @return string
-     */
-    public function getGroup(): string
-    {
-        return $this->group;
-    }
-
-    /**
-     * @return string
-     */
-    public function getGroupParent(): string
-    {
-        return $this->groupParent;
-    }
-
-    /**
-     * @return ?ContactFormSeverityEnum
-     */
-    public function getSeverity(): ?ContactFormSeverityEnum
-    {
-        return $this->severity;
-    }
-
-    /**
-     * @return string
-     */
-    public function getHref(): string
-    {
-        return $this->href;
-    }
-
-    /**
-     * The choices of a drop-down field.
-     *
-     * Some fields name a list of the form's properties instead, see {@see self::getOptionsSource()}.
-     *
-     * @return ContactFormOptionMessage[]
-     */
-    public function getOptions(): array
-    {
-        return \is_array($this->options) ? $this->options : [];
-    }
-
-    /**
-     * The form property a drop-down field takes its choices from, when it doesn't list them.
-     *
-     * @return string the reference as the form gives it, e.g. `@COURIERS`, empty when the field
-     *         lists its choices or has none
-     */
-    public function getOptionsSource(): string
-    {
-        return \is_string($this->options) ? $this->options : '';
-    }
-
-    /**
-     * Display properties, e.g. a font size or an icon.
-     *
-     * @return list<ContactFormValueMessage>
-     */
-    public function getProps(): array
-    {
-        return ContactFormValueMessage::listOf($this->props);
-    }
 }

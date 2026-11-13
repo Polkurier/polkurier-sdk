@@ -35,29 +35,13 @@ final readonly class TicketReferenceMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
-        private string $number = '',
+        public string $number = '',
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_WAYBILL_NUMBER)]
         #[OmitWhenEmpty]
-        private ?string $waybillNumber = null,
+        public ?string $waybillNumber = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getNumber(): string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getWaybillNumber(): ?string
-    {
-        return $this->waybillNumber;
-    }
 }

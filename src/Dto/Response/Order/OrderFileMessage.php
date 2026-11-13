@@ -9,20 +9,18 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
-use Polkurier\Webservice\Dto\Response\DecodesFileTrait;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Serializer\Attribute\Base64;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A document attached to an order.
  *
- * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes. The hash
- * identifies the content and stays the same across downloads.
+ * The hash identifies the content and stays the same across downloads.
  */
 final readonly class OrderFileMessage implements MessageInterface, ParsedResponseInterface
 {
-    use DecodesFileTrait;
     use KeepsRawResponseTrait;
 
     /**+@#
@@ -42,7 +40,7 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
      * @param int $size size in bytes
      * @param string $hash content hash, stable across downloads
      * @param ?\DateTimeInterface $dateCreated when the document was attached, null if unknown
-     * @param string $file base64-encoded contents
+     * @param string $file the file's bytes
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
@@ -50,38 +48,41 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name = '',
+        public string $name = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private string $type = '',
+        public string $type = '',
 
         /**
          * @var int
          */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
-        private int $size = 0,
+        public int $size = 0,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_HASH)]
-        private string $hash = '',
+        public string $hash = '',
 
         /**
          * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateCreated = null,
+        public ?\DateTimeInterface $dateCreated = null,
 
         /**
-         * @var string
+         * The file's bytes, decoded from the base64 the API sends.
+         *
+         * @var string empty when the API sends none
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
-        private string $file = '',
+        #[Base64]
+        public string $file = '',
 
         /**
          * @var string|null
@@ -89,52 +90,4 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return int
-     */
-    public function getSize(): int
-    {
-        return $this->size;
-    }
-
-    /**
-     * @return string
-     */
-    public function getHash(): string
-    {
-        return $this->hash;
-    }
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getDateCreated(): ?\DateTimeInterface
-    {
-        return $this->dateCreated;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFile(): string
-    {
-        return $this->file;
-    }
 }

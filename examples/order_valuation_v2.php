@@ -50,16 +50,16 @@ $order = new CreateOrderMessage(
 
 try {
     foreach (polkurier()->orders()->orderValuation($order, $argv[1] ?? null) as $quote) {
-        if (!$quote->isShipment()) {
+        if (!$quote->shipment) {
             continue;
         }
 
         \printf(
             "%-28s %8.2f net %8.2f gross%s\n",
-            $quote->getServiceCode(),
-            $quote->getNetPrice(),
-            $quote->getGrossPrice(),
-            $quote->isAvailable() ? '' : '  unavailable: ' . $quote->getUnavailableMessage(),
+            $quote->serviceCode,
+            $quote->netPrice,
+            $quote->grossPrice,
+            $quote->available ? '' : '  unavailable: ' . $quote->unavailableMessage,
         );
     }
 } catch (Exception $e) {

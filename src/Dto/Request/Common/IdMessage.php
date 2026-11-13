@@ -31,14 +31,6 @@ abstract readonly class IdMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[Validate\NotBlank]
-        private string $id,
+        public string $id,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
 }

@@ -27,7 +27,7 @@ try {
         ->getLabel(new GetDocumentMessage(orderNo: $orderNumbers));
 
     $path = \sys_get_temp_dir() . '/polkurier-labels.pdf';
-    \file_put_contents($path, $document->getDecodedFile());
+    \file_put_contents($path, $document->file);
 
     \printf("Saved the labels for up to %d order(s) to %s\n", \count($orderNumbers), $path);
 } catch (Exception $e) {

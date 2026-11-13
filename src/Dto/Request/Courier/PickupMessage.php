@@ -42,16 +42,8 @@ final readonly class PickupMessage extends PickupQueryMessage
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $pickupDate = null,
+        public ?\DateTimeInterface $pickupDate = null,
     ) {
         parent::__construct($courier, $shipFrom, $shipTo, $parcel);
-    }
-
-    /**
-     * @return \DateTimeInterface|null
-     */
-    public function getPickupDate(): ?\DateTimeInterface
-    {
-        return $this->pickupDate;
     }
 }

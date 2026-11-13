@@ -17,7 +17,7 @@ The source is organised by role:
 | `Entity` | Records Polkurier stores, for each the class you send and the class you read: address, bank account, phone number, pack template, and the order with its addresses, packs, cash on delivery and collection |
 | `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
-| `Serializer` | Serializer wiring, the SDK's own normalizers and 2 attributes |
+| `Serializer` | Serializer wiring, the SDK's own normalizers and 5 attributes |
 | `Log` | Preparing request and response bodies for the log |
 | `Webhook` | [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php), for the order events Polkurier posts to your system |
 | `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
@@ -110,7 +110,7 @@ A minor or patch release doesn't break code that relies only on:
 - the interfaces of the other replaceable collaborators: [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php),
   [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php), [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) and [`SerializerConfigInterface`](../src/Serializer/SerializerConfigInterface.php);
 - the request and response messages and the enums they use, the envelope ([`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php),
-  [`ResponseMessage`](../src/Http/Response/ResponseMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
+  [`ResponseMessage`](../src/Dto/Response/ResponseMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
 - the exceptions, the builders, [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php) and [`RecordingClient`](../src/Testing/RecordingClient.php);
 - what you write validation rules with: [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php), [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php),
   [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`ViolationPool`](../src/Validator/ViolationPool.php), [`MessageFields`](../src/Validator/MessageFields.php) and the rule attributes under
@@ -121,7 +121,7 @@ normalizers, the log preparation, and the `protected` members of every class not
 classes aren't `final`, so you can subclass one to change a single step, but such a subclass may
 need changes after an update. An implementation of an interface doesn't.
 
-The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php),
+The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php),
 [`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and [`InlineFields`](../src/Serializer/Attribute/InlineFields.php), [`RecordingClient`](../src/Testing/RecordingClient.php),
 [`LogJson`](../src/Log/LogJson.php), and every request and response class except those of stored records (see
 [Messages: extending a message](messages.md#extending-a-message)).
@@ -224,7 +224,7 @@ final readonly class CachingOrders implements OrdersServiceInterface
     public function getStatus(GetStatusMessage $getStatusMessage): OrderStatusMessage
     {
         return $this->cache->get(
-            'status-' . $getStatusMessage->getOrderNo(),
+            'status-' . $getStatusMessage->orderNo,
             fn() => $this->inner->getStatus($getStatusMessage),
         );
     }

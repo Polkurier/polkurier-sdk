@@ -34,7 +34,7 @@ final readonly class CancellationMessage implements MessageInterface, ParsedResp
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_CANCELLATION)]
-        private bool $cancellation = false,
+        public bool $cancellation = false,
 
         /**
          * @var string|null
@@ -42,12 +42,4 @@ final readonly class CancellationMessage implements MessageInterface, ParsedResp
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isCancelled(): bool
-    {
-        return $this->cancellation;
-    }
 }

@@ -77,35 +77,35 @@ final readonly class GetOrdersMessage extends PagedMessage
          */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[OmitWhenEmpty]
-        private ?string $orderNo = null,
+        public ?string $orderNo = null,
 
         /**
          * @var OrderStatusCodeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         #[OmitWhenEmpty]
-        private ?OrderStatusCodeEnum $status = null,
+        public ?OrderStatusCodeEnum $status = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
-        private ?string $courier = null,
+        public ?string $courier = null,
 
         /**
          * @var float|null
          */
         #[Serializer\SerializedName(self::FIELD_COD_MIN)]
         #[OmitWhenEmpty]
-        private ?float $codMin = null,
+        public ?float $codMin = null,
 
         /**
          * @var float|null
          */
         #[Serializer\SerializedName(self::FIELD_COD_MAX)]
         #[OmitWhenEmpty]
-        private ?float $codMax = null,
+        public ?float $codMax = null,
 
         /**
          * @var \DateTimeInterface|null
@@ -113,7 +113,7 @@ final readonly class GetOrdersMessage extends PagedMessage
         #[Serializer\SerializedName(self::FIELD_DATE_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateFrom = null,
+        public ?\DateTimeInterface $dateFrom = null,
 
         /**
          * @var \DateTimeInterface|null
@@ -121,14 +121,14 @@ final readonly class GetOrdersMessage extends PagedMessage
         #[Serializer\SerializedName(self::FIELD_DATE_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateTo = null,
+        public ?\DateTimeInterface $dateTo = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SEARCH_PHRASE)]
         #[OmitWhenEmpty]
-        private ?string $searchPhrase = null,
+        public ?string $searchPhrase = null,
 
         ?int $pageSize = null,
 
@@ -139,140 +139,36 @@ final readonly class GetOrdersMessage extends PagedMessage
          */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]
-        private ?string $externalApplicationId = null,
+        public ?string $externalApplicationId = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_ID)]
         #[OmitWhenEmpty]
-        private ?string $externalOrderId = null,
+        public ?string $externalOrderId = null,
 
         /**
          * @var bool|null
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[OmitWhenEmpty]
-        private ?bool $packs = null,
+        public ?bool $packs = null,
 
         /**
          * @var bool|null
          */
         #[Serializer\SerializedName(self::FIELD_ITEMS)]
         #[OmitWhenEmpty]
-        private ?bool $items = null,
+        public ?bool $items = null,
 
         /**
          * @var bool|null
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
-        private ?bool $files = null,
+        public ?bool $files = null,
     ) {
         parent::__construct(pageSize: $pageSize, page: $page);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getOrderNo(): ?string
-    {
-        return $this->orderNo;
-    }
-
-    /**
-     * @return OrderStatusCodeEnum|null
-     */
-    public function getStatus(): ?OrderStatusCodeEnum
-    {
-        return $this->status;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getCourier(): ?string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * @return float|null
-     */
-    public function getCodMin(): ?float
-    {
-        return $this->codMin;
-    }
-
-    /**
-     * @return float|null
-     */
-    public function getCodMax(): ?float
-    {
-        return $this->codMax;
-    }
-
-    /**
-     * @return \DateTimeInterface|null
-     */
-    public function getDateFrom(): ?\DateTimeInterface
-    {
-        return $this->dateFrom;
-    }
-
-    /**
-     * @return \DateTimeInterface|null
-     */
-    public function getDateTo(): ?\DateTimeInterface
-    {
-        return $this->dateTo;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getSearchPhrase(): ?string
-    {
-        return $this->searchPhrase;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getExternalApplicationId(): ?string
-    {
-        return $this->externalApplicationId;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getExternalOrderId(): ?string
-    {
-        return $this->externalOrderId;
-    }
-
-    /**
-     * @return bool|null
-     */
-    public function isPacks(): ?bool
-    {
-        return $this->packs;
-    }
-
-    /**
-     * @return bool|null
-     */
-    public function isItems(): ?bool
-    {
-        return $this->items;
-    }
-
-    /**
-     * @return bool|null
-     */
-    public function isFiles(): ?bool
-    {
-        return $this->files;
     }
 }

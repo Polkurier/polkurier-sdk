@@ -58,7 +58,7 @@ final class ExactDateTest extends TestCase
         );
 
         self::assertInstanceOf(OrderStatusMessage::class, $status);
-        self::assertSame('2026-10-08 12:34:00.000000', $status->getStatusDate()?->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-10-08 12:34:00.000000', $status->statusDate?->format('Y-m-d H:i:s.u'));
     }
 
     public function testWritingKeepsTheFormat(): void

@@ -45,7 +45,7 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
          */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
-        private string $courier,
+        public string $courier,
 
         /**
          * @var PackMessage[]
@@ -54,52 +54,20 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
         #[Validate\NotEmptyList]
         #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, PackMessage::class)]
-        private array $packs,
+        public array $packs,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SENDER_POST_CODE)]
         #[OmitWhenEmpty]
-        private ?string $senderPostCode = null,
+        public ?string $senderPostCode = null,
 
         /**
          * @var ShipmentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
         #[OmitWhenEmpty]
-        private ?ShipmentTypeEnum $shipmentType = null,
+        public ?ShipmentTypeEnum $shipmentType = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getCourier(): string
-    {
-        return $this->courier;
-    }
-
-    /**
-     * @return PackMessage[]
-     */
-    public function getPacks(): array
-    {
-        return $this->packs;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getSenderPostCode(): ?string
-    {
-        return $this->senderPostCode;
-    }
-
-    /**
-     * @return ShipmentTypeEnum|null
-     */
-    public function getShipmentType(): ?ShipmentTypeEnum
-    {
-        return $this->shipmentType;
-    }
 }

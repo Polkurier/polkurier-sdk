@@ -34,18 +34,8 @@ final readonly class DeleteBankAccountMessage extends IdMessage
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_PIN)]
         #[OmitWhenEmpty]
-        private ?string $accessPin = null,
+        public ?string $accessPin = null,
     ) {
         parent::__construct($id);
-    }
-
-    /**
-     * The account's security PIN, required only while the bank-account lock is engaged.
-     *
-     * @return string|null
-     */
-    public function getAccessPin(): ?string
-    {
-        return $this->accessPin;
     }
 }

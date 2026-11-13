@@ -37,7 +37,7 @@ final readonly class PinValidityMessage implements MessageInterface, ParsedRespo
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_VALID)]
-        private bool $valid = false,
+        public bool $valid = false,
 
         /**
          * @var string|null
@@ -45,12 +45,4 @@ final readonly class PinValidityMessage implements MessageInterface, ParsedRespo
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return bool
-     */
-    public function isValid(): bool
-    {
-        return $this->valid;
-    }
 }

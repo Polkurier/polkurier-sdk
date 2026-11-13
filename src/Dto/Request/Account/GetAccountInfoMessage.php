@@ -32,14 +32,6 @@ final readonly class GetAccountInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]
-        private ?string $externalApplicationId = null,
+        public ?string $externalApplicationId = null,
     ) {}
-
-    /**
-     * @return ?string
-     */
-    public function getExternalApplicationId(): ?string
-    {
-        return $this->externalApplicationId;
-    }
 }

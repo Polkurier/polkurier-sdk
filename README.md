@@ -195,7 +195,7 @@ try {
     // Re-authenticate.
 } catch (WebserviceException $e) {
     $error = $e->getErrorMessage();
-    \printf("%s (%s)\n", $error->getResponse(), $error->getErrorCode() ?? 'no code');
+    \printf("%s (%s)\n", $error->response, $error->errorCode ?? 'no code');
 }
 ```
 

@@ -44,11 +44,11 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
     /**
      * @param string $id
      * @param TicketTimelineItemTypeEnum|null $type whether this is a message or an event
-     * @param ?\DateTimeInterface $date
+     * @param \DateTimeInterface|null $date
      * @param TicketAuthorEnum|null $origin which side it came from
      * @param string $authorName first name only
      * @param string $content the message text, or a description of the event
-     * @param ?\DateTimeInterface $dateRead when the customer read it, null while unread. Ignore it on the
+     * @param \DateTimeInterface|null $dateRead when the customer read it, null while unread. Ignore it on the
      *        customer's own entries
      * @param TicketFileMessage[] $files attachments on this entry
      * @param string|null $rawResponse the body of the response, as the API sent it
@@ -58,51 +58,51 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
-         * @var TicketTimelineItemTypeEnum|null
+         * @var TicketTimelineItemTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        private ?TicketTimelineItemTypeEnum $type = TicketTimelineItemTypeEnum::Message,
+        public ?TicketTimelineItemTypeEnum $type = null,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $date = null,
+        public ?\DateTimeInterface $date = null,
 
         /**
-         * @var TicketAuthorEnum|null
+         * @var TicketAuthorEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
-        private ?TicketAuthorEnum $origin = TicketAuthorEnum::Customer,
+        public ?TicketAuthorEnum $origin = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_AUTHOR_NAME)]
-        private string $authorName = '',
+        public string $authorName = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content = '',
+        public string $content = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE_READ)]
         #[OmitWhenEmpty]
-        private ?\DateTimeInterface $dateRead = null,
+        public ?\DateTimeInterface $dateRead = null,
 
         /**
          * @var TicketFileMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
-        private array $files = [],
+        public array $files = [],
 
         /**
          * @var string|null
@@ -110,68 +110,4 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return TicketTimelineItemTypeEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getType(): ?TicketTimelineItemTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return ?\DateTimeInterface null if the response leaves it out
-     */
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    /**
-     * @return TicketAuthorEnum|null null for a value this version of the SDK doesn't know
-     */
-    public function getOrigin(): ?TicketAuthorEnum
-    {
-        return $this->origin;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAuthorName(): string
-    {
-        return $this->authorName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getDateRead(): ?\DateTimeInterface
-    {
-        return $this->dateRead;
-    }
-
-    /**
-     * @return TicketFileMessage[]
-     */
-    public function getFiles(): array
-    {
-        return $this->files;
-    }
 }

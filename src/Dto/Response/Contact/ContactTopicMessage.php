@@ -45,99 +45,43 @@ final readonly class ContactTopicMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id = '',
+        public string $id = '',
 
         /**
          * @var ?string
          */
         #[Serializer\SerializedName(self::FIELD_PARENT_ID)]
         #[OmitWhenEmpty]
-        private ?string $parentId = null,
+        public ?string $parentId = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
-        private string $title = '',
+        public string $title = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
-        private string $content = '',
+        public string $content = '',
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_HAS_FORM)]
-        private bool $hasForm = false,
+        public bool $hasForm = false,
 
         /**
          * @var KnowledgeBaseLinkMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_KNOWLEDGE_BASE_ARTICLES)]
-        private array $knowledgeBaseArticles = [],
+        public array $knowledgeBaseArticles = [],
 
         /**
          * @var KnowledgeBaseLinkMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_KNOWLEDGE_BASE_CATEGORIES)]
-        private array $knowledgeBaseCategories = [],
+        public array $knowledgeBaseCategories = [],
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return ?string
-     */
-    public function getParentId(): ?string
-    {
-        return $this->parentId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasForm(): bool
-    {
-        return $this->hasForm;
-    }
-
-    /**
-     * @return KnowledgeBaseLinkMessage[]
-     */
-    public function getKnowledgeBaseArticles(): array
-    {
-        return $this->knowledgeBaseArticles;
-    }
-
-    /**
-     * @return KnowledgeBaseLinkMessage[]
-     */
-    public function getKnowledgeBaseCategories(): array
-    {
-        return $this->knowledgeBaseCategories;
-    }
 }

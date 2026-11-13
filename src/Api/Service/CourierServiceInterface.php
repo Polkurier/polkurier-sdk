@@ -355,7 +355,7 @@ interface CourierServiceInterface
      *
      * Name at least one carrier. The SDK checks this before sending. Pass all the codes a carrier's
      * points map lists, from
-     * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap::getAvailableProviders()}.
+     * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap::$availableProviders}.
      * A code on its own may match nothing, as DPD_COURIER_POINT does, and so does an unknown code.
      *
      * There are 3 search modes, and the reply's shape depends on which one you use:

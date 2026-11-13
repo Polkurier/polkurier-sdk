@@ -59,7 +59,7 @@ final readonly class RegisterPaymentMessage implements MessageInterface
          * @var PaymentModeEnum
          */
         #[Serializer\SerializedName(self::FIELD_MODE)]
-        private PaymentModeEnum $mode,
+        public PaymentModeEnum $mode,
 
         /**
          * @var ?float
@@ -67,7 +67,7 @@ final readonly class RegisterPaymentMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         #[Validate\NonNegative]
         #[OmitWhenEmpty]
-        private ?float $amount = null,
+        public ?float $amount = null,
 
         /**
          * @var string[]
@@ -75,7 +75,7 @@ final readonly class RegisterPaymentMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_INVOICES)]
         #[Validate\Each(Validate\NotBlank::class)]
         #[OmitWhenEmpty]
-        private array $invoiceNumbers = [],
+        public array $invoiceNumbers = [],
 
         /**
          * @var string[]
@@ -83,38 +83,6 @@ final readonly class RegisterPaymentMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
         #[Validate\Each(Validate\OrderNumber::class)]
         #[OmitWhenEmpty]
-        private array $orderNumbers = [],
+        public array $orderNumbers = [],
     ) {}
-
-    /**
-     * @return PaymentModeEnum
-     */
-    public function getMode(): PaymentModeEnum
-    {
-        return $this->mode;
-    }
-
-    /**
-     * @return ?float
-     */
-    public function getAmount(): ?float
-    {
-        return $this->amount;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getInvoiceNumbers(): array
-    {
-        return $this->invoiceNumbers;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getOrderNumbers(): array
-    {
-        return $this->orderNumbers;
-    }
 }

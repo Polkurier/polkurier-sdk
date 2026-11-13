@@ -25,10 +25,10 @@ if (!$reader->isAuthentic($body, $webhookSecret)) {
 
 $event = $reader->read($body);
 
-// $event->getType()  OrderWebhookTypeEnum::Created, Updated or Cancelled, or null if unknown
-// $event->getOrder() the order, as getOrders() gives it
+// $event->type  OrderWebhookTypeEnum::Created, Updated or Cancelled, or null if unknown
+// $event->order the order, as getOrders() gives it
 
-refreshOrder($event->getOrder()->getNumber());
+refreshOrder($event->order->getNumber());
 
 http_response_code(200);
 echo OrderWebhookReader::ACKNOWLEDGEMENT;   // "OK"
@@ -44,9 +44,9 @@ An event is a form-encoded POST with 3 fields:
 
 | Field | Read as | Holds |
 |-------|---------|-------|
-| `type` | [`OrderWebhookMessage::getType()`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | `CREATED`, `UPDATED` or `CANCELLED`, see [`OrderWebhookTypeEnum`](../src/Enum/Webhook/OrderWebhookTypeEnum.php) |
-| `data` | [`OrderWebhookMessage::getOrder()`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | The order, in the shape [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) gives it, with parcels and items and without files, as an [`Order`](../src/Entity/Order/Order.php) |
-| `hash` | [`OrderWebhookMessage::getHash()`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | An HMAC-SHA256 of the other fields, form-encoded, keyed with the webhook's secret |
+| `type` | [`OrderWebhookMessage::$type`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | `CREATED`, `UPDATED` or `CANCELLED`, see [`OrderWebhookTypeEnum`](../src/Enum/Webhook/OrderWebhookTypeEnum.php) |
+| `data` | [`OrderWebhookMessage::$order`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | The order, in the shape [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) gives it, with parcels and items and without files, as an [`Order`](../src/Entity/Order/Order.php) |
+| `hash` | [`OrderWebhookMessage::$hash`](../src/Dto/Response/Webhook/OrderWebhookMessage.php) | An HMAC-SHA256 of the other fields, form-encoded, keyed with the webhook's secret |
 
 The order comes as nested form fields, e.g. `data[number]` and `data[sender][city]`, so every value
 is a string, and values that are null or empty lists aren't sent at all.

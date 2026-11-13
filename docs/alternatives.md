@@ -67,7 +67,7 @@ Paging
 
 | Route | Use when |
 |-------|----------|
-| `while ($page <= $list->getTotalPages())` | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
+| `while ($page <= $list->totalPages)` | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
 | Stop when a page comes back short | [`InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
 | A generator wrapping either | Application code that just wants to iterate |
 
@@ -110,12 +110,8 @@ Documents in general
 
 Every document response ([`DocumentMessage`](../src/Dto/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Dto/Response/Order/OrderFileMessage.php),
 [`InvoiceDocumentMessage`](../src/Dto/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Dto/Response/Invoice/InvoiceSummaryListMessage.php) and
-[`TicketFileContentMessage`](../src/Dto/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
-
-| Route | Gives you |
-|-------|-----------|
-| [`DocumentMessage::getFile()`](../src/Dto/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
-| [`DocumentMessage::getDecodedFile()`](../src/Dto/Response/DecodesFileTrait.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
+[`TicketFileContentMessage`](../src/Dto/Response/Ticket/TicketFileContentMessage.php)) holds the file's bytes in `$file`, decoded from the base64 the API sends.
+For a `data:` URI or to pass the file on as base64, encode it again with `base64_encode()`.
 
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.
@@ -140,7 +136,7 @@ Reading a rejection
 | [`ValidationException::getValidationErrors()`](../src/Exception/ValidationException.php) | Everything, keyed by wire field name |
 | [`ValidationException::getFieldErrors($field)`](../src/Exception/ValidationException.php) | One field |
 | [`ValidationException::getMessage()`](../src/Exception/ValidationException.php) | All of it flattened into a sentence |
-| [`WebserviceException::getErrorMessage()->getValidationErrors()`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
+| [`WebserviceException::getErrorMessage()->validationErrors`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
 
 Because of the last row, you can display a local rejection and a server-side one with the same
 code.

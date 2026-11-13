@@ -31,45 +31,21 @@ final readonly class ContactFormOptionMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var string
+         * @var string the answer to submit when this choice is picked
          */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
-        private string $value = '',
+        public string $value = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
-        private string $label = '',
+        public string $label = '',
 
         /**
-         * @var string
+         * @var string when the choice is offered, as the form states it. Empty when it always is
          */
         #[Serializer\SerializedName(self::FIELD_CONDITION)]
-        private string $condition = '',
+        public string $condition = '',
     ) {}
-
-    /**
-     * @return string the answer to submit when this choice is picked
-     */
-    public function getValue(): string
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    /**
-     * @return string when the choice is offered, as the form states it. Empty when it always is
-     */
-    public function getCondition(): string
-    {
-        return $this->condition;
-    }
 }

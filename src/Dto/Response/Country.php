@@ -34,75 +34,35 @@ final readonly class Country implements MessageInterface
      */
     public function __construct(
         /**
+         * ISO country code.
+         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
-        private string $id,
+        public string $id,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
-        private string $name,
+        public string $name,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_UE)]
-        private bool $ue = false,
+        public bool $ue = false,
 
         /**
-         * @var bool
+         * @var bool true for Poland only
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
-        private bool $default = false,
+        public bool $default = false,
 
         /**
          * @var Province[]
          */
         #[Serializer\SerializedName(self::FIELD_PROVINCES)]
-        private array $provinces = [],
+        public array $provinces = [],
     ) {}
-
-    /**
-     * ISO country code.
-     *
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isUe(): bool
-    {
-        return $this->ue;
-    }
-
-    /**
-     * @return bool true for Poland only
-     */
-    public function isDefault(): bool
-    {
-        return $this->default;
-    }
-
-    /**
-     * @return Province[]
-     */
-    public function getProvinces(): array
-    {
-        return $this->provinces;
-    }
 }

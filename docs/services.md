@@ -129,7 +129,7 @@ $points = $client->courier()->findCourierPoints(new GetPointMessage(
 ```
 
 The carrier list takes all the codes in a carrier's
-[`PointsMap::getAvailableProviders()`](../src/Dto/Response/Carrier/AdditionalData/PointsMap.php). A code on its own may match nothing.
+[`PointsMap::$availableProviders`](../src/Dto/Response/Carrier/AdditionalData/PointsMap.php). A code on its own may match nothing.
 
 Without a search query, it returns every point of the given carriers, which suits a
 local cache. For InPost that is over 30,000 points, so cache the result instead of fetching it for
@@ -177,7 +177,7 @@ $quotes = $client->orders()->orderValuation($order, 'DPD');   // ValuationMessag
 
 A code the API doesn't know is rejected. A single carrier's quote has no service name.
 The net and gross prices are the totals to be charged, with any promotion and rebate already taken
-off. A price only means something when [`ValuationMessage::isShipment()`](../src/Dto/Response/Order/ValuationMessage.php) is true, and a conditional
+off. A price only means something when [`ValuationMessage::$shipment`](../src/Dto/Response/Order/ValuationMessage.php) is true, and a conditional
 price of 0 means no conditional offer, not a free one.
 
 To find an order again by your own id, place it with `externalApplicationId` (your application's
@@ -247,12 +247,12 @@ numbers. You get labels for several orders back as one PDF from a single call.
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) also accepts a [`LabelFileFormatEnum`](../src/Enum/Order/LabelFileFormatEnum.php) for formats other than PDF, such as ZPL, if the
 carrier supports them, for a single order number only.
 
-Every document, these and the invoices below alike, has the base64 content in `getFile()` and the
-raw bytes in `getDecodedFile()`:
+Every document, these and the invoices below alike, holds the file's bytes in `$file`, decoded from
+the base64 the API sends:
 
 ```php
-file_put_contents('labels.pdf', $labels->getDecodedFile());     // write it out
-echo '<embed src="data:application/pdf;base64,' . $labels->getFile() . '">';  // hand it to a browser
+file_put_contents('labels.pdf', $labels->file);     // write it out
+echo '<embed src="data:application/pdf;base64,' . \base64_encode($labels->file) . '">';  // hand it to a browser
 ```
 
 Booking a collection
@@ -279,7 +279,7 @@ One collection for *several* shipments is a collective pickup. It is booked in t
 ```php
 // 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
-if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
+if ($client->orders()->isMultiPickupAvailable($check)->available) {
     // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
 }
 
@@ -364,7 +364,7 @@ a new SDK release.
 > [`AccountServiceInterface::acceptRegulations()`](../src/Api/Service/AccountServiceInterface.php) records that the customer accepts the current terms, which is a legal act on
 > their behalf. Called at start-up, it would accept the terms for a customer who never saw them.
 
-An account whose [`AccountInfoMessage::isRequireAgreementVerification()`](../src/Dto/Response/Account/AccountInfoMessage.php) is true has to verify its identity.
+An account whose [`AccountInfoMessage::$requireAgreementVerification`](../src/Dto/Response/Account/AccountInfoMessage.php) is true has to verify its identity.
 [`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) starts it, or returns the one in progress, with its access
 token; the customer finishes with the provider.
 [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) returns the latest attempt and its result, or `null` if none has
@@ -417,7 +417,7 @@ left this month.
 
 > [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) moves real money. A postal money order to an address other than the saved
 > default needs a security PIN or [two-factor confirmation](#two-factor-confirmation). [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) works only
-> while [`MoneyBoxPayoutMessage::isCancellable()`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true.
+> while [`MoneyBoxPayoutMessage::$cancellable`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true.
 
 Full example: [Recipes: paying out collected money](recipes.md#paying-out-collected-money).
 
@@ -445,8 +445,8 @@ the customer enters the code
 
 The operation is a [`TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) value.
 
-The [`TwoFactorToken`](../src/Dto/Response/TwoFactorToken.php) says how the code was sent: [`TwoFactorToken::getTransportMethod()`](../src/Dto/Response/TwoFactorToken.php) names where it
-went, e.g. a masked phone number. [`TwoFactorToken::getAvailableMethods()`](../src/Dto/Response/TwoFactorToken.php) lists the channels, the current one
+The [`TwoFactorToken`](../src/Dto/Response/TwoFactorToken.php) says how the code was sent: [`TwoFactorToken::$transportMethod`](../src/Dto/Response/TwoFactorToken.php) names where it
+went, e.g. a masked phone number. [`TwoFactorToken::$availableMethods`](../src/Dto/Response/TwoFactorToken.php) lists the channels, the current one
 included, by the id that switching to one takes.
 
 Full example: [Recipes: two-factor confirmation](recipes.md#two-factor-confirmation).
@@ -496,11 +496,11 @@ Attachments are [`TicketAttachmentMessage`](../src/Dto/Request/Ticket/TicketAtta
 its media type and its contents in base64. A message carries up to 5. Each is stored under a new
 unique name, given by the timeline; [`TicketsServiceInterface::getTicketMessageFile()`](../src/Api/Service/TicketsServiceInterface.php) needs that name.
 
-When [`TicketMessage::getResponseTemplate()`](../src/Dto/Response/Ticket/TicketMessage.php) is set, a reply must be one of its answers.
+When [`TicketMessage::$responseTemplate`](../src/Dto/Response/Ticket/TicketMessage.php) is set, a reply must be one of its answers.
 
 A contact form's category is the id of a topic that has a form, from
-[`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). For a website-only form, [`ContactFormMessage::isWebOnly()`](../src/Dto/Response/Contact/ContactFormMessage.php) is true and
-[`ContactFormMessage::getHref()`](../src/Dto/Response/Contact/ContactFormMessage.php) gives its page; the API takes no submission. A submission quotes the
+[`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php). For a website-only form, [`ContactFormMessage::$webOnly`](../src/Dto/Response/Contact/ContactFormMessage.php) is true and
+[`ContactFormMessage::$href`](../src/Dto/Response/Contact/ContactFormMessage.php) gives its page; the API takes no submission. A submission quotes the
 form id and nonce of one fetch, and the nonce works once, within an hour. The answers go in
 [`SaveContactFormMessage`](../src/Dto/Request/Contact/SaveContactFormMessage.php)'s `fields`, keyed by the names of the form's fields.
 

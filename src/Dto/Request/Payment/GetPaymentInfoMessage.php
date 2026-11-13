@@ -31,14 +31,6 @@ final readonly class GetPaymentInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
         #[Validate\NotBlank]
-        private string $transactionId,
+        public string $transactionId,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getTransactionId(): string
-    {
-        return $this->transactionId;
-    }
 }

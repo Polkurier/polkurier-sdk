@@ -21,7 +21,7 @@ try {
     $cities = polkurier()->geo()->findCity(new FindCityMessage(postcode: '61-001'));
 
     foreach ($cities as $city) {
-        echo $city->getName(), "\n";
+        echo $city->name, "\n";
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

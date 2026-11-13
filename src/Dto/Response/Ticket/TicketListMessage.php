@@ -25,24 +25,24 @@ final readonly class TicketListMessage extends PagedListMessage
     /**-@#*/
 
     /**
-     * @param int|null $totalRows
-     * @param int|null $currentPage
-     * @param int|null $pageSize tickets per page, as applied to this response
+     * @param int $totalRows
+     * @param int $currentPage
+     * @param int $pageSize tickets per page, as applied to this response
      * @param TicketMessage[] $result the tickets on this page
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        ?int $totalRows = 0,
+        int $totalRows = 0,
 
-        ?int $currentPage = 0,
+        int $currentPage = 0,
 
-        ?int $pageSize = 0,
+        int $pageSize = 0,
 
         /**
          * @var TicketMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
-        private array $result = [],
+        public array $result = [],
         ?string $rawResponse = null,
     ) {
         parent::__construct(
@@ -51,13 +51,5 @@ final readonly class TicketListMessage extends PagedListMessage
             pageSize: $pageSize,
             rawResponse: $rawResponse,
         );
-    }
-
-    /**
-     * @return TicketMessage[]
-     */
-    public function getResult(): array
-    {
-        return $this->result;
     }
 }

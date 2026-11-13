@@ -31,14 +31,6 @@ final readonly class CancelMoneyBoxPayoutMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_NUMBER)]
         #[Validate\NotBlank]
-        private string $payoutNumber,
+        public string $payoutNumber,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getPayoutNumber(): string
-    {
-        return $this->payoutNumber;
-    }
 }

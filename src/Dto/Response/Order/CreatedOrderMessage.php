@@ -56,58 +56,58 @@ final readonly class CreatedOrderMessage implements MessageInterface, ParsedResp
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ORDER_NUMBER)]
-        private string $orderNumber = '',
+        public string $orderNumber = '',
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_CONSIGN_ID)]
         #[OmitWhenEmpty]
-        private ?string $consignId = null,
+        public ?string $consignId = null,
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
-        private array $label = [],
+        public array $label = [],
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_PRICE_NET)]
-        private float $priceNet = 0.0,
+        public float $priceNet = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
-        private float $priceGross = 0.0,
+        public float $priceGross = 0.0,
 
         /**
          * @var float
          */
         #[Serializer\SerializedName(self::FIELD_UNPAID_AMOUNT)]
-        private float $unpaidAmount = 0.0,
+        public float $unpaidAmount = 0.0,
 
         /**
          * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_PAID)]
-        private bool $paid = false,
+        public bool $paid = false,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING_URI)]
         #[OmitWhenEmpty]
-        private ?string $trackingUri = null,
+        public ?string $trackingUri = null,
 
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_CODE)]
         #[OmitWhenEmpty]
-        private ?string $shipmentCode = null,
+        public ?string $shipmentCode = null,
 
         /**
          * @var string|null
@@ -115,76 +115,4 @@ final readonly class CreatedOrderMessage implements MessageInterface, ParsedResp
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return string
-     */
-    public function getOrderNumber(): string
-    {
-        return $this->orderNumber;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getConsignId(): ?string
-    {
-        return $this->consignId;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getLabel(): array
-    {
-        return $this->label;
-    }
-
-    /**
-     * @return float
-     */
-    public function getPriceNet(): float
-    {
-        return $this->priceNet;
-    }
-
-    /**
-     * @return float
-     */
-    public function getPriceGross(): float
-    {
-        return $this->priceGross;
-    }
-
-    /**
-     * @return float
-     */
-    public function getUnpaidAmount(): float
-    {
-        return $this->unpaidAmount;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPaid(): bool
-    {
-        return $this->paid;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getTrackingUri(): ?string
-    {
-        return $this->trackingUri;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getShipmentCode(): ?string
-    {
-        return $this->shipmentCode;
-    }
 }

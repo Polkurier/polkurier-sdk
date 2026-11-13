@@ -384,8 +384,8 @@ final class ServiceCallTest extends TestCase
 
         $pickup = $this->sdk->courier()->pickupCourier(new PickupMessage(courier: 'INPOST', shipFrom: '61-001'));
 
-        self::assertFalse($pickup->isPickupDate());
-        self::assertSame([], $pickup->getTime());
+        self::assertFalse($pickup->pickupDate);
+        self::assertSame([], $pickup->time);
     }
 
     /**
@@ -417,10 +417,10 @@ final class ServiceCallTest extends TestCase
             new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
         );
 
-        self::assertSame(ContactFormResultStatusEnum::Error, $result->getStatus());
-        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->getAction());
-        self::assertSame('n2', $result->getNonce());
-        self::assertTrue($result->getData()?->isRequireAuthCode());
+        self::assertSame(ContactFormResultStatusEnum::Error, $result->status);
+        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->action);
+        self::assertSame('n2', $result->nonce);
+        self::assertTrue($result->data?->requireAuthCode);
     }
 
     public function testASubmittedContactFormReturnsTheTicketNumber(): void
@@ -432,8 +432,8 @@ final class ServiceCallTest extends TestCase
             new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
         );
 
-        self::assertSame(ContactFormResultStatusEnum::Success, $result->getStatus());
-        self::assertSame('202609-000123', $result->getData()?->getTicketNumber());
+        self::assertSame(ContactFormResultStatusEnum::Success, $result->status);
+        self::assertSame('202609-000123', $result->data?->ticketNumber);
     }
 
     public function testCarrierNoticesCanBeNarrowedToOneCarrier(): void
@@ -458,7 +458,7 @@ final class ServiceCallTest extends TestCase
 
         $page = $this->sdk->moneyBox()->getPayouts(new GetMoneyBoxPayoutsMessage(payoutNumber: 'W1'));
 
-        self::assertNull($page->getResult()[0]->getIban());
+        self::assertNull($page->result[0]->bankAccountNumber);
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void
@@ -470,7 +470,7 @@ final class ServiceCallTest extends TestCase
         $timeline = $this->sdk->tickets()->getTicketMessages(new TicketIdMessage(ticketId: 'b379362e'));
 
         self::assertCount(1, $timeline);
-        self::assertSame('94a7', $timeline[0]->getId());
+        self::assertSame('94a7', $timeline[0]->id);
     }
 
     public function testAValuationForOneCarrierSendsTheOrderWithTheCarrierNextToIt(): void
@@ -489,9 +489,9 @@ final class ServiceCallTest extends TestCase
         self::assertArrayHasKey(CreateOrderMessage::FIELD_SENDER, $data);
         self::assertArrayNotHasKey(OrderValuationMessage::FIELD_ORDER, $data);
         self::assertCount(1, $quotes);
-        self::assertSame('DPD', $quotes[0]->getServiceCode());
-        self::assertSame('', $quotes[0]->getServiceName());
-        self::assertSame(14.5, $quotes[0]->getNetPrice());
+        self::assertSame('DPD', $quotes[0]->serviceCode);
+        self::assertSame('', $quotes[0]->serviceName);
+        self::assertSame(14.5, $quotes[0]->netPrice);
     }
 
     public function testAnOrderPricedForOneCarrierIsRejectedUnderItsOwnFieldNames(): void

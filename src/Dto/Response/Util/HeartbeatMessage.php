@@ -36,7 +36,7 @@ final readonly class HeartbeatMessage implements MessageInterface, ParsedRespons
          * @var ?\DateTimeInterface
          */
         #[Serializer\SerializedName(self::FIELD_TIME)]
-        private ?\DateTimeInterface $time,
+        public ?\DateTimeInterface $time,
 
         /**
          * @var string|null
@@ -44,12 +44,4 @@ final readonly class HeartbeatMessage implements MessageInterface, ParsedRespons
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
-
-    /**
-     * @return ?\DateTimeInterface
-     */
-    public function getTime(): ?\DateTimeInterface
-    {
-        return $this->time;
-    }
 }
