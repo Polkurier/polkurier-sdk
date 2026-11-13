@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Invoice;
 
 /**
  * Which kind of accounting document to list.
+ *
+ * @api
  */
 enum InvoiceTypeEnum: string
 {

@@ -52,7 +52,7 @@ namespace App\Polkurier;
 
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Psr\Container\ContainerInterface;
 
 final class ConfigFactory
@@ -110,8 +110,8 @@ All the services take the same arguments, so one factory can build any of them:
 namespace App\Polkurier;
 
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Psr\Container\ContainerInterface;
@@ -175,10 +175,10 @@ use App\Polkurier\ServiceMap;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
@@ -213,6 +213,12 @@ return [
 
 ServiceManager passes the requested service name to the factory as the second argument. That's
 how a single factory class can build every service.
+
+This page wires the services directly, so the container also holds three collaborators the SDK
+does not promise: [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php), [`RequestFactoryInterface`](../../src/Http/Request/RequestFactoryInterface.php) and
+[`ResponseFactoryInterface`](../../src/Http/Response/ResponseFactoryInterface.php). A release may change them, see
+[Architecture: what a release can change](../architecture.md#what-a-release-can-change). Build
+[`PolkurierWebservice`](../../src/PolkurierWebservice.php) with a [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) instead to stay on the contract.
 
 Using it
 --------

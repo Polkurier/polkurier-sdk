@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  *
  * The API sends wall-clock times ("H:i") without a date, so these values read as that time on
  * 1 January 1970. The date comes from the message that owns the window.
+ *
+ * @api
  */
 final readonly class TimeIntervalMessage
 {

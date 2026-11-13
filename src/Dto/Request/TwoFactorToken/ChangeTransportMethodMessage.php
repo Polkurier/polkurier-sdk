@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * listed on the token returned by registering.
  *
  * Switching sends the code over the new channel at once; the resend window doesn't apply.
+ *
+ * @api
  */
 final readonly class ChangeTransportMethodMessage implements MessageInterface
 {

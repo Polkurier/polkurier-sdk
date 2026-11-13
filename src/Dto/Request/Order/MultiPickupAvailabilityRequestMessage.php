@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Describe the shipment the way you would on `create_order`.
  *
  * Unlike `create_order`, the sender postcode and the shipment type are sent in camelCase.
+ *
+ * @api
  */
 final readonly class MultiPickupAvailabilityRequestMessage implements MessageInterface
 {
@@ -35,7 +37,7 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
 
     /**
      * @param string $courier carrier code, as returned by `available_carriers`
-     * @param PackMessage[] $packs the parcels, at least one
+     * @param PackItem[] $packs the parcels, at least one
      * @param string|null $senderPostCode postcode the shipment is sent from
      * @param ShipmentTypeEnum|null $shipmentType
      */
@@ -48,12 +50,12 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
         public string $courier,
 
         /**
-         * @var PackMessage[]
+         * @var PackItem[]
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[Validate\NotEmptyList]
         #[Validate\Valid]
-        #[Validate\Each(Validate\OfType::class, PackMessage::class)]
+        #[Validate\Each(Validate\OfType::class, PackItem::class)]
         public array $packs,
 
         /**

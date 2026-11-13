@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Fetches the form definition for one contact category.
+ *
+ * @api
  */
 final readonly class GetContactFormMessage implements MessageInterface
 {

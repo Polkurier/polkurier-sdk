@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Which settings there are depends on the application, so they come as name and value pairs. A
  * value that isn't a single value, such as a list, is given as its JSON.
+ *
+ * @api
  */
 final readonly class ExternalApplicationSettingMessage implements MessageInterface
 {

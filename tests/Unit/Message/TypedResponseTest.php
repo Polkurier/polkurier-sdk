@@ -22,7 +22,7 @@ use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketFileContentMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketResponseTemplateMessage;
-use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
 use Polkurier\Webservice\Http\Response\ResponseFactory;

@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Filters an address-book listing by role.
+ *
+ * @api
  */
 final readonly class GetMessage implements MessageInterface
 {

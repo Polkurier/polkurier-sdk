@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Limits and policy to validate input against.
  *
  * These values can change without an API version bump.
+ *
+ * @api
  */
 final readonly class SystemInfoMessage implements MessageInterface, ParsedResponseInterface
 {

@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A notice attached to a submitted contact form's result.
+ *
+ * @api
  */
 final readonly class ContactFormResultNoticeMessage implements MessageInterface
 {

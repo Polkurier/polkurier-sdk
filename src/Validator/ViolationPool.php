@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Validator;
 
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
 /**
  * Collects the reasons a payload was rejected.

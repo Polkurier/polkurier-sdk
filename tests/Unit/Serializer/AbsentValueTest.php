@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Carrier;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Pickup;
 use Polkurier\Webservice\Dto\Response\Order\IndividualPricing;
-use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Serializer\AbsentDateDenormalizer;
 use Polkurier\Webservice\Serializer\OmitEmptyNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;

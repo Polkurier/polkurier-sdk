@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Log;
 
 use GuzzleHttp\Psr7\Utils;
 use Polkurier\Webservice\Api\ConfigInterface;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Psr\Http\Message\MessageInterface;
 
 /**

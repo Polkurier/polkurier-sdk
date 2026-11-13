@@ -16,16 +16,17 @@ use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
 use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
-use Polkurier\Webservice\Entity\Order\CodMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\Cod;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
@@ -68,13 +69,13 @@ final class ValidationTest extends TestCase
                 files: [TicketAttachmentMessage::fromContents('a.txt', 'x', 'text/plain')],
             )],
             'an order with no cash on delivery' => [self::order(cod: null)],
-            'cash on delivery zeroed, which the API ignores' => [self::order(cod: new CodMessage(amount: 0.0))],
+            'cash on delivery zeroed, which the API ignores' => [self::order(cod: new Cod(amount: 0.0))],
             // The API stops reading the block at a zero amount, so nothing beside it can be wrong.
             'cash on delivery zeroed, with a bank account that would not pass' => [
-                self::order(cod: new CodMessage(amount: 0.0, bankAccount: 'not-an-iban')),
+                self::order(cod: new Cod(amount: 0.0, bankAccount: 'not-an-iban')),
             ],
             'a recipient collecting from a point, with no street address' => [
-                self::order(recipient: new OrderAddressMessage(
+                self::order(recipient: new Address(
                     person: '',
                     street: '',
                     city: '',
@@ -85,7 +86,7 @@ final class ValidationTest extends TestCase
                 )),
             ],
             'a recipient with no email, which only the sender needs' => [
-                self::order(recipient: new OrderAddressMessage(
+                self::order(recipient: new Address(
                     person: 'Anna Nowak',
                     street: 'Krótka',
                     city: 'Warszawa',
@@ -95,7 +96,7 @@ final class ValidationTest extends TestCase
                 )),
             ],
             'a foreign address, whose postcode is not a Polish one' => [
-                self::order(recipient: new OrderAddressMessage(
+                self::order(recipient: new Address(
                     person: 'Hans Müller',
                     street: 'Hauptstraße',
                     city: 'Berlin',
@@ -106,14 +107,14 @@ final class ValidationTest extends TestCase
                 )),
             ],
             'a bank account written with spaces' => [
-                self::order(cod: new CodMessage(
+                self::order(cod: new Cod(
                     amount: 250.0,
                     bankAccount: '58 1020 3958 0000 9202 0222 8609',
                     returnType: CodReturnTypeEnum::BankAccount,
                 )),
             ],
             'cash on delivery sent by postal order, which needs no account' => [
-                self::order(cod: new CodMessage(amount: 250.0, returnType: CodReturnTypeEnum::PostOffice)),
+                self::order(cod: new Cod(amount: 250.0, returnType: CodReturnTypeEnum::PostOffice)),
             ],
             'an order number' => [new CancelOrderMessage('12345-678')],
             'several order numbers' => [new GetDocumentMessage(['12345-678', '12345-679'])],
@@ -126,7 +127,7 @@ final class ValidationTest extends TestCase
                     couponCode: 'PROMO2026',
                     courier: 'UPS',
                     shipmentType: ShipmentTypeEnum::Box,
-                    packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
+                    packs: [new PackItem(length: 30, width: 20, height: 15, weight: 2.5)],
                 ),
             ],
             'a postcode lookup' => [new FindCityMessage('61-001')],
@@ -184,15 +185,14 @@ final class ValidationTest extends TestCase
                 ),
                 'files[0].type',
             ],
-            // {@see CreateOrderMessage} rejects an empty pack list in its own constructor, before any
-            // validator sees it, so the list rule is exercised through a payload that gets that far.
             'a point search naming no carriers' => [new GetPointMessage(couriers: []), 'couriers'],
+            'an order with no parcels' => [self::order(packs: []), 'packs'],
             // Half an order context: the API refuses, naming whichever field it noticed first.
             'a coupon with parcels but no carrier' => [
                 new ValidateCouponMessage(
                     couponCode: 'PROMO2026',
                     shipmentType: ShipmentTypeEnum::Box,
-                    packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
+                    packs: [new PackItem(length: 30, width: 20, height: 15, weight: 2.5)],
                 ),
                 'courier',
             ],
@@ -221,15 +221,15 @@ final class ValidationTest extends TestCase
                 'orders[0]',
             ],
             'a parcel with no length' => [
-                self::order(packs: [new PackMessage(length: 0, width: 20, height: 15, weight: 2.5)]),
+                self::order(packs: [new PackItem(length: 0, width: 20, height: 15, weight: 2.5)]),
                 'packs[0].length',
             ],
             'a parcel with no weight' => [
-                self::order(packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 0.0)]),
+                self::order(packs: [new PackItem(length: 30, width: 20, height: 15, weight: 0.0)]),
                 'packs[0].weight',
             ],
             'a sender with no email' => [
-                self::order(sender: new OrderAddressMessage(
+                self::order(sender: new Address(
                     person: 'Jan',
                     street: 'Długa',
                     city: 'Poznań',
@@ -240,7 +240,7 @@ final class ValidationTest extends TestCase
                 'sender.email',
             ],
             'a Polish postcode in the wrong format' => [
-                self::order(sender: new OrderAddressMessage(
+                self::order(sender: new Address(
                     person: 'Jan',
                     street: 'Długa',
                     city: 'Poznań',
@@ -251,7 +251,7 @@ final class ValidationTest extends TestCase
                 'sender.postcode',
             ],
             'cash on delivery to a bank account with no account' => [
-                self::order(cod: new CodMessage(
+                self::order(cod: new Cod(
                     amount: 250.0,
                     bankAccount: '',
                     returnType: CodReturnTypeEnum::BankAccount,
@@ -259,7 +259,7 @@ final class ValidationTest extends TestCase
                 'COD.codbankaccount',
             ],
             'a bank account of the wrong length' => [
-                self::order(cod: new CodMessage(
+                self::order(cod: new Cod(
                     amount: 250.0,
                     bankAccount: '5810203958',
                     returnType: CodReturnTypeEnum::BankAccount,
@@ -324,7 +324,7 @@ final class ValidationTest extends TestCase
         try {
             $this->validator->validate(self::order(
                 courier: '',
-                packs: [new PackMessage(length: 0, width: 0, height: 15, weight: 2.5)],
+                packs: [new PackItem(length: 0, width: 0, height: 15, weight: 2.5)],
             ));
             self::fail('Expected a ValidationException.');
         } catch (ValidationException $e) {
@@ -343,7 +343,7 @@ final class ValidationTest extends TestCase
     public function testEachViolationIsReportedOnce(): void
     {
         try {
-            $this->validator->validate(self::order(sender: new OrderAddressMessage(
+            $this->validator->validate(self::order(sender: new Address(
                 person: 'Jan Kowalski',
                 street: 'Długa',
                 city: 'Poznań',
@@ -368,7 +368,7 @@ final class ValidationTest extends TestCase
     {
         $this->validator->validate(new ValidateCouponMessage(
             couponCode: 'SPRING10',
-            sender: new OrderAddressMessage(
+            sender: new Address(
                 person: '',
                 street: '',
                 city: '',
@@ -426,6 +426,46 @@ final class ValidationTest extends TestCase
     }
 
     /**
+     * The keys are a contract of their own: integrations map them onto their own form fields, so
+     * a release keeps the wire names, the dot between a record and its field, the `[n]` of a list
+     * entry, and the absence of a prefix for a record the payload inlines.
+     *
+     * @see \Polkurier\Webservice\Exception\ValidationException
+     *
+     * @return void
+     */
+    public function testTheKeysNameTheFieldTheWayTheApiDoes(): void
+    {
+        $order = self::order(
+            packs: [
+                new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+                new PackItem(length: 30, width: 20, height: 15, weight: -5.0, type: PackTypeEnum::Standard),
+            ],
+            sender: new Address(
+                person: 'Jan Kowalski',
+                street: 'Długa',
+                city: 'Poznań',
+                postcode: 'not a postcode',
+                email: 'jan@example.com',
+                phone: '500600700',
+                houseNumber: '12',
+            ),
+        );
+
+        try {
+            $this->validator->validate($order);
+            self::fail('Expected a ValidationException.');
+        } catch (ValidationException $e) {
+            // `packs`, `weight`, `sender` and `postcode` are the API's names, not the SDK's; the
+            // order is inlined into create_order, so its fields carry no prefix of their own.
+            self::assertSame(
+                ['packs[1].weight', 'sender.postcode'],
+                \array_keys($e->getValidationErrors()),
+            );
+        }
+    }
+
+    /**
      * A message with no rule registered passes: silence means "not checked", not "approved".
      *
      * @return void
@@ -439,27 +479,27 @@ final class ValidationTest extends TestCase
 
     /**
      * @param string $courier
-     * @param PackMessage[]|null $packs
-     * @param OrderAddressMessage|null $sender
-     * @param OrderAddressMessage|null $recipient
-     * @param CodMessage|null $cod
+     * @param PackItem[]|null $packs
+     * @param Address|null $sender
+     * @param Address|null $recipient
+     * @param Cod|null $cod
      *
      * @return CreateOrderMessage
      */
     private static function order(
         string $courier = 'UPS',
         ?array $packs = null,
-        ?OrderAddressMessage $sender = null,
-        ?OrderAddressMessage $recipient = null,
-        ?CodMessage $cod = null,
+        ?Address $sender = null,
+        ?Address $recipient = null,
+        ?Cod $cod = null,
     ): CreateOrderMessage {
-        return new CreateOrderMessage(
+        return new CreateOrderMessage(new Order(
             courier: $courier,
             shipmentType: ShipmentTypeEnum::Box,
             packs: $packs ?? [
-                new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+                new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
             ],
-            sender: $sender ?? new OrderAddressMessage(
+            sender: $sender ?? new Address(
                 person: 'Jan Kowalski',
                 street: 'Długa',
                 city: 'Poznań',
@@ -468,7 +508,7 @@ final class ValidationTest extends TestCase
                 phone: '500600700',
                 houseNumber: '12',
             ),
-            recipient: $recipient ?? new OrderAddressMessage(
+            recipient: $recipient ?? new Address(
                 person: 'Anna Nowak',
                 street: 'Krótka',
                 city: 'Warszawa',
@@ -478,6 +518,6 @@ final class ValidationTest extends TestCase
                 houseNumber: '5',
             ),
             cod: $cod,
-        );
+        ));
     }
 }

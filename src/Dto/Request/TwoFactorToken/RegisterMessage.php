@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Starts a two-factor confirmation for an operation.
+ *
+ * @api
  */
 final readonly class RegisterMessage implements MessageInterface
 {

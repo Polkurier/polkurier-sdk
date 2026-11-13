@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Account;
 
 /**
  * Which legal document `get_regulations` should return.
+ *
+ * @api
  */
 enum RegulationsTypeEnum: string
 {

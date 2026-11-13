@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Pass an order number to tie the verification to that shipment. Without one, the API starts a
  * general account verification.
+ *
+ * @api
  */
 final readonly class RegisterAccountVerificationMessage implements MessageInterface
 {

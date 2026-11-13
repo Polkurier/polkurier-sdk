@@ -16,7 +16,7 @@ use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
 use Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
-use Polkurier\Webservice\Entity\Address\Address;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseFactory;

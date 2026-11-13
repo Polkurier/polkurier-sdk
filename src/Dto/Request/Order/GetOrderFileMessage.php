@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies one document attached to an order.
+ *
+ * @api
  */
 final readonly class GetOrderFileMessage implements MessageInterface
 {

@@ -19,6 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The access token, for the verification provider's flow, comes only from registering. It is valid
  * for up to three hours: calls within each three-hour period counted from the start of the
  * verification return the same token, and a call in the next period returns a new one.
+ *
+ * @api
  */
 final readonly class AccountVerificationMessage implements MessageInterface, ParsedResponseInterface
 {

@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies one ticket by its UUID.
+ *
+ * @api
  */
 final readonly class TicketIdMessage implements MessageInterface
 {

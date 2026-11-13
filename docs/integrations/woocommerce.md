@@ -188,10 +188,9 @@ declare(strict_types=1);
 namespace YourVendor\WooPolkurier;
 
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Config;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\PolkurierWebservice;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Serializer\SerializerConfig;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Serializer\SerializerProvider;
 use YourVendor\WooPolkurier\Vendor\Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 final class Client
@@ -218,9 +217,9 @@ final class Client
                 sandbox: ($settings['sandbox'] ?? 'yes') === 'yes',
             ),
             logger: new WooLogger(),
-            serializerProvider: new SerializerProvider(new SerializerConfig(
+            serializerConfig: new SerializerConfig(
                 metadataCache: new PhpFilesAdapter('polkurier', 0, $upload['basedir'] . '/polkurier-cache'),
-            )),
+            ),
         );
     }
 }
@@ -337,18 +336,18 @@ declare(strict_types=1);
 namespace YourVendor\WooPolkurier;
 
 use WC_Order;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\PackMessageBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\Order\PackItemBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 
 final class OrderMapper
 {
     public function toMessage(WC_Order $order): CreateOrderMessage
     {
-        $recipient = OrderAddressMessageBuilder::create()
+        $recipient = AddressBuilder::create()
             ->person(trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name()))
             ->street($order->get_shipping_address_1())
             ->houseNumber($order->get_shipping_address_2() ?: '1')
@@ -365,20 +364,20 @@ final class OrderMapper
             $recipient->pointId($pointId);
         }
 
-        $pack = PackMessageBuilder::create()
+        $pack = PackItemBuilder::create()
             ->length(30)->width(20)->height(15)
             ->weight($this->weightKg($order))
             ->type(PackTypeEnum::Standard)
             ->build();
 
-        return CreateOrderMessageBuilder::create()
+        return new CreateOrderMessage(order: OrderBuilder::create()
             ->courier((string)$order->get_meta('_polkurier_carrier'))
             ->shipmentType(ShipmentTypeEnum::Box)
             ->packs([$pack])
             ->sender((new WarehouseAddress())->build())
             ->recipient($recipient->build())
             ->description('#' . $order->get_order_number())
-            ->build();
+            ->build());
     }
 
     private function weightKg(WC_Order $order): float

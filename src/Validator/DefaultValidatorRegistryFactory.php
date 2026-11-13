@@ -29,6 +29,8 @@ use Polkurier\Webservice\Api\MessageInterface;
  * and the API checks these rules itself.
  *
  * To add your own rules, register them in the registry or pass your own validator to the client.
+ *
+ * @api
  */
 class DefaultValidatorRegistryFactory
 {

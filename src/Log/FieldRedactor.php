@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Log;
 
 use GuzzleHttp\Psr7\Utils;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Psr\Http\Message\MessageInterface;
 
 /**

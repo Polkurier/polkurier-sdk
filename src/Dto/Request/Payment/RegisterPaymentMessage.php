@@ -23,19 +23,21 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Invoice and order payments need their list of numbers; the SDK checks it. Other modes ignore both
  * lists.
+ *
+ * @api
  */
 #[Validate\ValidatedBy(RegisterPaymentMessageValidator::class)]
 #[Validate\RequiredWhen(
     field: 'invoiceNumbers',
     property: 'mode',
     equals: PaymentModeEnum::Invoices,
-    because: 'is required when paying invoices',
+    reason: 'is required when paying invoices',
 )]
 #[Validate\RequiredWhen(
     field: 'orderNumbers',
     property: 'mode',
     equals: PaymentModeEnum::Orders,
-    because: 'is required when paying for orders',
+    reason: 'is required when paying for orders',
 )]
 final readonly class RegisterPaymentMessage implements MessageInterface
 {

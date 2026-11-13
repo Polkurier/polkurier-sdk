@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * A wrong PIN throws no exception: the flag is false, as it is for an account without a security
  * PIN.
+ *
+ * @api
  */
 final readonly class PinValidityMessage implements MessageInterface, ParsedResponseInterface
 {

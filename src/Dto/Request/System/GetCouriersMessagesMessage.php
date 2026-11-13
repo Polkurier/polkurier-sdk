@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Narrows the carrier notices to one carrier.
+ *
+ * @api
  */
 final readonly class GetCouriersMessagesMessage implements MessageInterface
 {

@@ -14,7 +14,7 @@ use Polkurier\Webservice\Exception\ValidationException;
 /**
  * Base for a validator that checks one whole message.
  *
- * A {@see \Polkurier\Webservice\Api\Validation\ValueValidatorInterface} checks a single value
+ * A {@see \Polkurier\Webservice\Validator\Rule\ValueValidatorInterface} checks a single value
  * against a format. A message validator checks the payload as a whole. It decides which fields are
  * required, applies the value rules to them, and checks rules that span several fields, e.g. an
  * email address that the sender needs and the recipient doesn't, or an amount that only a prepaid

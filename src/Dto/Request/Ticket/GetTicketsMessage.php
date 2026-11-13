@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Setting an id narrows the list to that ticket, with its timeline, and ignores the other filters.
  * The response is still a list.
+ *
+ * @api
  */
 #[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
 final readonly class GetTicketsMessage extends PagedMessage

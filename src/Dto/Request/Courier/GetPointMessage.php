@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * With a search phrase you get up to the first 1000 matches, and `page` and `limit` have no effect.
  * Without one, `limit` pages the set. `page` requires `limit`: without it the whole set comes back.
+ *
+ * @api
  */
 #[Validate\RequiredWith(field: 'limit', with: 'page')]
 final readonly class GetPointMessage implements MessageInterface

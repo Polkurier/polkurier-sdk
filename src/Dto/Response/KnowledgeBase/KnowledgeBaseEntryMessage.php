@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The id is an opaque key that parent ids refer to. An article's slug is what
  * {@see \Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface::getArticle()} takes.
+ *
+ * @api
  */
 final readonly class KnowledgeBaseEntryMessage implements MessageInterface
 {

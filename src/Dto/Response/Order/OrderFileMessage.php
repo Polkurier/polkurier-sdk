@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A document attached to an order.
  *
  * The hash identifies the content and stays the same across downloads.
+ *
+ * @api
  */
 final readonly class OrderFileMessage implements MessageInterface, ParsedResponseInterface
 {

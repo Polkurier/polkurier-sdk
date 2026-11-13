@@ -22,6 +22,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  *
  * The dates differ from the ones `get_orders` uses: the status timestamp has no seconds, the
  * delivery date has no time, and the scan timestamps in the history are full datetimes.
+ *
+ * @api
  */
 final readonly class OrderStatusMessage implements MessageInterface, ParsedResponseInterface
 {

@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies a record by its id.
+ *
+ * @api
  */
 abstract readonly class IdMessage implements MessageInterface
 {

@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
  * A value of the given type: `string`, `int`, `float` or `bool`, or a class, interface or enum.
@@ -16,7 +15,7 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  * Mostly for list entries, whose type PHP can't declare:
  *
  * ```php
- * #[Each(OfType::class, PackMessage::class)]
+ * #[Each(OfType::class, PackItem::class)]
  * ```
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]

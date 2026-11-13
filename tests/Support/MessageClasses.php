@@ -11,8 +11,7 @@ namespace Polkurier\Webservice\Test\Support;
  * The SDK's request and response classes, found by scanning the source, so a new class is covered
  * by every test that iterates them.
  *
- * Request classes are the DTOs under `Dto/Request` and the entity classes sent, which are named
- * `…Message`. Response classes are the DTOs under `Dto/Response` and the entity classes read.
+ * An entity is both sent and read, so it counts as a request and as a response class.
  */
 final class MessageClasses
 {
@@ -21,7 +20,7 @@ final class MessageClasses
      */
     public static function requests(): array
     {
-        return self::scan('Dto/Request') + self::entities(sent: true);
+        return self::scan('Dto/Request') + self::scan('Entity');
     }
 
     /**
@@ -29,20 +28,7 @@ final class MessageClasses
      */
     public static function responses(): array
     {
-        return self::scan('Dto/Response') + self::entities(sent: false);
-    }
-
-    /**
-     * @param bool $sent
-     *
-     * @return array<string, class-string>
-     */
-    private static function entities(bool $sent): array
-    {
-        return \array_filter(
-            self::scan('Entity'),
-            static fn(string $class): bool => \str_ends_with($class, 'Message') === $sent,
-        );
+        return self::scan('Dto/Response') + self::scan('Entity');
     }
 
     /**

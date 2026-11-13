@@ -23,6 +23,7 @@ use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
 use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
 use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
@@ -31,9 +32,9 @@ use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
 use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
@@ -42,7 +43,6 @@ use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Testing\RecordingClient;
@@ -203,7 +203,7 @@ final class ServiceCallTest extends TestCase
                 static fn(PolkurierWebservice $s) => $s->orders()->isMultiPickupAvailable(
                     new MultiPickupAvailabilityRequestMessage(
                         courier: 'DPD',
-                        packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                        packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
                     )
                 ),
                 ApiMethodEnum::IsMultiPickupAvailable,
@@ -485,8 +485,8 @@ final class ServiceCallTest extends TestCase
         $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA];
         self::assertIsArray($data);
         self::assertSame('DPD', $data[OrderValuationMessage::FIELD_RETURN_VALUATIONS]);
-        self::assertSame('UPS', $data[CreateOrderMessage::FIELD_COURIER]);
-        self::assertArrayHasKey(CreateOrderMessage::FIELD_SENDER, $data);
+        self::assertSame('UPS', $data[Order::FIELD_COURIER]);
+        self::assertArrayHasKey(Order::FIELD_SENDER, $data);
         self::assertArrayNotHasKey(OrderValuationMessage::FIELD_ORDER, $data);
         self::assertCount(1, $quotes);
         self::assertSame('DPD', $quotes[0]->serviceCode);
@@ -496,11 +496,11 @@ final class ServiceCallTest extends TestCase
 
     public function testAnOrderPricedForOneCarrierIsRejectedUnderItsOwnFieldNames(): void
     {
-        $order = new CreateOrderMessage(
+        $order = new CreateOrderMessage(new Order(
             courier: 'UPS',
             shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
-            sender: new OrderAddressMessage(
+            packs: [new PackItem(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
+            sender: new Address(
                 person: 'Jan Kowalski',
                 street: 'Długa',
                 city: 'Poznań',
@@ -509,8 +509,8 @@ final class ServiceCallTest extends TestCase
                 phone: '500600700',
                 houseNumber: '12',
             ),
-            recipient: self::createOrderMessage()->getRecipient(),
-        );
+            recipient: self::createOrderMessage()->order->getRecipient(),
+        ));
 
         try {
             $this->sdk->orders()->orderValuation($order, 'DPD');
@@ -524,7 +524,7 @@ final class ServiceCallTest extends TestCase
 
     private static function createOrderMessage(): CreateOrderMessage
     {
-        $address = new OrderAddressMessage(
+        $address = new Address(
             person: 'Jan Kowalski',
             street: 'Długa',
             city: 'Poznań',
@@ -534,12 +534,12 @@ final class ServiceCallTest extends TestCase
             houseNumber: '12',
         );
 
-        return new CreateOrderMessage(
+        return new CreateOrderMessage(new Order(
             courier: 'UPS',
             shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
+            packs: [new PackItem(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
             sender: $address,
             recipient: $address,
-        );
+        ));
     }
 }

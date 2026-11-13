@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An invoice document as the API returns it.
  *
  * The filename is the one the API suggests, and you can use it as-is in a download header.
+ *
+ * @api
  */
 final readonly class InvoiceDocumentMessage implements MessageInterface, ParsedResponseInterface
 {

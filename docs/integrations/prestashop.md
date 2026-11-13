@@ -111,7 +111,7 @@ class Polkurier extends Module
         $client = \Polkurier\PrestaShop\Client::build();
 
         try {
-            $client->utils()->testAuthApi(new \Polkurier\Webservice\Http\Request\AuthorizationMessage(
+            $client->utils()->testAuthApi(new \Polkurier\Webservice\Dto\Request\AuthorizationMessage(
                 token: (string)Configuration::get(self::CFG_TOKEN),
                 login: (string)Configuration::get(self::CFG_LOGIN),
             ));
@@ -150,16 +150,14 @@ namespace Polkurier\PrestaShop;
 
 use Configuration;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 final class Client
 {
-    private static ?SerializerProviderInterface $serializer = null;
+    private static ?SerializerConfig $serializerConfig = null;
 
     /** @var array<int, PolkurierWebservice> keyed by shop id */
     private static array $clients = [];
@@ -178,22 +176,23 @@ final class Client
                 platformVersion: _PS_VERSION_,
                 sandbox: (bool)Configuration::get(\Polkurier::CFG_SANDBOX, null, null, $shopId),
             ),
-            serializerProvider: self::serializer(),
+            serializerConfig: self::serializerConfig(),
         );
     }
 
-    private static function serializer(): SerializerProviderInterface
+    private static function serializerConfig(): SerializerConfig
     {
-        return self::$serializer ??= new SerializerProvider(new SerializerConfig(
+        return self::$serializerConfig ??= new SerializerConfig(
             metadataCache: new PhpFilesAdapter('polkurier', 0, _PS_CACHE_DIR_ . 'polkurier'),
-        ));
+        );
     }
 }
 ```
 
-This keeps one client per shop and one serializer per process. The clients have to be keyed by
-shop for multistore to work. A single cached client would keep the credentials of whichever shop it
-was first built for.
+This keeps one client per shop, each with its own serializer built from the same configuration and
+reading the mapping metadata from the same pool. The clients have to be keyed by shop for
+multistore to work. A single cached client would keep the credentials of whichever shop it was
+first built for.
 
 The serializer metadata cache key doesn't include a version, so a deploy clears
 `_PS_CACHE_DIR_ . 'polkurier'`.
@@ -316,12 +315,12 @@ Mapping a PrestaShop address
 ----------------------------
 
 ```php
-use Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
 
 $address = new Address((int)$order->id_address_delivery);
 $customer = new Customer((int)$order->id_customer);
 
-$recipient = OrderAddressMessageBuilder::create()
+$recipient = AddressBuilder::create()
     ->person(trim($address->firstname . ' ' . $address->lastname))
     ->street($address->address1)
     ->houseNumber($address->address2 ?: '1')
@@ -366,7 +365,7 @@ Pickup point selection
   an autocomplete field.
 
 Either way, the selected point ID is stored against the cart and set on the order address with
-[`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
+[`AddressBuilder::pointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
 
 Without a search query, [`CourierServiceInterface::findCourierPoints()`](../../src/Api/Service/CourierServiceInterface.php) returns every point of a carrier,
 tens of thousands for InPost, so such a list is cached instead of fetched on every page load.

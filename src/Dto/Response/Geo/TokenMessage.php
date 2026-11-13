@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * This is not the API token. The map runs in the browser, and this token is safe to send there. It
  * expires 4 hours after it's issued.
+ *
+ * @api
  */
 final readonly class TokenMessage implements MessageInterface, ParsedResponseInterface
 {

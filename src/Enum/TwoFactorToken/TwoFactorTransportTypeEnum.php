@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\TwoFactorToken;
 
 /**
  * How a two-factor code reaches the customer.
+ *
+ * @api
  */
 enum TwoFactorTransportTypeEnum: string
 {

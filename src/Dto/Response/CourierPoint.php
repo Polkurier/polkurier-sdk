@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Put the id in an address's point id field. Check the functions before offering a point for a
  * particular use. Not every point accepts drop-offs, collections or cash on delivery.
+ *
+ * @api
  */
 final readonly class CourierPoint implements MessageInterface, ParsedResponseInterface
 {

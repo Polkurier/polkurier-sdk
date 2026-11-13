@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The API sends 2 flags, `status` and `required`, each read as sent. A flag the carrier leaves out is
  * false.
+ *
+ * @api
  */
 final readonly class Option implements MessageInterface
 {

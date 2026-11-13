@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Returned when the order list asks for items or is filtered by order number, and in webhook
  * events.
+ *
+ * @api
  */
 final readonly class Item implements MessageInterface
 {

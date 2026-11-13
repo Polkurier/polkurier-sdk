@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Limits the API applies to coupon codes.
+ *
+ * @api
  */
 final readonly class CouponLimitsMessage implements MessageInterface
 {

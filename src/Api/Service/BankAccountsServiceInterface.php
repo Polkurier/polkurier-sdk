@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Api\Service;
 
 use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
-use Polkurier\Webservice\Entity\BankAccount\BankAccount;
-use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Entity\BankAccount;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -33,6 +33,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface BankAccountsServiceInterface
 {

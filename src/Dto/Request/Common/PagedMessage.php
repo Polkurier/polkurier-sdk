@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * An endpoint with a page size limit declares it on its message with
  * {@see \Polkurier\Webservice\Validator\Rule\PageSizeAtMost}.
+ *
+ * @api
  */
 abstract readonly class PagedMessage implements MessageInterface
 {

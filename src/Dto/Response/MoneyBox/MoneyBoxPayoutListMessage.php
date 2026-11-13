@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * One page of payout requests.
  *
  * This envelope includes `totalpages`, unlike the invoice and prepaid listings.
+ *
+ * @api
  */
 final readonly class MoneyBoxPayoutListMessage extends PagedListMessage
 {

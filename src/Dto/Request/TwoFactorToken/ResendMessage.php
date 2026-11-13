@@ -11,6 +11,8 @@ use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
 
 /**
  * Asks for the code of a two-factor token to be sent again.
+ *
+ * @api
  */
 final readonly class ResendMessage extends TokenMessage
 {

@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Address;
  *
  * An entry saved for both roles is returned once per role. `get_addresses` also accepts an empty
  * type meaning "either". There is no case for that here, so leave the filter out instead.
+ *
+ * @api
  */
 enum AddressTypeEnum: string
 {

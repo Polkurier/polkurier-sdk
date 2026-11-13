@@ -9,9 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Message;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Entity\Order\PackMessage;
-use Polkurier\Webservice\Entity\Pack\BasePackMessage;
-use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage as PackTemplateSaveMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
+use Polkurier\Webservice\Entity\Pack;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 
@@ -24,14 +24,14 @@ use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
  * test still passed because each one was a string. The dimensions here are three ints and a float,
  * which is the same trap with the same silence, so each one is read back by name.
  */
-#[CoversClass(BasePackMessage::class)]
-#[CoversClass(PackMessage::class)]
-#[CoversClass(PackTemplateSaveMessage::class)]
+#[CoversClass(Pack::class)]
+#[CoversClass(PackItem::class)]
+#[CoversClass(PackTemplate::class)]
 final class RequestMessageConstructionTest extends TestCase
 {
     public function testPackPassesEveryDimensionThroughToTheParentInTheRightOrder(): void
     {
-        $pack = new PackMessage(
+        $pack = new PackItem(
             length: 30,
             width: 20,
             height: 15,
@@ -50,7 +50,7 @@ final class RequestMessageConstructionTest extends TestCase
 
     public function testPackTemplatePassesEveryDimensionThroughToTheParentInTheRightOrder(): void
     {
-        $template = new PackTemplateSaveMessage(
+        $template = new PackTemplate(
             name: 'Karton A',
             length: 30,
             width: 20,
@@ -74,7 +74,7 @@ final class RequestMessageConstructionTest extends TestCase
      */
     public function testConstructsFromRequiredNamedArgumentsAlone(): void
     {
-        $pack = new PackMessage(length: 30, width: 20, height: 15, weight: 2.5);
+        $pack = new PackItem(length: 30, width: 20, height: 15, weight: 2.5);
 
         self::assertSame(1, $pack->getAmount());
         self::assertSame(PackTypeEnum::Standard, $pack->getType());

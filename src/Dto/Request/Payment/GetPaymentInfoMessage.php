@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Asks about a payment registered earlier.
+ *
+ * @api
  */
 final readonly class GetPaymentInfoMessage implements MessageInterface
 {

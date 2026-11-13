@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Quote the service code when pricing or placing an order. The additional data describes what the
  * carrier accepts. It is filled in only when the listing asked for it.
+ *
+ * @api
  */
 final readonly class Carrier implements MessageInterface
 {

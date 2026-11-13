@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 
 /**
@@ -50,8 +51,8 @@ final class BuilderDriftTest extends TestCase
                 \substr($file->getPathname(), \strlen($root) + 1, -4)
             );
 
-            // A builder mirrors its message's group and name, e.g. Builder\Order\CodMessageBuilder
-            // builds Entity\Order\CodMessage, and Builder\Order\GetOrdersMessageBuilder builds
+            // A builder mirrors what it builds, e.g. Builder\Entity\Order\CodBuilder builds
+            // Entity\Order\Cod, and Builder\Request\Order\GetOrdersMessageBuilder builds
             // Dto\Request\Order\GetOrdersMessage.
             $relative = \substr($builder, \strlen('Polkurier\\Webservice\\Builder\\'), -\strlen('Builder'));
             $candidates = \array_filter(
@@ -97,6 +98,16 @@ final class BuilderDriftTest extends TestCase
         foreach ($constructor->getParameters() as $parameter) {
             $name = $parameter->getName();
 
+            // A builder assembles what is sent, so it has no setter for a field only the API sends.
+            if ($parameter->getAttributes(ResponseOnly::class) !== [] || $name === 'rawResponse') {
+                self::assertFalse(
+                    $reflection->hasMethod($name),
+                    \sprintf('%s::%s() sets a field the SDK never sends.', $builder, $name),
+                );
+
+                continue;
+            }
+
             self::assertTrue(
                 $reflection->hasMethod($name),
                 \sprintf(
@@ -106,9 +117,14 @@ final class BuilderDriftTest extends TestCase
                 ),
             );
 
-            self::assertSame(
-                \ltrim((string)$parameter->getType(), '\\'),
-                \ltrim((string)$reflection->getMethod($name)->getParameters()[0]->getType(), '\\'),
+            $declared = \ltrim((string)$parameter->getType(), '\\');
+            $taken = \ltrim((string)$reflection->getMethod($name)->getParameters()[0]->getType(), '\\');
+
+            // A field a rule requires is nullable on the message, so that a response without it
+            // still reads. The builder may refuse null for it, but no other difference.
+            self::assertContains(
+                $taken,
+                [$declared, \ltrim($declared, '?')],
                 \sprintf(
                     '%s::%s() takes a different type than the message does',
                     $builder,
@@ -131,11 +147,17 @@ final class BuilderDriftTest extends TestCase
         foreach (MessageClasses::requests() as $name => $message) {
             $constructor = (new \ReflectionClass($message))->getConstructor();
 
-            if ($constructor === null || \count($constructor->getParameters()) < self::THRESHOLD) {
+            $sent = \array_filter(
+                $constructor?->getParameters() ?? [],
+                static fn(\ReflectionParameter $parameter): bool => $parameter->getAttributes(ResponseOnly::class) === []
+                    && $parameter->getName() !== 'rawResponse',
+            );
+
+            if (\count($sent) < self::THRESHOLD) {
                 continue;
             }
 
-            $relative = \preg_replace('/^(Dto\\\\Request|Entity)\\\\/', '', $name);
+            $relative = \str_replace('Dto\\Request\\', 'Request\\', $name);
             $builder = 'Polkurier\\Webservice\\Builder\\' . $relative . 'Builder';
 
             if (!\class_exists($builder)) {

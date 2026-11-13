@@ -9,17 +9,17 @@ The source is organised by role:
 | Namespace | Holds |
 |-----------|-------|
 | [`Api\Service`](../src/Api/Service/) | One contract per service. Type-hint these |
-| [`Api\Validation`](../src/Api/Validation/) | The 3 contracts the validation layer is built on |
-| `Api` | [`ConfigInterface`](../src/Api/ConfigInterface.php), [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php), [`MessageInterface`](../src/Api/MessageInterface.php) |
+| [`Api\Validation`](../src/Api/Validation/) | [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php), which every payload passes before it is sent |
+| `Api` | [`ConfigInterface`](../src/Api/ConfigInterface.php), [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php), [`MessageInterface`](../src/Api/MessageInterface.php), [`ParsedResponseInterface`](../src/Api/ParsedResponseInterface.php) |
 | `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
 | `Dto\Request` | What you send, apart from stored records |
 | `Dto\Response` | What you get back, apart from stored records |
-| `Entity` | Records Polkurier stores, for each the class you send and the class you read: address, bank account, phone number, pack template, and the order with its addresses, packs, cash on delivery and collection |
-| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the builders |
+| `Entity` | Records Polkurier stores, one class each for sending and reading: address, bank account, phone number, pack template, and the order with its addresses, packs, cash on delivery and collection |
+| `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php), with [`Builder\Entity`](../src/Builder/Entity/) and [`Builder\Request`](../src/Builder/Request/) mirroring what they build |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
-| `Serializer` | Serializer wiring, the SDK's own normalizers and 5 attributes |
+| `Serializer` | Serializer wiring, the SDK's own normalizers and 6 attributes |
 | `Log` | Preparing request and response bodies for the log |
-| `Webhook` | [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php), for the order events Polkurier posts to your system |
+| `Webhook` | [`OrderReader`](../src/Webhook/OrderReader.php), for the order events Polkurier posts to your system |
 | `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |
@@ -29,7 +29,7 @@ The source is organised by role:
 and do not belong to any one of them.
 
 `Api` holds only contracts, and only those where your own implementation can do something useful.
-The service interfaces also serve as the API reference. The 3 interfaces at the root of `Api` are
+The service interfaces also serve as the API reference. The 4 interfaces at the root of `Api` are
 shared across areas.
 
 The lifecycle of a call
@@ -57,8 +57,12 @@ $client->orders()->createOrder($message)
               └─ h. type-check the payload             ← MalformedResponseException
 ```
 
-There are 7 collaborators, each behind an interface you can replace. Steps (a) to (h) happen in
-[`AbstractService`](../src/Service/AbstractService.php). Every service extends it, and it is the only place a request is sent.
+There are 7 collaborators, each behind an interface. Steps (a) to (h) happen in
+[`AbstractService`](../src/Service/AbstractService.php). Every service extends it, and it is the only place a request is sent. Four of
+them you replace through the client: the logger, [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php),
+[`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) and [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php). The request factory, the response factory and
+the serializer provider are arguments a service is constructed with, so replacing one means
+building that service yourself ([Extension points](#extension-points)).
 
 Two more objects take part. Before anything is logged, [`LogSanitizer`](../src/Log/LogSanitizer.php) prepares each body as the
 configuration says. After (e), the HTTP response and its differences from the SDK go into a
@@ -103,43 +107,53 @@ instead. The result is `true` unless the payload explicitly says `false`.
 What a release can change
 -------------------------
 
-A minor or patch release doesn't break code that relies only on:
+Every type the SDK promises carries `@api`, and nothing else does. A minor or patch release doesn't
+break code that relies only on:
 
-- the facade [`PolkurierWebservice`](../src/PolkurierWebservice.php) and [`Config`](../src/Config.php);
-- the interfaces under [`Api`](../src/Api/): the services, the configuration, validation and the messages;
-- the interfaces of the other replaceable collaborators: [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php),
-  [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php), [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) and [`SerializerConfigInterface`](../src/Serializer/SerializerConfigInterface.php);
-- the request and response messages and the enums they use, the envelope ([`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php),
-  [`ResponseMessage`](../src/Dto/Response/ResponseMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
-- the exceptions, the builders, [`OrderWebhookReader`](../src/Webhook/OrderWebhookReader.php) and [`RecordingClient`](../src/Testing/RecordingClient.php);
-- what you write validation rules with: [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php), [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php),
-  [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`ViolationPool`](../src/Validator/ViolationPool.php), [`MessageFields`](../src/Validator/MessageFields.php) and the rule attributes under
-  [`Validator\Rule`](../src/Validator/Rule/).
+- the facade [`PolkurierWebservice`](../src/PolkurierWebservice.php), [`Config`](../src/Config.php) and [`ConfigProvider`](../src/ConfigProvider.php);
+- the interfaces under [`Api`](../src/Api/): the services, the configuration, validation, the HTTP
+  client factory and the webhook reader;
+- the records under [`Entity`](../src/Entity/), which you both send and read back, with their constructors,
+  their `FIELD_*` constants and their setters;
+- the request and response classes under [`Dto`](../src/Dto/) and the enums under [`Enum`](../src/Enum/), including the
+  envelope ([`ResponseMessage`](../src/Dto/Response/ResponseMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
+- the builders under [`Builder`](../src/Builder/), the exceptions, [`OrderReader`](../src/Webhook/OrderReader.php) and [`RecordingClient`](../src/Testing/RecordingClient.php);
+- how responses are read and payloads written: [`SerializerConfig`](../src/Serializer/SerializerConfig.php);
+- what you replace validation with: [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php), [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php),
+  [`AttributeValidator`](../src/Validator/AttributeValidator.php) and [`NullValidator`](../src/Validator/NullValidator.php).
 
 Anything else can change in any release: the concrete factories, services and serializer setup, the
-normalizers, the log preparation, and the `protected` members of every class not listed above. Most
-classes aren't `final`, so you can subclass one to change a single step, but such a subclass may
-need changes after an update. An implementation of an interface doesn't.
+normalizers and their attributes, the validation rules and the machinery behind them, the log
+preparation, and the `protected` members of every class not listed above. That includes the
+envelope's own classes ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)) and the collaborators the facade no
+longer takes: [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php), [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) and
+[`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php).
+
+Most classes aren't `final`, so you can subclass one to change a single step, but such a subclass
+may need changes after an update. A record is the exception: subclassing it is how you add columns
+of your own, and the SDK sends only the fields it declares itself.
 
 The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php),
-[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and [`InlineFields`](../src/Serializer/Attribute/InlineFields.php), [`RecordingClient`](../src/Testing/RecordingClient.php),
-[`LogJson`](../src/Log/LogJson.php), and every request and response class except those of stored records (see
-[Messages: extending a message](messages.md#extending-a-message)).
+[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes under [`Serializer\Attribute`](../src/Serializer/Attribute/), [`RecordingClient`](../src/Testing/RecordingClient.php),
+[`LogJson`](../src/Log/LogJson.php), and every request and response class under [`Dto`](../src/Dto/) except
+[`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), which a subclass extends to carry credentials of another kind, and
+the 7 abstract bases the SDK's own messages extend: [`Dto\Response\PagedListMessage`](../src/Dto/Response/PagedListMessage.php),
+[`Dto\Request\Common\IdMessage`](../src/Dto/Request/Common/IdMessage.php), [`Dto\Request\Common\PagedMessage`](../src/Dto/Request/Common/PagedMessage.php),
+[`Dto\Request\Common\TokenMessage`](../src/Dto/Request/Common/TokenMessage.php), [`Dto\Request\Account\PinMessage`](../src/Dto/Request/Account/PinMessage.php),
+[`Dto\Request\Courier\PickupQueryMessage`](../src/Dto/Request/Courier/PickupQueryMessage.php) and [`Dto\Request\Order\OrderIdMessage`](../src/Dto/Request/Order/OrderIdMessage.php).
 
 Extension points
 ----------------
 
-Every collaborator of [`PolkurierWebservice`](../src/PolkurierWebservice.php) is optional and passed through the constructor:
+Every collaborator of [`PolkurierWebservice`](../src/PolkurierWebservice.php) you can replace is an optional constructor argument:
 
 ```php
 new PolkurierWebservice(
     config: $config,
     logger: $logger,
-    serializerProvider: $serializerProvider,
+    serializerConfig: $serializerConfig,
     configProvider: $configProvider,
     clientFactory: $clientFactory,
-    requestFactory: $requestFactory,
-    responseFactory: $responseFactory,
     validator: $validator,
     services: [],
 );
@@ -158,7 +172,7 @@ must keep the request's `Content-Type: application/json`: the API answers any ot
 parameter included, with UNSUPPORTED_MEDIA_TYPE.
 
 ```php
-use Polkurier\Webservice\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Psr\Http\Client\ClientInterface;
 
 final readonly class MyClientFactory implements ClientFactoryInterface
@@ -175,9 +189,9 @@ final readonly class MyClientFactory implements ClientFactoryInterface
 Any PSR-18 client works. A replacement can add retries, circuit breaking, request tracing or a
 shared connection pool, or be your framework's client so its instrumentation applies.
 
-### `SerializerProviderInterface`: mapping
+### `SerializerConfig`: how responses are read
 
-See [Serialization: extending the serializer](serialization.md#extending-the-serializer).
+See [Configuration: `SerializerConfig`](configuration.md#serializerconfig).
 
 ### `ValidatorInterface`: payload rules
 
@@ -186,12 +200,6 @@ See [Validation: changing the rules](validation.md#changing-the-rules).
 ### `ConfigProviderInterface`: late or per-tenant configuration
 
 See [Configuration: per-tenant credentials](configuration.md#per-tenant-credentials).
-
-### `RequestFactoryInterface` and `ResponseFactoryInterface`: the envelope
-
-They keep the envelope format out of the services. You might replace
-[`RequestFactory`](../src/Http/Request/RequestFactory.php) to add a header to every request, or [`ResponseFactory`](../src/Http/Response/ResponseFactory.php) to accept a status value
-the SDK does not recognise.
 
 ### Substituting a service
 

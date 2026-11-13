@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Api;
  *
  * Only the object the method returns keeps it. Objects inside it and list items don't, including
  * those of a class that some other method returns, such as an address in a list of addresses.
+ *
+ * @api
  */
 interface ParsedResponseInterface
 {

@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Whether the shipment asked about can be placed for a collective pickup. False also when the API
  * couldn't evaluate the request.
+ *
+ * @api
  */
 final readonly class MultiPickupAvailabilityMessage implements MessageInterface, ParsedResponseInterface
 {

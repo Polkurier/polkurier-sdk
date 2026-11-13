@@ -11,6 +11,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies an order to fetch the status of.
+ *
+ * @api
  */
 final readonly class GetStatusMessage extends OrderIdMessage
 {

@@ -23,6 +23,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The read timestamp applies only to entries written by Polkurier. It records when the customer saw
  * them, and is null until then.
+ *
+ * @api
  */
 final readonly class TicketTimelineItemMessage implements MessageInterface, ParsedResponseInterface
 {

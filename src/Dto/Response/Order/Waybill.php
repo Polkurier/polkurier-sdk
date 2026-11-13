@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * An order can have several. The primary one is marked `is_default`, and the order's status and
  * tracking link follow it.
+ *
+ * @api
  */
 final readonly class Waybill implements MessageInterface
 {

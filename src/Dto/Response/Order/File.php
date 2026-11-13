@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The listing doesn't carry the contents. Pass the name to
  * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::getOrderFile()} to download it.
+ *
+ * @api
  */
 final readonly class File implements MessageInterface
 {

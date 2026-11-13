@@ -15,20 +15,21 @@
  */
 declare(strict_types=1);
 
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
 
 
 require __DIR__ . '/bootstrap.php';
 
-$order = new CreateOrderMessage(
+$order = new Order(
     courier: 'UPS',
     shipmentType: ShipmentTypeEnum::Box,
-    packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
-    sender: new OrderAddressMessage(
+    packs: [new PackItem(length: 30, width: 20, height: 15, weight: 2.5)],
+    sender: new Address(
         person: 'Jan Kowalski',
         street: 'Długa',
         city: 'Poznań',
@@ -37,7 +38,7 @@ $order = new CreateOrderMessage(
         phone: '500600700',
         houseNumber: '12',
     ),
-    recipient: new OrderAddressMessage(
+    recipient: new Address(
         person: 'Anna Nowak',
         street: 'Krótka',
         city: 'Warszawa',
@@ -48,8 +49,10 @@ $order = new CreateOrderMessage(
     ),
 );
 
+$message = new CreateOrderMessage(order: $order);
+
 try {
-    foreach (polkurier()->orders()->orderValuation($order, $argv[1] ?? null) as $quote) {
+    foreach (polkurier()->orders()->orderValuation($message, $argv[1] ?? null) as $quote) {
         if (!$quote->shipment) {
             continue;
         }

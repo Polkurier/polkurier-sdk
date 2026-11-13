@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -30,7 +29,7 @@ class InOrder implements MessageRuleInterface
     /**
      * @param string $earlier the property that must not be greater than $later
      * @param string $later
-     * @param string|null $because the report's wording, in place of the default
+     * @param string|null $reason the report's wording, in place of the default
      */
     public function __construct(
         /**
@@ -46,7 +45,7 @@ class InOrder implements MessageRuleInterface
         /**
          * @var string|null
          */
-        public readonly ?string $because = null,
+        public readonly ?string $reason = null,
     ) {}
 
     /**
@@ -73,7 +72,7 @@ class InOrder implements MessageRuleInterface
 
         $violations->add(
             $fields->field($this->earlier),
-            $this->because ?? \sprintf('must not be greater than %s', $fields->field($this->later))
+            $this->reason ?? \sprintf('must not be greater than %s', $fields->field($this->later))
         );
     }
 }

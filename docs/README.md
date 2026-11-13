@@ -9,7 +9,7 @@ Start here
 | [Getting started](getting-started.md) | Installation, credentials, the first call, and how every call works |
 | [Configuration](configuration.md) | [`Config`](../src/Config.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php), logging, timeouts, sandbox, per-tenant credentials |
 | [Services](services.md) | Everything the API offers, grouped by task: every method and what it does |
-| [Messages and models](messages.md) | Requests, responses, enums, wire names, and why requests and responses are separate classes |
+| [Messages and models](messages.md) | Requests, responses, the one class each stored record has, enums, wire names |
 | [Builders](builders.md) | Building a payload step by step instead of in one constructor call |
 | [Validation](validation.md) | What is checked before a request is sent, reading a rejection, changing the rules |
 | [Errors](errors.md) | Every exception the SDK throws, when, and how to handle it |
@@ -28,7 +28,7 @@ Quick example
 
 ```php
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 
 $client = new PolkurierWebservice(new Config(

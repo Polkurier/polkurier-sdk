@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * What to add to the account profile: an external application's settings for this account.
+ *
+ * @api
  */
 final readonly class GetAccountInfoMessage implements MessageInterface
 {

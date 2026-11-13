@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
  * An order number: digits, a hyphen, digits, and nothing else (e.g. `12345-678`).

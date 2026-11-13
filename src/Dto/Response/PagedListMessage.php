@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The paging fields every page of a list carries.
  *
  * The rows themselves, and `totalpages` where a list has it, are on the subclass.
+ *
+ * @api
  */
 abstract readonly class PagedListMessage implements MessageInterface, ParsedResponseInterface
 {

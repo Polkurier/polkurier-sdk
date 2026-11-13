@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Which shipment types a carrier accepts: envelope, box or pallet.
+ *
+ * @api
  */
 final readonly class ShipmentType implements MessageInterface
 {

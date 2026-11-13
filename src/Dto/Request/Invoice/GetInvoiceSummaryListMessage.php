@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Identifies the invoice whose itemised summary to download, and the format to download it in.
  *
  * Use the number as printed on the invoice, slashes included.
+ *
+ * @api
  */
 final readonly class GetInvoiceSummaryListMessage implements MessageInterface
 {

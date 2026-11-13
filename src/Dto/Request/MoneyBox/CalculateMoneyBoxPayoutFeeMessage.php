@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Send the orders and payout type you intend to use to get the fee that will apply. Leave out the
  * orders to get the fee for paying out everything available.
+ *
+ * @api
  */
 final readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterface
 {

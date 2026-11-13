@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Free-text search across the knowledge base.
+ *
+ * @api
  */
 final readonly class SearchKnowledgeBaseMessage implements MessageInterface
 {

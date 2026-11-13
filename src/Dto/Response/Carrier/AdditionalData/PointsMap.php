@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether a carrier works with pickup points, and which point providers its map shows.
+ *
+ * @api
  */
 final readonly class PointsMap implements MessageInterface
 {

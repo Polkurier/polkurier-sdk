@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The id must match the version currently in force. Read it from
  * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::getRegulations()} just before
  * accepting.
+ *
+ * @api
  */
 final readonly class AcceptRegulationsMessage implements MessageInterface
 {

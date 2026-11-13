@@ -17,12 +17,12 @@ use Polkurier\Webservice\Dto\Request\Account\GetAccountInfoMessage;
 use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
 use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage;
 use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
 use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Dto\Response\Account\PinValidityMessage;
 use Polkurier\Webservice\Dto\Response\Account\RegulationsMessage;
-use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
-use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
+use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -46,6 +46,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface AccountServiceInterface
 {
@@ -604,7 +606,7 @@ interface AccountServiceInterface
      * An account with none gets `"response": []`.
      *
      * @return PhoneNumber[] a list of
-     *         {@see \Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber}
+     *         {@see \Polkurier\Webservice\Entity\PhoneNumber}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -670,7 +672,7 @@ interface AccountServiceInterface
      * @param SavePhoneNumberMessage $savePhoneNumberMessage
      *
      * @return PhoneNumber the payload, see
-     *         {@see \Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber}
+     *         {@see \Polkurier\Webservice\Entity\PhoneNumber}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -678,7 +680,9 @@ interface AccountServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumber;
+    public function savePhoneNumber(
+        SavePhoneNumberMessage $savePhoneNumberMessage,
+    ): PhoneNumber;
 
     /**
      * Removes a telephone number from the account.

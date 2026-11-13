@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Submits the code the user entered against a registered token.
+ *
+ * @api
  */
 final readonly class VerifyMessage extends TokenMessage
 {

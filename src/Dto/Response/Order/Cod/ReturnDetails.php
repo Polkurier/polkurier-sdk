@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * What happened to a collected cash-on-delivery amount.
  *
  * Present once the money has been settled, which may be long after delivery.
+ *
+ * @api
  */
 final readonly class ReturnDetails implements MessageInterface
 {

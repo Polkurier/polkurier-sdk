@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\System;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Message\ValidateCouponMessageValidator;
@@ -24,6 +24,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Coupons can be restricted by carrier, shipment type and parcel size or weight.
  *
  * Send all 3 order fields or none. A carrier without parcels, for example, is an error.
+ *
+ * @api
  */
 #[Validate\ValidatedBy(ValidateCouponMessageValidator::class)]
 final readonly class ValidateCouponMessage implements MessageInterface
@@ -35,15 +37,13 @@ final readonly class ValidateCouponMessage implements MessageInterface
     public const string FIELD_COURIER = 'courier';
     public const string FIELD_SHIPMENT_TYPE = 'shipmenttype';
     public const string FIELD_PACKS = 'packs';
-    public const string FIELD_SENDER = 'sender';
     /**-@#*/
 
     /**
      * @param string $couponCode
      * @param string|null $courier
      * @param ShipmentTypeEnum|null $shipmentType
-     * @param PackMessage[] $packs
-     * @param OrderAddressMessage|null $sender
+     * @param PackItem[] $packs
      */
     public function __construct(
         /**
@@ -68,20 +68,12 @@ final readonly class ValidateCouponMessage implements MessageInterface
         public ?ShipmentTypeEnum $shipmentType = null,
 
         /**
-         * @var PackMessage[]
+         * @var PackItem[]
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[Validate\Valid]
         #[OmitWhenEmpty]
-        #[Validate\Each(Validate\OfType::class, PackMessage::class)]
+        #[Validate\Each(Validate\OfType::class, PackItem::class)]
         public array $packs = [],
-
-        /**
-         * @var OrderAddressMessage|null
-         * @deprecated The API does not read this field.
-         */
-        #[Serializer\SerializedName(self::FIELD_SENDER)]
-        #[OmitWhenEmpty]
-        public ?OrderAddressMessage $sender = null,
     ) {}
 }

@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An attachment on a knowledge base article.
  *
  * The URL is a public download link and needs no credentials.
+ *
+ * @api
  */
 final readonly class KnowledgeBaseFileMessage implements MessageInterface
 {

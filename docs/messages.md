@@ -2,14 +2,14 @@ Messages and models
 ===================
 
 Records Polkurier stores, such as addresses, bank accounts, pack templates and orders, are under
-[`Entity`](../src/Entity/), with the class you send and the class you read side by side. Everything else you send
+[`Entity`](../src/Entity/), one class per record: what you send and what you read back. Everything else you send
 is under [`Dto\Request`](../src/Dto/Request/), and everything else you get back under [`Dto\Response`](../src/Dto/Response/). They hold payload classes only.
 
 Requests
 --------
 
-A request payload (a **message**) is a readonly class that implements [`Api\MessageInterface`](../src/Api/MessageInterface.php). You
-construct it with named arguments:
+A request payload (a **message**) implements [`Api\MessageInterface`](../src/Api/MessageInterface.php). You construct it with named
+arguments:
 
 ```php
 use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
@@ -21,19 +21,20 @@ $search = new GetPointMessage(
 );
 ```
 
-A DTO's properties are public and readonly; an entity class has getters. Either way a message can't
-change between being validated and being serialized.
+A DTO under [`Dto`](../src/Dto/) is `final readonly` with public properties, so it can't change between being
+validated and being serialized. A record under [`Entity`](../src/Entity/) has a getter and a setter per field, each
+setter returning `static`, so one you read back can be changed and sent again.
 
 ### Three ways to build one
 
 **1. The constructor, with named arguments.** This is the default and works best when you have
 every value up front. You can skip optional parameters in any order.
 
-**2. A [builder](builders.md).** The 24 larger messages have one. It suits a payload put together
+**2. A [builder](builders.md).** The 24 larger payloads have one. It suits a payload put together
 over several steps, or one with many conditional fields:
 
 ```php
-use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
+use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 
 $search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
 
@@ -58,37 +59,54 @@ no `fromArray()`, and the serializer only maps responses into objects, never req
 ### Extending a message
 
 The classes of records Polkurier stores aren't `final`: addresses, bank accounts, phone numbers,
-pack templates, and orders with their packs, cash on delivery, collection and addresses. Every other
-request and response class is. If the API has a field the SDK doesn't support yet, you can add it
-to one of the open classes in a subclass. It will serialize correctly as long as the new property
-has its own `#[SerializedName]`:
+pack templates, and orders with their packs, cash on delivery, collection and addresses. Seven
+request and response classes are abstract bases the SDK's own messages extend —
+[`Dto\Response\PagedListMessage`](../src/Dto/Response/PagedListMessage.php), [`Dto\Request\Common\IdMessage`](../src/Dto/Request/Common/IdMessage.php),
+[`Dto\Request\Common\PagedMessage`](../src/Dto/Request/Common/PagedMessage.php), [`Dto\Request\Common\TokenMessage`](../src/Dto/Request/Common/TokenMessage.php),
+[`Dto\Request\Account\PinMessage`](../src/Dto/Request/Account/PinMessage.php), [`Dto\Request\Courier\PickupQueryMessage`](../src/Dto/Request/Courier/PickupQueryMessage.php) and
+[`Dto\Request\Order\OrderIdMessage`](../src/Dto/Request/Order/OrderIdMessage.php) — and [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) carries credentials of
+another kind in a subclass. Every other request and response class is `final`. If the API has a
+field the SDK doesn't support yet, you can add it to one of the open classes in a subclass. It
+will serialize correctly as long as the new property has its own `#[SerializedName]`:
 
 ```php
+use Polkurier\Webservice\Entity\Order;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
-class ExtendedOrderMessage extends CreateOrderMessage
+class ExtendedOrder extends Order
 {
-    public function __construct(
-        // … the parent's arguments …
-        #[Serializer\SerializedName('some_new_field')]
-        private readonly ?string $someNewField = null,
-    ) {
-        parent::__construct(/* … */);
+    #[Serializer\SerializedName('some_new_field')]
+    private ?string $someNewField = null;
+
+    public function getSomeNewField(): ?string
+    {
+        return $this->someNewField;
+    }
+
+    public function setSomeNewField(?string $someNewField): static
+    {
+        $this->someNewField = $someNewField;
+
+        return $this;
     }
 }
 ```
 
 Class-level validation rules are inherited, so the parent's cross-field rules still apply.
 
+A setter for a nested record takes that record's class, so your subclass goes in unchanged and is
+kept as it is: [`Order::setSender()`](../src/Entity/Order.php) stores the [`Address`](../src/Entity/Order/Address.php) you give it.
+
 Responses
 ---------
 
 Response classes are built through their constructors. If a required field is missing from the
 reply, mapping fails straight away and the error names the field. You never get an object whose
-properties are unset, so a method that returns an [`Order`](../src/Entity/Order/Order.php) always returns a complete one.
+properties are unset, so a method that returns an [`Order`](../src/Entity/Order.php) always returns a complete one.
 
-Response DTOs are readonly too, with public properties. To change a value, build a new request
-message, e.g. an [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) from an [`Address`](../src/Entity/Address/Address.php) you read.
+Response DTOs are readonly too, with public properties. A record has setters, so it goes
+straight back: change the [`Address`](../src/Entity/Address.php) that [`AddressesServiceInterface::getAddresses()`](../src/Api/Service/AddressesServiceInterface.php) returned and
+pass it to [`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php), which updates the entry its id names.
 
 ### Lists, maps and pages
 
@@ -101,7 +119,7 @@ Apart from a `bool` for calls that only acknowledge, responses come in four shap
 | A map of strings | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | `array<string, string>` |
 | A page | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) wrapping `Order[]` |
 
-A page has its own navigation getters:
+A page carries its rows and its navigation numbers:
 
 ```php
 $list->result;       // Order[]
@@ -111,15 +129,10 @@ $list->currentPage;
 $list->pageSize;
 ```
 
-Five endpoints return pages, and they do **not** all have the same fields:
-
-| Class | `$result` | Rows | Pages | Current page | Page size |
-|-------|-----------|------|-------|--------------|-----------|
-| [`Order\OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) | `Order[]` | yes | **yes** | yes | yes |
-| [`MoneyBox\MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
-| [`Invoice\InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php) | `InvoiceMessage[]` | yes | no | yes | yes |
-| [`Ticket\TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php) | `TicketMessage[]` | yes | no | yes | yes |
-| [`Payment\PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php) | `PrepaidEntryMessage[]` | yes | no | yes | yes |
+Five endpoints return pages. [`PagedListMessage`](../src/Dto/Response/PagedListMessage.php) gives every one of them `$totalRows`,
+`$currentPage` and `$pageSize`; `$totalPages` is declared per class, and only
+[`Order\OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) and
+[`MoneyBox\MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) have it.
 
 For the three without a page count, work it out from the row count and page size, or stop when a
 page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows both loops.
@@ -159,54 +172,44 @@ list, `true`/`false` or a map, read [`PolkurierWebservice::getLastResponse()`](.
 The body survives `serialize()`, so a cached object keeps its whole response. Two objects with the
 same values from different responses aren't equal under `==`.
 
-Why requests and responses are split
-------------------------------------
+One class per record
+--------------------
 
-Request and response classes stay separate even when they describe the same thing, because the
-shapes differ.
+A record Polkurier stores is one class, which you both fill in and read back: [`Address`](../src/Entity/Address.php),
+[`BankAccount`](../src/Entity/BankAccount.php), [`PackTemplate`](../src/Entity/PackTemplate.php), [`PhoneNumber`](../src/Entity/PhoneNumber.php), and [`Order`](../src/Entity/Order.php) with its [`PackItem`](../src/Entity/Order/PackItem.php),
+[`Cod`](../src/Entity/Order/Cod.php), [`Pickup`](../src/Entity/Order/Pickup.php) and [`Address`](../src/Entity/Order/Address.php), which is also the cover address.
 
-[`PackMessage`](../src/Entity/Order/PackMessage.php) has the dimensions you choose. [`Pack`](../src/Entity/Order/Pack.php) has those plus
-what the carrier charged for them. [`CodMessage`](../src/Entity/Order/CodMessage.php) says what to collect.
-[`Cod`](../src/Entity/Order/Cod.php) adds what happened to the money: its status and, for a returned
-amount, when and why it was returned.
+Fields the API only reports carry [`#[ResponseOnly]`](../src/Serializer/Attribute/ResponseOnly.php) and are left out of what the SDK
+sends: [`Order::getPriceGross()`](../src/Entity/Order.php), [`Order::getWaybills()`](../src/Entity/Order.php), [`Cod::getStatus()`](../src/Entity/Order/Cod.php),
+[`Pickup::getPickupNumber()`](../src/Entity/Order/Pickup.php) and [`Address::isShared()`](../src/Entity/Address.php) among them. A field only the request
+needs is required by a validation rule rather than by its PHP type, since the response may not
+carry it.
 
-The pairs:
+### Request parameters that aren't part of the record
 
-| You send | You receive |
-|----------|-------------|
-| [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) | [`Address`](../src/Entity/Address/Address.php) |
-| [`SaveBankAccountMessage`](../src/Entity/BankAccount/SaveBankAccountMessage.php) | [`BankAccount`](../src/Entity/BankAccount/BankAccount.php) |
-| [`SavePackTemplateMessage`](../src/Entity/PackTemplate/SavePackTemplateMessage.php) | [`PackTemplate`](../src/Entity/PackTemplate/PackTemplate.php) |
-| [`PackMessage`](../src/Entity/Order/PackMessage.php) | [`Pack`](../src/Entity/Order/Pack.php) |
-| [`CodMessage`](../src/Entity/Order/CodMessage.php) | [`Cod`](../src/Entity/Order/Cod.php) |
-| [`PickupMessage`](../src/Entity/Order/PickupMessage.php) | [`Pickup`](../src/Entity/Order/Pickup.php) |
-| [`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php) | [`Order`](../src/Entity/Order/Order.php) |
+Three requests carry more than the record. Each is a DTO holding the record plus its own fields,
+and writes the record's fields at the top level of the payload
+([`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php)):
 
-The docblock of each response class above names the request that writes it, so you can find the pair
-from either side.
+| Message | Holds | Plus |
+|---------|-------|------|
+| [`Dto\Request\Order\CreateOrderMessage`](../src/Dto/Request/Order/CreateOrderMessage.php) | [`Order`](../src/Entity/Order.php) | `couponCode` |
+| [`Dto\Request\BankAccount\SaveBankAccountMessage`](../src/Dto/Request/BankAccount/SaveBankAccountMessage.php) | [`BankAccount`](../src/Entity/BankAccount.php) | `twoFactorToken`, `twoFactorCode`, `accessPin` |
+| [`Dto\Request\Account\SavePhoneNumberMessage`](../src/Dto/Request/Account/SavePhoneNumberMessage.php) | [`PhoneNumber`](../src/Entity/PhoneNumber.php) | `twoFactorToken`, `twoFactorCode` |
 
-The main benefit is nullability. A response field can be non-nullable when the API always sends
-it. With a single shared class, any field that is optional on one side would have to be optional
-on both, and most getters would return a nullable type.
+[`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) and
+[`PackTemplatesServiceInterface::savePackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) take the record itself.
 
-Naming
-------
+Classes that share a short name
+------------------------------
 
-Every class you send ends in `Message`: [`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php), [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php),
-[`GetOrdersMessage`](../src/Dto/Request/Order/GetOrdersMessage.php). The suffix means "a payload".
-
-For the classes you read, it depends. Entity-like classes that exist independently of any call are named
-after the thing itself: [`Order`](../src/Entity/Order/Order.php), [`Address`](../src/Entity/Address/Address.php), [`Carrier`](../src/Dto/Response/Carrier.php), [`CourierPoint`](../src/Dto/Response/CourierPoint.php), [`Country`](../src/Dto/Response/Country.php), [`BankAccount`](../src/Entity/BankAccount/BankAccount.php),
-[`PackTemplate`](../src/Entity/PackTemplate/PackTemplate.php). Classes that only exist as the answer from one endpoint keep the suffix:
-[`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`AccountInfoMessage`](../src/Dto/Response/Account/AccountInfoMessage.php), [`HeartbeatMessage`](../src/Dto/Response/Util/HeartbeatMessage.php).
-
-When two classes share a short name, like the order's [`PickupMessage`](../src/Entity/Order/PickupMessage.php) and the
-collection check [`Dto\Request\Courier\PickupMessage`](../src/Dto/Request/Courier/PickupMessage.php), import one and use the fully qualified name for
-the other, or alias it:
+When two classes share a short name, like the order's [`Entity\Order\Cod`](../src/Entity/Order/Cod.php) and
+[`Dto\Response\Carrier\AdditionalData\Cod`](../src/Dto/Response/Carrier/AdditionalData/Cod.php), which says whether a carrier offers cash on delivery,
+import one and use the fully qualified name for the other, or alias it:
 
 ```php
-use Polkurier\Webservice\Entity\Order\PickupMessage;
-use Polkurier\Webservice\Dto\Request\Courier\PickupMessage as PickupCheckMessage;
+use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Cod as CarrierCod;
+use Polkurier\Webservice\Entity\Order\Cod;
 ```
 
 Wire names
@@ -227,7 +230,7 @@ explains how it works.
 Each wire name is also a class constant:
 
 ```php
-CreateOrderMessage::FIELD_SHIPMENT_TYPE;   // 'shipmenttype'
+Order::FIELD_SHIPMENT_TYPE;   // 'shipmenttype'
 ```
 
 The attribute references the constant, so each wire name is written in one place only. The constants
@@ -261,7 +264,7 @@ area:
 | [`Invoice\InvoiceSummaryFormatEnum`](../src/Enum/Invoice/InvoiceSummaryFormatEnum.php) | PDF or CSV, for an invoice's itemised summary |
 | [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
 | [`Contact\ContactFormFieldTypeEnum`](../src/Enum/Contact/ContactFormFieldTypeEnum.php), [`ContactFormSeverityEnum`](../src/Enum/Contact/ContactFormSeverityEnum.php) | Contact form fields |
-| [`Webhook\OrderWebhookTypeEnum`](../src/Enum/Webhook/OrderWebhookTypeEnum.php) | What a webhook event says happened to an order |
+| [`Webhook\OrderEventTypeEnum`](../src/Enum/Webhook/OrderEventTypeEnum.php) | What a webhook event says happened to an order |
 | [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
 | [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
 | [`TwoFactorToken\TwoFactorTransportTypeEnum`](../src/Enum/TwoFactorToken/TwoFactorTransportTypeEnum.php) | How a code reaches the customer |
@@ -311,12 +314,19 @@ On a string field, a new value just doesn't match any enum case. On an enum fiel
 `null`, as described above. Either way the response still maps, and your code decides what to do
 with a value it doesn't recognise.
 
-No interfaces on models
------------------------
+No interfaces on records
+------------------------
 
-Request and response classes have no interfaces of their own, only the shared
-[`MessageInterface`](../src/Api/MessageInterface.php) and, on the classes service methods return, [`ParsedResponseInterface`](../src/Api/ParsedResponseInterface.php). Wire names, formats and dates
-are defined in serializer attributes on the classes themselves, so a different implementation of
-an interface wouldn't serialize.
+A record is a class, not an interface: [`Address`](../src/Entity/Order/Address.php) for an address in an order, [`Address`](../src/Entity/Address.php) for an
+address-book entry, and [`Order`](../src/Entity/Order.php), [`Pack`](../src/Entity/Pack.php), [`PackItem`](../src/Entity/Order/PackItem.php), [`PackTemplate`](../src/Entity/PackTemplate.php),
+[`BankAccount`](../src/Entity/BankAccount.php), [`PhoneNumber`](../src/Entity/PhoneNumber.php), [`Cod`](../src/Entity/Order/Cod.php) and [`Pickup`](../src/Entity/Order/Pickup.php). Services take
+and return these classes.
 
-The interfaces under `Api` are the ones where your own implementation changes something.
+Wire names, formats and dates are declared in serializer attributes on those classes, and the
+validation rules are attributes on them too. An implementation of your own would carry neither, so
+it would be sent as an empty block and checked by no rule. Extend the class instead: a subclass
+keeps every attribute, and a field it adds is sent only when it carries a `#[SerializedName]` of
+its own.
+
+The interfaces under [`Api`](../src/Api/) are the seams where your own implementation changes what
+the SDK does: the services, the validator, the client factory and the webhook reader.

@@ -19,6 +19,8 @@ namespace Polkurier\Webservice\Enum\Http;
  * Both fields are optional in an error payload. `error_code` is the more precise of the two: a
  * status code can stand for more than one condition, e.g. 506006.
  * The two-factor conditions use the 506xxx numbers, except TWO_FACTOR_ALREADY_SENT.
+ *
+ * @api
  */
 enum ApiErrorCodeEnum: string
 {

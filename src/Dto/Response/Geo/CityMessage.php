@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One city suggestion for a postcode.
+ *
+ * @api
  */
 final readonly class CityMessage implements MessageInterface
 {

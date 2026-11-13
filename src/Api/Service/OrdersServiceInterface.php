@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Api\Service;
 
 use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
@@ -23,7 +24,6 @@ use Polkurier\Webservice\Dto\Response\Order\OrderFileMessage;
 use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
 use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -44,6 +44,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface OrdersServiceInterface
 {
@@ -152,9 +154,9 @@ interface OrdersServiceInterface
      *
      * A rejection names at least one fault in the payload, not necessarily all of them.
      *
-     * A description longer than its limit, {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH} bytes by
-     * default, is cut to fit. A cash-on-delivery amount of zero means the order ships with no
-     * collection.
+     * A description longer than its limit, by default
+     * {@see \Polkurier\Webservice\Entity\Order::DESCRIPTION_MAX_LENGTH} bytes, is cut to fit.
+     * A cash-on-delivery amount of zero means the order ships with no collection.
      *
      * Some requirements depend on the carrier: whether a pickup date or a time window is needed,
      * and whether either address needs a pickup point. `available_carriers` reports them.
@@ -706,7 +708,7 @@ interface OrdersServiceInterface
      * before offering one collection for several. Which carriers and shipments qualify can change.
      *
      * It describes a shipment, not an order you've already placed. To book a collective pickup,
-     * place the order with {@see \Polkurier\Webservice\Entity\Order\PickupMessage::$multiPickup}
+     * place the order with {@see \Polkurier\Webservice\Entity\Order\Pickup::$multiPickup}
      * set, then pass its number to createMultiOrderPickup().
      *
      * The API answers false, not an error, when it can't evaluate the request. So false can also
@@ -757,7 +759,7 @@ interface OrdersServiceInterface
      *
      * Pass order numbers, not waybill numbers. An order can join only if it was placed for a
      * collective pickup, with
-     * {@see \Polkurier\Webservice\Entity\Order\PickupMessage::$multiPickup} set, has been
+     * {@see \Polkurier\Webservice\Entity\Order\Pickup::$multiPickup} set, has been
      * accepted, and has no collection booked yet. Use isMultiPickupAvailable() to see whether a
      * shipment can be placed that way.
      *

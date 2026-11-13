@@ -8,11 +8,13 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Dto\Response\PagedListMessage;
-use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Entity\Order;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One page of the order list.
+ *
+ * @api
  */
 final readonly class OrderListMessage extends PagedListMessage
 {

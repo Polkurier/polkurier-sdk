@@ -18,6 +18,8 @@ use Polkurier\Webservice\Exception\ValidationException;
  * built by {@see \Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory}, which
  * {@see \Polkurier\Webservice\PolkurierWebservice} uses unless you pass your own validator.
  * Implement this interface to replace it or to check your own rules before a request is sent.
+ *
+ * @api
  */
 interface ValidatorInterface
 {

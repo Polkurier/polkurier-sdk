@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Enum\Http;
 
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
+
 /**
  * Every API method this SDK can call, as the `apimethod` field of a request.
  *
@@ -15,6 +17,8 @@ namespace Polkurier\Webservice\Enum\Http;
  *
  * 2 case names are shorter than their values: OrderValuation is `order_valuation_v2` and
  * GetSupportedCountries is `get_supported_countries_v2`. The value is what is sent.
+ *
+ * @api
  */
 enum ApiMethodEnum: string implements ApiMethodInterface
 {

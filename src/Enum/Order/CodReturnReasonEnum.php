@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * How part of a cash-on-delivery amount was settled.
+ *
+ * @api
  */
 enum CodReturnReasonEnum: string
 {

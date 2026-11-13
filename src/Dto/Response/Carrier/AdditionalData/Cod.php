@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether a carrier offers cash on delivery, and whether it then requires insurance.
+ *
+ * @api
  */
 final readonly class Cod implements MessageInterface
 {

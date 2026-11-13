@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A ticket attachment with its contents.
+ *
+ * @api
  */
 final readonly class TicketFileContentMessage implements MessageInterface, ParsedResponseInterface
 {

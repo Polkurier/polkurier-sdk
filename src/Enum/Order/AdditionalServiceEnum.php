@@ -12,7 +12,7 @@ namespace Polkurier\Webservice\Enum\Order;
  *
  * Which services you can order depends on the carrier and sometimes on the account. Asking for one
  * the carrier doesn't offer is an error. Services are sent as a map of code to `true`.
- * {@see \Polkurier\Webservice\Entity\Order\CreateOrderMessage} builds the map from a plain list.
+ * {@see \Polkurier\Webservice\Entity\Order::getCourierServiceMap()} builds the map from a plain list.
  *
  * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\CourierService} lists the services
  * `available_carriers` reports for a carrier.
@@ -24,6 +24,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * with PARAMS_NOT_SET. If you order the named dispatch notification, an out-for-delivery
  * notification you also ordered is sent under that name too. It doesn't work the other way round.
  * Not every UPS service supports SMS notifications.
+ *
+ * @api
  */
 enum AdditionalServiceEnum: string
 {

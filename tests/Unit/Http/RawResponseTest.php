@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
-use Polkurier\Webservice\Entity\Address\Address;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -27,28 +27,54 @@ use Polkurier\Webservice\Test\Unit\Serializer\ResponseConstructionTest;
 final class RawResponseTest extends TestCase
 {
     /**
-     * The classes the service methods return.
+     * The classes the service methods return. Read from the services themselves, because a method
+     * that returns an entity declares an interface on {@see \Polkurier\Webservice\Api\Service}.
      *
      * @return array<string, array{class-string}>
      */
     public static function returnedClasses(): array
     {
         $classes = [];
-        foreach (\glob(\dirname(__DIR__, 3) . '/src/Api/Service/*Interface.php') ?: [] as $file) {
-            $interface = 'Polkurier\\Webservice\\Api\\Service\\' . \basename($file, '.php');
-            self::assertTrue(\interface_exists($interface));
-            foreach ((new \ReflectionClass($interface))->getMethods() as $method) {
-                $type = $method->getReturnType();
-                if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
-                    /** @var class-string $class */
-                    $class = $type->getName();
-                    $classes[$class] = [$class];
+        foreach (\glob(\dirname(__DIR__, 3) . '/src/Service/*Service.php') ?: [] as $file) {
+            $service = 'Polkurier\\Webservice\\Service\\' . \basename($file, '.php');
+            self::assertTrue(\class_exists($service));
+            foreach ((new \ReflectionClass($service))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach (self::namedTypes($method->getReturnType()) as $class) {
+                    if (\class_exists($class)) {
+                        $classes[$class] = [$class];
+                    }
                 }
             }
         }
         self::assertNotEmpty($classes);
 
         return $classes;
+    }
+
+    /**
+     * The class names a return type is made of, an intersection type included.
+     *
+     * @param \ReflectionType|null $type
+     *
+     * @return list<class-string>
+     */
+    private static function namedTypes(?\ReflectionType $type): array
+    {
+        if ($type instanceof \ReflectionNamedType) {
+            /** @var list<class-string> */
+            return $type->isBuiltin() ? [] : [$type->getName()];
+        }
+
+        if ($type instanceof \ReflectionIntersectionType || $type instanceof \ReflectionUnionType) {
+            $names = [];
+            foreach ($type->getTypes() as $part) {
+                $names = [...$names, ...self::namedTypes($part)];
+            }
+
+            return $names;
+        }
+
+        return [];
     }
 
     /**

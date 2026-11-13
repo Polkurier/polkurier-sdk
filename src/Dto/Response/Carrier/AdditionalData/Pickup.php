@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A carrier's rules for the collection booked with an order.
  *
  * Each part is null when the carrier's entry leaves it out.
+ *
+ * @api
  */
 final readonly class Pickup implements MessageInterface
 {

@@ -26,20 +26,21 @@ Placing an order
 Pick a carrier, describe the shipment, get a price, then place the order.
 
 ```php
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
 
-$order = new CreateOrderMessage(
+$order = new Order(
     courier: 'UPS',                       // a Carrier::$serviceCode
     shipmentType: ShipmentTypeEnum::Box,
     packs: [
-        new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+        new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
     ],
-    sender: new OrderAddressMessage(
+    sender: new Address(
         person: 'Jan Kowalski',
         street: 'Długa',
         city: 'Poznań',
@@ -49,7 +50,7 @@ $order = new CreateOrderMessage(
         company: 'Acme sp. z o.o.',
         houseNumber: '12',
     ),
-    recipient: new OrderAddressMessage(
+    recipient: new Address(
         person: 'Anna Nowak',
         street: 'Krótka',
         city: 'Warszawa',
@@ -66,8 +67,11 @@ $order = new CreateOrderMessage(
     externalOrderId: 'SHOP-1001',              // your own id for this order
 );
 
-$quotes  = $client->orders()->orderValuation($order);   // ValuationMessage[], one per carrier
-$created = $client->orders()->createOrder($order);      // CreatedOrderMessage
+// The order travels inside the message, which also carries the request-only coupon code.
+$message = new CreateOrderMessage(order: $order);
+
+$quotes  = $client->orders()->orderValuation($message);   // ValuationMessage[], one per carrier
+$created = $client->orders()->createOrder($message);      // CreatedOrderMessage
 
 printf(
     "Order %s placed. Waybills: %s. Gross: %.2f PLN\n",
@@ -82,7 +86,7 @@ The SDK cannot check these for you:
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
   window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` is required to place an order, and the API cuts it to fit its length limit:
-  [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Entity/Order/CreateOrderMessage.php) bytes, unless the account or the carrier has another.
+  [`Order::DESCRIPTION_MAX_LENGTH`](../src/Entity/Order.php) bytes, unless the account or the carrier has another.
 - `externalApplicationId` and `externalOrderId` are optional. They let you find the
   order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
   SDK refuses one without the other.
@@ -99,9 +103,10 @@ The SDK cannot check these for you:
 Builders are easier when many fields are conditional. See [Builders](builders.md).
 
 ```php
-use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 
-$builder = CreateOrderMessageBuilder::create()
+$builder = OrderBuilder::create()
     ->courier($carrierCode)
     ->shipmentType(ShipmentTypeEnum::Box)
     ->packs($packs)
@@ -113,12 +118,14 @@ if ($cart->isInsured()) {
     $builder->insurance($cart->declaredValue());
 }
 
-if ($cart->couponCode() !== null) {
-    $builder->couponCode($cart->couponCode());
-}
-
-$created = $client->orders()->createOrder($builder->build());
+$created = $client->orders()->createOrder(new CreateOrderMessage(
+    order: $builder->build(),
+    couponCode: $cart->couponCode(),       // null when there is none
+));
 ```
+
+The coupon code isn't part of the order, so it goes on the message rather than on
+[`OrderBuilder`](../src/Builder/Entity/OrderBuilder.php).
 
 ---
 
@@ -158,18 +165,19 @@ describes what a shipping form can offer.
 One valuation quotes every carrier that can carry the shipment, so compare the quotes it returns:
 
 ```php
-use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 
-$quotes = $client->orders()->orderValuation(
-    CreateOrderMessageBuilder::create()
+$quotes = $client->orders()->orderValuation(new CreateOrderMessage(
+    order: OrderBuilder::create()
         ->courier($anyCode)
         ->shipmentType($type)
         ->packs($packs)
         ->sender($sender)
         ->recipient($recipient)
         ->build(),
-);
+));
 
 $quotes = array_filter($quotes, static fn(ValuationMessage $quote) => $quote->shipment);
 usort($quotes, static fn(ValuationMessage $a, ValuationMessage $b) => $a->grossPrice <=> $b->grossPrice);
@@ -186,11 +194,12 @@ Cash on delivery
 ----------------
 
 ```php
-use Polkurier\Webservice\Entity\Order\CodMessage;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Entity\Order\Cod;
 
-$order = CreateOrderMessageBuilder::create()
+$order = OrderBuilder::create()
     // …
-    ->cod(new CodMessage(
+    ->cod(new Cod(
         amount: 250.0,
         bankAccount: '34102010260000000000000001',
     ))
@@ -205,9 +214,8 @@ validated. For example, no bank account is required.
 either a full IBAN or a bare Polish national number. The SDK is strict here because this field
 decides where the money goes. Only a Polish account passes, as the API requires.
 
-When you read an order back, cash on delivery comes as a different class. [`Cod`](../src/Entity/Order/Cod.php)
-reports what happened to the money (status, payout, return details), while [`CodMessage`](../src/Entity/Order/CodMessage.php) describes
-what to collect.
+An order read back carries the same [`Cod`](../src/Entity/Order/Cod.php), with the fields the API only reports filled in:
+what happened to the money, its status and, for a returned amount, when and why it came back.
 
 ```php
 $cod = $order->getCod();   // ?Cod, null when the order had none
@@ -248,7 +256,9 @@ $token = $client->geo()->getMapToken();
 To send to the chosen point, set it on the recipient address:
 
 ```php
-$recipient = OrderAddressMessageBuilder::create()
+use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
+
+$recipient = AddressBuilder::create()
     ->person('Anna Nowak')
     ->street('')      // build() needs it, but a point recipient may leave it empty
     ->city('Poznań')
@@ -268,8 +278,7 @@ number.
 Booking a collection
 --------------------
 
-For one shipment, book the collection with the order, through
-[`CreateOrderMessage::getPickup()`](../src/Entity/Order/CreateOrderMessage.php).
+For one shipment, book the collection with the order, through [`Order::setPickup()`](../src/Entity/Order.php).
 [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
 
 For several at once, if a collective pickup is available. Availability is decided per shipment,
@@ -279,7 +288,7 @@ by its carrier and parcels, so check each one:
 // 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
 if ($client->orders()->isMultiPickupAvailable($check)->available) {
-    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
+    // 2. Place it for one: pickup: new Pickup(multiPickup: true)
 }
 
 // 3. Later, book one collection for the order numbers placed that way.
@@ -415,8 +424,8 @@ do {
 when a page comes back short:
 
 ```php
-use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 
 $page = 1;
 $size = 100;
@@ -467,9 +476,9 @@ Depending on the account's settings, some operations need a confirmation code, e
 bank account or requesting a payout. The flow:
 
 ```php
-use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 
 // 1. Register against the operation the code will authorise.
 $token = $client->twoFactorToken()->twoFactorTokenRegister(
@@ -495,8 +504,8 @@ If the code does not arrive, you can resend it, or switch to another delivery me
 lists:
 
 ```php
-use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
 
 $client->twoFactorToken()->twoFactorTokenResend(new ResendMessage($token->id));
 
@@ -521,9 +530,9 @@ Paying out collected money
 The fee can be checked before the payout is requested:
 
 ```php
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
-use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
 $config = $client->moneyBox()->getConfig();         // MoneyBoxConfigMessage, the saved destination
 $fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
@@ -616,8 +625,8 @@ try {
 To check credentials as well, e.g. on a settings screen or in a deploy smoke test:
 
 ```php
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 try {
     $client->utils()->testAuthApi(new AuthorizationMessage(token: $token, login: $login));

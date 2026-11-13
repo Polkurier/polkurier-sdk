@@ -7,13 +7,14 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice;
 
+use Polkurier\Webservice\Api\ConfigInterface;
+use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Service\AccountServiceInterface;
 use Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface;
 use Polkurier\Webservice\Api\Service\AddressesServiceInterface;
 use Polkurier\Webservice\Api\Service\BankAccountsServiceInterface;
-use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
-use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\Service\GeoServiceInterface;
 use Polkurier\Webservice\Api\Service\InvoicesServiceInterface;
 use Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface;
@@ -26,19 +27,18 @@ use Polkurier\Webservice\Api\Service\TicketsServiceInterface;
 use Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface;
 use Polkurier\Webservice\Api\Service\UtilsServiceInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
-use Polkurier\Webservice\ConfigProvider;
+use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
+use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
-use Psr\Http\Message\ResponseInterface;
-use Polkurier\Webservice\Serializer\ResponseDrift;
-use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
+use Polkurier\Webservice\Service\AbstractService;
 use Polkurier\Webservice\Service\AccountService;
 use Polkurier\Webservice\Service\AccountVerificationService;
 use Polkurier\Webservice\Service\AddressesService;
@@ -55,8 +55,12 @@ use Polkurier\Webservice\Service\SystemService;
 use Polkurier\Webservice\Service\TicketsService;
 use Polkurier\Webservice\Service\TwoFactorTokenService;
 use Polkurier\Webservice\Service\UtilsService;
+use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
+use Polkurier\Webservice\Webhook\OrderReader;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+
 /**
  * Entry point to the Polkurier web API.
  *
@@ -75,6 +79,8 @@ use Psr\Log\NullLogger;
  * created on first use and then reused.
  *
  * No I/O happens until you call a service method.
+ *
+ * @api
  */
 final class PolkurierWebservice
 {
@@ -116,6 +122,18 @@ final class PolkurierWebservice
     private readonly LastResponseHolder $lastResponse;
 
     /**
+     * @var SerializerProviderInterface
+     */
+    private readonly SerializerProviderInterface $serializerProvider;
+
+    /**
+     * Kept so the webhook reader is built with the same settings as the services.
+     *
+     * @var SerializerConfig
+     */
+    private readonly SerializerConfig $serializerConfig;
+
+    /**
      * Services, keyed by class name: the ones handed in, and the ones built on first use.
      *
      * @var array<class-string, object>
@@ -127,11 +145,10 @@ final class PolkurierWebservice
      *
      * @param ConfigInterface $config
      * @param LoggerInterface|null $logger defaults to a logger that discards everything
-     * @param SerializerProviderInterface|null $serializerProvider
+     * @param SerializerConfig|null $serializerConfig how responses are read: strictly or
+     *        leniently, and how payloads are written. Defaults to the SDK's own settings
      * @param ConfigProviderInterface|null $configProvider overrides $config entirely when given
      * @param ClientFactoryInterface|null $clientFactory
-     * @param RequestFactoryInterface|null $requestFactory
-     * @param ResponseFactoryInterface|null $responseFactory
      * @param ValidatorInterface|null $validator checks payloads before they are sent. Defaults to
      *        the SDK's own rules. Pass your own to add or replace rules. Validation can also be
      *        turned off in the configuration
@@ -141,21 +158,20 @@ final class PolkurierWebservice
     public function __construct(
         ConfigInterface $config,
         ?LoggerInterface $logger = null,
-        ?SerializerProviderInterface $serializerProvider = null,
+        ?SerializerConfig $serializerConfig = null,
         ?ConfigProviderInterface $configProvider = null,
         ?ClientFactoryInterface $clientFactory = null,
-        ?RequestFactoryInterface $requestFactory = null,
-        ?ResponseFactoryInterface $responseFactory = null,
         ?ValidatorInterface $validator = null,
         array $services = [],
     ) {
-        $serializerProvider ??= new SerializerProvider();
+        $this->serializerConfig = $serializerConfig ?? new SerializerConfig();
+        $this->serializerProvider = new SerializerProvider($this->serializerConfig);
 
         $this->configProvider = $configProvider ?? new ConfigProvider($config);
         $this->logger = $logger ?? new NullLogger();
         $this->clientFactory = $clientFactory ?? new ClientFactory($this->configProvider);
-        $this->requestFactory = $requestFactory ?? new RequestFactory($serializerProvider, $this->configProvider);
-        $this->responseFactory = $responseFactory ?? new ResponseFactory($serializerProvider);
+        $this->requestFactory = new RequestFactory($this->serializerProvider, $this->configProvider);
+        $this->responseFactory = new ResponseFactory($this->serializerProvider);
         $this->validator = $validator ?? DefaultValidatorRegistryFactory::create();
         $this->services = $services;
         $this->lastResponse = new LastResponseHolder();
@@ -339,6 +355,20 @@ final class PolkurierWebservice
     }
 
     /**
+     * Reads the order events Polkurier posts to the webhook address set in the panel.
+     *
+     * Like the services, it is the instance passed in through `$services` under
+     * {@see OrderReader}, or one built on first use, because most clients never read a webhook.
+     *
+     * @return OrderReaderInterface
+     */
+    public function orderReader(): OrderReaderInterface
+    {
+        /** @var OrderReaderInterface */
+        return $this->services[OrderReader::class] ??= new OrderReader($this->serializerConfig);
+    }
+
+    /**
      * The HTTP response to the last call made through this client, exactly as the API sent it.
      *
      * Use it when a typed result isn't enough, e.g. to read a value the SDK doesn't know yet, which
@@ -379,7 +409,11 @@ final class PolkurierWebservice
      * Returns the service of the given class. That is the one passed in through $services, or
      * one built on first use and reused after that.
      *
-     * @template T of object
+     * A class built here is constructed with {@see AbstractService}'s arguments, so that is what
+     * it must extend. A service written from scratch against the service interface is handed in
+     * ready-made through `$services` instead.
+     *
+     * @template T of AbstractService
      *
      * @param class-string<T> $class
      *

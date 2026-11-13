@@ -43,7 +43,7 @@ difference: a [`ValidationException`](../src/Exception/ValidationException.php) 
 use Polkurier\Webservice\Exception\ValidationException;
 
 try {
-    $client->orders()->createOrder($order);
+    $client->orders()->createOrder($message);
 } catch (ValidationException $e) {
     foreach ($e->getValidationErrors() as $field => $messages) {
         printf("%s: %s\n", $field, implode(', ', $messages));
@@ -83,30 +83,39 @@ messages to their rules, so none can get out of sync.
 ```php
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
 #[Validate\InOrder(earlier: 'codMin', later: 'codMax')]
-readonly class GetOrdersMessage implements MessageInterface
+#[Validate\PageSizeAtMost(self::MAX_PAGE_SIZE)]
+final readonly class GetOrdersMessage extends PagedMessage
 {
     public function __construct(
-        #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[Validate\IntegerRange(1, self::MAX_PAGE_SIZE)]
-        private ?int $pageSize = null,
+        #[Serializer\SerializedName(self::FIELD_COD_MIN)]
+        public ?float $codMin = null,
         // …
     ) {}
 }
 ```
 
+A property rule sits next to the field: [`Address::$phone`](../src/Entity/Address.php) carries `#[Validate\NotBlank]` and
+`#[Validate\PhoneNumber]`.
+
 [`AttributeValidator`](../src/Validator/AttributeValidator.php) reads six kinds of declaration:
 
 | Declaration | Where | What it does |
 |-------------|-------|--------------|
-| A [`ValueValidatorInterface`](../src/Api/Validation/ValueValidatorInterface.php) | property | Checks that one value's format |
+| A [`ValueValidatorInterface`](../src/Validator/Rule/ValueValidatorInterface.php) | property | Checks that one value's format |
 | `#[Valid]` | property | Descend into a nested object, or into each object in a list |
 | [`#[Each(RuleClass::class)]`](../src/Validator/Rule/Each.php) | property | Apply one rule to every entry of a list of plain values |
-| A [`MessageRuleInterface`](../src/Api/Validation/MessageRuleInterface.php) | class | A rule about how two fields relate |
+| A [`MessageRuleInterface`](../src/Validator/Rule/MessageRuleInterface.php) | class | A rule about how two fields relate |
 | [`#[IgnoredWhen(...)]`](../src/Validator/Rule/IgnoredWhen.php) | class | Skip every rule, because the block does not apply |
 | [`#[ValidatedBy(Validator::class)]`](../src/Validator/Rule/ValidatedBy.php) | class | Run a validator written as a class |
 
 The class-level kinds are inherited, so a rule declared on a base message applies to every
 message that extends it.
+
+A class rule can also name a field of a record the message inlines with
+[`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php), because those fields are sent at the message's own level:
+[`SavePhoneNumberMessage`](../src/Dto/Request/Account/SavePhoneNumberMessage.php) requires `twoFactorCode` when the [`PhoneNumber`](../src/Entity/PhoneNumber.php) it carries is
+the account's default. An inlined record marked `#[Valid]` is checked at the enclosing level too,
+so its own fields are reported under their plain wire names rather than under a prefix.
 
 ### Cross-field rules
 
@@ -138,7 +147,7 @@ The rules
 | [`Postcode`](../src/Validator/Rule/Postcode.php) / [`Postcode(country: 'DE')`](../src/Validator/Rule/Postcode.php) | The NN-NNN form. Other countries' formats are skipped |
 | [`OrderNumber`](../src/Validator/Rule/OrderNumber.php) | The documented order-number format |
 | [`Iban`](../src/Validator/Rule/Iban.php) | ISO 13616 check digits, on a full IBAN or a bare national number |
-| [`OfType('string')`](../src/Validator/Rule/OfType.php) / [`OfType(PackMessage::class)`](../src/Validator/Rule/OfType.php) | A value of that type, mostly for list entries through `Each` |
+| [`OfType('string')`](../src/Validator/Rule/OfType.php) / [`OfType(PackItem::class)`](../src/Validator/Rule/OfType.php) | A value of that type, mostly for list entries through `Each` |
 
 Only [`NotBlank`](../src/Validator/Rule/NotBlank.php) and [`NotEmptyList`](../src/Validator/Rule/NotEmptyList.php) reject a missing value.
 Format rules pass on null, so the same postcode rule can be optional in one message and required
@@ -167,7 +176,7 @@ private array $orderNo;
 ```
 
 The rule is given by class name. Any further arguments go to its constructor, which is how a list
-declares the type of its entries: `#[Validate\Each(Validate\OfType::class, PackMessage::class)]`. For a
+declares the type of its entries: `#[Validate\Each(Validate\OfType::class, PackItem::class)]`. For a
 rule that depends on a sibling field, there are message validators.
 
 ### Class rules
@@ -198,15 +207,29 @@ Validators written as classes
 Some rules need more logic than an attribute can hold, and a message names the class that checks
 them with `#[ValidatedBy]`. An order address is the typical case. A sender must have an email
 address and a recipient doesn't have to. A recipient collecting from a pickup point needs no street
-address at all. Which fields are required depends on the *role* of the address in the order, which
-the address itself doesn't know. Registering a payment and checking a coupon against an order have
+address at all. An order's cover address is a sender address the carrier prints, so it is checked
+as one: the API charges for that block as soon as any value in it is non-empty, and a half-filled
+one would be printed. Which fields are required depends on the *role* of the address in the order,
+which the address itself doesn't know. Registering a payment and checking a coupon against an order have
 rules of this kind too.
 
-The message names its validators, and a validator doesn't name its messages, so the link is
-declared in one place only. To write one, see [Add rules of your own](#2-add-rules-of-your-own).
+The class names its validators, and a validator doesn't name its classes, so the link is declared
+in one place only. [`OrderValidator`](../src/Validator/Message/OrderValidator.php) is declared on [`Order`](../src/Entity/Order.php), so it runs wherever an order is
+sent: [`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) as well as
+[`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php). To write one, see
+[Add rules of your own](#2-add-rules-of-your-own).
 
 Changing the rules
 ------------------
+
+Three things here are part of the public contract and a release keeps them: `validatePayloads`,
+[`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) with its one method, and [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php) with
+[`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php). The machinery the SDK writes its own rules with —
+[`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`ViolationPool`](../src/Validator/ViolationPool.php) and the
+`Validate\*` attributes — is not, and a release may change any of it, see
+[Architecture: what a release can change](architecture.md#what-a-release-can-change). Extending it
+is supported in the sense that it works and is documented here; it ties your code to the SDK's
+minor version.
 
 ### 1. Turn everything off
 
@@ -223,15 +246,17 @@ against a class or an interface. A validator registered for a base message cover
 that extends it:
 
 ```php
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 $validator = DefaultValidatorRegistryFactory::create()
-    ->register(CreateOrderMessage::class, new MyOrderPolicy());
+    ->register(Order::class, new MyOrderPolicy());
 ```
 
-`MyOrderPolicy` extends [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php). It collects violations instead of throwing,
-so its findings are reported along with the rest:
+`MyOrderPolicy` extends [`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), the base class above, so it collects
+violations instead of throwing and its findings are reported along with the SDK's. A validator
+that implements [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) directly stays on the contract, and throws its own
+[`ValidationException`](../src/Exception/ValidationException.php) on the first problem it finds:
 
 ```php
 use Polkurier\Webservice\Api\MessageInterface;
@@ -239,7 +264,7 @@ use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
 
-/** @extends AbstractMessageValidator<CreateOrderMessage> */
+/** @extends AbstractMessageValidator<Order> */
 final class MyOrderPolicy extends AbstractMessageValidator
 {
     protected function collect(MessageInterface $data, ViolationPool $violations): void
@@ -269,7 +294,6 @@ parent declares.
 SDK's rules:
 
 ```php
-use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 
 final class MyValidator implements ValidatorInterface

@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A country the service supports, with its regions.
+ *
+ * @api
  */
 final readonly class Country implements MessageInterface
 {

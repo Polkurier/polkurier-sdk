@@ -13,7 +13,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A carrier-specific field an order can carry, sent in
- * {@see \Polkurier\Webservice\Entity\Order\CreateOrderMessage}'s additional fields under its name.
+ * {@see \Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage}'s additional fields under its name.
+ *
+ * @api
  */
 final readonly class AdditionalField implements MessageInterface
 {

@@ -11,13 +11,12 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
-use Polkurier\Webservice\Entity\Order\CodMessage;
+use Polkurier\Webservice\Entity\Order\Cod;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -35,6 +34,7 @@ use Polkurier\Webservice\Validator\Rule\OrderNumber;
 use Polkurier\Webservice\Validator\Rule\PhoneNumber;
 use Polkurier\Webservice\Validator\Rule\Positive;
 use Polkurier\Webservice\Validator\Rule\Postcode;
+use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
 /**
  * The individual field rules, exercised on their own.
@@ -199,11 +199,11 @@ final class RuleTest extends TestCase
                 ['date_from'],
             ],
             'RequiredWhen: a bank account is needed for a bank transfer' => [
-                new CodMessage(amount: 100.0),
+                new Cod(amount: 100.0),
                 ['codbankaccount'],
             ],
             'RequiredWhen: not needed for another return type' => [
-                new CodMessage(amount: 100.0, returnType: CodReturnTypeEnum::cases()[1]),
+                new Cod(amount: 100.0, returnType: CodReturnTypeEnum::cases()[1]),
                 [],
             ],
             'RequiredWith: an external order id needs its application id' => [
@@ -231,7 +231,7 @@ final class RuleTest extends TestCase
                 [],
             ],
             'IgnoredWhen: a zero amount skips the block' => [
-                new CodMessage(amount: 0.0, bankAccount: 'not-an-iban'),
+                new Cod(amount: 0.0, bankAccount: 'not-an-iban'),
                 [],
             ],
             'Each: every entry is checked' => [

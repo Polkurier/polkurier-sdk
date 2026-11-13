@@ -14,12 +14,11 @@ use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken;
-use Polkurier\Webservice\Entity\Address\Address;
-use Polkurier\Webservice\Entity\BankAccount\BankAccount;
+use Polkurier\Webservice\Entity\Address;
+use Polkurier\Webservice\Entity\BankAccount;
+use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
 use Polkurier\Webservice\Entity\Order\Cod;
-use Polkurier\Webservice\Entity\Order\CoverAddressMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddress;
-use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
+use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 
 /**
@@ -44,7 +43,7 @@ class PersonalDataRedactor extends FieldRedactor
         OrderAddress::FIELD_STREET_NAME,
         Address::FIELD_HOUSE_NUMBER,
         Address::FIELD_FLAT_NUMBER,
-        CoverAddressMessage::FIELD_FLAT_NUMBER,
+        OrderAddress::FIELD_COVER_FLAT_NUMBER,
         OrderAddress::FIELD_POSTCODE,
         SavePayerAddressMessage::FIELD_POST_CODE,
         OrderAddress::FIELD_CITY,

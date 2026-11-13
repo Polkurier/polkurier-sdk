@@ -13,8 +13,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\ResponseMessage;
-use Polkurier\Webservice\Dto\Response\Webhook\OrderWebhookMessage;
-use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
@@ -23,7 +23,7 @@ use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Polkurier\Webservice\Webhook\OrderWebhookReader;
+use Polkurier\Webservice\Webhook\OrderReader;
 
 /**
  * Every response class reads whatever a field turns into, and strict reading rejects exactly what
@@ -61,7 +61,7 @@ final class ResponseDriftInvariantTest extends TestCase
             MessageClasses::responses(),
             static fn(string $class): bool => !\in_array(
                 $class,
-                [OrderWebhookMessage::class, ResponseMessage::class, ErrorMessage::class],
+                [OrderEventMessage::class, ResponseMessage::class, ErrorMessage::class],
                 true,
             ),
         );
@@ -127,7 +127,7 @@ final class ResponseDriftInvariantTest extends TestCase
     public function testEveryChangedOrderFieldInAnEventReadsAndStrictReadingAgrees(): void
     {
         $sample = Sample::wire(Order::class);
-        $strictProvider = new SerializerProvider(new SerializerConfig(strictResponses: true));
+        $strictConfig = new SerializerConfig(strictResponses: true);
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {
@@ -140,7 +140,7 @@ final class ResponseDriftInvariantTest extends TestCase
                 $body = \http_build_query(['type' => 'UPDATED', 'data' => $order]);
                 $case = \sprintf('An event with "%s" %s', $field, $change);
 
-                $reader = new OrderWebhookReader();
+                $reader = new OrderReader();
                 try {
                     self::assertReadable($reader->read($body));
                 } catch (InvalidArgumentException $e) {
@@ -153,7 +153,7 @@ final class ResponseDriftInvariantTest extends TestCase
                 );
 
                 try {
-                    (new OrderWebhookReader($strictProvider))->read($body);
+                    (new OrderReader($strictConfig))->read($body);
                     self::assertSame([], $reported, $case . ': strict reading accepted what lenient reading reported');
                 } catch (InvalidArgumentException $e) {
                     self::assertNotSame([], $reported, $case . ': strict reading failed: ' . $e->getMessage());

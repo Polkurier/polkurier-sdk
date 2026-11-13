@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The id is the entry's slug. An article's is the one
  * {@see \Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface::getArticle()} takes.
+ *
+ * @api
  */
 final readonly class KnowledgeBaseLinkMessage implements MessageInterface
 {

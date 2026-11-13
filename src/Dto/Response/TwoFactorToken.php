@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A registered two-factor confirmation, and how long it stays valid.
+ *
+ * @api
  */
 final readonly class TwoFactorToken implements MessageInterface, ParsedResponseInterface
 {

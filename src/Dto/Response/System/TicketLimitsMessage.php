@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Limits the API applies to support ticket attachments.
+ *
+ * @api
  */
 final readonly class TicketLimitsMessage implements MessageInterface
 {

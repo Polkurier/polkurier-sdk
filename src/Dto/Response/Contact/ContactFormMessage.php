@@ -23,6 +23,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A topic without a form gives one with {@see self::$hasForm} false and nothing else. A form that
  * can only be filled in on the Polkurier website has {@see self::$webOnly} set, no fields, and
  * its address in {@see self::$href}.
+ *
+ * @api
  */
 final readonly class ContactFormMessage implements MessageInterface, ParsedResponseInterface
 {

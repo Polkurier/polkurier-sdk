@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Courier;
 
 /**
  * How prominently a carrier notice should be shown. It carries no other meaning.
+ *
+ * @api
  */
 enum CourierMessageSeverityEnum: string
 {

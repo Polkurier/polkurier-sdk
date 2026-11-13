@@ -9,17 +9,18 @@ namespace Polkurier\Webservice\Log;
 
 use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
 use Polkurier\Webservice\Dto\Request\Account\PinMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
 use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 use Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage;
-use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage as BankAccountSaveMessage;
 
 /**
  * Hides secrets in request and response bodies before they are logged.
  *
  * A value is hidden when its key is one of {@see self::FIELDS}, or is named `pin` or ends in
- * `_pin`, at any depth: the API token, passwords, PINs, two-factor codes and access tokens.
+ * `_pin`, at any depth: the API token, passwords, PINs, two-factor codes and tokens, and
+ * access tokens.
  * Matching is by key alone, so a field that shares a name with a secret, such as a coupon's `code`,
  * is hidden too.
  */
@@ -35,8 +36,9 @@ class SensitiveDataRedactor extends FieldRedactor
         ChangePasswordMessage::FIELD_PREVIOUS_PASSWORD,
         PinMessage::FIELD_PIN,
         CreateMoneyBoxPayoutMessage::FIELD_SECURITY_PIN,
-        BankAccountSaveMessage::FIELD_ACCESS_PIN,
+        SaveBankAccountMessage::FIELD_ACCESS_PIN,
         CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_CODE,
+        CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_TOKEN,
         VerifyMessage::FIELD_CODE,
     ];
 

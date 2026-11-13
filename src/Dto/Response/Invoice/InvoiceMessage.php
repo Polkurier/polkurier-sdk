@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  * A correction carries only number, value and date; its unpaid value reads as zero either way.
  *
  * Both dates have no time component.
+ *
+ * @api
  */
 final readonly class InvoiceMessage implements MessageInterface
 {

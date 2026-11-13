@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Orders succeed or fail one by one, and the call succeeds even when none goes through, so check
  * both lists.
+ *
+ * @api
  */
 final readonly class MultiPickupResultMessage implements MessageInterface, ParsedResponseInterface
 {

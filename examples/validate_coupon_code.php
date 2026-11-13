@@ -13,7 +13,7 @@
 declare(strict_types=1);
 
 use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
 
@@ -27,7 +27,7 @@ try {
         couponCode: $code,
         courier: 'UPS',
         shipmentType: ShipmentTypeEnum::Box,
-        packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
+        packs: [new PackItem(length: 30, width: 20, height: 15, weight: 2.5)],
     ));
 
     \printf("%s: %s", $coupon->code, $coupon->valid ? 'valid' : 'not valid');

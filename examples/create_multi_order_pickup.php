@@ -7,7 +7,7 @@
  * create_multi_order_pickup — book one collection covering several orders.
  *
  * Takes the numbers of orders placed for a collective pickup
- * ({@see \Polkurier\Webservice\Entity\Order\PickupMessage}'s multiPickup). The result reports each
+ * ({@see \Polkurier\Webservice\Entity\Order\Pickup}'s multiPickup). The result reports each
  * order separately, and the call succeeds even when none goes through.
  */
 declare(strict_types=1);

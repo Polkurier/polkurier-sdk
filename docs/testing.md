@@ -9,7 +9,7 @@ to replace is the HTTP client.
 
 ### 1. Substitute the transport
 
-If you replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), everything above it runs as normal: request building,
+If you replace [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php), everything above it runs as normal: request building,
 serialization, envelope parsing, response mapping and exception handling. Only the network call is
 fake.
 
@@ -120,7 +120,10 @@ With a staging account, tests can run against the real API on a schedule, with
 `strictResponses` turned on:
 
 ```php
-new SerializerProvider(new SerializerConfig(strictResponses: true));
+$client = new PolkurierWebservice(
+    config: $config,
+    serializerConfig: new SerializerConfig(strictResponses: true),
+);
 ```
 
 A changed response then fails the build instead of being read with the change recorded.
@@ -129,9 +132,9 @@ A changed response then fails the build instead of being read with the change re
 
 | Seam | Replace | Use when |
 |------|---------|----------|
-| Transport | [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
+| Transport | [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | Service | `services: [Foo::class => $mock]` | Testing your flow, not the SDK |
 | Interface | Inject `Api\Service\*Interface` | Most unit tests, if your design allows |
-| Serializer | [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | Testing mapping changes of your own |
+| Serializer | [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Reading strictly, so a changed response fails the test |
 | Validator | [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Testing rules, or turning them off in a fixture |
 | Config | [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) | Testing per-tenant resolution |

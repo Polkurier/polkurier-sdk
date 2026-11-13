@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Account;
  *
  * The payer address appears on invoices and is the only one that needs a legal form. The other 2
  * can be marked as the same as the payer address instead of being filled in.
+ *
+ * @api
  */
 enum PayerAddressTypeEnum: string
 {

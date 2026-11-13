@@ -8,8 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Api\Service;
 
 use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Entity\PackTemplate\PackTemplate;
-use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -33,6 +32,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface PackTemplatesServiceInterface
 {
@@ -126,7 +127,7 @@ interface PackTemplatesServiceInterface
      * The message names only the first failure. `validation_errors` has all of them, keyed by the
      * API's field names.
      *
-     * @param SavePackTemplateMessage $saveMessage
+     * @param PackTemplate $packTemplate
      *
      * @return PackTemplate as stored
      * @throws AuthorizationException
@@ -136,7 +137,9 @@ interface PackTemplatesServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePackTemplates(SavePackTemplateMessage $saveMessage): PackTemplate;
+    public function savePackTemplates(
+        PackTemplate $packTemplate,
+    ): PackTemplate;
 
     /**
      * Deletes a template.

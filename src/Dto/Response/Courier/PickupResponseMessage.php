@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Whether a carrier can collect on the requested day, and the windows it offers.
  *
  * Carriers that do not report time windows return an empty list even when they accept the date.
+ *
+ * @api
  */
 final readonly class PickupResponseMessage implements MessageInterface, ParsedResponseInterface
 {

@@ -78,7 +78,7 @@ Choosing a carrier
 | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | The countries one international carrier delivers to |
 
 [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) lists the carriers. A [`Carrier`](../src/Dto/Response/Carrier.php)'s `serviceCode` is what
-[`CreateOrderMessage::$courier`](../src/Entity/Order/CreateOrderMessage.php) takes. With `additionalData: true`, the response also lists what each
+[`Order::setCourier()`](../src/Entity/Order.php) takes. With `additionalData: true`, the response also lists what each
 carrier supports: shipment types, cash on delivery and insurance, whether it needs a pickup date,
 which additional services it offers, and which pickup points it uses. The SDK doesn't check an order
 against this data.
@@ -161,7 +161,8 @@ Pricing and placing an order
 | [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | Places an order |
 | [`SystemServiceInterface::validateCouponCode()`](../src/Api/Service/SystemServiceInterface.php) | Checks a discount coupon, optionally against a specific order |
 
-[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) and [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) take the same [`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php).
+[`OrdersServiceInterface::orderValuation()`](../src/Api/Service/OrdersServiceInterface.php) and
+[`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) take the same [`CreateOrderMessage`](../src/Dto/Request/Order/CreateOrderMessage.php).
 
 > A successful valuation only gives you a price. A payload that prices without errors can still be
 > rejected when you place the order, so a valuation doesn't show whether an order will go through.
@@ -218,7 +219,7 @@ files, and an unknown number is an error.
 It is the lighter call, suited to tracking. [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) suits reconciliation.
 To hear about changes without asking, see [Webhooks](webhooks.md).
 
-Both include a status code. [`Order::getStatusCode()`](../src/Entity/Order/Order.php) returns a plain string, and
+Both include a status code. [`Order::getStatusCode()`](../src/Entity/Order.php) returns a plain string, and
 [`Enum\Order\OrderStatusCodeEnum`](../src/Enum/Order/OrderStatusCodeEnum.php) holds the known values:
 
 ```php
@@ -266,7 +267,7 @@ Booking a collection
 | [`OrdersServiceInterface::createMultiOrderPickup()`](../src/Api/Service/OrdersServiceInterface.php) | Books one courier collection covering several orders |
 
 A collection for one order is booked with the order, through
-[`CreateOrderMessage::getPickup()`](../src/Entity/Order/CreateOrderMessage.php). To offer only the days and
+[`Order::setPickup()`](../src/Entity/Order.php). To offer only the days and
 windows the carrier accepts, ask first:
 
 ```php
@@ -280,7 +281,7 @@ One collection for *several* shipments is a collective pickup. It is booked in t
 // 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
 if ($client->orders()->isMultiPickupAvailable($check)->available) {
-    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
+    // 2. Place it for one: pickup: new Pickup(multiPickup: true)
 }
 
 // 3. Later, book one collection for the order numbers placed that way.
@@ -316,9 +317,13 @@ creates a new entry. An id that names no entry of the account fails an address s
 `NOT_FOUND`, creates a new parcel template, and makes a bank account save throw
 [`MalformedResponseException`](../src/Exception/MalformedResponseException.php).
 
-You send a [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) and get back a [`Address`](../src/Entity/Address/Address.php). These are different
-classes, as with requests and responses throughout the SDK. See
-[Messages: why requests and responses are split](messages.md#why-requests-and-responses-are-split).
+You send an [`Address`](../src/Entity/Address.php) and get the stored entry back as one, so an entry you read can be changed
+and saved again. See [Messages: one class per record](messages.md#one-class-per-record).
+[`AddressesServiceInterface::saveAddress()`](../src/Api/Service/AddressesServiceInterface.php) and
+[`PackTemplatesServiceInterface::savePackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) take the record itself.
+[`BankAccountsServiceInterface::saveBankAccount()`](../src/Api/Service/BankAccountsServiceInterface.php) and
+[`AccountServiceInterface::savePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) take a message wrapping it, which carries the
+PIN or two-factor fields the API may require.
 
 [`GeoServiceInterface::findCity()`](../src/Api/Service/GeoServiceInterface.php) returns the localities for a Polish postcode, e.g. for address
 autocompletion.
@@ -331,7 +336,7 @@ Registering a bank account, or changing its number or default flag, needs the se
 bank account editing is PIN-locked, and [two-factor confirmation](#two-factor-confirmation)
 otherwise. A money box payout to a bank account must name a registered one.
 
-Parcel templates are optional. An order always carries its parcel dimensions in [`PackMessage`](../src/Entity/Order/PackMessage.php).
+Parcel templates are optional. An order always carries its parcel dimensions in [`PackItem`](../src/Entity/Order/PackItem.php).
 Templates save repeating standard box sizes for every order.
 
 The account
@@ -530,8 +535,8 @@ Checking the connection and credentials
 [`UtilsServiceInterface::heartbeat()`](../src/Api/Service/UtilsServiceInterface.php) sends no credentials, which suits health checks. It tells
 you whether the API is reachable and returns the server time, whether or not your token is valid.
 
-[`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) takes its own [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) instead of using the configured one. You can
-use it to check credentials before saving them, e.g. in a settings form.
+[`UtilsServiceInterface::testAuthApi()`](../src/Api/Service/UtilsServiceInterface.php) takes its own [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) instead of the
+configured one. You can use it to check credentials before saving them, e.g. in a settings form.
 
 ```php
 try {
@@ -541,3 +546,18 @@ try {
     // not good, and nothing was saved
 }
 ```
+
+Reading webhook events
+----------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`OrderReaderInterface::isAuthentic()`](../src/Api/Webhook/OrderReaderInterface.php) | Checks an event against the webhook's secret |
+| [`OrderReaderInterface::read()`](../src/Api/Webhook/OrderReaderInterface.php) | Reads the event into an [`OrderEventMessage`](../src/Dto/Response/Webhook/OrderEventMessage.php) |
+| [`OrderReaderInterface::getLastDrift()`](../src/Api/Webhook/OrderReaderInterface.php) | How the last event's order differed from the SDK |
+
+[`PolkurierWebservice::orderReader()`](../src/PolkurierWebservice.php) returns the reader as
+[`Api\Webhook\OrderReaderInterface`](../src/Api/Webhook/OrderReaderInterface.php), built on first use with the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) the
+client was given and kept after that, or the one passed under [`OrderReader`](../src/Webhook/OrderReader.php) in `services:`. It reads the
+request body and calls no endpoint.
+[Webhooks](webhooks.md) covers the exchange.

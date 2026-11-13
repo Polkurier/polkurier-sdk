@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
@@ -17,8 +18,9 @@ use Symfony\Component\Serializer\Attribute\SerializedName;
 
 /**
  * Every FIELD_* constant a request class declares must come out as a key when a fully populated
- * instance of that class is serialized. A key that never appears means the normalizer can't reach
- * the property, e.g. because its getter is named after something else.
+ * instance of that class is serialized, except the fields only the API sends. A key that never
+ * appears means the normalizer can't reach the property, e.g. because its getter is named after
+ * something else.
  */
 final class RequestFieldRoundTripTest extends TestCase
 {
@@ -52,14 +54,36 @@ final class RequestFieldRoundTripTest extends TestCase
         $payload = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
 
         self::assertIsArray($payload);
-        $inlined = self::inlinedKeys($class);
+        $skipped = [...self::inlinedKeys($class), ...self::responseOnlyKeys($class)];
         foreach ($fields as $name => $key) {
-            if (\in_array($key, $inlined, true)) {
+            if (\in_array($key, $skipped, true)) {
                 continue;
             }
             self::assertIsString($key);
             self::assertArrayHasKey($key, $payload, \sprintf('%s::%s (%s) is not serialized', $class, $name, $key));
         }
+    }
+
+    /**
+     * Wire names of the fields the API sends but does not take, which are left out of a request.
+     *
+     * @param class-string $class
+     *
+     * @return list<mixed>
+     */
+    private static function responseOnlyKeys(string $class): array
+    {
+        $keys = [];
+        foreach ((new \ReflectionClass($class))->getProperties() as $property) {
+            if ($property->getAttributes(ResponseOnly::class) === []) {
+                continue;
+            }
+            foreach ($property->getAttributes(SerializedName::class) as $attribute) {
+                $keys[] = $attribute->getArguments()['serializedName'] ?? $attribute->getArguments()[0] ?? null;
+            }
+        }
+
+        return $keys;
     }
 
     /**

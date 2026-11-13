@@ -19,6 +19,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  *
  * Every field is optional. With none set, you get the first page, unfiltered. The parcel, item and
  * file flags each make the response much larger, so leave them off unless you need them.
+ *
+ * @api
  */
 #[Validate\InOrder(earlier: 'dateFrom', later: 'dateTo')]
 #[Validate\InOrder(earlier: 'codMin', later: 'codMax')]
@@ -26,7 +28,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 #[Validate\RequiredWith(
     field: 'externalApplicationId',
     with: 'externalOrderId',
-    because: 'is required to filter by external order id',
+    reason: 'is required to filter by external order id',
 )]
 final readonly class GetOrdersMessage extends PagedMessage
 {

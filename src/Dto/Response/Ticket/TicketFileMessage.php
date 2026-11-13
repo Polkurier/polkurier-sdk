@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * It comes without its contents. Download the file by this name with
  * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessageFile()}.
+ *
+ * @api
  */
 final readonly class TicketFileMessage implements MessageInterface
 {

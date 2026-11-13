@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One allowed value of an {@see AdditionalField}.
+ *
+ * @api
  */
 final readonly class AdditionalFieldOption implements MessageInterface
 {

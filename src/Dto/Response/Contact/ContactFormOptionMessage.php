@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One choice of a drop-down field on a contact form.
+ *
+ * @api
  */
 final readonly class ContactFormOptionMessage implements MessageInterface
 {

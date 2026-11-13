@@ -13,6 +13,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * {@see \Polkurier\Webservice\Enum\Order\PackTypeEnum} describes a single parcel. An order has one
  * shipment type and one pack type entry per parcel. `available_carriers` lists the shipment types
  * each carrier accepts.
+ *
+ * @api
  */
 enum ShipmentTypeEnum: string
 {

@@ -16,9 +16,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The order as `create_order` reports it back.
  *
- * This is a short receipt, not the full {@see \Polkurier\Webservice\Entity\Order\Order} record
+ * This is a short receipt, not the full {@see \Polkurier\Webservice\Entity\Order} record
  * that `get_orders` returns. To read the order back in full, call `get_orders` with the returned
  * order number.
+ *
+ * @api
  */
 final readonly class CreatedOrderMessage implements MessageInterface, ParsedResponseInterface
 {

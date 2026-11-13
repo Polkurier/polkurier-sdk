@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Serializer;
 
 /**
  * How a response differed from what this version of the SDK expects.
+ *
+ * @api
  */
 enum ResponseDriftTypeEnum: string
 {

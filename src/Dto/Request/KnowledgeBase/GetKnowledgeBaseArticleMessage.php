@@ -11,6 +11,8 @@ use Polkurier\Webservice\Dto\Request\Common\IdMessage;
 
 /**
  * Identifies the article to fetch by its slug.
+ *
+ * @api
  */
 final readonly class GetKnowledgeBaseArticleMessage extends IdMessage
 {

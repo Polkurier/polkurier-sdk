@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 
 /**
  * A telephone number.

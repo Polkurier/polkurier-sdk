@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Log;
 
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 
 /**
  * Takes file contents out of a body before it is logged.

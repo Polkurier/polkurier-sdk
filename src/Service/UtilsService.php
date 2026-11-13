@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\UtilsServiceInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Response\Util\AuthConfirmationMessage;
 use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
@@ -16,7 +17,6 @@ use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 /**
  * @see \Polkurier\Webservice\Api\Service\UtilsServiceInterface

@@ -18,12 +18,14 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  * All 3 scheduling fields are required, whatever the carrier needs for a per-order pickup.
  *
  * Only orders placed for a collective pickup can join, see
- * {@see \Polkurier\Webservice\Entity\Order\PickupMessage::$multiPickup}.
+ * {@see \Polkurier\Webservice\Entity\Order\Pickup::$multiPickup}.
+ *
+ * @api
  */
 #[Validate\InOrder(
     earlier: 'pickupTimeFrom',
     later: 'pickupTimeTo',
-    because: 'must not be later than the end of the collection window',
+    reason: 'must not be later than the end of the collection window',
 )]
 final readonly class MultiPickupRequestMessage implements MessageInterface
 {

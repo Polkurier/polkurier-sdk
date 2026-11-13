@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * One line of the payout fee breakdown.
+ *
+ * @api
  */
 final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
 {

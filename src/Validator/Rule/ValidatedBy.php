@@ -31,7 +31,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * The named class is built without arguments, so any dependencies need default values.
  *
  * ```php
- * #[ValidatedBy(CreateOrderMessageValidator::class)]
+ * #[ValidatedBy(OrderValidator::class)]
  * ```
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]

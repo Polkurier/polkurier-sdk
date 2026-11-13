@@ -11,6 +11,8 @@ use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 
 /**
  * One way a response differed from what this version of the SDK expects, and was read anyway.
+ *
+ * @api
  */
 readonly class ResponseDrift
 {

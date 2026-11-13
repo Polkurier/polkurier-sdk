@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * The status of a cash-on-delivery amount, from collection to settlement.
+ *
+ * @api
  */
 enum CodStatusEnum: string
 {

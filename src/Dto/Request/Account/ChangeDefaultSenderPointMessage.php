@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * `DPD_POINT`, `FEDEX_DTR`, `DHL_POINT` and `UPS_AP_POINT_POINT`.
  *
  * The point id must belong to that carrier's network. Send an empty point to clear the default.
+ *
+ * @api
  */
 final readonly class ChangeDefaultSenderPointMessage implements MessageInterface
 {

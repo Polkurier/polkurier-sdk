@@ -8,9 +8,11 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Test\Unit\Log;
 
 use GuzzleHttp\Psr7\Request;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Log\SensitiveDataRedactor;
 
+#[CoversClass(SensitiveDataRedactor::class)]
 final class SensitiveDataRedactorTest extends TestCase
 {
     public function testHidesSecretsAtAnyDepthAndKeepsTheRest(): void
@@ -26,7 +28,6 @@ final class SensitiveDataRedactorTest extends TestCase
             ],
         ]);
 
-        /** @var array<string, mixed> $redacted */
         $redacted = \json_decode((new SensitiveDataRedactor())->redactJson($json), true);
 
         self::assertSame(['login' => '12345', 'token' => '***'], $redacted['authorization']);
@@ -36,6 +37,39 @@ final class SensitiveDataRedactorTest extends TestCase
             'two_factor_code' => '***',
             'nested' => [['password' => '***', 'pin_locks' => ['PIN_SETTINGS' => true]]],
         ], $redacted['data']);
+    }
+
+    /**
+     * The kinds of secret a logged body hides are promised, so an integration can stop hiding
+     * them itself. The set only grows, which is why this names each kind rather than the list.
+     *
+     * @see docs/architecture.md
+     *
+     * @return void
+     */
+    public function testHidesEveryKindOfSecretTheContractNames(): void
+    {
+        $sent = [
+            'token' => 'api-token',
+            'password' => 'hunter2',
+            'previous_password' => 'hunter1',
+            'pin' => '1234',
+            'security_pin' => '5678',
+            'access_pin' => '9012',
+            'two_factor_code' => '987654',
+            'two_factor_token' => 'tf-token',
+            'code' => '112233',
+            'access_token' => 'oauth-token',
+        ];
+
+        $redacted = \json_decode(
+            (new SensitiveDataRedactor())->redactJson((string)\json_encode($sent)),
+            true,
+        );
+
+        // Built from what went in, not from what came back: an expectation taken from the output
+        // would also pass for a redactor that dropped a secret, or for an empty body.
+        self::assertSame(\array_fill_keys(\array_keys($sent), '***'), $redacted);
     }
 
     public function testLeavesEmptySecretsAndNonJsonBodiesAlone(): void

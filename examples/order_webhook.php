@@ -15,7 +15,7 @@
 declare(strict_types=1);
 
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Webhook\OrderWebhookReader;
+use Polkurier\Webservice\Webhook\OrderReader;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,7 +24,7 @@ $path = arguments()[0] ?? 'php://stdin';
 $body = (string)\file_get_contents($path);
 $secret = (string)\getenv('POLKURIER_WEBHOOK_SECRET');
 
-$reader = new OrderWebhookReader();
+$reader = new OrderReader();
 
 if (!$reader->isAuthentic($body, $secret)) {
     \fwrite(STDERR, "The event isn't signed with the webhook's secret. Set POLKURIER_WEBHOOK_SECRET.\n");

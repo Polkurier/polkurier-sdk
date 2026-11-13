@@ -22,6 +22,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * `is_read` describes the customer's side of the conversation. It is true once Polkurier has replied
  * at least once and nothing on the ticket is still unseen. A ticket with no replies yet is reported
  * as unread. Treat the flag as "awaiting your attention", not as a read receipt.
+ *
+ * @api
  */
 final readonly class TicketMessage implements MessageInterface, ParsedResponseInterface
 {

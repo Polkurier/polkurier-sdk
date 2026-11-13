@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Http;
 
 use GuzzleHttp\Client;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Psr\Http\Client\ClientInterface;
 
 /**

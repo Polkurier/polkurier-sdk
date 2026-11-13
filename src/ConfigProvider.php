@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice;
 
-use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\ConfigInterface;
+use Polkurier\Webservice\Api\ConfigProviderInterface;
 
 /**
  * Returns the same {@see ConfigInterface} to every part of the SDK that asks for it.
@@ -17,6 +17,8 @@ use Polkurier\Webservice\Api\ConfigInterface;
  * configuration on every call. With your own provider you can load it lazily, e.g. from a
  * container, a database row or a per-tenant context. This class covers the simple case where the
  * configuration is already known.
+ *
+ * @api
  */
 readonly class ConfigProvider implements ConfigProviderInterface
 {

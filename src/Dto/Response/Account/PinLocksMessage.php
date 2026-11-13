@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Which operations the account has put behind its security PIN.
  *
  * When a lock is on, the matching operation takes the security PIN instead of a two-factor code.
+ *
+ * @api
  */
 final readonly class PinLocksMessage implements MessageInterface
 {

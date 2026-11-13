@@ -8,16 +8,16 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Log\LoggedFileWriter;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerProvider;

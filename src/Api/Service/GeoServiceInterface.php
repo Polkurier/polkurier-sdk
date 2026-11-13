@@ -30,6 +30,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface GeoServiceInterface
 {

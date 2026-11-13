@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 
 /**
@@ -19,7 +18,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * each object applies its own rules.
  *
  * Failures are reported with the index, e.g. `orderno[1]`. Arguments after the rule class go to
- * its constructor, e.g. `#[Each(OfType::class, PackMessage::class)]`.
+ * its constructor, e.g. `#[Each(OfType::class, PackItem::class)]`.
  *
  * ```php
  * #[NotEmptyList]

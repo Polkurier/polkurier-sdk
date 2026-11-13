@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Dto\Request\Order;
 
 /**
  * Asks for an order to be cancelled.
+ *
+ * @api
  */
 final readonly class CancelOrderMessage extends OrderIdMessage
 {

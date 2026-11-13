@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Changes a ticket's status.
  *
  * Only {@see TicketStatusEnum::Closed} is accepted.
+ *
+ * @api
  */
 final readonly class SetTicketStatusMessage implements MessageInterface
 {

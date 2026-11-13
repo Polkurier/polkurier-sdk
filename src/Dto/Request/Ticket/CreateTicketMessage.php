@@ -24,8 +24,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * {@see \Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage} for what the API accepts.
  * `get_system_info` reports the limits under `tickets`: maximum file size, maximum image size and
  * how many files can be attached at once.
+ *
+ * @api
  */
-#[Validate\RequiredWhen(field: 'content', property: 'files', equals: [], because: 'is required without files')]
+#[Validate\RequiredWhen(field: 'content', property: 'files', equals: [], reason: 'is required without files')]
 final readonly class CreateTicketMessage implements MessageInterface
 {
     /**+@#

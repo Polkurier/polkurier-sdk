@@ -10,12 +10,15 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
-use Polkurier\Webservice\Exception\MalformedResponseException;
+use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Testing\RecordingClient;
 
 /**
@@ -37,12 +40,23 @@ final class FacadeTest extends TestCase
     protected function setUp(): void
     {
         $this->client = new RecordingClient('{"status":"success","response":[]}');
-        $this->sdk = new PolkurierWebservice(
+        $this->sdk = $this->facade();
+    }
+
+    /**
+     * @param SerializerConfig|null $serializerConfig
+     *
+     * @return PolkurierWebservice
+     */
+    private function facade(?SerializerConfig $serializerConfig = null): PolkurierWebservice
+    {
+        return new PolkurierWebservice(
             config: new Config(
                 authorization: new AuthorizationMessage(token: 'test-token', login: '12345'),
                 platform: 'phpunit',
                 platformVersion: '1.0.0',
             ),
+            serializerConfig: $serializerConfig,
             clientFactory: $this->client,
         );
     }
@@ -81,6 +95,40 @@ final class FacadeTest extends TestCase
 
         self::assertIsObject($service);
         self::assertSame($service, $this->sdk->{$accessor}(), 'services should be created once and reused');
+    }
+
+    /**
+     * The webhook reader is not a service, so the sweep above doesn't reach it.
+     *
+     * @return void
+     */
+    public function testTheOrderReaderResolvesAndMemoises(): void
+    {
+        $reader = $this->sdk->orderReader();
+
+        self::assertInstanceOf(OrderReaderInterface::class, $reader);
+        self::assertSame($reader, $this->sdk->orderReader());
+    }
+
+    /**
+     * The reader is given the serializer settings the facade was built with, so `strictResponses`
+     * decides whether an order that differs from what the SDK expects is reported or refused.
+     *
+     * @return void
+     */
+    public function testTheOrderReaderReadsWithTheSerializerSettingsTheFacadeWasGiven(): void
+    {
+        $body = \http_build_query(['type' => 'UPDATED', 'data' => ['number' => '20534-7674', 'status' => 'Nowe']]);
+        $reader = $this->sdk->orderReader();
+
+        $event = $reader->read($body);
+
+        self::assertSame('20534-7674', $event->order->getNumber());
+        self::assertNotSame([], $reader->getLastDrift());
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->facade(new SerializerConfig(strictResponses: true))->orderReader()->read($body);
     }
 
     /**

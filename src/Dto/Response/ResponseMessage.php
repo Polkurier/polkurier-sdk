@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * The envelope of a successful API response: its status and its payload.
+ *
+ * @api
  */
 final readonly class ResponseMessage implements MessageInterface
 {

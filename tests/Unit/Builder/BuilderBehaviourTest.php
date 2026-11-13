@@ -10,13 +10,13 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Builder\AbstractBuilder;
-use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
-use Polkurier\Webservice\Builder\Courier\PickupMessageBuilder;
-use Polkurier\Webservice\Builder\Courier\PickupQueryMessageBuilder;
-use Polkurier\Webservice\Builder\Order\PackMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\Order\PackItemBuilder;
+use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
+use Polkurier\Webservice\Builder\Request\Courier\PickupMessageBuilder;
+use Polkurier\Webservice\Builder\Request\Courier\PickupQueryMessageBuilder;
 use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -29,7 +29,7 @@ final class BuilderBehaviourTest extends TestCase
 {
     public function testItBuildsWhatTheConstructorWouldHave(): void
     {
-        $built = PackMessageBuilder::create()
+        $built = PackItemBuilder::create()
             ->length(30)
             ->width(20)
             ->height(15)
@@ -39,7 +39,7 @@ final class BuilderBehaviourTest extends TestCase
             ->build();
 
         self::assertEquals(
-            new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard, amount: 3),
+            new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard, amount: 3),
             $built,
         );
     }
@@ -51,9 +51,9 @@ final class BuilderBehaviourTest extends TestCase
      */
     public function testUntouchedFieldsKeepTheDefaultsTheMessageDeclares(): void
     {
-        $built = PackMessageBuilder::create()->length(30)->width(20)->height(15)->weight(2.5)->build();
+        $built = PackItemBuilder::create()->length(30)->width(20)->height(15)->weight(2.5)->build();
 
-        foreach ((new \ReflectionClass(PackMessage::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
+        foreach ((new \ReflectionClass(PackItem::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
             if (!$parameter->isDefaultValueAvailable()) {
                 continue;
             }
@@ -73,7 +73,7 @@ final class BuilderBehaviourTest extends TestCase
      */
     public function testAFieldNeverSetIsNotSentToTheConstructor(): void
     {
-        $builder = PackMessageBuilder::create()->length(30)->width(20)->height(15)->weight(2.5);
+        $builder = PackItemBuilder::create()->length(30)->width(20)->height(15)->weight(2.5);
 
         $values = (new \ReflectionClass(AbstractBuilder::class))->getProperty('values')->getValue($builder);
 
@@ -177,7 +177,7 @@ final class BuilderBehaviourTest extends TestCase
      */
     public function testASubclassWithItsOwnConstructorBuildsTheSameMessage(): void
     {
-        $builder = new class extends PackMessageBuilder {
+        $builder = new class extends PackItemBuilder {
             public bool $constructed = false;
 
             public function __construct()
@@ -190,7 +190,7 @@ final class BuilderBehaviourTest extends TestCase
         $built = $builder->length(30)->width(20)->height(15)->weight(2.5)->build();
 
         self::assertTrue($builder->constructed);
-        self::assertEquals(new PackMessage(length: 30, width: 20, height: 15, weight: 2.5), $built);
+        self::assertEquals(new PackItem(length: 30, width: 20, height: 15, weight: 2.5), $built);
         self::assertInstanceOf($builder::class, $builder::create());
     }
 

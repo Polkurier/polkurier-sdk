@@ -30,6 +30,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
  * throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface PaymentsServiceInterface
 {

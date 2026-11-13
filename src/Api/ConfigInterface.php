@@ -7,13 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api;
 
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 /**
  * How the SDK should talk to the API.
  *
  * @see \Polkurier\Webservice\Config for the standard implementation and its defaults.
+ *
+ * @api
  */
 interface ConfigInterface
 {

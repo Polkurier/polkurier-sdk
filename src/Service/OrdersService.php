@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
@@ -25,7 +26,6 @@ use Polkurier\Webservice\Dto\Response\Order\OrderFileMessage;
 use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
 use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;

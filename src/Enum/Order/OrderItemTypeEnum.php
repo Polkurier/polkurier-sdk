@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * What an order line item charges for.
+ *
+ * @api
  */
 enum OrderItemTypeEnum: string
 {

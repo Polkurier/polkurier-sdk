@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Submit each answer under the field's name. Radio buttons come as one field each, sharing a name,
  * and each submits its own value. A field with a condition is shown only when the condition holds,
  * and its answer is needed only then.
+ *
+ * @api
  */
 final readonly class ContactFormFieldMessage implements MessageInterface
 {

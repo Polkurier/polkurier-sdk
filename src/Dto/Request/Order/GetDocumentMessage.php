@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Identifies the orders to fetch the label or protocol for.
  *
  * Several order numbers come back as one PDF.
+ *
+ * @api
  */
 final readonly class GetDocumentMessage implements MessageInterface
 {

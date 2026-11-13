@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Identifies the invoice or correction to download as a PDF.
  *
  * Use the number as printed on the document, slashes included.
+ *
+ * @api
  */
 final readonly class GetInvoiceDocumentMessage implements MessageInterface
 {

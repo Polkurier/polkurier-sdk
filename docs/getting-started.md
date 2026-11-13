@@ -26,7 +26,7 @@ You need two values from the customer panel at <https://www.polkurier.pl>:
 - `login`: your numeric customer id (not your email address).
 - `token`: generate one under *Settings > API token*.
 
-Both go into an [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php), which is included in every authenticated request. The SDK
+Both go into an [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), which is included in every authenticated request. The SDK
 hides the token in its logs unless you allow it, see [Configuration](configuration.md#logging).
 
 Your first call
@@ -38,7 +38,7 @@ Your first call
 require 'vendor/autoload.php';
 
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 
 $client = new PolkurierWebservice(new Config(
@@ -85,7 +85,7 @@ $client->addresses()
 The full list is in [Services](services.md). Each accessor returns an interface from
 `Api\Service\`.
 
-**2. Build a message.** Request payloads are readonly classes that take named arguments:
+**2. Build a message.** Request payloads take named arguments:
 
 ```php
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
@@ -98,7 +98,7 @@ $filter = new GetOrdersMessage(
 ```
 
 Methods with no parameters take no message, and an optional message defaults to `null`. If you
-need to build a payload over several steps, the larger messages have [builders](builders.md).
+need to build a payload over several steps, the larger ones have [builders](builders.md).
 
 **3. Call the method and use the result.**
 
@@ -110,7 +110,7 @@ foreach ($list->result as $order) {         // Order[]
 }
 ```
 
-Methods return typed values such as `Carrier[]`, an [`Order`](../src/Entity/Order/Order.php), or a `bool` for endpoints that only
+Methods return typed values such as `Carrier[]`, an [`Order`](../src/Entity/Order.php), or a `bool` for endpoints that only
 acknowledge. You don't need to unwrap or cast anything. If the API returns something that doesn't
 match the method's return type, you get a [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of an unexpected
 null.

@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * removed.
  *
  * Removing a number also withdraws any marketing consents given for it (calls and text messages).
+ *
+ * @api
  */
 final readonly class DeletePhoneNumberMessage implements MessageInterface
 {

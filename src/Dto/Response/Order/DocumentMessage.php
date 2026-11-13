@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * A label or handover protocol for one or more orders, as a single PDF, or a label in the printer
  * language asked for.
+ *
+ * @api
  */
 final readonly class DocumentMessage implements MessageInterface, ParsedResponseInterface
 {

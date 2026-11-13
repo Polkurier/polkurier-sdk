@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether a carrier offers something, such as insurance or an additional service.
+ *
+ * @api
  */
 final readonly class Property implements MessageInterface
 {

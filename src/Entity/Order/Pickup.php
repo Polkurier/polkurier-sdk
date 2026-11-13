@@ -9,23 +9,35 @@ namespace Polkurier\Webservice\Entity\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
+use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
- * When the courier is due to collect an order, as reported on the order. To book a collection, use
- * {@see \Polkurier\Webservice\Entity\Order\PickupMessage}.
+ * When the courier should collect an order.
  *
- * Every field is optional. A carrier that schedules collections on its own terms fills in only what
- * it has settled: some report just a date, others a date and a time window. The reference number is
- * missing until the carrier has accepted the booking. An order with no collection arranged has no
- * pickup at all ({@see \Polkurier\Webservice\Entity\Order\Order::getPickup()} returns null).
+ * Every field is optional because carriers differ: some need only a date, some a time window too,
+ * and not every carrier uses them. `available_carriers` reports what each one expects.
  *
- * The date and the 2 times arrive as separate values. The times are wall-clock only, so ignore the
- * date part of the objects the time accessors return, and read the day from
- * {@see self::getPickupDate()}.
+ * The times are wall-clock values. Only the time part of those objects is read, and the day comes
+ * from the date field alone. Set `noCourierOrder` when the sender will drop the parcel off at a
+ * branch or drop-off point and no collection should be booked; a carrier that doesn't allow this
+ * refuses the order. Set `multiPickup` to have the order collected together with others, booked
+ * later with
+ * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::createMultiOrderPickup()}.
+ *
+ * The carrier's reference for a booked collection is returned on the order, in
+ * {@see self::$pickupNumber}.
+ *
+ * @api
  */
-readonly class Pickup implements MessageInterface
+#[Validate\InOrder(
+    earlier: 'pickupTimeFrom',
+    later: 'pickupTimeTo',
+    reason: 'the collection window ends before it starts',
+)]
+class Pickup implements MessageInterface
 {
     /**+@#
      * JSON parameter keys
@@ -40,11 +52,12 @@ readonly class Pickup implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $pickupDate the day of collection
-     * @param \DateTimeInterface|null $pickupTimeFrom start of the window, as a time of day
-     * @param \DateTimeInterface|null $pickupTimeTo end of the window, as a time of day
+     * @param \DateTimeInterface|null $pickupTimeFrom start of the window, time part only
+     * @param \DateTimeInterface|null $pickupTimeTo end of the window, time part only
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
      *                             collection should be booked
-     * @param bool $multiPickup whether the order was placed for a collective pickup
+     * @param bool $multiPickup place the order for a collective pickup, booked later for several
+     *        orders at once with createMultiOrderPickup(). $noCourierOrder wins when both are set
      * @param string|null $pickupNumber the carrier's reference for the booked collection
      */
     public function __construct(
@@ -83,17 +96,16 @@ readonly class Pickup implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_MULTI_PICKUP)]
         private bool $multiPickup = false,
-
         /**
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP_NUMBER)]
-        #[OmitWhenEmpty]
+        #[ResponseOnly]
         private ?string $pickupNumber = null,
     ) {}
 
     /**
-     * @return \DateTimeInterface|null the day of collection, at midnight
+     * @return \DateTimeInterface|null
      */
     public function getPickupDate(): ?\DateTimeInterface
     {
@@ -101,9 +113,19 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * Start of the collection window.
+     * @param \DateTimeInterface|null $pickupDate
      *
-     * @return \DateTimeInterface|null the time of day, on 1 January 1970
+     * @return static
+     */
+    public function setPickupDate(?\DateTimeInterface $pickupDate): static
+    {
+        $this->pickupDate = $pickupDate;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTimeInterface|null
      */
     public function getPickupTimeFrom(): ?\DateTimeInterface
     {
@@ -111,9 +133,19 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * End of the collection window.
+     * @param \DateTimeInterface|null $pickupTimeFrom
      *
-     * @return \DateTimeInterface|null the time of day, on 1 January 1970
+     * @return static
+     */
+    public function setPickupTimeFrom(?\DateTimeInterface $pickupTimeFrom): static
+    {
+        $this->pickupTimeFrom = $pickupTimeFrom;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTimeInterface|null
      */
     public function getPickupTimeTo(): ?\DateTimeInterface
     {
@@ -121,8 +153,18 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * True when the sender hands the parcel over themselves and no collection should be booked.
+     * @param \DateTimeInterface|null $pickupTimeTo
      *
+     * @return static
+     */
+    public function setPickupTimeTo(?\DateTimeInterface $pickupTimeTo): static
+    {
+        $this->pickupTimeTo = $pickupTimeTo;
+
+        return $this;
+    }
+
+    /**
      * @return bool
      */
     public function isNoCourierOrder(): bool
@@ -131,13 +173,35 @@ readonly class Pickup implements MessageInterface
     }
 
     /**
-     * Whether the order was placed for a collective pickup.
+     * @param bool $noCourierOrder
      *
+     * @return static
+     */
+    public function setNoCourierOrder(bool $noCourierOrder): static
+    {
+        $this->noCourierOrder = $noCourierOrder;
+
+        return $this;
+    }
+
+    /**
      * @return bool
      */
     public function isMultiPickup(): bool
     {
         return $this->multiPickup;
+    }
+
+    /**
+     * @param bool $multiPickup
+     *
+     * @return static
+     */
+    public function setMultiPickup(bool $multiPickup): static
+    {
+        $this->multiPickup = $multiPickup;
+
+        return $this;
     }
 
     /**
@@ -148,5 +212,17 @@ readonly class Pickup implements MessageInterface
     public function getPickupNumber(): ?string
     {
         return $this->pickupNumber;
+    }
+
+    /**
+     * @param string|null $pickupNumber
+     *
+     * @return static
+     */
+    public function setPickupNumber(?string $pickupNumber): static
+    {
+        $this->pickupNumber = $pickupNumber;
+
+        return $this;
     }
 }

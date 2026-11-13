@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Present only on freight orders, which are priced by offer instead of from a tariff. The validity
  * and confirmation dates are null until the offer has them.
+ *
+ * @api
  */
 final readonly class IndividualPricing implements MessageInterface
 {

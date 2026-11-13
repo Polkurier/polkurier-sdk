@@ -10,8 +10,7 @@ namespace Polkurier\Webservice\Service;
 use Polkurier\Webservice\Api\Service\AddressesServiceInterface;
 use Polkurier\Webservice\Dto\Request\Address\DeleteMessage;
 use Polkurier\Webservice\Dto\Request\Address\GetMessage;
-use Polkurier\Webservice\Entity\Address\Address;
-use Polkurier\Webservice\Entity\Address\SaveAddressMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -42,7 +41,7 @@ class AddressesService extends AbstractService implements AddressesServiceInterf
     }
 
     /**
-     * @param SaveAddressMessage $saveMessage
+     * @param Address $address
      *
      * @return Address
      * @throws AuthorizationException
@@ -52,9 +51,9 @@ class AddressesService extends AbstractService implements AddressesServiceInterf
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveAddress(SaveAddressMessage $saveMessage): Address
+    public function saveAddress(Address $address): Address
     {
-        return $this->requestObject(ApiMethodEnum::SaveAddress, Address::class, $saveMessage);
+        return $this->requestObject(ApiMethodEnum::SaveAddress, Address::class, $address);
     }
 
     /**

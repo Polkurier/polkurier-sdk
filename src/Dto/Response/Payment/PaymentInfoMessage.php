@@ -22,6 +22,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * - `REGISTERED`: the provider has the transaction, and the customer has not finished paying.
  * - `PENDING`: the customer is back from the provider, and the payment is not yet confirmed.
  * - `DONE`: paid.
+ *
+ * @api
  */
 final readonly class PaymentInfoMessage implements MessageInterface, ParsedResponseInterface
 {

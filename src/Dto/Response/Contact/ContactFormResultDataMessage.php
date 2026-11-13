@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * What a submitted contact form produced. Each field is present only for the forms that set it.
+ *
+ * @api
  */
 final readonly class ContactFormResultDataMessage implements MessageInterface
 {

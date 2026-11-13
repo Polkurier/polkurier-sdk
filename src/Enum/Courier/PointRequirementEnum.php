@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Courier;
  *
  * Returned per carrier by `available_carriers`. REQUIRED means an order is rejected if the
  * address has no point id.
+ *
+ * @api
  */
 enum PointRequirementEnum: string
 {

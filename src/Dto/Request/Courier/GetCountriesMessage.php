@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Asks which countries a given carrier serves.
+ *
+ * @api
  */
 final readonly class GetCountriesMessage implements MessageInterface
 {

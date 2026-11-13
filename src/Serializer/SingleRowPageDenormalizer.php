@@ -13,7 +13,7 @@ use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\PagedListMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Entity\Order;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;

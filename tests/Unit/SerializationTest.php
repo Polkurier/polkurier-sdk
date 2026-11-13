@@ -14,6 +14,7 @@ use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
 use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
 use Polkurier\Webservice\Dto\Request\Address\DeleteMessage as AddressDeleteMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
@@ -29,16 +30,14 @@ use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Dto\Response\CourierPoint;
-use Polkurier\Webservice\Entity\Address\SaveAddressMessage as AddressSaveMessage;
-use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage as BankAccountSaveMessage;
-use Polkurier\Webservice\Entity\Order\CodMessage;
-use Polkurier\Webservice\Entity\Order\CoverAddressMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
-use Polkurier\Webservice\Entity\Order\PickupMessage;
-use Polkurier\Webservice\Entity\Pack\BasePack;
-use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage as PackTemplateSaveMessage;
+use Polkurier\Webservice\Entity\Address;
+use Polkurier\Webservice\Entity\BankAccount;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
+use Polkurier\Webservice\Entity\Order\Cod;
+use Polkurier\Webservice\Entity\Order\PackItem;
+use Polkurier\Webservice\Entity\Order\Pickup;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
@@ -94,7 +93,7 @@ final class SerializationTest extends TestCase
                 ['address_type' => 'PAYER', 'same_as_payer' => true],
             ],
             'cash on delivery with no bank account given' => [
-                new CodMessage(amount: 100.0),
+                new Cod(amount: 100.0),
                 ['codamount' => 100.0, 'codtype' => 'S', 'return_cod' => 'BA'],
             ],
             'a ticket reply with no attachments' => [
@@ -134,22 +133,6 @@ final class SerializationTest extends TestCase
                     'files' => [['name' => 'a.txt', 'file' => 'aGVsbG8K', 'type' => 'text/plain']],
                 ],
             ],
-            'a cover address with a house number and no email or phone' => [
-                new CoverAddressMessage(
-                    person: 'Jan Kowalski',
-                    street: 'Polna',
-                    city: 'Poznań',
-                    postcode: '61-001',
-                    houseNumber: '5',
-                ),
-                [
-                    'person' => 'Jan Kowalski',
-                    'street' => 'Polna',
-                    'city' => 'Poznań',
-                    'postcode' => '61-001',
-                    'housenumber' => '5',
-                ],
-            ],
             'a contact form answer never replaces a fixed key' => [
                 new SaveContactFormMessage(
                     category: 'wspolpraca',
@@ -170,14 +153,17 @@ final class SerializationTest extends TestCase
             'multi pickup availability, camelCase keys' => [
                 new MultiPickupAvailabilityRequestMessage(
                     courier: 'DPD',
-                    packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                    packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
                     senderPostCode: '31-042',
                     shipmentType: ShipmentTypeEnum::Box,
                 ),
                 [
                     'courier' => 'DPD',
                     'packs' => [
-                        ['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1],
+                        [
+                            'length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55,
+                            'type' => 'ST', 'amount' => 1,
+                        ],
                     ],
                     'senderPostCode' => '31-042',
                     'shipmentType' => 'box',
@@ -186,12 +172,15 @@ final class SerializationTest extends TestCase
             'multi pickup availability without the optional fields' => [
                 new MultiPickupAvailabilityRequestMessage(
                     courier: 'DPD',
-                    packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                    packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
                 ),
                 [
                     'courier' => 'DPD',
                     'packs' => [
-                        ['length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55, 'type' => 'ST', 'amount' => 1],
+                        [
+                            'length' => 40, 'width' => 30, 'height' => 20, 'weight' => 0.55,
+                            'type' => 'ST', 'amount' => 1,
+                        ],
                     ],
                 ],
             ],
@@ -241,7 +230,7 @@ final class SerializationTest extends TestCase
                     courier: 'UPS',
                     shipmentType: ShipmentTypeEnum::Box,
                     packs: [
-                        new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+                        new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
                     ],
                 ),
                 [
@@ -255,7 +244,7 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'cash on delivery requested' => [
-                new CodMessage(
+                new Cod(
                     amount: 250.0,
                     bankAccount: 'PL34102010260000000000000001',
                     type: CodTypeEnum::Standard,
@@ -269,7 +258,7 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'collection booked' => [
-                new PickupMessage(
+                new Pickup(
                     pickupDate: new \DateTimeImmutable('2026-09-24 00:00:00'),
                     pickupTimeFrom: new \DateTimeImmutable('2026-09-24 09:00:00'),
                     pickupTimeTo: new \DateTimeImmutable('2026-09-24 17:00:00'),
@@ -283,7 +272,7 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'address book entry written' => [
-                new AddressSaveMessage(
+                new Address(
                     name: 'Magazyn',
                     person: 'Jan Kowalski',
                     street: 'Długa',
@@ -310,7 +299,7 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'parcel template written' => [
-                new PackTemplateSaveMessage(
+                new PackTemplate(
                     name: 'Karton A',
                     length: 30,
                     width: 20,
@@ -333,11 +322,11 @@ final class SerializationTest extends TestCase
                 ],
             ],
             'bank account registered' => [
-                new BankAccountSaveMessage(
+                new SaveBankAccountMessage(new BankAccount(
                     name: 'Firmowe',
                     number: 'PL34102010260000000000000001',
                     default: true,
-                ),
+                )),
                 [
                     'name' => 'Firmowe',
                     'number' => 'PL34102010260000000000000001',
@@ -368,7 +357,6 @@ final class SerializationTest extends TestCase
     #[DataProvider('messagesAndTheirWireForm')]
     public function testMessageSerializesToTheKeysTheApiExpects(object $message, array $expected): void
     {
-        /** @var array<string, mixed> $actual */
         $actual = \json_decode(
             (new SerializerProvider())->getSerializer()->serialize($message, 'json'),
             true,
@@ -382,13 +370,57 @@ final class SerializationTest extends TestCase
     }
 
     /**
+     * `create_order` reads the cover address from the keys of
+     * {@see \Polkurier\Webservice\Serializer\RequestQuirksNormalizer::COVER_ADDRESS} alone, and the
+     * flat number under `flat_number` instead of `flatnumber`. Any other key makes the API treat
+     * the cover address as given and charge for printing it, so an address used as the cover
+     * address goes out trimmed, country and point included.
+     *
+     * @return void
+     */
+    public function testACoverAddressSendsOnlyTheKeysTheOrderBlockIsReadFrom(): void
+    {
+        $order = new Order(
+            courier: 'DPD',
+            shipmentType: ShipmentTypeEnum::Box,
+            packs: [Sample::of(PackItem::class)],
+            sender: Sample::of(OrderAddress::class),
+            recipient: Sample::of(OrderAddress::class),
+            coverAddress: new OrderAddress(
+                person: 'Jan Kowalski',
+                street: 'Polna',
+                city: 'Poznań',
+                postcode: '61-001',
+                houseNumber: '5',
+                flatNumber: '2',
+                pointId: 'POZ01A',
+            ),
+        );
+
+        $payload = \json_decode(
+            (new SerializerProvider())->getSerializer()->serialize($order, 'json'),
+            true,
+            flags: \JSON_THROW_ON_ERROR
+        );
+
+        $cover = $payload[Order::FIELD_COVER_ADDRESS] ?? [];
+        self::assertSame(self::sortDeep([
+            'person' => 'Jan Kowalski',
+            'street' => 'Polna',
+            'city' => 'Poznań',
+            'postcode' => '61-001',
+            'housenumber' => '5',
+            'flat_number' => '2',
+        ]), self::sortDeep($cover));
+    }
+
+    /**
      * Dates are sent in the format each endpoint expects, which is not the same everywhere.
      *
      * @return void
      */
     public function testDatesUseThePerFieldFormatTheApiExpects(): void
     {
-        /** @var array<string, mixed> $actual */
         $actual = \json_decode(
             (new SerializerProvider())->getSerializer()->serialize(
                 new GetOrdersMessage(
@@ -411,7 +443,6 @@ final class SerializationTest extends TestCase
      */
     public function testUnsetOptionalFieldsAreOmittedEntirely(): void
     {
-        /** @var array<string, mixed> $actual */
         $actual = \json_decode(
             (new SerializerProvider())->getSerializer()->serialize(new GetOrdersMessage(page: 2), 'json'),
             true,
@@ -430,21 +461,19 @@ final class SerializationTest extends TestCase
             ?string $applicationId,
             ?string $orderId,
             ?string $orderNumber,
-        ): CreateOrderMessage => new CreateOrderMessage(
+        ): Order => new Order(
             courier: 'DPD',
             shipmentType: ShipmentTypeEnum::Box,
-            packs: [Sample::of(PackMessage::class)],
-            sender: Sample::of(OrderAddressMessage::class),
-            recipient: Sample::of(OrderAddressMessage::class),
+            packs: [Sample::of(PackItem::class)],
+            sender: Sample::of(OrderAddress::class),
+            recipient: Sample::of(OrderAddress::class),
             externalApplicationId: $applicationId,
             externalOrderId: $orderId,
             externalOrderNumber: $orderNumber,
         );
         $serializer = (new SerializerProvider())->getSerializer();
 
-        /** @var array<string, mixed> $without */
         $without = \json_decode($serializer->serialize($order(null, null, null), 'json'), true);
-        /** @var array<string, mixed> $with */
         $with = \json_decode($serializer->serialize($order('6f1c…-uuid', 'SHOP-1001', '1001'), 'json'), true);
 
         self::assertArrayNotHasKey('external_application_id', $without);
@@ -474,12 +503,12 @@ final class SerializationTest extends TestCase
     #[DataProvider('packTypes')]
     public function testEveryPackTypeDeserializes(PackTypeEnum $type): void
     {
-        /** @var BasePack $pack */
+        /** @var PackItem $pack */
         $pack = (new SerializerProvider())->getSerializer()->deserialize(
             (string)\json_encode(
                 ['length' => 120, 'width' => 80, 'height' => 100, 'weight' => 50, 'type' => $type->value],
             ),
-            BasePack::class,
+            PackItem::class,
             'json'
         );
 

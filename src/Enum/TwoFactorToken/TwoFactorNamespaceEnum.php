@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\TwoFactorToken;
  *
  * A token is bound to one namespace when it is registered and only works for that operation. The
  * API rejects unknown namespaces.
+ *
+ * @api
  */
 enum TwoFactorNamespaceEnum: string
 {

@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * This is a partial update: every field is optional and only the fields you send are changed. If
  * any part fails, nothing is changed.
+ *
+ * @api
  */
 final readonly class SaveAccountSettingsMessage implements MessageInterface
 {

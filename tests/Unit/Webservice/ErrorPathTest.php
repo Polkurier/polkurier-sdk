@@ -9,15 +9,15 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage;
 use Polkurier\Webservice\Dto\Request\Courier\GetCountriesMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Testing\RecordingClient;
 use Psr\Http\Client\ClientExceptionInterface;

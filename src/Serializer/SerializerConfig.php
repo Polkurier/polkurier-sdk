@@ -11,6 +11,8 @@ use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * {@inheritDoc}
+ *
+ * @api
  */
 readonly class SerializerConfig implements SerializerConfigInterface
 {

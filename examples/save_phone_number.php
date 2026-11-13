@@ -11,7 +11,8 @@
  */
 declare(strict_types=1);
 
-use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage;
+use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Exception\Exception;
 
 
@@ -24,9 +25,8 @@ if (!hasFlag('--confirm')) {
 
 try {
     $number = polkurier()->account()->savePhoneNumber(new SavePhoneNumberMessage(
-        number: '500600700',
-        name: 'Magazyn',
-        // default: true would also need twoFactorToken and twoFactorCode.
+        phoneNumber: new PhoneNumber(number: '500600700', name: 'Magazyn'),
+        // A number with default: true would also need twoFactorToken and twoFactorCode.
     ));
 
     \printf("Saved %s as %s\n", $number->getNumber(), $number->getId());

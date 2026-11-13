@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Confirmation that a set of credentials is valid.
+ *
+ * @api
  */
 final readonly class AuthConfirmationMessage implements MessageInterface, ParsedResponseInterface
 {

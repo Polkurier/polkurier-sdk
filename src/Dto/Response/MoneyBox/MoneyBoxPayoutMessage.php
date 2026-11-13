@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Check the cancellable flag before offering a cancel action. It turns false once any part of the
  * payout is on its way or paid, and once its fee is paid other than on an invoice.
+ *
+ * @api
  */
 final readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedResponseInterface
 {

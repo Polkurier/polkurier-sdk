@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A single scan event in a shipment's tracking history.
+ *
+ * @api
  */
 final readonly class TrackingEventMessage implements MessageInterface
 {

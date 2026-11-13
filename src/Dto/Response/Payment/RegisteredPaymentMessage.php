@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The transaction id and the access token together open the payment page for the customer. The
  * transaction id is the only way to look up the payment later.
+ *
+ * @api
  */
 final readonly class RegisteredPaymentMessage implements MessageInterface, ParsedResponseInterface
 {

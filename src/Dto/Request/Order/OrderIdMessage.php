@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A message identifying a single order.
+ *
+ * @api
  */
 abstract readonly class OrderIdMessage implements MessageInterface
 {

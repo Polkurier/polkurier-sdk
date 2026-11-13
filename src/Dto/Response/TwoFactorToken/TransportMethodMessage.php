@@ -18,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Pass the id to
  * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()}
  * to switch a pending confirmation to this method.
+ *
+ * @api
  */
 final readonly class TransportMethodMessage implements MessageInterface
 {

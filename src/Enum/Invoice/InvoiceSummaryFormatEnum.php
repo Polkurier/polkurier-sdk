@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Invoice;
 
 /**
  * The file format to download an invoice's itemised summary in.
+ *
+ * @api
  */
 enum InvoiceSummaryFormatEnum: string
 {

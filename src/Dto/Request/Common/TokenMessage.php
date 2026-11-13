@@ -16,7 +16,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * {@see \Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage} and
  * {@see \Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage} carry a two-factor token,
- * {@see \Polkurier\Webservice\Http\Request\AuthorizationMessage} the API token.
+ * {@see \Polkurier\Webservice\Dto\Request\AuthorizationMessage} the API token.
+ *
+ * @api
  */
 abstract readonly class TokenMessage implements MessageInterface
 {

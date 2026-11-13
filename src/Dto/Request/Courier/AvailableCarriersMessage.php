@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Requesting the additional data makes the response much larger (it includes every service,
  * shipment type and pickup rule per carrier). Ask for it when building a shipping form, not on every
  * page load.
+ *
+ * @api
  */
 final readonly class AvailableCarriersMessage implements MessageInterface
 {

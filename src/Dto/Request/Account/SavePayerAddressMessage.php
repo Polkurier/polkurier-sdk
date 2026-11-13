@@ -26,12 +26,14 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The tax number is split into a country prefix and the number. For a Polish NIP, send "PL" as the
  * prefix and the digits separately.
+ *
+ * @api
  */
 #[Validate\RequiredWhen(
     field: 'userType',
     property: 'addressType',
     equals: PayerAddressTypeEnum::Payer,
-    because: 'is required for the billing address',
+    reason: 'is required for the billing address',
 )]
 #[Validate\PostcodeForCountry(postcode: 'postCode', country: 'country')]
 final readonly class SavePayerAddressMessage implements MessageInterface

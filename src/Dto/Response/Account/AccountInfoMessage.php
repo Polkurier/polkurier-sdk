@@ -27,6 +27,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw now,
  * and the part already committed to a payout.
+ *
+ * @api
  */
 final readonly class AccountInfoMessage implements MessageInterface, ParsedResponseInterface
 {

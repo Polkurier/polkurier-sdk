@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether a submitted two-factor code was accepted.
+ *
+ * @api
  */
 final readonly class ValidityMessage implements MessageInterface, ParsedResponseInterface
 {

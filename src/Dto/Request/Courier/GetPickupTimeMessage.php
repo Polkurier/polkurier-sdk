@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Dto\Request\Courier;
  * Asks which days and time windows a carrier can collect on.
  *
  * Call this before booking so you only offer slots the carrier accepts.
+ *
+ * @api
  */
 final readonly class GetPickupTimeMessage extends PickupQueryMessage
 {

@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A message naming a carrier and the route of a collection: from and to which postcode, and what.
+ *
+ * @api
  */
 abstract readonly class PickupQueryMessage implements MessageInterface
 {

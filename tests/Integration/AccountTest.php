@@ -18,9 +18,9 @@ use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
 use Polkurier\Webservice\Dto\Request\Account\DeletePhoneNumberMessage;
 use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
 use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage;
 use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
-use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
-use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
+use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 
 #[Group('integration')]
@@ -58,7 +58,7 @@ final class AccountTest extends IntegrationTestCase
         self::requireSandbox();
 
         $number = $this->sdk->account()->savePhoneNumber(
-            new SavePhoneNumberMessage(number: '500600700', name: 'SDK test'),
+            new SavePhoneNumberMessage(phoneNumber: new PhoneNumber(number: '500600700', name: 'SDK test')),
         );
 
         self::assertSame('500600700', $number->getNumber());

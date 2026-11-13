@@ -47,14 +47,14 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\ServiceProvider;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\ConfigProvider;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
@@ -94,13 +94,20 @@ final class PolkurierServiceProvider extends ServiceProvider
             static fn($app) => new ConfigProvider($app->make(ConfigInterface::class)),
         );
 
-        // One serializer for the whole application. This is the expensive object.
-        $this->app->singleton(SerializerProviderInterface::class, static function ($app) {
-            return new SerializerProvider(new SerializerConfig(
+        // Shared by the facade and the services below: the pool it carries holds the mapping
+        // metadata, so the attributes are read once per pool.
+        $this->app->singleton(SerializerConfig::class, static function ($app) {
+            return new SerializerConfig(
                 metadataCache: new Psr16Adapter($app->make(CacheRepository::class)->store()),
                 strictResponses: $app->environment('testing'),
-            ));
+            );
         });
+
+        // The facade builds its own serializer; the factories wired below need this one.
+        $this->app->singleton(
+            SerializerProviderInterface::class,
+            static fn($app) => new SerializerProvider($app->make(SerializerConfig::class)),
+        );
 
         $this->app->singleton(
             ClientFactoryInterface::class,
@@ -141,7 +148,7 @@ final class PolkurierServiceProvider extends ServiceProvider
         $this->app->singleton(PolkurierWebservice::class, static fn($app) => new PolkurierWebservice(
             config: $app->make(ConfigInterface::class),
             logger: $app->make(LoggerInterface::class),
-            serializerProvider: $app->make(SerializerProviderInterface::class),
+            serializerConfig: $app->make(SerializerConfig::class),
             configProvider: $app->make(ConfigProviderInterface::class),
             clientFactory: $app->make(ClientFactoryInterface::class),
         ));
@@ -336,8 +343,9 @@ $this->app->singleton(ConfigProviderInterface::class, $provider);
 > **The provider is asked on every call.** The services can be singletons: each request reads the
 > configuration from [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) again, so a provider that
 > looks up the current tenant each time keeps working, as long as it doesn't cache the first tenant
-> it sees. [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) can be a singleton too, since it is stateless and expensive to
-> build. Under Octane, tenant-scoped state outlives the request unless something resets it.
+> it sees. [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) is a singleton too, so every client reads the mapping
+> metadata from the same pool. Under Octane, tenant-scoped state outlives the request unless
+> something resets it.
 
 Artisan commands
 ----------------
@@ -347,9 +355,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Polkurier\Webservice\Api\Service\UtilsServiceInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 final class PolkurierPing extends Command
 {
@@ -389,7 +397,7 @@ Testing
 Replace the transport in the container:
 
 ```php
-use Polkurier\Webservice\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 
 use Polkurier\Webservice\Testing\RecordingClient;
 

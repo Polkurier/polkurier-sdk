@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * The envelope of an error response: the message, and the codes and field errors that classify it.
+ *
+ * @api
  */
 final readonly class ErrorMessage implements MessageInterface
 {

@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Looks up the localities a postcode covers.
+ *
+ * @api
  */
 #[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
 final readonly class FindCityMessage implements MessageInterface

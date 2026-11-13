@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Only the number is included, and for an order its waybill number. If you need more, fetch the
  * record through its own service.
+ *
+ * @api
  */
 final readonly class TicketReferenceMessage implements MessageInterface
 {

@@ -25,7 +25,7 @@ These can be combined. A provider returns a [`ConfigInterface`](../src/Api/Confi
 
 ```php
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 $config = new Config(
     authorization: new AuthorizationMessage(token: '…', login: '12345'),
@@ -38,14 +38,14 @@ Three arguments are required. The others have defaults.
 
 | Argument | Type | Default | Meaning |
 |----------|------|---------|---------|
-| `authorization` | [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) | required | Customer id and API token |
+| `authorization` | [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) | required | Customer id and API token |
 | `platform` | `string` | required | Name identifying your integration |
 | `platformVersion` | `string` | required | Its version |
 | `apiUrl` | `?string` | `null` | Overrides the endpoint entirely |
 | `apiTimeout` | `int` | `30` | Request timeout, in seconds |
 | `sandbox` | `bool` | `false` | Targets the sandbox host |
 | `loggingEnabled` | `bool` | `true` | Enables error logging |
-| `methodsToLog` | [`ApiMethodInterface`](../src/Enum/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
+| `methodsToLog` | [`ApiMethodInterface`](../src/Api/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
 | `logSensitiveData` | `bool` | `false` | Log secrets as they are instead of hiding them |
 | `logPersonalData` | `bool` | `false` | Log personal data as it is instead of hiding it |
@@ -196,14 +196,13 @@ the SDK. A single rule can be dropped instead of all of them, see
 ```php
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
 
 $client = new PolkurierWebservice(
     config: $config,
-    serializerProvider: new SerializerProvider(new SerializerConfig(
+    serializerConfig: new SerializerConfig(
         metadataCache: $psr6Pool,
         timezone: new DateTimeZone('Europe/Warsaw'),
-    )),
+    ),
 );
 ```
 
@@ -333,20 +332,19 @@ Sharing a serializer across clients
 -----------------------------------
 
 ```php
-$serializer = new SerializerProvider(new SerializerConfig(metadataCache: $pool));
+$serializerConfig = new SerializerConfig(metadataCache: $pool);
 
 $clients = [];
 foreach ($tenants as $tenant) {
     $clients[$tenant->id] = new PolkurierWebservice(
         config: $tenant->polkurierConfig(),
-        serializerProvider: $serializer,
+        serializerConfig: $serializerConfig,
     );
 }
 ```
 
-[`SerializerProvider`](../src/Serializer/SerializerProvider.php) has no per-call state, so one instance can serve any number of clients. For
-a multi-tenant application, share one serializer, and use either a per-tenant provider or one
-client per tenant.
+Each client builds its own serializer from that configuration. The PSR-6 pool is what they share,
+so the mapping metadata is read once however many tenants there are.
 
 Full wiring reference
 ---------------------
@@ -357,11 +355,9 @@ All of [`PolkurierWebservice`](../src/PolkurierWebservice.php)'s collaborators a
 new PolkurierWebservice(
     config: $config,                       // ConfigInterface, required
     logger: $logger,                       // ?LoggerInterface, defaults to NullLogger
-    serializerProvider: $serializer,       // ?SerializerProviderInterface
+    serializerConfig: $serializerConfig,   // ?SerializerConfig, how responses are read and written
     configProvider: $provider,             // ?ConfigProviderInterface, overrides $config
     clientFactory: $clientFactory,         // ?ClientFactoryInterface, for your own PSR-18 client
-    requestFactory: $requestFactory,       // ?RequestFactoryInterface
-    responseFactory: $responseFactory,     // ?ResponseFactoryInterface
     validator: $validator,                 // ?ValidatorInterface
     services: [],                          // array<class-string, object>: ready-made services
 );

@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Identifies the payout to cancel.
+ *
+ * @api
  */
 final readonly class CancelMoneyBoxPayoutMessage implements MessageInterface
 {

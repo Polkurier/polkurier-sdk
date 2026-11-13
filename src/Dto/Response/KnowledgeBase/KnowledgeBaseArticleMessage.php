@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The content is an HTML fragment in Polish, meant to be embedded in a page rather than shown as
  * text.
+ *
+ * @api
  */
 final readonly class KnowledgeBaseArticleMessage implements MessageInterface, ParsedResponseInterface
 {

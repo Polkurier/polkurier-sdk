@@ -12,6 +12,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A region within a country, as accepted in the province field of an address.
+ *
+ * @api
  */
 final readonly class Province implements MessageInterface
 {

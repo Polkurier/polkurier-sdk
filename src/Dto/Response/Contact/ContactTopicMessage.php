@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Topics form a tree through the parent id. A topic can link to help articles, which you can show
  * before the customer opens a ticket.
+ *
+ * @api
  */
 final readonly class ContactTopicMessage implements MessageInterface
 {

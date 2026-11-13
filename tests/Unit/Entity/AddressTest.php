@@ -10,17 +10,18 @@ namespace Polkurier\Webservice\Test\Unit\Entity;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Entity\Address\Address;
-use Polkurier\Webservice\Entity\Order\OrderAddress;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
 /**
+ * The address book entry, a record of its own: it holds the fields an order address has no use
+ * for, and the ones they share are its own too.
+ *
  * Optional constructor parameters declared before required ones are deprecated in PHP 8 and break
- * construction by named arguments, so these classes take every required parameter first.
+ * construction by named arguments, so it takes every required parameter first.
  */
 #[CoversClass(Address::class)]
-#[CoversClass(OrderAddress::class)]
 final class AddressTest extends TestCase
 {
     public function testConstructsFromNamedArgumentsWithoutOptionalOnes(): void
@@ -40,14 +41,15 @@ final class AddressTest extends TestCase
         self::assertSame('Długa', $address->getStreet());
         self::assertSame('12', $address->getHouseNumber());
         self::assertNull($address->getCompany());
-        self::assertSame(OrderAddress::DEFAULT_COUNTRY, $address->getCountry());
+        self::assertSame(Address::DEFAULT_COUNTRY, $address->getCountry());
+        self::assertSame(Address::DEFAULT_TYPE, $address->getType());
     }
 
     /**
-     * {@see Address} passes its own arguments down to {@see OrderAddress} by name. A positional
-     * hand-off would map $company onto $street whenever the parent's parameter order differs.
+     * Each optional field is read back from the getter named after it, the entry's own fields
+     * among them.
      */
-    public function testPassesEveryFieldThroughToTheParentInTheRightOrder(): void
+    public function testKeepsEveryOptionalFieldItIsGiven(): void
     {
         $address = new Address(
             person: 'Jan Kowalski',
@@ -58,22 +60,32 @@ final class AddressTest extends TestCase
             phone: '500600700',
             name: 'Magazyn',
             houseNumber: '12',
+            id: '42',
+            type: AddressTypeEnum::Recipient,
             company: 'Acme sp. z o.o.',
+            flatNumber: '3',
             province: 'wielkopolskie',
             country: 'DE',
             pointId: 'POZ01A',
+            default: true,
+            coverAddress: true,
         );
 
+        self::assertSame('42', $address->getId());
+        self::assertSame(AddressTypeEnum::Recipient, $address->getType());
         self::assertSame('Acme sp. z o.o.', $address->getCompany());
+        self::assertSame('3', $address->getFlatNumber());
         self::assertSame('wielkopolskie', $address->getProvince());
         self::assertSame('DE', $address->getCountry());
         self::assertSame('POZ01A', $address->getPointId());
+        self::assertTrue($address->isDefault());
+        self::assertTrue($address->isCoverAddress());
         self::assertSame('Długa', $address->getStreet());
     }
 
     /**
-     * The read-only fields a response carries reach the parent too, and a missing flat number
-     * reads back as null.
+     * The fields only a response carries read as well, and a missing flat number reads back as
+     * null.
      */
     public function testDenormalizesTheReadOnlyFieldsAndANullFlatNumber(): void
     {
@@ -95,7 +107,6 @@ final class AddressTest extends TestCase
         self::assertInstanceOf(Address::class, $address);
         self::assertNull($address->getFlatNumber());
         self::assertSame('Długa', $address->getStreetName());
-        self::assertSame('POZ01A', $address->getMachineName());
         self::assertSame('POZ01A', $address->getPoint()?->id);
     }
 

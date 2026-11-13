@@ -13,6 +13,8 @@ namespace Polkurier\Webservice\Api;
  *
  * It is asked on every call, so it can load the configuration lazily, e.g. from a container, or
  * return a different one per tenant or per request.
+ *
+ * @api
  */
 interface ConfigProviderInterface
 {

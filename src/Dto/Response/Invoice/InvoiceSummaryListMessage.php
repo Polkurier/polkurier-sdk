@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * An invoice's itemised summary, as a file.
  *
  * The filename is the one the API suggests, and you can use it as-is in a download header.
+ *
+ * @api
  */
 final readonly class InvoiceSummaryListMessage implements MessageInterface, ParsedResponseInterface
 {

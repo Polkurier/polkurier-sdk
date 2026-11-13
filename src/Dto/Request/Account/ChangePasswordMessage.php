@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Changes the account password.
  *
  * A wrong current password is a VALIDATION_ERROR on `previous_password`.
+ *
+ * @api
  */
 final readonly class ChangePasswordMessage implements MessageInterface
 {

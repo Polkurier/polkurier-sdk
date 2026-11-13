@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Sets or clears the carrier preselected on the order form.
  *
  * A carrier listed by `available_carriers`; an empty code clears the default.
+ *
+ * @api
  */
 final readonly class ChangeDefaultCourierMessage implements MessageInterface
 {

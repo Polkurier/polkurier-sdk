@@ -39,6 +39,8 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface CourierServiceInterface
 {
@@ -104,7 +106,7 @@ interface CourierServiceInterface
      * Checks whether a carrier can collect on one day, and in which time windows.
      *
      * Nothing is booked. A collection is booked with the order, through
-     * {@see \Polkurier\Webservice\Entity\Order\CreateOrderMessage::getPickup()}, or for several
+     * {@see \Polkurier\Webservice\Entity\Order::getPickup()}, or for several
      * orders at once with
      * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::createMultiOrderPickup()}.
      * Without a date, today is checked.
@@ -303,7 +305,7 @@ interface CourierServiceInterface
      * The list is sorted by Polish name and rarely changes, so you can cache it locally. As with
      * getCountries(), several names for one country are joined into one string. `is_default` is true
      * for Poland only. Use the region ids in the province field of an address book entry,
-     * {@see \Polkurier\Webservice\Entity\Address\SaveAddressMessage::getProvince()}.
+     * {@see \Polkurier\Webservice\Entity\Address::getProvince()}.
      *
      * Endpoint: `get_supported_countries_v2`
      *

@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice;
 
 use Polkurier\Webservice\Api\ConfigInterface;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 /**
  * How the SDK should talk to the API.
@@ -20,6 +20,8 @@ use Polkurier\Webservice\Http\Request\AuthorizationMessage;
  *
  * Endpoint: if apiUrl is set, it is used. Otherwise the sandbox flag picks the sandbox or the
  * production host.
+ *
+ * @api
  */
 readonly class Config implements ConfigInterface
 {
@@ -38,7 +40,10 @@ readonly class Config implements ConfigInterface
      * @param bool $loggingEnabled
      * @param array $methodsToLog
      * @param bool $validatePayloads
-     * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by default
+     * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by
+     *        default, and while it is off every field
+     *        {@see \Polkurier\Webservice\Log\SensitiveDataRedactor} names is hidden wherever it
+     *        appears in a logged body
      * @param bool $logPersonalData log personal data as it is instead of hiding it. Off by default
      * @param bool $logFiles save files from requests and responses, and point to them from the log.
      *        Off by default

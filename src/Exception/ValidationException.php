@@ -16,14 +16,18 @@ namespace Polkurier\Webservice\Exception;
  * validation errors means the request was sent and refused.
  *
  * Field names are the API's wire names, not SDK property names, so they match the API's own
- * reports and the request that would have been sent.
+ * reports and the request that would have been sent. A field inside a nested record is named
+ * under its parent, `sender.postcode`; an entry of a list carries its index, `packs[1].weight`;
+ * and a record the payload inlines reports at the top level, so an order's fields in
+ * `create_order` have no prefix. The format is part of the contract: a release keeps it, so code
+ * that maps these keys to its own form fields goes on working.
  *
  * @api
  */
 class ValidationException extends InvalidArgumentException
 {
     /**
-     * @param array<string, string[]> $validationErrors failures keyed by wire field name
+     * @param array<string, string[]> $validationErrors failures keyed by wire field path
      * @param string $message
      */
     public function __construct(
@@ -37,7 +41,7 @@ class ValidationException extends InvalidArgumentException
     }
 
     /**
-     * All failures, keyed by wire field name.
+     * All failures, keyed by wire field path.
      *
      * @return array<string, string[]>
      */

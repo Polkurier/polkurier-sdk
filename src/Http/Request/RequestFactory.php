@@ -8,16 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Http\Request;
 
 use GuzzleHttp\Psr7\Request;
-use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
-use Symfony\Component\Serializer\SerializerInterface;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Http\Message\RequestInterface;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Builds requests in the format the API accepts.

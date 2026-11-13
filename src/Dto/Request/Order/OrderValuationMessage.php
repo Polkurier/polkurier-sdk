@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -19,6 +18,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The order's fields are sent as they are for placing it, with `returnvaluations` next to them.
  * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::orderValuation()} builds it when
  * given a carrier. A rejected order field is reported under its own name, e.g. `sender.postcode`.
+ *
+ * @api
  */
 final readonly class OrderValuationMessage implements MessageInterface
 {

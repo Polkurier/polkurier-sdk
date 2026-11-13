@@ -23,7 +23,7 @@ use Polkurier\Webservice\Dto\Response\System\CourierMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken;
-use Polkurier\Webservice\Entity\Address\Address;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\MessageClasses;

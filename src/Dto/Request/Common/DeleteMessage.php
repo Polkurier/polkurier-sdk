@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Dto\Request\Common;
  *
  * Address-book entries are identified by their role too, so use
  * {@see \Polkurier\Webservice\Dto\Request\Address\DeleteMessage} for those.
+ *
+ * @api
  */
 final readonly class DeleteMessage extends IdMessage
 {

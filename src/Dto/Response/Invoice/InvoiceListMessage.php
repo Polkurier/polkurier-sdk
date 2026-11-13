@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Paged like the order list, but with no `totalpages` field. Work out the last page from the total
  * and the page size.
+ *
+ * @api
  */
 final readonly class InvoiceListMessage extends PagedListMessage
 {

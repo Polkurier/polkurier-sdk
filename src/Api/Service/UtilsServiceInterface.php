@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Response\Util\AuthConfirmationMessage;
 use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
@@ -14,7 +15,6 @@ use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 /**
  * Checks that do not belong to any one functional area.
@@ -29,6 +29,8 @@ use Polkurier\Webservice\Http\Request\AuthorizationMessage;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface UtilsServiceInterface
 {

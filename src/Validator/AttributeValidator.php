@@ -7,18 +7,17 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Validator;
 
-use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
-use Polkurier\Webservice\Api\Validation\ValidatorInterface as MessageValidatorInterface;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\IgnoredWhen;
+use Polkurier\Webservice\Validator\Rule\MessageRuleInterface;
 use Polkurier\Webservice\Validator\Rule\Valid;
 use Polkurier\Webservice\Validator\Rule\ValidatedBy;
+use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
 /**
  * Runs the rules a message declares as attributes.
@@ -47,6 +46,8 @@ use Polkurier\Webservice\Validator\Rule\ValidatedBy;
  * but not when it is the recipient.
  *
  * Reflection runs once per class and is cached.
+ *
+ * @api
  */
 class AttributeValidator implements ValidatorInterface
 {
@@ -60,7 +61,7 @@ class AttributeValidator implements ValidatorInterface
      *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
-     *     validators: class-string<MessageValidatorInterface>[]
+     *     validators: class-string<ValidatorInterface>[]
      * }>
      */
     protected static array $rules = [];
@@ -68,7 +69,7 @@ class AttributeValidator implements ValidatorInterface
     /**
      * One instance per declared validator, shared across every message that names it.
      *
-     * @var array<class-string<MessageValidatorInterface>, MessageValidatorInterface>
+     * @var array<class-string<ValidatorInterface>, ValidatorInterface>
      */
     protected static array $declared = [];
 
@@ -159,7 +160,7 @@ class AttributeValidator implements ValidatorInterface
      * so they are reported together with the attribute violations. Otherwise a payload with a bad
      * postcode and an invalid field combination would only report the second.
      *
-     * @param class-string<MessageValidatorInterface> $validator
+     * @param class-string<ValidatorInterface> $validator
      * @param object $message
      * @param ViolationPool $violations
      *
@@ -229,7 +230,7 @@ class AttributeValidator implements ValidatorInterface
      *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
-     *     validators: class-string<MessageValidatorInterface>[]
+     *     validators: class-string<ValidatorInterface>[]
      * }
      * @throws InvalidArgumentException when the class does not exist
      */

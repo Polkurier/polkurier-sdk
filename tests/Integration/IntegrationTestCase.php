@@ -9,18 +9,18 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
-use Polkurier\Webservice\Entity\Order\PickupMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
+use Polkurier\Webservice\Entity\Order\Pickup;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
 
 /**
  * Runs the SDK against a real Polkurier API.
@@ -75,7 +75,7 @@ abstract class IntegrationTestCase extends TestCase
                 apiUrl: self::url(),
                 validatePayloads: $validatePayloads,
             ),
-            serializerProvider: new SerializerProvider(new SerializerConfig(strictResponses: true)),
+            serializerConfig: new SerializerConfig(strictResponses: true),
         );
     }
 
@@ -146,11 +146,11 @@ abstract class IntegrationTestCase extends TestCase
      */
     protected static function order(): CreateOrderMessage
     {
-        return new CreateOrderMessage(
+        return new CreateOrderMessage(order: new Order(
             courier: 'DPD',
             shipmentType: ShipmentTypeEnum::Box,
             packs: [self::pack()],
-            sender: new OrderAddressMessage(
+            sender: new Address(
                 person: 'Jan Kowalski',
                 street: 'Długa',
                 city: 'Poznań',
@@ -160,7 +160,7 @@ abstract class IntegrationTestCase extends TestCase
                 company: 'Acme sp. z o.o.',
                 houseNumber: '12',
             ),
-            recipient: new OrderAddressMessage(
+            recipient: new Address(
                 person: 'Anna Nowak',
                 street: 'Krucza',
                 city: 'Warszawa',
@@ -169,21 +169,21 @@ abstract class IntegrationTestCase extends TestCase
                 phone: '600700800',
                 houseNumber: '5',
             ),
-            pickup: new PickupMessage(
+            pickup: new Pickup(
                 pickupDate: self::nextWorkday(),
                 pickupTimeFrom: self::nextWorkday()->setTime(10, 0),
                 pickupTimeTo: self::nextWorkday()->setTime(14, 0),
             ),
             description: 'Books',
-        );
+        ));
     }
 
     /**
-     * @return PackMessage
+     * @return PackItem
      */
-    protected static function pack(): PackMessage
+    protected static function pack(): PackItem
     {
-        return new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard);
+        return new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard);
     }
 
     /**

@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * Asks whether a carrier can collect on one day, and in which time windows. Nothing is booked.
+ *
+ * @api
  */
 final readonly class PickupMessage extends PickupQueryMessage
 {

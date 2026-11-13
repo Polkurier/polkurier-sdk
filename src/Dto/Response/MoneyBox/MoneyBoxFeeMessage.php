@@ -19,6 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * breakdown itemises them.
  *
  * While the account has free payouts left this month, the fee has no PAYOUT_FEE component.
+ *
+ * @api
  */
 final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedResponseInterface
 {

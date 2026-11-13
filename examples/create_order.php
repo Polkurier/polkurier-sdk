@@ -13,10 +13,11 @@
  */
 declare(strict_types=1);
 
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
-use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
-use Polkurier\Webservice\Entity\Order\PickupMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
+use Polkurier\Webservice\Entity\Order\Pickup;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
@@ -24,14 +25,14 @@ use Polkurier\Webservice\Exception\Exception;
 
 require __DIR__ . '/bootstrap.php';
 
-$order = new CreateOrderMessage(
+$order = new Order(
     // Carrier codes come from available_carriers; see examples/available_carriers.php.
     courier: 'UPS',
     shipmentType: ShipmentTypeEnum::Box,
     packs: [
-        new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+        new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
     ],
-    sender: new OrderAddressMessage(
+    sender: new Address(
         person: 'Jan Kowalski',
         street: 'Długa',
         city: 'Poznań',
@@ -41,7 +42,7 @@ $order = new CreateOrderMessage(
         company: 'Acme sp. z o.o.',
         houseNumber: '12',
     ),
-    recipient: new OrderAddressMessage(
+    recipient: new Address(
         person: 'Anna Nowak',
         street: 'Krótka',
         city: 'Warszawa',
@@ -54,24 +55,27 @@ $order = new CreateOrderMessage(
     // Declared value in PLN. Zero means no insurance.
     insurance: 500.0,
     // Some carriers need a collection date, some also a time window: available_carriers says which.
-    pickup: new PickupMessage(
+    pickup: new Pickup(
         pickupDate: new DateTimeImmutable('+1 weekday'),
         pickupTimeFrom: new DateTimeImmutable('10:00'),
         pickupTimeTo: new DateTimeImmutable('14:00'),
     ),
     courierService: [AdditionalServiceEnum::SmsOnDispatch],
-    // Required to place the order. Cut to fit {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH} bytes.
+    // Required to place the order. Cut to fit {@see Order::DESCRIPTION_MAX_LENGTH} bytes.
     description: 'Books',
     // Your own ids for the order, to find it again with get_orders, e.g. after a timeout.
     externalApplicationId: '6f1c2b9e-0d4a-4c3e-9b8f-1a2b3c4d5e6f',
     externalOrderId: 'EXAMPLE-' . \date('YmdHis'),
 );
 
+// The order travels inside the message, which also carries the request-only coupon code.
+$message = new CreateOrderMessage(order: $order);
+
 $sdk = polkurier();
 
 try {
     $quote = null;
-    foreach ($sdk->orders()->orderValuation($order) as $valuation) {
+    foreach ($sdk->orders()->orderValuation($message) as $valuation) {
         if ($valuation->serviceCode === $order->getCourier()) {
             $quote = $valuation;
         }
@@ -89,7 +93,7 @@ try {
         exit(0);
     }
 
-    $created = $sdk->orders()->createOrder($order);
+    $created = $sdk->orders()->createOrder($message);
 
     \printf(
         "\nOrder %s placed. Waybills: %s. Gross: %.2f PLN\n",

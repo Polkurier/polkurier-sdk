@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Ticket;
 
 /**
  * Which side of a ticket conversation an entry came from.
+ *
+ * @api
  */
 enum TicketAuthorEnum: string
 {

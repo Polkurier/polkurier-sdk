@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Entity\Address\SaveAddressMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Entity\Order\Pickup;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Serializer\SerializerConfig;
@@ -79,11 +79,11 @@ final class SerializerConfigTest extends TestCase
     }
 
     /**
-     * @return SaveAddressMessage
+     * @return Address
      */
-    private static function address(): SaveAddressMessage
+    private static function address(): Address
     {
-        return new SaveAddressMessage(
+        return new Address(
             name: 'Magazyn',
             person: 'Jan Kowalski',
             street: 'Długa',

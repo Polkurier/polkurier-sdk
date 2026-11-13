@@ -13,7 +13,7 @@
 declare(strict_types=1);
 
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
 
@@ -23,7 +23,7 @@ require __DIR__ . '/bootstrap.php';
 try {
     $availability = polkurier()->orders()->isMultiPickupAvailable(new MultiPickupAvailabilityRequestMessage(
         courier: arguments()[0] ?? 'DPD',
-        packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+        packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
         senderPostCode: '31-042',
         shipmentType: ShipmentTypeEnum::Box,
     ));

@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Testing;
 
 use GuzzleHttp\Psr7\Response;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,6 +19,8 @@ use Psr\Http\Message\ResponseInterface;
  * It tests the service layer end to end (request building, serialization, response parsing)
  * without a network. It is also its own factory, so it can be passed straight to a service
  * constructor.
+ *
+ * @api
  */
 final class RecordingClient implements ClientInterface, ClientFactoryInterface
 {

@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Identifies one attachment to download.
  *
  * An attachment is identified by its message and its filename.
+ *
+ * @api
  */
 final readonly class GetTicketMessageFileMessage implements MessageInterface
 {

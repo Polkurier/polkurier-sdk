@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Preferences the customer has set in the panel.
  *
  * These are defaults for the order form. The API does not enforce them.
+ *
+ * @api
  */
 final readonly class AccountSettingsMessage implements MessageInterface
 {

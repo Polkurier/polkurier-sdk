@@ -27,6 +27,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Only a postal money order to an address other than the saved default needs a confirmation: the
  * security PIN while the money box is PIN-locked, otherwise a two-factor token registered under
  * MONEY_BOX_PAYOUT.
+ *
+ * @api
  */
 final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 {

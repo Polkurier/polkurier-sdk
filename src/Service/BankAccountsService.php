@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\BankAccountsServiceInterface;
 use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
-use Polkurier\Webservice\Entity\BankAccount\BankAccount;
-use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Entity\BankAccount;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;

@@ -7,7 +7,7 @@ Building the client
 | Route | Use when | Where |
 |-------|----------|-------|
 | [`new PolkurierWebservice(new Config(…))`](../src/PolkurierWebservice.php) | Scripts, cron, small applications | [Getting started](getting-started.md) |
-| Facade with substituted collaborators | You need your own HTTP client, serializer or validator | [Architecture](architecture.md#extension-points) |
+| Facade with substituted collaborators | Your own HTTP client, validator or serializer settings | [Architecture](architecture.md#extension-points) |
 | Facade with `services: [Foo::class => $bar]` | One service needs to behave differently | [Architecture](architecture.md#substituting-a-service) |
 | Wiring a service by hand, no facade | A container is doing the wiring | [Architecture](architecture.md#not-using-the-facade-at-all) |
 
@@ -60,7 +60,7 @@ Reading orders back
 |-------|---------|
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current state. Fast. |
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) with `tracking: true` | The same, plus the carrier's scan history. Slower. |
-| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Entity/Order/Order.php) objects. |
+| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Entity/Order.php) objects. |
 
 Paging
 ------
@@ -146,15 +146,18 @@ Changing how requests are made
 
 | Route | Replaces |
 |-------|----------|
-| [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
-| [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) | How the envelope is built |
-| [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) | How the envelope is read |
-| [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | The whole mapping stack |
+| [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
 | [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Caching, JSON flags, timezone, strictness |
 | Subclassing a service | One method, at the risk of changes in any release |
 | `services: [...]` with your own implementation | One service entirely |
 
 See [Architecture: extension points](architecture.md#extension-points).
+
+The facade builds its serializer itself, from the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) it is given.
+[`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php), [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) and
+[`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) are arguments of the services, so you replace them where you wire a
+service by hand ([Architecture: not using the facade at all](architecture.md#not-using-the-facade-at-all)), and a release may change
+them.
 
 Logging
 -------
@@ -173,7 +176,7 @@ Testing
 |------|----------|
 | Inject `Api\Service\*Interface` and mock it | Most unit tests |
 | `services: [Foo::class => $mock]` | Testing your flow through the facade |
-| Replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
+| Replace [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | [`AttributeValidator`](../src/Validator/AttributeValidator.php) on its own | Testing a payload, with no client at all |
 | The live API with `strictResponses: true` | Catching a response that has changed |
 

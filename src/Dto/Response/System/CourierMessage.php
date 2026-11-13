@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Show these before a customer picks a carrier. An alert usually means orders placed now will be
  * affected.
+ *
+ * @api
  */
 final readonly class CourierMessage implements MessageInterface
 {

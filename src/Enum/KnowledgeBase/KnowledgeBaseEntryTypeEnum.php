@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\KnowledgeBase;
 
 /**
  * Whether a knowledge base index entry is a page or a grouping.
+ *
+ * @api
  */
 enum KnowledgeBaseEntryTypeEnum: string
 {

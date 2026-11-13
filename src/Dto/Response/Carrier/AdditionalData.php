@@ -24,6 +24,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Each part is null when the carrier's entry leaves it out. Treat it as a guide for building a
  * shipping form: whether an order is accepted is decided when it's placed. The SDK doesn't check
  * an order against it.
+ *
+ * @api
  */
 final readonly class AdditionalData implements MessageInterface
 {

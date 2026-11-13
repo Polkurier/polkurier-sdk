@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The API stores the file under a name of its own, with a suffix added. The timeline entry's files
  * give that name, and it is the one
  * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getTicketMessageFile()} takes.
+ *
+ * @api
  */
 final readonly class TicketAttachmentMessage implements MessageInterface
 {

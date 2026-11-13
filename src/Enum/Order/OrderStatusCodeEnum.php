@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Order;
  *
  * The human-readable status next to the code is localised and may change, so switch on the code.
  * The same codes are used for the `status` filter of `get_orders`.
+ *
+ * @api
  */
 enum OrderStatusCodeEnum: string
 {

@@ -11,7 +11,7 @@
  */
 declare(strict_types=1);
 
-use Polkurier\Webservice\Entity\Address\SaveAddressMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
 
@@ -24,7 +24,7 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $address = polkurier()->addresses()->saveAddress(new SaveAddressMessage(
+    $address = polkurier()->addresses()->saveAddress(new Address(
         name: 'Magazyn',
         person: 'Jan Kowalski',
         street: 'Długa',

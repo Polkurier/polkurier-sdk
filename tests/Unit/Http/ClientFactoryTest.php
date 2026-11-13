@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Test\Unit\Http;
 
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Test\Unit\Webservice\SwitchingConfigProvider;
 
 final class ClientFactoryTest extends TestCase

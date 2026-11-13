@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * For the terms, pass the id to
  * {@see \Polkurier\Webservice\Api\Service\AccountServiceInterface::acceptRegulations()}. Only the
  * version currently in force can be accepted.
+ *
+ * @api
  */
 final readonly class RegulationsMessage implements MessageInterface, ParsedResponseInterface
 {

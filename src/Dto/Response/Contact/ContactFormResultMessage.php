@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * A result with the {@see ContactFormResultStatusEnum::Error} status carries a fresh nonce: the
  * form wants another submission, e.g. with the code sent by e-mail.
+ *
+ * @api
  */
 final readonly class ContactFormResultMessage implements MessageInterface, ParsedResponseInterface
 {

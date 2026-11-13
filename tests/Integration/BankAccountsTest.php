@@ -10,7 +10,8 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
-use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Entity\BankAccount;
 
 /**
  * Registering an account needs a two-factor code, so saving sends a number the API refuses.
@@ -28,7 +29,10 @@ final class BankAccountsTest extends IntegrationTestCase
     {
         self::assertApiError(
             fn() => self::client(validatePayloads: false)->bankAccounts()->saveBankAccount(
-                new SaveBankAccountMessage(name: 'SDK test account', number: 'PL61 1090 1014 0000 0712 1981 2875'),
+                new SaveBankAccountMessage(bankAccount: new BankAccount(
+                    name: 'SDK test account',
+                    number: 'PL61 1090 1014 0000 0712 1981 2875',
+                )),
             ),
             'PARAMETER_INVALID',
         );

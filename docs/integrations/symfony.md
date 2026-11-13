@@ -35,14 +35,14 @@ services:
         autoconfigure: true
 
     # Credentials.
-    Polkurier\Webservice\Http\Request\AuthorizationMessage:
+    Polkurier\Webservice\Dto\Request\AuthorizationMessage:
         arguments:
             $token: '%env(POLKURIER_TOKEN)%'
             $login: '%env(POLKURIER_LOGIN)%'
 
     Polkurier\Webservice\Config:
         arguments:
-            $authorization: '@Polkurier\Webservice\Http\Request\AuthorizationMessage'
+            $authorization: '@Polkurier\Webservice\Dto\Request\AuthorizationMessage'
             $platform: '%polkurier.platform%'
             $platformVersion: '%polkurier.platform_version%'
             $sandbox: '%env(bool:POLKURIER_SANDBOX)%'
@@ -52,18 +52,22 @@ services:
     Polkurier\Webservice\ConfigProvider: ~
     Polkurier\Webservice\Api\ConfigProviderInterface: '@Polkurier\Webservice\ConfigProvider'
 
-    # One serializer, cached. This is the expensive object.
+    # Shared by the facade and the services below: the pool it names holds the mapping metadata,
+    # so the attributes are read once per pool.
     Polkurier\Webservice\Serializer\SerializerConfig:
         arguments:
             $metadataCache: '@cache.polkurier'
             $strictResponses: '%kernel.debug%'
 
-    Polkurier\Webservice\Serializer\SerializerProvider: ~
+    # The facade builds its own serializer; the factories wired below need this one.
+    Polkurier\Webservice\Serializer\SerializerProvider:
+        arguments:
+            $config: '@Polkurier\Webservice\Serializer\SerializerConfig'
     Polkurier\Webservice\Serializer\SerializerProviderInterface: '@Polkurier\Webservice\Serializer\SerializerProvider'
 
     # Transport and envelope.
     Polkurier\Webservice\Http\ClientFactory: ~
-    Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Http\ClientFactory'
+    Polkurier\Webservice\Api\Http\ClientFactoryInterface: '@Polkurier\Webservice\Http\ClientFactory'
 
     Polkurier\Webservice\Http\Request\RequestFactory: ~
     Polkurier\Webservice\Http\Request\RequestFactoryInterface: '@Polkurier\Webservice\Http\Request\RequestFactory'
@@ -131,7 +135,7 @@ With that configuration in place, a service can ask for what it needs:
 namespace App\Shipping;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
-use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
 
 final readonly class ShipmentDispatcher
@@ -156,7 +160,7 @@ aliases are left out:
         arguments:
             $config: '@Polkurier\Webservice\Api\ConfigInterface'
             $logger: '@monolog.logger.polkurier'
-            $serializerProvider: '@Polkurier\Webservice\Serializer\SerializerProviderInterface'
+            $serializerConfig: '@Polkurier\Webservice\Serializer\SerializerConfig'
 ```
 
 Its other dependencies are optional and it builds them itself.
@@ -202,7 +206,7 @@ namespace App\Polkurier;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 final readonly class TenantConfigProvider implements ConfigProviderInterface
 {
@@ -241,14 +245,14 @@ final readonly class PlaceShipmentHandler
 {
     public function __construct(
         private CredentialStore $credentials,
-        private SerializerProviderInterface $serializer,   // shared; this one is safe
+        private SerializerConfig $serializerConfig,   // the service registered above
     ) {}
 
     public function __invoke(PlaceShipment $message): void
     {
         $client = new PolkurierWebservice(
             config: $this->credentials->configFor($message->tenantId),
-            serializerProvider: $this->serializer,
+            serializerConfig: $this->serializerConfig,
         );
 
         $client->orders()->createOrder($this->map($message));
@@ -256,8 +260,8 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-The serializer is stateless and it's the expensive part, so you can share it and still build a
-fresh client per message.
+Each client builds its own serializer from that configuration, and `cache.polkurier` holds the
+mapping metadata, so a fresh client per message pays for the attributes only on the first one.
 
 Messenger: placing orders off the request
 -----------------------------------------
@@ -428,7 +432,7 @@ Replace the transport in the test container:
 ```yaml
 # config/services_test.yaml
 services:
-    Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
+    Polkurier\Webservice\Api\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
     Polkurier\Webservice\Testing\RecordingClient:
         public: true
 ```

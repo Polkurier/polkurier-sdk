@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Payment;
  *
  * The mode decides where the money goes and whether the customer chooses the amount. For modes
  * that pay an existing debt, the amount is what is owed. Send an amount only for PREPAID.
+ *
+ * @api
  */
 enum PaymentModeEnum: string
 {

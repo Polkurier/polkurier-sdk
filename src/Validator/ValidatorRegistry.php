@@ -27,6 +27,8 @@ use Polkurier\Webservice\Exception\ValidationException;
  * combination would only report the first problem.
  *
  * A message with no registered validator passes.
+ *
+ * @api
  */
 class ValidatorRegistry implements ValidatorInterface
 {

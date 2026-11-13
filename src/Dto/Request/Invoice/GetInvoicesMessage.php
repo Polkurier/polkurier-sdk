@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Filters and paging for the invoice list.
+ *
+ * @api
  */
 final readonly class GetInvoicesMessage extends PagedMessage
 {

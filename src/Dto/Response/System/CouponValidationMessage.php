@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * order was sent, the second is always false.
  *
  * For a code that does not exist, the descriptive fields are null and the description is empty.
+ *
+ * @api
  */
 final readonly class CouponValidationMessage implements MessageInterface, ParsedResponseInterface
 {

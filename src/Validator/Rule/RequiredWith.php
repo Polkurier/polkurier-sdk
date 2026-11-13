@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -30,7 +29,7 @@ class RequiredWith implements MessageRuleInterface
     /**
      * @param string $field the property that becomes mandatory
      * @param string $with the property whose being set makes $field mandatory
-     * @param string|null $because the report's wording, in place of the default
+     * @param string|null $reason the report's wording, in place of the default
      */
     public function __construct(
         /**
@@ -46,7 +45,7 @@ class RequiredWith implements MessageRuleInterface
         /**
          * @var string|null
          */
-        public readonly ?string $because = null,
+        public readonly ?string $reason = null,
     ) {}
 
     /**
@@ -69,7 +68,7 @@ class RequiredWith implements MessageRuleInterface
 
         $violations->add(
             $fields->field($this->field),
-            $this->because ?? \sprintf('is required when %s is set', $fields->field($this->with))
+            $this->reason ?? \sprintf('is required when %s is set', $fields->field($this->with))
         );
     }
 }

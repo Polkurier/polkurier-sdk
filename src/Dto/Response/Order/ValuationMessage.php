@@ -19,6 +19,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A price means something only when {@see self::$shipment} is true: a carrier priced on its own
  * that can't carry the shipment is quoted at 0. A conditional price of 0 likewise means no
  * conditional offer applies, not that the order is free.
+ *
+ * @api
  */
 final readonly class ValuationMessage implements MessageInterface
 {

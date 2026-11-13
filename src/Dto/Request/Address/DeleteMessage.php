@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The role is part of the key. An address saved as both sender and recipient is only removed from
  * the role given here.
+ *
+ * @api
  */
 final readonly class DeleteMessage implements MessageInterface
 {

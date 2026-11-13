@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Selects which legal document to fetch.
+ *
+ * @api
  */
 final readonly class GetRegulationsMessage implements MessageInterface
 {

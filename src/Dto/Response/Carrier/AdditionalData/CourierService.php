@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * Each getter is named after the {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum} case
  * to order for that service.
+ *
+ * @api
  */
 final readonly class CourierService implements MessageInterface
 {

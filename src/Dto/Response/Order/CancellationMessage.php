@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Result of `cancel_order`.
+ *
+ * @api
  */
 final readonly class CancellationMessage implements MessageInterface, ParsedResponseInterface
 {

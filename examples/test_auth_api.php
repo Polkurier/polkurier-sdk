@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 
 require __DIR__ . '/bootstrap.php';

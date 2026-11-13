@@ -20,6 +20,8 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * do not keep copies of those defaults.
  *
  * @phpstan-consistent-constructor
+ *
+ * @api
  */
 abstract class AbstractBuilder
 {

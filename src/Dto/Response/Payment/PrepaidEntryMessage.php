@@ -15,6 +15,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * One movement on the prepaid balance.
  *
  * The amount is signed: negative for spending, positive for a top-up.
+ *
+ * @api
  */
 final readonly class PrepaidEntryMessage implements MessageInterface
 {

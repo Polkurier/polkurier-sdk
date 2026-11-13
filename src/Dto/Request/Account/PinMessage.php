@@ -16,6 +16,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * {@see \Polkurier\Webservice\Dto\Request\Account\ChangePinMessage} carries the telephone PIN, {@see
  * \Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage} the security PIN, a different value.
+ *
+ * @api
  */
 abstract readonly class PinMessage implements MessageInterface
 {

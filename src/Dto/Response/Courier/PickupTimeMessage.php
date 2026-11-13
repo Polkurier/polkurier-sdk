@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * One day a carrier can collect on, with the windows available that day.
+ *
+ * @api
  */
 final readonly class PickupTimeMessage implements MessageInterface
 {

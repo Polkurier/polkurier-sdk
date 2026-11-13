@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A question in Polkurier's latest reply that takes one of a fixed set of answers.
  *
  * A reply must be one of the answers; anything else is a VALIDATION_ERROR on `content`.
+ *
+ * @api
  */
 final readonly class TicketResponseTemplateMessage implements MessageInterface
 {
