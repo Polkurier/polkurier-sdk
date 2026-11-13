@@ -14,7 +14,7 @@ use Psr\Cache\CacheItemPoolInterface;
  *
  * @api
  */
-readonly class SerializerConfig implements SerializerConfigInterface
+readonly class SerializerConfig
 {
     /**
      * Doesn't escape UTF-8 or forward slashes, and keeps floats as floats.

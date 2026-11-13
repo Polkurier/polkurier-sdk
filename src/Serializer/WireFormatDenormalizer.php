@@ -11,7 +11,6 @@ use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\Base64;
 use Polkurier\Webservice\Serializer\Attribute\Base64DataUrl;
 use Polkurier\Webservice\Serializer\Attribute\NamedValues;
-use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -155,7 +154,7 @@ class WireFormatDenormalizer implements NormalizerInterface, DenormalizerInterfa
             if (!\array_key_exists($field, $data)) {
                 continue;
             }
-            $at = $path === '' ? $field : $path . '.' . $field;
+            $at = ResponseDriftCollector::at($path, $field);
             $data[$field] = match (true) {
                 $format instanceof Base64 => self::decodeBase64($data[$field], $at, $drift),
                 $format instanceof Base64DataUrl => self::decodeDataUrl($data[$field], $at, $drift),
@@ -187,10 +186,7 @@ class WireFormatDenormalizer implements NormalizerInterface, DenormalizerInterfa
                 if ($attributes === []) {
                     continue;
                 }
-                // Read from the attribute's argument: its accessor differs across Symfony versions.
-                $name = ($property->getAttributes(SerializedName::class)[0] ?? null)?->getArguments()[0] ?? null;
-                $wire = \is_string($name) ? $name : $property->getName();
-                $formats[$wire] = $attributes[0]->newInstance();
+                $formats[WireNameReader::read($property)] = $attributes[0]->newInstance();
             }
         }
 

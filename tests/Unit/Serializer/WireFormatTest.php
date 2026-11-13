@@ -11,23 +11,17 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Dto\Response\Account\ExternalApplicationSettingMessage;
-use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Property;
-use Polkurier\Webservice\Dto\Response\Contact\ContactFormFieldMessage;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormMessage;
-use Polkurier\Webservice\Dto\Response\Contact\ContactFormOptionMessage;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormResultDataMessage;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
-use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Dto\Response\Order\DocumentMessage;
-use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Dto\Response\Order\TrackingEventMessage;
-use Polkurier\Webservice\Dto\Response\TwoFactorToken;
-use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Polkurier\Webservice\Serializer\Attribute\Base64;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\WireFormatDenormalizer;
 use Polkurier\Webservice\Test\Support\Sample;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
 /**
  * Fields whose wire format differs from the value the property holds read as that value.
@@ -101,6 +95,29 @@ final class WireFormatTest extends TestCase
         self::assertInstanceOf(ContactFormResultDataMessage::class, $plain);
         self::assertSame('', $plain->file);
         self::assertCount(1, $this->drift->all());
+    }
+
+    /**
+     * `#[SerializedName]` takes its name positionally or as `serializedName:`. A field declared
+     * the second way is found under the name it gives, not under the property's own name.
+     *
+     * @return void
+     */
+    public function testAFormatIsFoundUnderANameGivenAsANamedArgument(): void
+    {
+        $class = (new class('') {
+            public function __construct(
+                #[SerializedName(serializedName: 'file_b64')]
+                #[Base64]
+                public string $file,
+            ) {}
+        })::class;
+
+        $read = $this->read($class, ['file_b64' => \base64_encode("%PDF-1.4\n")]);
+
+        self::assertInstanceOf($class, $read);
+        self::assertSame("%PDF-1.4\n", $read->file);
+        self::assertSame([], $this->drift->all());
     }
 
     /**

@@ -76,9 +76,13 @@ new Serializer(
         new LenientDateDenormalizer(new ExactDateTimeDenormalizer(new DateTimeNormalizer($dateTimeContext))),
         new EnumListDenormalizer(),
         new LenientListDenormalizer(new ArrayDenormalizer()),
-        new OmitEmptyNormalizer(new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
-            new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
-        ))),
+        new RequestQuirksNormalizer(
+            new OmitEmptyNormalizer(new SentFieldsNormalizer(
+                new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+                    new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+                )),
+            )),
+        ),
     ],
     encoders: [
         new JsonEncoder(new JsonEncode([JsonEncode::OPTIONS => $config->getJsonEncodeOptions()])),
@@ -91,20 +95,31 @@ first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer
 tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
-response, an enum value the SDK doesn't know reads as null or is left out of its list. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes
-last because it wraps the general object normalizer, which supports nearly everything.
+response, an enum value the SDK doesn't know reads as null or is left out of its list.
+[`RequestQuirksNormalizer`](../src/Serializer/RequestQuirksNormalizer.php) goes last because it wraps the general object normalizer, which
+supports nearly everything.
 [`LenientObjectDenormalizer`](../src/Serializer/LenientObjectDenormalizer.php), [`LenientListDenormalizer`](../src/Serializer/LenientListDenormalizer.php) and [`LenientDateDenormalizer`](../src/Serializer/LenientDateDenormalizer.php) read a response that differs from the SDK (see
 [Responses that differ from the SDK](#responses-that-differ-from-the-sdk)). With `strictResponses` on, [`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php) wraps the
 serializer and fails a read that recorded a difference.
 
-Two more pieces wrap the object normalizer when reading. [`WireFormatDenormalizer`](../src/Serializer/WireFormatDenormalizer.php) reads the fields
-whose wire format differs from the value the property holds, as the property declares:
+Three more pieces wrap the object normalizer, two of them when reading.
+[`WireFormatDenormalizer`](../src/Serializer/WireFormatDenormalizer.php) reads the fields whose wire format differs from the value the
+property holds, as the property declares:
 [`#[Base64]`](../src/Serializer/Attribute/Base64.php) and [`#[Base64DataUrl]`](../src/Serializer/Attribute/Base64DataUrl.php) for files, which the property holds as bytes, and
 [`#[NamedValues]`](../src/Serializer/Attribute/NamedValues.php) for values keyed by name, which the property holds as a list of name and value pairs.
 [`ResponseQuirksDenormalizer`](../src/Serializer/ResponseQuirksDenormalizer.php) repairs the API's known oddities, each for one class and the fields it
 names: null paging numbers, null tracking texts and default flags, a contact-form field whose
 `options` names a form property instead of listing choices, carrier-specific point functions,
-and transport methods keyed by method. A field that differs in any other way is drift.
+and transport methods keyed by method. An order also takes its additional services as a map of
+codes under `courierservice` but answers with their names under that key, which the SDK reads into
+[`Order::getCourierServiceNames()`](../src/Entity/Order.php). A field that differs in any other way is drift.
+
+[`RequestQuirksNormalizer`](../src/Serializer/RequestQuirksNormalizer.php) does the same for what is sent, and only `cover_address` needs it. The
+block holds an [`Address`](../src/Entity/Order/Address.php) like the sender and the recipient, but `create_order` reads nine keys
+from it: `company`, `person`, `street`, `housenumber`, `postcode`, `city`, `phone`, `email`, and
+the flat number under `flat_number` rather than `flatnumber`. Every other key, `country` and
+`point_id` among them, is dropped, because the API prints and charges for a cover address as soon
+as any value in that block is non-empty.
 
 The object normalizer is set up with five pieces:
 
@@ -119,7 +134,7 @@ The object normalizer is set up with five pieces:
 ### Why `PhpStanExtractor` and not `PhpDocExtractor`
 
 PHP has no syntax for collection element types, so they come from the `@var` docblock on each
-property (`Pack[]`, `array<string, string>`). The SDK's properties are *promoted constructor
+property (`PackItem[]`, `array<string, string>`). The SDK's properties are *promoted constructor
 parameters*, and `PhpDocExtractor` does not read their docblocks. `PhpStanExtractor` does. If you
 swap one for the other, every list silently arrives as an array of raw arrays instead of objects.
 
@@ -186,7 +201,7 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 
 #[Serializer\SerializedName(self::FIELD_PICKUP)]
 #[OmitWhenEmpty]
-private ?PickupMessage $pickup = null,
+private ?Pickup $pickup = null,
 ```
 
 [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) drops these keys when the value is empty. Empty means `null`, `''` or `[]`.
@@ -194,6 +209,58 @@ private ?PickupMessage $pickup = null,
 
 The attribute works on properties and on methods (for computed fields). Parent classes are checked
 too, so a base message's optional fields stay optional in its subclasses.
+
+### Fields the API only reports
+
+A record is one class for sending and reading, so it holds fields the API never takes. Each of
+those carries [`#[ResponseOnly]`](../src/Serializer/Attribute/ResponseOnly.php), and [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) leaves it out of the payload
+whatever its value:
+
+```php
+#[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
+#[ResponseOnly]
+private ?float $priceGross = null,
+```
+
+### Fields a subclass of yours adds
+
+[`SentFieldsNormalizer`](../src/Serializer/SentFieldsNormalizer.php) sends what the SDK declares, plus what a subclass declares with
+`#[SerializedName]`. A property of your own without it — a primary key, an ORM column, a value you
+cache on the object — stays on your side:
+
+```php
+use Polkurier\Webservice\Entity\Order;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+class ShopOrder extends Order
+{
+    public function __construct(
+        string $courier,
+        public int $id,                                   // never sent
+        #[Serializer\SerializedName('shop_reference')]
+        public ?string $reference = null,                 // sent
+    ) {
+        parent::__construct(courier: $courier);   // … and the order's other arguments
+    }
+}
+```
+
+The payload is built from what the object normalizer can read: a public property, or a private one
+with a getter. A field written with [`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php) goes out whatever its name, because its
+entries are merged into the enclosing object by [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php), which wraps the filter, and
+their keys aren't known in advance.
+
+The API rejects or misreads a key it doesn't know, and it prints and charges for a cover address
+as soon as any value in that block is non-empty. A class of your own that inherits nothing from
+the SDK is written whole, so this never touches a payload the SDK doesn't own.
+
+### Fields written at the enclosing level
+
+[`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php) writes a field's own entries into the object that holds it, instead of under its
+key. [`CreateOrderMessage`](../src/Dto/Request/Order/CreateOrderMessage.php) uses it for the [`Order`](../src/Entity/Order.php) it carries, so the order's fields and the
+request-only `coupon_code` land side by side in `data`. The same attribute carries a map whose
+keys aren't known in advance, such as the answers to a contact form. An inlined entry never
+replaces a key the enclosing object already writes.
 
 ### Dates on the way out
 

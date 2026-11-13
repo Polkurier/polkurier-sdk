@@ -13,7 +13,9 @@ use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Dto\Response\Order\TrackingEventMessage;
 use Polkurier\Webservice\Dto\Response\PagedListMessage;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
+use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -90,7 +92,13 @@ class ResponseQuirksDenormalizer implements NormalizerInterface, DenormalizerInt
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         if (\is_array($data)) {
-            $data = $this->repair($data, $type);
+            $path = $context['deserialization_path'] ?? null;
+            $data = $this->repair(
+                $data,
+                $type,
+                \is_string($path) ? $path : '',
+                ResponseDriftCollector::fromContext($context),
+            );
         }
 
         return $this->inner->denormalize($data, $type, $format, $context);
@@ -128,10 +136,12 @@ class ResponseQuirksDenormalizer implements NormalizerInterface, DenormalizerInt
      *
      * @param array<array-key, mixed> $data
      * @param string $type
+     * @param string $path where the object sits in the response
+     * @param ResponseDriftCollector|null $drift receives what a fix drops
      *
      * @return array<array-key, mixed>
      */
-    protected function repair(array $data, string $type): array
+    protected function repair(array $data, string $type, string $path, ?ResponseDriftCollector $drift): array
     {
         return match (true) {
             // Paging numbers come as null on some lists. Null means none, as when they are left out.
@@ -152,9 +162,12 @@ class ResponseQuirksDenormalizer implements NormalizerInterface, DenormalizerInt
             $type === ContactFormFieldMessage::class => self::splitOptions($data),
             // A point lists functions specific to its carrier among the general ones, sometimes more
             // than once.
-            $type === CourierPoint::class => self::knownFunctions($data),
+            $type === CourierPoint::class => self::keepKnownFunctions($data, $path, $drift),
             // The transport methods may come as an object keyed by method.
             $type === TwoFactorToken::class => self::listOfValues($data, TwoFactorToken::FIELD_AVAILABLE_METHODS),
+            // An order takes services as a map of codes under `courierservice` and answers with their
+            // names under the same key. Only the list of names is read; a map is what was sent.
+            \is_a($type, Order::class, true) => self::readNamedServices($data, $path, $drift),
             default => $data,
         };
     }
@@ -196,25 +209,37 @@ class ResponseQuirksDenormalizer implements NormalizerInterface, DenormalizerInt
         return $data;
     }
 
-
     /**
-     * Keeps the functions the SDK knows, each once.
+     * Keeps the functions the SDK knows, each once, and reports the rest as the enum denormalizer
+     * would have.
      *
      * @param array<array-key, mixed> $data
+     * @param string $path
+     * @param ResponseDriftCollector|null $drift
      *
      * @return array<array-key, mixed>
      */
-    private static function knownFunctions(array $data): array
+    private static function keepKnownFunctions(array $data, string $path, ?ResponseDriftCollector $drift): array
     {
         $functions = $data[CourierPoint::FIELD_FUNCTIONS] ?? null;
-        if (\is_array($functions)) {
-            $known = \array_filter(
-                $functions,
-                static fn(mixed $function): bool => \is_string($function)
-                    && PointFunctionEnum::tryFrom($function) !== null,
-            );
-            $data[CourierPoint::FIELD_FUNCTIONS] = \array_values(\array_unique($known));
+        if (!\is_array($functions)) {
+            return $data;
         }
+        $known = [];
+        foreach ($functions as $index => $function) {
+            if (\is_string($function) && PointFunctionEnum::tryFrom($function) !== null) {
+                $known[] = $function;
+
+                continue;
+            }
+            $drift?->add(
+                ResponseDriftTypeEnum::UnknownEnumValue,
+                ResponseDriftCollector::at($path, CourierPoint::FIELD_FUNCTIONS) . '[' . $index . ']',
+                $function,
+                PointFunctionEnum::class,
+            );
+        }
+        $data[CourierPoint::FIELD_FUNCTIONS] = \array_values(\array_unique($known));
 
         return $data;
     }
@@ -236,6 +261,64 @@ class ResponseQuirksDenormalizer implements NormalizerInterface, DenormalizerInt
         return $data;
     }
 
+    /**
+     * Reads the services an order was bought with, which arrive under the key their codes are sent
+     * under. The key itself is always removed, because {@see Order::getCourierServiceMap()} writes
+     * it and no property reads it back.
+     *
+     * A payload the SDK wrote therefore loses its flag map when it is read back: the services a
+     * caller set are sent, not stored. {@see \Polkurier\Webservice\Api\SerializerInterface::decode()}
+     * says so.
+     *
+     * @param array<array-key, mixed> $data
+     * @param string $path
+     * @param ResponseDriftCollector|null $drift
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function readNamedServices(array $data, string $path, ?ResponseDriftCollector $drift): array
+    {
+        if (!\array_key_exists(Order::FIELD_COURIER_SERVICE, $data)) {
+            return $data;
+        }
+        $services = $data[Order::FIELD_COURIER_SERVICE];
+        unset($data[Order::FIELD_COURIER_SERVICE]);
 
+        if (\is_array($services) && \array_is_list($services)) {
+            $data[Order::FIELD_COURIER_SERVICE_NAMES] = $services;
 
+            return $data;
+        }
+        // The flag map an order is sent with. A response answers for it under
+        // `courierservice_names`, so there is nothing to report.
+        if ($services === null || (\is_array($services) && self::isFlagMap($services))) {
+            return $data;
+        }
+        $drift?->add(
+            ResponseDriftTypeEnum::CastValue,
+            ResponseDriftCollector::at($path, Order::FIELD_COURIER_SERVICE),
+            $services,
+            'string[]',
+        );
+
+        return $data;
+    }
+
+    /**
+     * Whether the value is the map of service codes an order is sent with.
+     *
+     * @param array<array-key, mixed> $services
+     *
+     * @return bool
+     */
+    private static function isFlagMap(array $services): bool
+    {
+        foreach ($services as $code => $enabled) {
+            if (!\is_string($code) || !\is_bool($enabled)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

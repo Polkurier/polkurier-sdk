@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -24,7 +25,8 @@ use Symfony\Component\Serializer\SerializerInterface;
  * the keys that shouldn't be there. Keys are matched by wire name, since that is what the wrapped
  * normalizer returns.
  *
- * It also writes the entries of a field marked {@see InlineFields} into the enclosing object.
+ * It also leaves out the fields marked {@see ResponseOnly}, and writes the entries of a field marked
+ * {@see InlineFields} into the enclosing object.
  *
  * The list of fields is read once per class and cached, to avoid reflection on every request.
  */
@@ -85,15 +87,20 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
             }
         }
 
-        foreach (static::fieldsMarkedWith($data::class, InlineFields::class) as $field) {
+        foreach (static::findFieldsMarkedWith($data::class, ResponseOnly::class) as $field) {
+            unset($normalized[$field]);
+        }
+
+        $inlined = [];
+        foreach (static::findFieldsMarkedWith($data::class, InlineFields::class) as $field) {
             $entries = $normalized[$field] ?? [];
             unset($normalized[$field]);
             if (\is_array($entries)) {
-                $normalized += $entries;
+                $inlined += $entries;
             }
         }
 
-        return $normalized;
+        return $normalized + $inlined;
     }
 
     /**
@@ -167,7 +174,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      */
     protected static function omittedFor(string $class): array
     {
-        return static::fieldsMarkedWith($class, OmitWhenEmpty::class);
+        return static::findFieldsMarkedWith($class, OmitWhenEmpty::class);
     }
 
     /**
@@ -178,40 +185,18 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      *
      * @return string[]
      */
-    protected static function fieldsMarkedWith(string $class, string $attributeClass): array
+    protected static function findFieldsMarkedWith(string $class, string $attributeClass): array
     {
-        if (isset(self::$marked[$attributeClass][$class])) {
-            return self::$marked[$attributeClass][$class];
+        if (isset(static::$marked[$attributeClass][$class])) {
+            return static::$marked[$attributeClass][$class];
         }
 
         $fields = [];
-        // Always the class of an object being normalized, so this can't fail.
-        $reflection = new \ReflectionClass($class);
-
-        for ($current = $reflection; $current !== false; $current = $current->getParentClass()) {
-            $members = [...$current->getProperties(), ...$current->getMethods()];
-
-            foreach ($members as $member) {
-                if ($member->getAttributes($attributeClass) === []) {
-                    continue;
-                }
-
-                $name = null;
-                foreach ($member->getAttributes() as $attribute) {
-                    if (\str_ends_with($attribute->getName(), '\\SerializedName')) {
-                        $arguments = $attribute->getArguments();
-                        $candidate = $arguments[0] ?? $arguments['serializedName'] ?? null;
-                        if (\is_string($candidate)) {
-                            $name = $candidate;
-                        }
-                    }
-                }
-
-                $fields[] = $name ?? $member->getName();
-            }
+        foreach (ClassMembers::readMarkedWith($class, $attributeClass) as $member) {
+            $fields[] = WireNameReader::read($member);
         }
 
-        return self::$marked[$attributeClass][$class] = \array_values(\array_unique($fields));
+        return static::$marked[$attributeClass][$class] = \array_values(\array_unique($fields));
     }
 
     /**

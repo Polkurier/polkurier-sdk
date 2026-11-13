@@ -47,6 +47,19 @@ class ResponseDriftCollector
     }
 
     /**
+     * Where a field sits, below the object's own path.
+     *
+     * @param string $path the enclosing object's path, empty at the top level
+     * @param string $field
+     *
+     * @return string
+     */
+    public static function at(string $path, string $field): string
+    {
+        return $path === '' ? $field : $path . '.' . $field;
+    }
+
+    /**
      * @return list<ResponseDrift>
      */
     public function all(): array

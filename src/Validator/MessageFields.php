@@ -9,7 +9,8 @@ namespace Polkurier\Webservice\Validator;
 
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
-use Symfony\Component\Serializer\Attribute as Serializer;
+use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\WireNameReader;
 
 /**
  * Reads a message's properties and their wire names through reflection.
@@ -79,12 +80,12 @@ class MessageFields
      */
     public function value(string $property): mixed
     {
-        $inlined = $this->inlinedHolder($property);
+        $inlined = $this->resolveInlinedHolder($property);
         if ($inlined !== null) {
             return $inlined->value($property);
         }
 
-        $reflectionProperty = static::propertyFor($this->message::class, $property);
+        $reflectionProperty = static::findProperty($this->message::class, $property);
 
         // A property that was never set has no value to check, whichever way it would be read.
         if ($reflectionProperty !== null && !$reflectionProperty->isInitialized($this->message)) {
@@ -92,7 +93,7 @@ class MessageFields
         }
 
         // What a getter returns is what is sent, so that is what the rules check.
-        $getter = static::getterFor($this->message::class, $property);
+        $getter = static::findGetter($this->message::class, $property);
         if ($getter !== null) {
             return $getter->invoke($this->message);
         }
@@ -117,7 +118,7 @@ class MessageFields
      */
     public function field(string $property): string
     {
-        return $this->inlinedHolder($property)?->field($property)
+        return $this->resolveInlinedHolder($property)?->field($property)
             ?? static::fieldNamesFor($this->message::class)[$property]
             ?? $property;
     }
@@ -130,18 +131,18 @@ class MessageFields
      * @return self|null null when the message declares the property or no inlined object holds it
      * @throws InvalidArgumentException
      */
-    protected function inlinedHolder(string $property): ?self
+    protected function resolveInlinedHolder(string $property): ?self
     {
-        if (static::propertyFor($this->message::class, $property) !== null) {
+        if (static::findProperty($this->message::class, $property) !== null) {
             return null;
         }
 
-        foreach (static::inlinedPropertiesOf($this->message::class) as $inlined) {
+        foreach (static::findInlinedProperties($this->message::class) as $inlined) {
             if (!$inlined->isInitialized($this->message)) {
                 continue;
             }
             $object = $inlined->getValue($this->message);
-            if (\is_object($object) && static::propertyFor($object::class, $property) !== null) {
+            if (\is_object($object) && static::findProperty($object::class, $property) !== null) {
                 return new static($object);
             }
         }
@@ -150,23 +151,25 @@ class MessageFields
     }
 
     /**
+     * The properties holding an object or map whose fields are sent at the enclosing level.
+     *
+     * A method can carry the attribute too, but only a property holds a value to read a field
+     * from, so the methods are left out here.
+     *
      * @param class-string $class
      *
      * @return list<\ReflectionProperty>
-     * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function inlinedPropertiesOf(string $class): array
+    protected static function findInlinedProperties(string $class): array
     {
         if (isset(self::$inlined[$class])) {
             return self::$inlined[$class];
         }
 
         $found = [];
-        for ($reflection = self::reflect($class); $reflection !== false; $reflection = $reflection->getParentClass()) {
-            foreach ($reflection->getProperties() as $property) {
-                if ($property->getAttributes(InlineFields::class) !== []) {
-                    $found[] = $property;
-                }
+        foreach (ClassMembers::readMarkedWith($class, InlineFields::class) as $member) {
+            if ($member instanceof \ReflectionProperty) {
+                $found[] = $member;
             }
         }
 
@@ -201,14 +204,8 @@ class MessageFields
                 if (isset($names[$property->getName()])) {
                     continue;
                 }
-                $attributes = $property->getAttributes(Serializer\SerializedName::class);
-                if ($attributes === []) {
-                    continue;
-                }
-                // The attribute's argument, read the same way on every supported Symfony version
-                $arguments = $attributes[0]->getArguments();
-                $name = $arguments['serializedName'] ?? $arguments[0] ?? null;
-                if (\is_string($name)) {
+                $name = WireNameReader::readDeclared($property);
+                if ($name !== null) {
                     $names[$property->getName()] = $name;
                 }
             }
@@ -227,7 +224,7 @@ class MessageFields
      * @return \ReflectionMethod|null
      * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function getterFor(string $class, string $property): ?\ReflectionMethod
+    protected static function findGetter(string $class, string $property): ?\ReflectionMethod
     {
         if (\array_key_exists($property, self::$getters[$class] ?? [])) {
             return self::$getters[$class][$property];
@@ -259,7 +256,7 @@ class MessageFields
      * @return \ReflectionProperty|null
      * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function propertyFor(string $class, string $property): ?\ReflectionProperty
+    protected static function findProperty(string $class, string $property): ?\ReflectionProperty
     {
         if (\array_key_exists($property, self::$properties[$class] ?? [])) {
             return self::$properties[$class][$property];

@@ -40,13 +40,13 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Objects are built through their constructors, so you never get a half-built object that throws on
  * the first getter. A response that differs from what the SDK expects is filled in, see
  * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}, or with
- * {@see SerializerConfigInterface::strictResponses()} on, fails. Each date property declares its
+ * {@see SerializerConfig::strictResponses()} on, fails. Each date property declares its
  * own format, since the API uses several.
  *
  * Building the serializer is slow, so share one instance across the factories.
  * {@see \Polkurier\Webservice\PolkurierWebservice} does this. Metadata caching, JSON flags, the
  * timezone for dates and whether a response that differs is an error are set through
- * {@see \Polkurier\Webservice\Serializer\SerializerConfigInterface}. Everything else is fixed by
+ * {@see SerializerConfig}. Everything else is fixed by
  * the API.
  */
 readonly class SerializerProvider implements SerializerProviderInterface
@@ -57,9 +57,9 @@ readonly class SerializerProvider implements SerializerProviderInterface
     protected SerializerInterface&DenormalizerInterface $serializer;
 
     /**
-     * @param SerializerConfigInterface $config
+     * @param SerializerConfig $config
      */
-    public function __construct(SerializerConfigInterface $config = new SerializerConfig())
+    public function __construct(SerializerConfig $config = new SerializerConfig())
     {
         $metadata = static::metadataFactory($config);
         $strict = $config->strictResponses();
@@ -96,9 +96,15 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 // Must come before the array normalizer, so unknown enum values never reach it.
                 new EnumListDenormalizer(),
                 new LenientListDenormalizer(new ArrayDenormalizer()),
-                new OmitEmptyNormalizer(new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
-                    new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
-                ))),
+                new RequestQuirksNormalizer(
+                    // The ownership filter runs inside the inlining, so the entries an
+                    // #[InlineFields] field writes are not filtered: their keys aren't known here.
+                    new OmitEmptyNormalizer(new SentFieldsNormalizer(
+                        new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+                            new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+                        )),
+                    )),
+                ),
             ],
             encoders: [
                 new JsonEncoder(
@@ -114,11 +120,11 @@ readonly class SerializerProvider implements SerializerProviderInterface
     /**
      * Wraps the metadata factory in a cache if a pool was configured.
      *
-     * @param SerializerConfigInterface $config
+     * @param SerializerConfig $config
      *
      * @return ClassMetadataFactoryInterface
      */
-    protected static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
+    protected static function metadataFactory(SerializerConfig $config): ClassMetadataFactoryInterface
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
         $cache = $config->getMetadataCache();

@@ -222,7 +222,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
                 continue;
             }
 
-            $at = $path === '' ? $field['name'] : $path . '.' . $field['name'];
+            $at = ResponseDriftCollector::at($path, $field['name']);
             $present = \array_key_exists($wire, $data);
             $value = $present ? $data[$wire] : null;
             $types = $field['types'];
@@ -269,7 +269,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
 
         foreach ($data as $key => $value) {
             if (!isset($known[(string)$key])) {
-                $at = $path === '' ? (string)$key : $path . '.' . $key;
+                $at = ResponseDriftCollector::at($path, (string)$key);
                 $drift->add(ResponseDriftTypeEnum::UnknownField, $at, $value);
             }
         }

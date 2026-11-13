@@ -9,12 +9,13 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Serializer\WireNameReader;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Symfony\Component\Serializer\Attribute\SerializedName;
 
 /**
  * Every FIELD_* constant a request class declares must come out as a key when a fully populated
@@ -24,6 +25,17 @@ use Symfony\Component\Serializer\Attribute\SerializedName;
  */
 final class RequestFieldRoundTripTest extends TestCase
 {
+    /**
+     * Constants naming a key no property holds, because the serializer writes it itself, by the
+     * class that declares them.
+     *
+     * @var array<class-string, list<string>>
+     */
+    private const array SYNTHETIC_FIELDS = [
+        // Written by RequestQuirksNormalizer from the flat number, inside an order's cover address.
+        OrderAddress::class => ['FIELD_COVER_FLAT_NUMBER'],
+    ];
+
     /**
      * @return array<string, array{class-string}>
      */
@@ -55,8 +67,9 @@ final class RequestFieldRoundTripTest extends TestCase
 
         self::assertIsArray($payload);
         $skipped = [...self::inlinedKeys($class), ...self::responseOnlyKeys($class)];
+        $synthetic = self::syntheticFields($class);
         foreach ($fields as $name => $key) {
-            if (\in_array($key, $skipped, true)) {
+            if (\in_array($key, $skipped, true) || \in_array($name, $synthetic, true)) {
                 continue;
             }
             self::assertIsString($key);
@@ -69,21 +82,11 @@ final class RequestFieldRoundTripTest extends TestCase
      *
      * @param class-string $class
      *
-     * @return list<mixed>
+     * @return list<string>
      */
     private static function responseOnlyKeys(string $class): array
     {
-        $keys = [];
-        foreach ((new \ReflectionClass($class))->getProperties() as $property) {
-            if ($property->getAttributes(ResponseOnly::class) === []) {
-                continue;
-            }
-            foreach ($property->getAttributes(SerializedName::class) as $attribute) {
-                $keys[] = $attribute->getArguments()['serializedName'] ?? $attribute->getArguments()[0] ?? null;
-            }
-        }
-
-        return $keys;
+        return self::keysMarkedWith($class, ResponseOnly::class);
     }
 
     /**
@@ -91,20 +94,49 @@ final class RequestFieldRoundTripTest extends TestCase
      *
      * @param class-string $class
      *
-     * @return list<mixed>
+     * @return list<string>
      */
     private static function inlinedKeys(string $class): array
     {
+        return self::keysMarkedWith($class, InlineFields::class);
+    }
+
+    /**
+     * Wire names of the properties carrying the given attribute, read as the serializer reads them.
+     *
+     * @param class-string $class
+     * @param class-string $attribute
+     *
+     * @return list<string>
+     */
+    private static function keysMarkedWith(string $class, string $attribute): array
+    {
         $keys = [];
         foreach ((new \ReflectionClass($class))->getProperties() as $property) {
-            if ($property->getAttributes(InlineFields::class) === []) {
-                continue;
-            }
-            foreach ($property->getAttributes(SerializedName::class) as $attribute) {
-                $keys[] = $attribute->getArguments()[0] ?? null;
+            if ($property->getAttributes($attribute) !== []) {
+                $keys[] = WireNameReader::read($property);
             }
         }
 
         return $keys;
+    }
+
+    /**
+     * Names of the constants of {@see self::SYNTHETIC_FIELDS} that apply to the class.
+     *
+     * @param class-string $class
+     *
+     * @return list<string>
+     */
+    private static function syntheticFields(string $class): array
+    {
+        $names = [];
+        foreach (self::SYNTHETIC_FIELDS as $owner => $constants) {
+            if (\is_a($class, $owner, true)) {
+                $names = [...$names, ...$constants];
+            }
+        }
+
+        return $names;
     }
 }

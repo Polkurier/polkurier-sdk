@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  *
  * {@see \Polkurier\Webservice\Serializer\SerializerProvider} is the default, and a subclass of it
  * can change how the serializer is built. Most settings are in
- * {@see \Polkurier\Webservice\Serializer\SerializerConfigInterface}. Every call depends on the
+ * {@see SerializerConfig}. Every call depends on the
  * mapping, and a broken one fails in ways that look like API errors.
  *
  * Implement this interface if you need something else entirely, e.g. metadata from somewhere other
