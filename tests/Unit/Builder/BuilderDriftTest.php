@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 
 /**
  * The committed builders still match the messages they build.
@@ -49,12 +50,16 @@ final class BuilderDriftTest extends TestCase
                 \substr($file->getPathname(), \strlen($root) + 1, -4)
             );
 
-            /** @var class-string $message */
-            $message = \str_replace(
-                ['\\Builder\\', 'Builder'],
-                ['\\Request\\', ''],
-                $builder
+            // A builder mirrors its message's group and name, e.g. Builder\Order\CodMessageBuilder
+            // builds Entity\Order\CodMessage, and Builder\Order\GetOrdersMessageBuilder builds
+            // Dto\Request\Order\GetOrdersMessage.
+            $relative = \substr($builder, \strlen('Polkurier\\Webservice\\Builder\\'), -\strlen('Builder'));
+            $candidates = \array_filter(
+                MessageClasses::requests(),
+                static fn(string $class): bool => \str_ends_with($class, '\\' . $relative),
             );
+            /** @var class-string $message */
+            $message = \reset($candidates) ?: 'Polkurier\\Webservice\\Dto\\Request\\' . $relative;
 
             $reflection = new \ReflectionClass($builder);
 
@@ -121,33 +126,17 @@ final class BuilderDriftTest extends TestCase
      */
     public function testEveryMessageBigEnoughHasABuilder(): void
     {
-        $root = \dirname(__DIR__, 3) . '/src';
         $missing = [];
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Request')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $message */
-            $message = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
-            if (!\class_exists($message)) {
-                continue;
-            }
-
+        foreach (MessageClasses::requests() as $name => $message) {
             $constructor = (new \ReflectionClass($message))->getConstructor();
 
             if ($constructor === null || \count($constructor->getParameters()) < self::THRESHOLD) {
                 continue;
             }
 
-            $builder = \str_replace('\\Request\\', '\\Builder\\', $message) . 'Builder';
+            $relative = \preg_replace('/^(Dto\\\\Request|Entity)\\\\/', '', $name);
+            $builder = 'Polkurier\\Webservice\\Builder\\' . $relative . 'Builder';
 
             if (!\class_exists($builder)) {
                 $missing[] = $message;

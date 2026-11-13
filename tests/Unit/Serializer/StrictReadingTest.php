@@ -10,10 +10,10 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Enum\Courier\CourierMessageTypeEnum;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 

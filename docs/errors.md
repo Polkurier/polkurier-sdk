@@ -9,7 +9,7 @@ order all come back as 200. The transport status says nothing about the outcome,
 doesn't look at it.
 
 The actual outcome is in the envelope's `status` field. The SDK reads it and throws an exception
-for each failure case. A method that returns an [`Order`](../src/Response/Order.php) either returns one or throws.
+for each failure case. A method that returns an [`Order`](../src/Entity/Order/Order.php) either returns one or throws.
 
 The hierarchy
 -------------
@@ -228,13 +228,13 @@ and the SDK can't tell you whether it did.
 looks for the order it tried to place, and sends it again only if it isn't there.
 
 The reliable way is to give the order your own identifiers when you place it.
-[`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) takes `externalApplicationId` (your application's UUID) and `externalOrderId`
+[`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php) takes `externalApplicationId` (your application's UUID) and `externalOrderId`
 (your id for the order), and the SDK refuses one without the other. Filter
 [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) by both to find the order. The match is exact:
 
 ```php
 use Polkurier\Webservice\Exception\ConnectionException;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 
 // $order was built with externalApplicationId: $myApplicationId, externalOrderId: $myOrderId
 try {

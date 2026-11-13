@@ -9,9 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Address\SaveAddressMessage;
+use Polkurier\Webservice\Entity\Order\Pickup;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
-use Polkurier\Webservice\Request\Address\SaveMessage;
-use Polkurier\Webservice\Response\Order\Pickup;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
@@ -79,11 +79,11 @@ final class SerializerConfigTest extends TestCase
     }
 
     /**
-     * @return SaveMessage
+     * @return SaveAddressMessage
      */
-    private static function address(): SaveMessage
+    private static function address(): SaveAddressMessage
     {
-        return new SaveMessage(
+        return new SaveAddressMessage(
             name: 'Magazyn',
             person: 'Jan Kowalski',
             street: 'Długa',

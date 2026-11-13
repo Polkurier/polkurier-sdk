@@ -9,13 +9,13 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Testing\RecordingClient;
 
 /**

@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Order;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 
 /**
  * Assembles the filters for the order list.

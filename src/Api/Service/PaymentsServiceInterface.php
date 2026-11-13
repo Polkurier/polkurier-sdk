@@ -7,18 +7,18 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Payment\GetPaymentInfoMessage;
+use Polkurier\Webservice\Dto\Request\Payment\GetPrepaidHistoryMessage;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
+use Polkurier\Webservice\Dto\Response\Payment\PaymentInfoMessage;
+use Polkurier\Webservice\Dto\Response\Payment\PrepaidHistoryMessage;
+use Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Payment\GetPaymentInfoMessage;
-use Polkurier\Webservice\Request\Payment\GetPrepaidHistoryMessage;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
-use Polkurier\Webservice\Response\Payment\PaymentInfoMessage;
-use Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage;
-use Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage;
 
 /**
  * Online payments and the prepaid balance.
@@ -115,7 +115,7 @@ interface PaymentsServiceInterface
      * @param RegisterPaymentMessage $registerPaymentMessage
      *
      * @return RegisteredPaymentMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -170,7 +170,7 @@ interface PaymentsServiceInterface
      * @param GetPaymentInfoMessage $getPaymentInfoMessage
      *
      * @return PaymentInfoMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Payment\PaymentInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -226,7 +226,7 @@ interface PaymentsServiceInterface
      * @param GetPrepaidHistoryMessage|null $getPrepaidHistoryMessage null fetches the first page
      *
      * @return PrepaidHistoryMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Payment\PrepaidHistoryMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

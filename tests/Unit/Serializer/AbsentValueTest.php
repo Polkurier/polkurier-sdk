@@ -9,10 +9,10 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Carrier\AdditionalData\Pickup;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Order\IndividualPricing;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Pickup;
+use Polkurier\Webservice\Dto\Response\Order\IndividualPricing;
+use Polkurier\Webservice\Entity\Order\Order;
 use Polkurier\Webservice\Serializer\AbsentDateNormalizer;
 use Polkurier\Webservice\Serializer\OmitEmptyNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;

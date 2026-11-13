@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Order;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Entity\Order\PickupMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\PickupMessage;
 
 /**
  * Assembles the collection details of an order.

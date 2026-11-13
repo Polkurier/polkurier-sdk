@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Test\Unit\Message;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Response\Contact\ContactFormResultDataMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormResultDataMessage;
 
 /**
  * A contact form's generated document comes as a `data:` URL.

@@ -10,12 +10,12 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Testing\RecordingClient;
 
 /**

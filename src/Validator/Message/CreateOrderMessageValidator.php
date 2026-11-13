@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
@@ -24,7 +24,7 @@ use Polkurier\Webservice\Validator\ViolationPool;
  * role it plays, so the check happens here.
  *
  * Cash-on-delivery rules are declared on
- * {@see \Polkurier\Webservice\Request\Order\CodMessage}, so they apply wherever that block is
+ * {@see \Polkurier\Webservice\Entity\Order\CodMessage}, so they apply wherever that block is
  * sent.
  *
  * @extends AbstractMessageValidator<CreateOrderMessage>

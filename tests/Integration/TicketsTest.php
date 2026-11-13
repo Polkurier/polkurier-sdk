@@ -10,16 +10,16 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketMessageFileMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketsMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\SetTicketStatusMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\Enum\Ticket\TicketStatusEnum;
-use Polkurier\Webservice\Request\Contact\GetContactFormMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
-use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
-use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
-use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 
 /**
  * One ticket opened, answered with a file, read back and closed. A submitted contact form opens a

@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\PagedListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\PagedListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Entity\Order\Order;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;

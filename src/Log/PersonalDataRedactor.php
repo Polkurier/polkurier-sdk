@@ -7,20 +7,20 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Log;
 
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Address\Address;
+use Polkurier\Webservice\Entity\BankAccount\BankAccount;
+use Polkurier\Webservice\Entity\Order\Cod;
+use Polkurier\Webservice\Entity\Order\CoverAddressMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddress;
+use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
-use Polkurier\Webservice\Request\Order\CoverAddressMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Account\PhoneNumberMessage;
-use Polkurier\Webservice\Response\Address;
-use Polkurier\Webservice\Response\BankAccount;
-use Polkurier\Webservice\Response\BaseAddress;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\Order\Cod;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
 
 /**
  * Hides personal data in request and response bodies before they are logged.
@@ -38,18 +38,18 @@ class PersonalDataRedactor extends FieldRedactor
      * Wire names of the fields hidden in every method.
      */
     public const array FIELDS = [
-        BaseAddress::FIELD_PERSON,
-        BaseAddress::FIELD_COMPANY,
-        BaseAddress::FIELD_STREET,
-        BaseAddress::FIELD_STREET_NAME,
+        OrderAddress::FIELD_PERSON,
+        OrderAddress::FIELD_COMPANY,
+        OrderAddress::FIELD_STREET,
+        OrderAddress::FIELD_STREET_NAME,
         Address::FIELD_HOUSE_NUMBER,
         Address::FIELD_FLAT_NUMBER,
         CoverAddressMessage::FIELD_FLAT_NUMBER,
-        BaseAddress::FIELD_POSTCODE,
+        OrderAddress::FIELD_POSTCODE,
         SavePayerAddressMessage::FIELD_POST_CODE,
-        BaseAddress::FIELD_CITY,
-        BaseAddress::FIELD_EMAIL,
-        BaseAddress::FIELD_PHONE,
+        OrderAddress::FIELD_CITY,
+        OrderAddress::FIELD_EMAIL,
+        OrderAddress::FIELD_PHONE,
         TwoFactorToken::FIELD_PHONE_NUMBER,
         SavePayerAddressMessage::FIELD_NIP,
         SavePayerAddressMessage::FIELD_REGON,
@@ -69,9 +69,9 @@ class PersonalDataRedactor extends FieldRedactor
         ApiMethodEnum::GetBankAccounts->value => [BankAccount::FIELD_NUMBER],
         ApiMethodEnum::SaveBankAccount->value => [BankAccount::FIELD_NUMBER],
         ApiMethodEnum::DeleteBankAccount->value => [BankAccount::FIELD_NUMBER],
-        ApiMethodEnum::GetPhoneNumbers->value => [PhoneNumberMessage::FIELD_NUMBER],
-        ApiMethodEnum::SavePhoneNumber->value => [PhoneNumberMessage::FIELD_NUMBER],
-        ApiMethodEnum::DeletePhoneNumber->value => [PhoneNumberMessage::FIELD_NUMBER],
+        ApiMethodEnum::GetPhoneNumbers->value => [PhoneNumber::FIELD_NUMBER],
+        ApiMethodEnum::SavePhoneNumber->value => [PhoneNumber::FIELD_NUMBER],
+        ApiMethodEnum::DeletePhoneNumber->value => [PhoneNumber::FIELD_NUMBER],
         ApiMethodEnum::CreateTicket->value => [CreateTicketMessage::FIELD_NAME],
     ];
 

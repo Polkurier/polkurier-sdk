@@ -8,15 +8,15 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Order;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Entity\Order\CodMessage;
+use Polkurier\Webservice\Entity\Order\CoverAddressMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PickupMessage;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\CodMessage;
-use Polkurier\Webservice\Request\Order\CoverAddressMessage;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\Order\PickupMessage;
 
 /**
  * Assembles an order, for pricing or for placing.

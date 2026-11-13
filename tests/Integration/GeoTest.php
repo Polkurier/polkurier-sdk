@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
-use Polkurier\Webservice\Request\Geo\FindCityMessage;
+use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
 
 #[Group('integration')]
 #[CoversNothing]

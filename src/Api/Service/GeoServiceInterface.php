@@ -7,15 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
+use Polkurier\Webservice\Dto\Response\Geo\CityMessage;
+use Polkurier\Webservice\Dto\Response\Geo\TokenMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Geo\FindCityMessage;
-use Polkurier\Webservice\Response\Geo\CityMessage;
-use Polkurier\Webservice\Response\Geo\TokenMessage;
 
 /**
  * Geographic lookups for address entry and pickup point selection.

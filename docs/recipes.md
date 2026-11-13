@@ -29,9 +29,9 @@ Pick a carrier, describe the shipment, get a price, then place the order.
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 
 $order = new CreateOrderMessage(
     courier: 'UPS',                       // a Carrier::getServiceCode()
@@ -82,7 +82,7 @@ The SDK cannot check these for you:
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
   window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` is required to place an order, and the API cuts it to fit its length limit:
-  [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) bytes, unless the account or the carrier has another.
+  [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Entity/Order/CreateOrderMessage.php) bytes, unless the account or the carrier has another.
 - `externalApplicationId` and `externalOrderId` are optional. They let you find the
   order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
   SDK refuses one without the other.
@@ -132,7 +132,7 @@ There are 2 approaches.
 [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
 
 ```php
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
 
 $carriers = $client->courier()->availableCarriers(
     new AvailableCarriersMessage(additionalData: true),
@@ -148,7 +148,7 @@ foreach ($carriers as $carrier) {
 }
 ```
 
-With `additionalData: true`, each [`Carrier`](../src/Response/Carrier.php) also describes what it supports: shipment types, cash
+With `additionalData: true`, each [`Carrier`](../src/Dto/Response/Carrier.php) also describes what it supports: shipment types, cash
 on delivery and insurance, pickup requirements, the additional services it offers (except the SMS
 notifications) and which pickup points it uses. The SDK does not validate against this data. It
 describes what a shipping form can offer.
@@ -159,7 +159,7 @@ One valuation quotes every carrier that can carry the shipment, so compare the q
 
 ```php
 use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
-use Polkurier\Webservice\Response\Order\ValuationMessage;
+use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 
 $quotes = $client->orders()->orderValuation(
     CreateOrderMessageBuilder::create()
@@ -178,7 +178,7 @@ $cheapest = $quotes[0] ?? null;   // place the order with $cheapest->getServiceC
 ```
 
 A carrier that can't carry the shipment is quoted at 0, so without the filter on
-[`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) it would come out cheapest.
+[`ValuationMessage::isShipment()`](../src/Dto/Response/Order/ValuationMessage.php) it would come out cheapest.
 
 ---
 
@@ -186,7 +186,7 @@ Cash on delivery
 ----------------
 
 ```php
-use Polkurier\Webservice\Request\Order\CodMessage;
+use Polkurier\Webservice\Entity\Order\CodMessage;
 
 $order = CreateOrderMessageBuilder::create()
     // …
@@ -205,8 +205,8 @@ validated. For example, no bank account is required.
 either a full IBAN or a bare Polish national number. The SDK is strict here because this field
 decides where the money goes. Only a Polish account passes, as the API requires.
 
-When you read an order back, cash on delivery comes as a different class. [`Response\Order\Cod`](../src/Response/Order/Cod.php)
-reports what happened to the money (status, payout, return details), while [`CodMessage`](../src/Request/Order/CodMessage.php) describes
+When you read an order back, cash on delivery comes as a different class. [`Cod`](../src/Entity/Order/Cod.php)
+reports what happened to the money (status, payout, return details), while [`CodMessage`](../src/Entity/Order/CodMessage.php) describes
 what to collect.
 
 ```php
@@ -269,7 +269,7 @@ Booking a collection
 --------------------
 
 For one shipment, book the collection with the order, through
-[`CreateOrderMessage::getPickup()`](../src/Request/Order/CreateOrderMessage.php).
+[`CreateOrderMessage::getPickup()`](../src/Entity/Order/CreateOrderMessage.php).
 [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
 
 For several at once, if a collective pickup is available. Availability is decided per shipment,
@@ -310,7 +310,7 @@ Labels and protocols
 one call covers them all:
 
 ```php
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 
 $document = $client->orders()->getLabel(new GetDocumentMessage(
     orderNo: ['12345-678', '12345-679'],
@@ -355,7 +355,7 @@ Tracking
 The basic call, for a single order:
 
 ```php
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
 
 $status = $client->orders()->getStatus(new GetStatusMessage(orderNo: '12345-678'));
 ```
@@ -390,10 +390,10 @@ Paging through a list
 The paged responses do not all have the same shape, so there are 2 loops. See
 [Messages](messages.md#lists-maps-and-pages).
 
-**When the response has a page count** ([`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php)):
+**When the response has a page count** ([`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php)):
 
 ```php
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 
 $page = 1;
 
@@ -412,12 +412,12 @@ do {
 } while ($page <= $list->getTotalPages());
 ```
 
-**When it does not** ([`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php)), stop
+**When it does not** ([`InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php)), stop
 when a page comes back short:
 
 ```php
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
 
 $page = 1;
 $size = 100;
@@ -456,8 +456,8 @@ function allOrders(PolkurierWebservice $client, GetOrdersMessageBuilder $filter)
 }
 ```
 
-Page sizes have a maximum, and the SDK checks it before sending: [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Request/Order/GetOrdersMessage.php)
-is 100 and [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) is 250. A larger value throws a [`ValidationException`](../src/Exception/ValidationException.php).
+Page sizes have a maximum, and the SDK checks it before sending: [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Dto/Request/Order/GetOrdersMessage.php)
+is 100 and [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Dto/Request/Ticket/GetTicketsMessage.php) is 250. A larger value throws a [`ValidationException`](../src/Exception/ValidationException.php).
 
 ---
 
@@ -469,8 +469,8 @@ bank account or requesting a payout. The flow:
 
 ```php
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 
 // 1. Register against the operation the code will authorise.
 $token = $client->twoFactorToken()->twoFactorTokenRegister(
@@ -496,10 +496,10 @@ If the code does not arrive, you can resend it, or switch to another delivery me
 lists:
 
 ```php
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
 
-$client->twoFactorToken()->twoFactorTokenResend(new TokenMessage($token->getId()));
+$client->twoFactorToken()->twoFactorTokenResend(new ResendMessage($token->getId()));
 
 foreach ($token->getAvailableMethods() as $method) {   // TransportMethodMessage[]
     // Offer $method->getName(). getType() is a TwoFactorTransportTypeEnum for your own labels.
@@ -524,7 +524,7 @@ The fee can be checked before the payout is requested:
 ```php
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
 $config = $client->moneyBox()->getConfig();         // MoneyBoxConfigMessage, the saved destination
 $fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
@@ -543,9 +543,9 @@ printf("Payout %s for %.2f PLN is %s\n",
 > [`ConnectionException`](../src/Exception/ConnectionException.php), only [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) shows whether the payout was made, and a
 > blind retry can pay out twice.
 
-[`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while [`MoneyBoxPayoutMessage::isCancellable()`](../src/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true. Current balances are on
-[`$client->account()->getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::getMoneyBoxBalance()`](../src/Response/Account/AccountInfoMessage.php), [`AccountInfoMessage::getMoneyBoxPayoutAvailableBalance()`](../src/Response/Account/AccountInfoMessage.php) and
-[`AccountInfoMessage::getMoneyBoxToPayoutBalance()`](../src/Response/Account/AccountInfoMessage.php).
+[`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while [`MoneyBoxPayoutMessage::isCancellable()`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true. Current balances are on
+[`$client->account()->getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::getMoneyBoxBalance()`](../src/Dto/Response/Account/AccountInfoMessage.php), [`AccountInfoMessage::getMoneyBoxPayoutAvailableBalance()`](../src/Dto/Response/Account/AccountInfoMessage.php) and
+[`AccountInfoMessage::getMoneyBoxToPayoutBalance()`](../src/Dto/Response/Account/AccountInfoMessage.php).
 
 ---
 

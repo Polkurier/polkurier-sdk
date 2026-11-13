@@ -16,7 +16,7 @@ use Polkurier\Webservice\Validator\ViolationPool;
 /**
  * The largest page size a paged request may ask for.
  *
- * Declared on a {@see \Polkurier\Webservice\Request\Common\PagedMessage} whose endpoint has a
+ * Declared on a {@see \Polkurier\Webservice\Dto\Request\Common\PagedMessage} whose endpoint has a
  * limit. An unset page size passes.
  *
  * ```php

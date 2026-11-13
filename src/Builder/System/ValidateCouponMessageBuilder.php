@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\System;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 
 /**
  * Assembles a coupon check.

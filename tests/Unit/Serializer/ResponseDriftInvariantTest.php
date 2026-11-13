@@ -11,14 +11,15 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\Webhook\OrderWebhookMessage;
+use Polkurier\Webservice\Entity\Order\Order;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Webhook\OrderWebhookMessage;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Webhook\OrderWebhookReader;
 
@@ -47,40 +48,18 @@ final class ResponseDriftInvariantTest extends TestCase
     ];
 
     /**
-     * Every class under Response, except the order event, which has a test of its own.
+     * Every response class, except the order event, which has a test of its own.
      *
      * @return array<string, array{class-string}>
      */
     public static function responseClasses(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
-        $classes = [];
+        $classes = \array_filter(
+            MessageClasses::responses(),
+            static fn(string $class): bool => $class !== OrderWebhookMessage::class,
+        );
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Response')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
-            if (!\class_exists($class) || (new \ReflectionClass($class))->isAbstract()
-                || $class === OrderWebhookMessage::class
-            ) {
-                continue;
-            }
-
-            $classes[\str_replace('Polkurier\\Webservice\\Response\\', '', $class)] = [$class];
-        }
-
-        self::assertNotEmpty($classes);
-
-        return $classes;
+        return \array_map(static fn(string $class): array => [$class], $classes);
     }
 
     /**

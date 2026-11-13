@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
 use Polkurier\Webservice\Enum\Ticket\TicketOriginEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
 
 
 require __DIR__ . '/bootstrap.php';

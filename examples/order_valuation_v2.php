@@ -15,11 +15,11 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
 
 require __DIR__ . '/bootstrap.php';

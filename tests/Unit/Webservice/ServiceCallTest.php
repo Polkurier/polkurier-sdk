@@ -10,37 +10,40 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage as AddressDeleteMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage;
+use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
+use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
-use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Request\Order\OrderValuationMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Testing\RecordingClient;
 
@@ -129,7 +132,7 @@ final class ServiceCallTest extends TestCase
             ],
             'delete address' => [
                 static fn(PolkurierWebservice $s) => $s->addresses()->deleteAddress(
-                    new AddressDeleteMessage(id: '42', type: \Polkurier\Webservice\Enum\Address\AddressTypeEnum::Sender)
+                    new AddressDeleteMessage(id: '42', type: AddressTypeEnum::Sender)
                 ),
                 ApiMethodEnum::DeleteAddress,
                 $ok('true'),
@@ -141,7 +144,7 @@ final class ServiceCallTest extends TestCase
             ],
             'delete bank account' => [
                 static fn(PolkurierWebservice $s) => $s->bankAccounts()->deleteBankAccount(
-                    new \Polkurier\Webservice\Request\BankAccount\DeleteBankAccountMessage(id: '7')
+                    new DeleteBankAccountMessage(id: '7')
                 ),
                 ApiMethodEnum::DeleteBankAccount,
                 $ok('true'),
@@ -170,7 +173,7 @@ final class ServiceCallTest extends TestCase
             ],
             'cancel order' => [
                 static fn(PolkurierWebservice $s) => $s->orders()->cancelOrder(
-                    new OrderIdMessage(orderNo: '20534-7674')
+                    new CancelOrderMessage(orderNo: '20534-7674')
                 ),
                 ApiMethodEnum::CancelOrder,
                 $ok('{"cancellation":true}'),
@@ -211,15 +214,19 @@ final class ServiceCallTest extends TestCase
                     new TicketIdMessage(ticketId: 'b379362e'),
                 ),
                 ApiMethodEnum::GetTicketMessages,
-                $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
-                    . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięto zgłoszenie","date_read":"2026-10-06T14:00:35+02:00"}]'),
+                $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE",'
+                    . '"author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
+                    . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE",'
+                    . '"author_name":"Max","content":"Zamknięto zgłoszenie",'
+                    . '"date_read":"2026-10-06T14:00:35+02:00"}]'),
             ],
             'ticket reply, the new timeline entry' => [
                 static fn(PolkurierWebservice $s) => $s->tickets()->createTicketMessage(
                     new CreateTicketMessageMessage(ticketId: 'b379362e', content: 'Dziękuję')
                 ),
                 ApiMethodEnum::CreateTicketMessage,
-                $ok('{"id":"54a8","type":"MESSAGE","date":"2026-10-06T14:01:00+02:00","origin":"CUSTOMER","author_name":"Max","content":"Dziękuję","date_read":null,"files":[]}'),
+                $ok('{"id":"54a8","type":"MESSAGE","date":"2026-10-06T14:01:00+02:00","origin":"CUSTOMER",'
+                    . '"author_name":"Max","content":"Dziękuję","date_read":null,"files":[]}'),
             ],
             'system info' => [
                 static fn(PolkurierWebservice $s) => $s->system()->getSystemInfo(),

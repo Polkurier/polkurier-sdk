@@ -223,7 +223,7 @@ A Mezzio handler:
 namespace App\Handler;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

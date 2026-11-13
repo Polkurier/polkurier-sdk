@@ -16,10 +16,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Exception\Exception;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Contact\GetContactFormMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
 
 
 require __DIR__ . '/bootstrap.php';

@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
 
 
 require __DIR__ . '/bootstrap.php';

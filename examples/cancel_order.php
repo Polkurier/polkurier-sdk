@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -25,7 +25,7 @@ if (!hasFlag('--confirm')) {
 $orderNumber = arguments()[0] ?? '12345-678';
 
 try {
-    polkurier()->orders()->cancelOrder(new OrderIdMessage(orderNo: $orderNumber));
+    polkurier()->orders()->cancelOrder(new CancelOrderMessage(orderNo: $orderNumber));
 
     echo "Order {$orderNumber} cancelled.\n";
 } catch (Exception $e) {

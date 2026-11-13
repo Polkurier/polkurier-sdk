@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Address\DeleteMessage;
 
 
 require __DIR__ . '/bootstrap.php';

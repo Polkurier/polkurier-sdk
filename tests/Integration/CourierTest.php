@@ -9,13 +9,13 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetCountriesMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
-use Polkurier\Webservice\Request\Courier\GetCountriesMessage;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 #[Group('integration')]
 #[CoversNothing]

@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
-use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
 
 #[Group('integration')]
 #[CoversNothing]

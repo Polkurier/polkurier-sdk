@@ -7,18 +7,18 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken\ValidityMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
 
 /**
  * Two-factor confirmation for operations that need more than the API token.
@@ -155,7 +155,7 @@ interface TwoFactorTokenServiceInterface
      *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
      *
-     * @param TokenMessage $tokenMessage
+     * @param ResendMessage $resendMessage
      *
      * @return TwoFactorToken
      * @throws AuthorizationException
@@ -165,7 +165,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenResend(TokenMessage $tokenMessage): TwoFactorToken;
+    public function twoFactorTokenResend(ResendMessage $resendMessage): TwoFactorToken;
 
     /**
      * Checks the code the customer entered.

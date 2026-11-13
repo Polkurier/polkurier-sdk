@@ -10,16 +10,16 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Builder\AbstractBuilder;
-use Polkurier\Webservice\Builder\Courier\GetPickupTimeMessageBuilder;
 use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
 use Polkurier\Webservice\Builder\Courier\PickupMessageBuilder;
+use Polkurier\Webservice\Builder\Courier\PickupQueryMessageBuilder;
 use Polkurier\Webservice\Builder\Order\PackMessageBuilder;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
 /**
  * A builder is an alternative spelling of the constructor, not a second set of rules.
@@ -154,12 +154,12 @@ final class BuilderBehaviourTest extends TestCase
     }
 
     /**
-     * A builder inherits the setters of the message its message extends.
+     * A builder inherits the setters of the base its message extends.
      */
-    public function testAPickupBuilderTakesThePickupTimeSetters(): void
+    public function testAPickupBuilderTakesTheSharedQuerySetters(): void
     {
         $builder = PickupMessageBuilder::create();
-        self::assertInstanceOf(GetPickupTimeMessageBuilder::class, $builder);
+        self::assertInstanceOf(PickupQueryMessageBuilder::class, $builder);
 
         $message = $builder
             ->courier('UPS')

@@ -9,9 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Webhook;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Order\Order;
 use Polkurier\Webservice\Enum\Webhook\OrderWebhookTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Response\Order;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;

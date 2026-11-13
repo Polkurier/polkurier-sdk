@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Courier\GetCountriesMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Courier\GetCountriesMessage;
 
 
 require __DIR__ . '/bootstrap.php';

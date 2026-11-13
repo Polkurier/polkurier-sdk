@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
 
 
 require __DIR__ . '/bootstrap.php';

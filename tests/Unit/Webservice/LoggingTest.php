@@ -9,6 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
@@ -17,9 +20,6 @@ use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Log\LoggedFileWriter;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
@@ -28,8 +28,8 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\AbstractLogger;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Psr\Log\LogLevel;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * What the SDK hands to the PSR-3 logger, and when.

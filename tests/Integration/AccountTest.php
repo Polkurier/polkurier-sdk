@@ -10,18 +10,18 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Account\AcceptRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultSenderPointMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\Account\DeletePhoneNumberMessage;
+use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
+use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
+use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
-use Polkurier\Webservice\Request\Account\AcceptRegulationsMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultSenderPointMessage;
-use Polkurier\Webservice\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
-use Polkurier\Webservice\Request\Account\DeletePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\SaveAccountSettingsMessage;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
-use Polkurier\Webservice\Request\Account\SavePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\ValidatePinMessage;
-use Polkurier\Webservice\Response\Account\PhoneNumberMessage;
 
 #[Group('integration')]
 #[CoversNothing]
@@ -53,7 +53,7 @@ final class AccountTest extends IntegrationTestCase
         $this->assertReads(fn() => $this->sdk->account()->getPhoneNumbers());
     }
 
-    public function testANumberIsAdded(): PhoneNumberMessage
+    public function testANumberIsAdded(): PhoneNumber
     {
         self::requireSandbox();
 
@@ -67,7 +67,7 @@ final class AccountTest extends IntegrationTestCase
     }
 
     #[Depends('testANumberIsAdded')]
-    public function testTheNumberIsRemoved(PhoneNumberMessage $number): void
+    public function testTheNumberIsRemoved(PhoneNumber $number): void
     {
         self::assertTrue($this->sdk->account()->deletePhoneNumber(
             new DeletePhoneNumberMessage(id: $number->getId(), number: $number->getNumber()),

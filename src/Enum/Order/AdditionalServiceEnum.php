@@ -12,9 +12,9 @@ namespace Polkurier\Webservice\Enum\Order;
  *
  * Which services you can order depends on the carrier and sometimes on the account. Asking for one
  * the carrier doesn't offer is an error. Services are sent as a map of code to `true`.
- * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} builds the map from a plain list.
+ * {@see \Polkurier\Webservice\Entity\Order\CreateOrderMessage} builds the map from a plain list.
  *
- * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\CourierService} lists the services
+ * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\CourierService} lists the services
  * `available_carriers` reports for a carrier.
  *
  * The recipient SMS notifications come in 2 independent kinds: one when the parcel is dispatched

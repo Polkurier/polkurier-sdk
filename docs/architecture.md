@@ -12,8 +12,9 @@ The source is organised by role:
 | [`Api\Validation`](../src/Api/Validation/) | The 3 contracts the validation layer is built on |
 | `Api` | [`ConfigInterface`](../src/Api/ConfigInterface.php), [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php), [`MessageInterface`](../src/Api/MessageInterface.php) |
 | `Service` | The 16 services, and [`AbstractService`](../src/Service/AbstractService.php) |
-| `Request` | Everything you send |
-| `Response` | Everything you get back |
+| `Dto\Request` | What you send, apart from stored records |
+| `Dto\Response` | What you get back, apart from stored records |
+| `Entity` | Records Polkurier stores, for each the class you send and the class you read: address, bank account, phone number, pack template, and the order with its addresses, packs, cash on delivery and collection |
 | `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php) and the builders |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, the SDK's own normalizers and 2 attributes |
@@ -121,8 +122,9 @@ classes aren't `final`, so you can subclass one to change a single step, but suc
 need changes after an update. An implementation of an interface doesn't.
 
 The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Http/Response/ErrorMessage.php),
-[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and [`InlineFields`](../src/Serializer/Attribute/InlineFields.php), [`RecordingClient`](../src/Testing/RecordingClient.php)
-and [`LogJson`](../src/Log/LogJson.php).
+[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the serializer attributes [`OmitWhenEmpty`](../src/Serializer/Attribute/OmitWhenEmpty.php) and [`InlineFields`](../src/Serializer/Attribute/InlineFields.php), [`RecordingClient`](../src/Testing/RecordingClient.php),
+[`LogJson`](../src/Log/LogJson.php), and every request and response class except those of stored records (see
+[Messages: extending a message](messages.md#extending-a-message)).
 
 Extension points
 ----------------

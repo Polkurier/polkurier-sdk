@@ -10,22 +10,23 @@ namespace Polkurier\Webservice\Test\Unit\Http;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Dto\Response\PagedListMessage;
+use Polkurier\Webservice\Dto\Response\Payment\PrepaidHistoryMessage;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Address\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Address;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
-use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\Order\OrderStatusMessage;
-use Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Response\PagedListMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -165,21 +166,12 @@ final class ResponseShapeTest extends TestCase
      */
     public static function pagedLists(): array
     {
-        $lists = [];
-        $root = \dirname(__DIR__, 3) . '/src/Response';
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root)) as $file) {
-            if (!$file instanceof \SplFileInfo || $file->getExtension() !== 'php') {
-                continue;
-            }
-            $class = 'Polkurier\\Webservice\\Response\\'
-                . \str_replace('/', '\\', \substr($file->getPathname(), \strlen($root) + 1, -4));
-            if (\class_exists($class) && \is_subclass_of($class, PagedListMessage::class)) {
-                $lists[$class] = [$class];
-            }
-        }
-        \ksort($lists);
+        $lists = \array_filter(
+            MessageClasses::responses(),
+            static fn(string $class): bool => \is_subclass_of($class, PagedListMessage::class),
+        );
 
-        return $lists;
+        return \array_map(static fn(string $class): array => [$class], $lists);
     }
 
     /**

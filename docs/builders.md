@@ -43,7 +43,7 @@ copy of those defaults that could go out of date.
 **[`build()`](../src/Builder/) lists every missing field in one go.**
 
 ```php
-Polkurier\Webservice\Request\Order\PackMessage cannot be built without width, height, weight.
+Polkurier\Webservice\Entity\Order\PackMessage cannot be built without width, height, weight.
 ```
 
 The constructor on its own would only report the first missing argument. The exception thrown is
@@ -63,8 +63,9 @@ Which messages have one
 -----------------------
 
 Every message with four or more fields has a builder. It is named after the message with `Builder`
-appended, in the same sub-namespace under `Builder` as the message has under `Request`:
-[`Builder\Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) builds [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php).
+appended, under `Builder` in the message's group: [`Builder\Order\CreateOrderMessageBuilder`](../src/Builder/Order/CreateOrderMessageBuilder.php) builds
+[`Entity\Order\CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php), and [`Builder\Order\GetOrdersMessageBuilder`](../src/Builder/Order/GetOrdersMessageBuilder.php) builds
+[`Dto\Request\Order\GetOrdersMessage`](../src/Dto/Request/Order/GetOrdersMessage.php).
 
 Nesting builders
 ----------------

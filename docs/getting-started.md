@@ -88,7 +88,7 @@ The full list is in [Services](services.md). Each accessor returns an interface 
 **2. Build a message.** Request payloads are readonly classes that take named arguments:
 
 ```php
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 
 $filter = new GetOrdersMessage(
     dateFrom: new DateTimeImmutable('-30 days'),
@@ -110,7 +110,7 @@ foreach ($list->getResult() as $order) {         // Order[]
 }
 ```
 
-Methods return typed values such as `Carrier[]`, an [`Order`](../src/Response/Order.php), or a `bool` for endpoints that only
+Methods return typed values such as `Carrier[]`, an [`Order`](../src/Entity/Order/Order.php), or a `bool` for endpoints that only
 acknowledge. You don't need to unwrap or cast anything. If the API returns something that doesn't
 match the method's return type, you get a [`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of an unexpected
 null.

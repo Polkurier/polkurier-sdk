@@ -10,14 +10,14 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
 
 /**
  * One order placed, read back in every way and cancelled.
@@ -120,6 +120,8 @@ final class OrdersTest extends IntegrationTestCase
     #[Depends('testAnOrderIsPlaced')]
     public function testTheOrderIsCancelled(string $orderNumber): void
     {
-        self::assertTrue($this->sdk->orders()->cancelOrder(new OrderIdMessage(orderNo: $orderNumber))->isCancelled());
+        self::assertTrue(
+            $this->sdk->orders()->cancelOrder(new CancelOrderMessage(orderNo: $orderNumber))->isCancelled(),
+        );
     }
 }

@@ -13,8 +13,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\BankAccount\SaveMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -25,7 +25,7 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $account = polkurier()->bankAccounts()->saveBankAccount(new SaveMessage(
+    $account = polkurier()->bankAccounts()->saveBankAccount(new SaveBankAccountMessage(
         name: 'Firmowe',
         number: 'PL34102010260000000000000001',
         // Supply twoFactorToken/twoFactorCode, and accessPin, if the account requires them.

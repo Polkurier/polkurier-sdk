@@ -340,7 +340,7 @@ use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\OrderAddre
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\PackMessageBuilder;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 
 final class OrderMapper
 {

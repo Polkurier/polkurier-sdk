@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Order;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
 /**
  * Describes the shipment to ask about before offering a collective pickup.

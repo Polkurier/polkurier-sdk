@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\MoneyBox;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 
 /**
  * Assembles the filters for the payout list.

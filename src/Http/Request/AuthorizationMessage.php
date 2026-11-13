@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Request;
 
-use Polkurier\Webservice\Request\Common\TokenMessage;
+use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**

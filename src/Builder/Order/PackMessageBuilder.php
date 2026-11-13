@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Builder\Order;
 
-use Polkurier\Webservice\Builder\Common\BasePackMessageBuilder;
+use Polkurier\Webservice\Builder\Pack\BasePackMessageBuilder;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
 /**
  * Assembles one parcel on an order.

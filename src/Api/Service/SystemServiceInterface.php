@@ -7,17 +7,17 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Response\System\CouponValidationMessage;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Response\System\CouponValidationMessage;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\System\SystemInfoMessage;
 
 /**
  * Service-wide configuration, carrier notices and coupon checks.
@@ -78,7 +78,7 @@ interface SystemServiceInterface
      * ```
      *
      * @return SystemInfoMessage payload:
-     *         {@see \Polkurier\Webservice\Response\System\SystemInfoMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\System\SystemInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -94,7 +94,7 @@ interface SystemServiceInterface
      * others are informational. `severity` is only a display hint.
      *
      * Show these before a customer picks a carrier. The message is HTML in Polish, see
-     * {@see \Polkurier\Webservice\Response\System\CourierMessage::getMessage()}. There is no
+     * {@see \Polkurier\Webservice\Dto\Response\System\CourierMessage::getMessage()}. There is no
      * machine-readable reason code.
      *
      * Endpoint: `get_couriers_messages`
@@ -140,7 +140,7 @@ interface SystemServiceInterface
      *        list to
      *
      * @return CourierMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\System\CourierMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\System\CourierMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -239,7 +239,7 @@ interface SystemServiceInterface
      * @param ValidateCouponMessage $validateCouponMessage
      *
      * @return CouponValidationMessage payload:
-     *         {@see \Polkurier\Webservice\Response\System\CouponValidationMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\System\CouponValidationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

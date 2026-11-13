@@ -7,15 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Builder\Courier;
 
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
 
 /**
  * Assembles a check of whether a carrier can collect on one day. Nothing is booked.
  *
  * The date is optional, and today is checked without it.
  */
-class PickupMessageBuilder extends GetPickupTimeMessageBuilder
+class PickupMessageBuilder extends PickupQueryMessageBuilder
 {
     /**
      * @param \DateTimeInterface|null $pickupDate

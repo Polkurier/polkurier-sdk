@@ -12,10 +12,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 
 
 require __DIR__ . '/bootstrap.php';

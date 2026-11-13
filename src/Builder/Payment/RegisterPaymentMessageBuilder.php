@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Payment;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 
 /**
  * Assembles an online payment.

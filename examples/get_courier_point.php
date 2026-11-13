@@ -13,9 +13,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
 
 
 require __DIR__ . '/bootstrap.php';

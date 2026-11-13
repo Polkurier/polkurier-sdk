@@ -11,29 +11,29 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
+use Polkurier\Webservice\Entity\Order\CodMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
-use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Geo\FindCityMessage;
-use Polkurier\Webservice\Request\Order\CodMessage;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
-use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 /**
  * The rules applied to a payload before it leaves.
@@ -115,7 +115,7 @@ final class ValidationTest extends TestCase
             'cash on delivery sent by postal order, which needs no account' => [
                 self::order(cod: new CodMessage(amount: 250.0, returnType: CodReturnTypeEnum::PostOffice)),
             ],
-            'an order number' => [new OrderIdMessage('12345-678')],
+            'an order number' => [new CancelOrderMessage('12345-678')],
             'several order numbers' => [new GetDocumentMessage(['12345-678', '12345-679'])],
             'an unfiltered order listing' => [new GetOrdersMessage()],
             'the maximum page size' => [new GetOrdersMessage(pageSize: GetOrdersMessage::MAX_PAGE_SIZE)],
@@ -266,7 +266,7 @@ final class ValidationTest extends TestCase
                 )),
                 'COD.codbankaccount',
             ],
-            'a malformed order number' => [new OrderIdMessage('nope'), 'orderno'],
+            'a malformed order number' => [new CancelOrderMessage('nope'), 'orderno'],
             'one malformed number among several' => [
                 new GetDocumentMessage(['12345-678', 'nope']),
                 'orderno[1]',
@@ -432,7 +432,7 @@ final class ValidationTest extends TestCase
      */
     public function testMessageWithNoRegisteredRulePasses(): void
     {
-        (new ValidatorRegistry())->validate(new OrderIdMessage('anything at all'));
+        (new ValidatorRegistry())->validate(new CancelOrderMessage('anything at all'));
 
         $this->addToAssertionCount(1);
     }

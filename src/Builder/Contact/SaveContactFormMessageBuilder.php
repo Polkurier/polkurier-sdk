@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Contact;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
 
 /**
  * Assembles a contact form submission.
@@ -47,7 +47,7 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param array<string, scalar|list<\Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage>> $fields
+     * @param array<string, scalar|list<\Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage>> $fields
      *        the answers, keyed by the form's field names; a files field takes a list of attachments
      *
      * @return static

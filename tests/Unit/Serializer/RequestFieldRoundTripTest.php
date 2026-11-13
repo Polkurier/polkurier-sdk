@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Symfony\Component\Serializer\Attribute\SerializedName;
 
@@ -26,25 +27,7 @@ final class RequestFieldRoundTripTest extends TestCase
      */
     public static function requestClasses(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src/Request';
-        $cases = [];
-
-        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
-        foreach ($files as $file) {
-            /** @var \SplFileInfo $file */
-            $relative = \substr($file->getPathname(), \strlen($root) + 1, -4);
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\Request\\' . \str_replace('/', '\\', $relative);
-
-            $reflection = new \ReflectionClass($class);
-            if (!$reflection->isAbstract() && !$reflection->isTrait() && !$reflection->isInterface()) {
-                $cases[$relative] = [$class];
-            }
-        }
-
-        \ksort($cases);
-
-        return $cases;
+        return \array_map(static fn(string $class): array => [$class], MessageClasses::requests());
     }
 
     /**

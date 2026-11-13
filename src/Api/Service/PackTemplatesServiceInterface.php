@@ -7,15 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Entity\PackTemplate\PackTemplate;
+use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
-use Polkurier\Webservice\Response\PackTemplate;
 
 /**
  * Saved parcel templates: reusable dimensions, weight and service selections.
@@ -126,7 +126,7 @@ interface PackTemplatesServiceInterface
      * The message names only the first failure. `validation_errors` has all of them, keyed by the
      * API's field names.
      *
-     * @param SaveMessage $saveMessage
+     * @param SavePackTemplateMessage $saveMessage
      *
      * @return PackTemplate as stored
      * @throws AuthorizationException
@@ -136,7 +136,7 @@ interface PackTemplatesServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePackTemplates(SaveMessage $saveMessage): PackTemplate;
+    public function savePackTemplates(SavePackTemplateMessage $saveMessage): PackTemplate;
 
     /**
      * Deletes a template.

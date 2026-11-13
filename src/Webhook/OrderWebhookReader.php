@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Webhook;
 
+use Polkurier\Webservice\Dto\Response\Webhook\OrderWebhookMessage;
+use Polkurier\Webservice\Entity\Order\Order;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Webhook\OrderWebhookMessage;
-use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
+use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;

@@ -8,6 +8,21 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\TicketsServiceInterface;
+use Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketMessageFileMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketsMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\SetTicketStatusMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormResultMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactTopicMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketFileContentMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,21 +30,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Contact\GetContactFormMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
-use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
-use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormResultMessage;
-use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
-use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
 
 /**
  * @see TicketsServiceInterface

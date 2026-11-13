@@ -10,8 +10,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
 
 
 require __DIR__ . '/bootstrap.php';

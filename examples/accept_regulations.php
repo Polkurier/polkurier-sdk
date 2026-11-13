@@ -10,10 +10,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\AcceptRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\AcceptRegulationsMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 
 
 require __DIR__ . '/bootstrap.php';

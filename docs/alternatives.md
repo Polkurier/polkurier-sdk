@@ -38,7 +38,7 @@ Building a request payload
 | The constructor, named arguments | Every value is to hand | [Messages](messages.md#three-ways-to-build-one) |
 | A [builder](builders.md) | Fields are conditional, or assembled across steps |
 | `new Message(...$array)` | Input is already an associative array you have validated | [Messages](messages.md#three-ways-to-build-one) |
-| Subclassing a message | The API grew a field the SDK has not caught up with | [Messages](messages.md#extending-a-message) |
+| Subclassing an order, address or another stored record | The API grew a field the SDK has not caught up with | [Messages](messages.md#extending-a-message) |
 
 All 4 go through the same validation at the same point.
 
@@ -60,15 +60,15 @@ Reading orders back
 |-------|---------|
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current state. Fast. |
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) with `tracking: true` | The same, plus the carrier's scan history. Slower. |
-| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Response/Order.php) objects. |
+| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Entity/Order/Order.php) objects. |
 
 Paging
 ------
 
 | Route | Use when |
 |-------|----------|
-| `while ($page <= $list->getTotalPages())` | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
-| Stop when a page comes back short | [`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
+| `while ($page <= $list->getTotalPages())` | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
+| Stop when a page comes back short | [`InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
 | A generator wrapping either | Application code that just wants to iterate |
 
 [Recipes](recipes.md#paging-through-a-list) shows both loops.
@@ -108,14 +108,14 @@ Invoices
 Documents in general
 --------------------
 
-Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Response/Order/OrderFileMessage.php),
-[`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Response/Invoice/InvoiceSummaryListMessage.php) and
-[`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
+Every document response ([`DocumentMessage`](../src/Dto/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Dto/Response/Order/OrderFileMessage.php),
+[`InvoiceDocumentMessage`](../src/Dto/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Dto/Response/Invoice/InvoiceSummaryListMessage.php) and
+[`TicketFileContentMessage`](../src/Dto/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
 
 | Route | Gives you |
 |-------|-----------|
-| [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
-| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFileTrait.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
+| [`DocumentMessage::getFile()`](../src/Dto/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
+| [`DocumentMessage::getDecodedFile()`](../src/Dto/Response/DecodesFileTrait.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
 
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.

@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Validator\Message;
 
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
 use Polkurier\Webservice\Validator\Rule\NotBlank;
 use Polkurier\Webservice\Validator\ViolationPool;
 

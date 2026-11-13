@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Courier;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
 
 /**
  * Assembles a pickup point search.

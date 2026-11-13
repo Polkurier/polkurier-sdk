@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceSummaryFormatEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
 
 
 require __DIR__ . '/bootstrap.php';

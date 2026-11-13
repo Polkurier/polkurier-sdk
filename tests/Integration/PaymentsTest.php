@@ -10,9 +10,9 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Payment\GetPaymentInfoMessage;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
-use Polkurier\Webservice\Request\Payment\GetPaymentInfoMessage;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 
 #[Group('integration')]
 #[CoversNothing]

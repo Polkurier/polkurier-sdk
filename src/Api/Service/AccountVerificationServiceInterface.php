@@ -7,14 +7,14 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Account\RegisterAccountVerificationMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountVerificationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Account\RegisterAccountVerificationMessage;
-use Polkurier\Webservice\Response\Account\AccountVerificationMessage;
 
 /**
  * Identity verification for the account.
@@ -77,7 +77,7 @@ interface AccountVerificationServiceInterface
      *        starts a general account verification
      *
      * @return AccountVerificationMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\AccountVerificationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -125,7 +125,7 @@ interface AccountVerificationServiceInterface
      * ```
      *
      * @return AccountVerificationMessage|null payload:
-     *         {@see \Polkurier\Webservice\Response\Account\AccountVerificationMessage}, or null when
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\AccountVerificationMessage}, or null when
      *         nothing has been attempted yet
      * @throws AuthorizationException
      * @throws ConnectionException

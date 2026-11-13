@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Account;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Enum\Account\PayerUserTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
 
 /**
  * Assembles one of the account's addresses: billing, correspondence or contact.

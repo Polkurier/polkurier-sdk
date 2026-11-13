@@ -131,8 +131,8 @@ With that configuration in place, a service can ask for what it needs:
 namespace App\Shipping;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Response\Order\CreatedOrderMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
 
 final readonly class ShipmentDispatcher
 {

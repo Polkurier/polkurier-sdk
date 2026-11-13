@@ -8,6 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\KnowledgeBaseServiceInterface;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,10 +19,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 
 /**
  * @see KnowledgeBaseServiceInterface

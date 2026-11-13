@@ -10,9 +10,9 @@ namespace Polkurier\Webservice\Test\Unit\Entity;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Address\Address;
+use Polkurier\Webservice\Entity\Order\OrderAddress;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
-use Polkurier\Webservice\Response\Address;
-use Polkurier\Webservice\Response\BaseAddress;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
 /**
@@ -20,7 +20,7 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
  * construction by named arguments, so these classes take every required parameter first.
  */
 #[CoversClass(Address::class)]
-#[CoversClass(BaseAddress::class)]
+#[CoversClass(OrderAddress::class)]
 final class AddressTest extends TestCase
 {
     public function testConstructsFromNamedArgumentsWithoutOptionalOnes(): void
@@ -40,11 +40,11 @@ final class AddressTest extends TestCase
         self::assertSame('Długa', $address->getStreet());
         self::assertSame('12', $address->getHouseNumber());
         self::assertNull($address->getCompany());
-        self::assertSame(BaseAddress::DEFAULT_COUNTRY, $address->getCountry());
+        self::assertSame(OrderAddress::DEFAULT_COUNTRY, $address->getCountry());
     }
 
     /**
-     * {@see Address} passes its own arguments down to {@see BaseAddress} by name. A positional
+     * {@see Address} passes its own arguments down to {@see OrderAddress} by name. A positional
      * hand-off would map $company onto $street whenever the parent's parameter order differs.
      */
     public function testPassesEveryFieldThroughToTheParentInTheRightOrder(): void

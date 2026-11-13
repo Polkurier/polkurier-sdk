@@ -7,28 +7,28 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Account\AcceptRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultSenderPointMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\Account\DeletePhoneNumberMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetAccountInfoMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\Account\PinValidityMessage;
+use Polkurier\Webservice\Dto\Response\Account\RegulationsMessage;
+use Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber;
+use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Account\AcceptRegulationsMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultSenderPointMessage;
-use Polkurier\Webservice\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
-use Polkurier\Webservice\Request\Account\DeletePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\GetAccountInfoMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
-use Polkurier\Webservice\Request\Account\SaveAccountSettingsMessage;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
-use Polkurier\Webservice\Request\Account\SavePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\ValidatePinMessage;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Account\PhoneNumberMessage;
-use Polkurier\Webservice\Response\Account\PinValidityMessage;
-use Polkurier\Webservice\Response\Account\RegulationsMessage;
 
 /**
  * The account: profile, balances, preferences, credentials and telephone numbers.
@@ -69,7 +69,7 @@ interface AccountServiceInterface
      *
      * With `external_application_id`, the response also has `external_application_settings`: that
      * application's settings for this account, see
-     * {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage::getExternalApplicationSettings()}.
+     * {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::getExternalApplicationSettings()}.
      *
      * Endpoint: `get_account_info`
      *
@@ -126,7 +126,7 @@ interface AccountServiceInterface
      * @param GetAccountInfoMessage|null $getAccountInfoMessage null asks for no application settings
      *
      * @return AccountInfoMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -172,7 +172,7 @@ interface AccountServiceInterface
      * @param SaveAccountSettingsMessage $saveAccountSettingsMessage
      *
      * @return AccountInfoMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Account\AccountInfoMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -475,7 +475,7 @@ interface AccountServiceInterface
      * @param ValidatePinMessage $validatePinMessage
      *
      * @return PinValidityMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Account\PinValidityMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\PinValidityMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -525,7 +525,7 @@ interface AccountServiceInterface
      * @param GetRegulationsMessage|null $getRegulationsMessage null fetches the terms of service
      *
      * @return RegulationsMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Account\RegulationsMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Account\RegulationsMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -603,8 +603,8 @@ interface AccountServiceInterface
      *
      * An account with none gets `"response": []`.
      *
-     * @return PhoneNumberMessage[] a list of
-     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}
+     * @return PhoneNumber[] a list of
+     *         {@see \Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -669,8 +669,8 @@ interface AccountServiceInterface
      *
      * @param SavePhoneNumberMessage $savePhoneNumberMessage
      *
-     * @return PhoneNumberMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Account\PhoneNumberMessage}
+     * @return PhoneNumber the payload, see
+     *         {@see \Polkurier\Webservice\Entity\PhoneNumber\PhoneNumber}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -678,7 +678,7 @@ interface AccountServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumberMessage;
+    public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumber;
 
     /**
      * Removes a telephone number from the account.

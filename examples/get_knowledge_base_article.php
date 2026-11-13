@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
 
 
 require __DIR__ . '/bootstrap.php';

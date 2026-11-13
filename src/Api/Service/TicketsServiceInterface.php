@@ -7,27 +7,27 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketMessageFileMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketsMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\SetTicketStatusMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormResultMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactTopicMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketFileContentMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Contact\GetContactFormMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
-use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
-use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
-use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormResultMessage;
-use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
-use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage;
 
 /**
  * Support tickets and the contact forms that feed them.
@@ -88,7 +88,7 @@ interface TicketsServiceInterface
      * ```
      *
      * @return ContactTopicMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\Contact\ContactTopicMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\Contact\ContactTopicMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -104,7 +104,7 @@ interface TicketsServiceInterface
      * general subject.
      *
      * Attachments go inline as a list of files, each with its name, media type and base64 contents.
-     * {@see \Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage} lists what the API
+     * {@see \Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage} lists what the API
      * accepts.
      *
      * `origin` is the channel that opened the ticket, API by default.
@@ -151,7 +151,7 @@ interface TicketsServiceInterface
      * @param CreateTicketMessage $createTicketMessage
      *
      * @return TicketMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -221,7 +221,7 @@ interface TicketsServiceInterface
      * @param GetTicketsMessage|null $getTicketsMessage null lists the first page unfiltered
      *
      * @return TicketListMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -289,7 +289,7 @@ interface TicketsServiceInterface
      * @param TicketIdMessage $ticketIdMessage
      *
      * @return TicketTimelineItemMessage[] the timeline, see
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -352,7 +352,7 @@ interface TicketsServiceInterface
      * @param CreateTicketMessageMessage $createTicketMessageMessage
      *
      * @return TicketTimelineItemMessage the new entry, see
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketTimelineItemMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketTimelineItemMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -400,7 +400,7 @@ interface TicketsServiceInterface
      * @param SetTicketStatusMessage $setTicketStatusMessage
      *
      * @return TicketMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -454,7 +454,7 @@ interface TicketsServiceInterface
      * @param GetTicketMessageFileMessage $getTicketMessageFileMessage
      *
      * @return TicketFileContentMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Ticket\TicketFileContentMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Ticket\TicketFileContentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -525,7 +525,7 @@ interface TicketsServiceInterface
      * @param GetContactFormMessage $getContactFormMessage
      *
      * @return ContactFormMessage the form, see
-     *         {@see \Polkurier\Webservice\Response\Contact\ContactFormMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Contact\ContactFormMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

@@ -10,12 +10,12 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
 
 /**
  * Registering a token sends a code to the account's phone or e-mail, so those tests run only with
@@ -46,7 +46,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     #[Depends('testATokenIsRegistered')]
     public function testTheCodeIsSentAgain(TwoFactorToken $token): void
     {
-        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new TokenMessage(token: $token->getId()));
+        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new ResendMessage(token: $token->getId()));
 
         self::assertSame($token->getId(), $resent->getId());
     }
@@ -82,7 +82,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     {
         self::assertApiError(
             fn() => self::client(validatePayloads: false)->twoFactorToken()->twoFactorTokenResend(
-                new TokenMessage(token: ''),
+                new ResendMessage(token: ''),
             ),
             'PARAMS_IS_EMPTY',
         );

@@ -10,48 +10,48 @@ namespace Polkurier\Webservice\Test\Unit;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage as AddressDeleteMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
+use Polkurier\Webservice\Entity\Address\SaveAddressMessage as AddressSaveMessage;
+use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage as BankAccountSaveMessage;
+use Polkurier\Webservice\Entity\Order\CodMessage;
+use Polkurier\Webservice\Entity\Order\CoverAddressMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
+use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Order\PickupMessage;
+use Polkurier\Webservice\Entity\Pack\BasePack;
+use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage as PackTemplateSaveMessage;
+use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
+use Polkurier\Webservice\Enum\Invoice\InvoiceSummaryFormatEnum;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
-use Polkurier\Webservice\Response\BasePack;
-use Polkurier\Webservice\Response\CourierPoint;
-use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
-use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
-use Polkurier\Webservice\Request\Address\SaveMessage as AddressSaveMessage;
-use Polkurier\Webservice\Request\BankAccount\SaveMessage as BankAccountSaveMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
-use Polkurier\Webservice\Request\Order\CodMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
-use Polkurier\Webservice\Enum\Invoice\InvoiceSummaryFormatEnum;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Test\Support\Sample;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Request\Order\PickupMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage as PackTemplateSaveMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Order\CoverAddressMessage;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
-use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Sample;
 
 /**
  * The keys and values the SDK actually puts on the wire.
@@ -160,7 +160,7 @@ final class SerializationTest extends TestCase
                 ['category' => 'wspolpraca', 'form_id' => 'f-1', 'nonce' => 'n-1'],
             ],
             'order id' => [
-                new OrderIdMessage('12345-678'),
+                new CancelOrderMessage('12345-678'),
                 ['orderno' => '12345-678'],
             ],
             'order id with tracking' => [

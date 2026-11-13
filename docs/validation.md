@@ -223,7 +223,7 @@ against a class or an interface. A validator registered for a base message cover
 that extends it:
 
 ```php
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 $validator = DefaultValidatorRegistryFactory::create()

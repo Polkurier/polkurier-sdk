@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Log;
 
-use Polkurier\Webservice\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Request\Account\PinMessage;
-use Polkurier\Webservice\Request\BankAccount\SaveMessage as BankAccountSaveMessage;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\Payment\RegisteredPaymentMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
+use Polkurier\Webservice\Dto\Request\Account\PinMessage;
+use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage;
+use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage as BankAccountSaveMessage;
 
 /**
  * Hides secrets in request and response bodies before they are logged.

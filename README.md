@@ -60,8 +60,8 @@ method returns. Scripts that need an identifier take it as the first argument.
 Services
 --------
 
-The client has one service per functional area. Methods return typed values such as [`Carrier[]`](src/Response/Carrier.php),
-an [`Order`](src/Response/Order.php), or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
+The client has one service per functional area. Methods return typed values such as [`Carrier[]`](src/Dto/Response/Carrier.php),
+an [`Order`](src/Entity/Order/Order.php), or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
 anything.
 
 | Accessor                        | Covers                                                        |

@@ -11,6 +11,16 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceSummaryListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Order\Order;
+use Polkurier\Webservice\Entity\Pack\BasePack;
+use Polkurier\Webservice\Entity\PackTemplate\PackTemplate;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
@@ -18,20 +28,10 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
-use Polkurier\Webservice\Response\BasePack;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\CourierPoint;
-use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\PackTemplate;
-use Polkurier\Webservice\Response\TwoFactorToken;
 use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
 #[CoversClass(ResponseFactory::class)]
@@ -436,9 +436,9 @@ final class ResponseFactoryTest extends TestCase
     {
         $order = $this->deserializeOrder($this->orderPayload());
 
-        self::assertInstanceOf(\Polkurier\Webservice\Response\Order\Pack::class, $order->getPacks()[0]);
-        self::assertInstanceOf(\Polkurier\Webservice\Response\Order\Waybill::class, $order->getWaybills()[0]);
-        self::assertInstanceOf(\Polkurier\Webservice\Response\BaseAddress::class, $order->getSender());
+        self::assertInstanceOf(\Polkurier\Webservice\Entity\Order\Pack::class, $order->getPacks()[0]);
+        self::assertInstanceOf(\Polkurier\Webservice\Dto\Response\Order\Waybill::class, $order->getWaybills()[0]);
+        self::assertInstanceOf(\Polkurier\Webservice\Entity\Order\OrderAddress::class, $order->getSender());
     }
 
     /**
@@ -478,7 +478,7 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            \Polkurier\Webservice\Response\CourierPoint::class
+            \Polkurier\Webservice\Dto\Response\CourierPoint::class
         );
 
         self::assertNull($wrapper->getEnvelope()->getResponse());
@@ -491,7 +491,7 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            \Polkurier\Webservice\Response\CourierPoint::class . '[]'
+            \Polkurier\Webservice\Dto\Response\CourierPoint::class . '[]'
         );
 
         self::assertSame([], $wrapper->getEnvelope()->getResponse());

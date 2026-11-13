@@ -7,20 +7,20 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxFeeMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
-use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
 
 /**
  * The money box: cash-on-delivery funds held on the account, and withdrawing them.
@@ -79,7 +79,7 @@ interface MoneyBoxServiceInterface
      * Thrown when the money box is not enabled for this account.
      *
      * @return MoneyBoxConfigMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -141,7 +141,7 @@ interface MoneyBoxServiceInterface
      *        for everything available, without a payout type
      *
      * @return MoneyBoxFeeMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxFeeMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -246,7 +246,7 @@ interface MoneyBoxServiceInterface
      * @param CreateMoneyBoxPayoutMessage $createMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -291,7 +291,7 @@ interface MoneyBoxServiceInterface
      * @param CancelMoneyBoxPayoutMessage $cancelMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -366,7 +366,7 @@ interface MoneyBoxServiceInterface
      *        of one payout
      *
      * @return MoneyBoxPayoutListMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

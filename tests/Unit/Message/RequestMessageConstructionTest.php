@@ -9,11 +9,11 @@ namespace Polkurier\Webservice\Test\Unit\Message;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Order\PackMessage;
+use Polkurier\Webservice\Entity\Pack\BasePackMessage;
+use Polkurier\Webservice\Entity\PackTemplate\SavePackTemplateMessage as PackTemplateSaveMessage;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Common\BasePackMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage as PackTemplateSaveMessage;
 
 /**
  * The request messages that hand their arguments down to a parent.

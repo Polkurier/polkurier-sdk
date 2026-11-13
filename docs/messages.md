@@ -1,8 +1,9 @@
 Messages and models
 ===================
 
-Everything you send to the API is under [`Request`](../src/Request/), and everything you get back is under
-[`Response`](../src/Response/). Both hold payload classes only.
+Records Polkurier stores, such as addresses, bank accounts, pack templates and orders, are under
+[`Entity`](../src/Entity/), with the class you send and the class you read side by side. Everything else you send
+is under [`Dto\Request`](../src/Dto/Request/), and everything else you get back under [`Dto\Response`](../src/Dto/Response/). They hold payload classes only.
 
 Requests
 --------
@@ -11,7 +12,7 @@ A request payload (a **message**) is a readonly class that implements [`Api\Mess
 construct it with named arguments:
 
 ```php
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 
 $search = new GetPointMessage(
     couriers: ['INPOST_PACZKOMAT'],
@@ -56,9 +57,11 @@ no `fromArray()`, and the serializer only maps responses into objects, never req
 
 ### Extending a message
 
-Messages are not `final`. If the API has a field the SDK doesn't support yet, you can add it in a
-subclass. It will serialize correctly as long as the new property has its own
-`#[SerializedName]`:
+The classes of records Polkurier stores aren't `final`: addresses, bank accounts, phone numbers,
+pack templates, and orders with their packs, cash on delivery, collection and addresses. Every other
+request and response class is. If the API has a field the SDK doesn't support yet, you can add it
+to one of the open classes in a subclass. It will serialize correctly as long as the new property
+has its own `#[SerializedName]`:
 
 ```php
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -82,10 +85,10 @@ Responses
 
 Response classes are built through their constructors. If a required field is missing from the
 reply, mapping fails straight away and the error names the field. You never get an object whose
-getters throw, so a method that returns an [`Order`](../src/Response/Order.php) always returns a complete one.
+getters throw, so a method that returns an [`Order`](../src/Entity/Order/Order.php) always returns a complete one.
 
 Response classes are readonly too, and have getters only. To change a value, build a new request
-message, e.g. an [`Address\SaveMessage`](../src/Request/Address/SaveMessage.php) from an [`Address`](../src/Response/Address.php) you read.
+message, e.g. an [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) from an [`Address`](../src/Entity/Address/Address.php) you read.
 
 ### Lists, maps and pages
 
@@ -93,10 +96,10 @@ Apart from a `bool` for calls that only acknowledge, responses come in four shap
 
 | Shape | Example | What you get |
 |-------|---------|--------------|
-| One object | [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | [`CreatedOrderMessage`](../src/Response/Order/CreatedOrderMessage.php) |
+| One object | [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | [`CreatedOrderMessage`](../src/Dto/Response/Order/CreatedOrderMessage.php) |
 | A list | [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `Carrier[]`, possibly empty |
 | A map of strings | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | `array<string, string>` |
-| A page | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php) wrapping `Order[]` |
+| A page | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) wrapping `Order[]` |
 
 A page has its own navigation getters:
 
@@ -112,11 +115,11 @@ Five endpoints return pages, and they do **not** all have the same fields:
 
 | Class | `getResult()` | Rows | Pages | Current page | Page size |
 |-------|---------------|------|-------|--------------|-----------|
-| [`Order\OrderListMessage`](../src/Response/Order/OrderListMessage.php) | `Order[]` | yes | **yes** | yes | yes |
-| [`MoneyBox\MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php) | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
-| [`Invoice\InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php) | `InvoiceMessage[]` | yes | no | yes | yes |
-| [`Ticket\TicketListMessage`](../src/Response/Ticket/TicketListMessage.php) | `TicketMessage[]` | yes | no | yes | yes |
-| [`Payment\PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php) | `PrepaidEntryMessage[]` | yes | no | yes | yes |
+| [`Order\OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) | `Order[]` | yes | **yes** | yes | yes |
+| [`MoneyBox\MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) | `MoneyBoxPayoutMessage[]` | yes | **yes** | yes | yes |
+| [`Invoice\InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php) | `InvoiceMessage[]` | yes | no | yes | yes |
+| [`Ticket\TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php) | `TicketMessage[]` | yes | no | yes | yes |
+| [`Payment\PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php) | `PrepaidEntryMessage[]` | yes | no | yes | yes |
 
 For the three without a page count, work it out from the row count and page size, or stop when a
 page comes back short. [Recipes: paging](recipes.md#paging-through-a-list) shows both loops.
@@ -132,7 +135,7 @@ page with one row.
 A few responses hold values under names that depend on the request, not on the API: an
 external application's settings, and a contact form's properties, starting values and display
 properties. These come as lists of name and value pairs,
-[`ExternalApplicationSettingMessage`](../src/Response/Account/ExternalApplicationSettingMessage.php) and [`ContactFormValueMessage`](../src/Response/Contact/ContactFormValueMessage.php). A value that isn't a single value,
+[`ExternalApplicationSettingMessage`](../src/Dto/Response/Account/ExternalApplicationSettingMessage.php) and [`ContactFormValueMessage`](../src/Dto/Response/Contact/ContactFormValueMessage.php). A value that isn't a single value,
 such as a list, is given as its JSON.
 
 No method returns decoded JSON. For a value the SDK doesn't map, read the body as the API sent it,
@@ -162,22 +165,22 @@ Why requests and responses are split
 Request and response classes stay separate even when they describe the same thing, because the
 shapes differ.
 
-[`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) has the dimensions you choose. [`Response\Order\Pack`](../src/Response/Order/Pack.php) has those plus
-what the carrier charged for them. [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) says what to collect.
-[`Response\Order\Cod`](../src/Response/Order/Cod.php) adds what happened to the money: its status and, for a returned
+[`PackMessage`](../src/Entity/Order/PackMessage.php) has the dimensions you choose. [`Pack`](../src/Entity/Order/Pack.php) has those plus
+what the carrier charged for them. [`CodMessage`](../src/Entity/Order/CodMessage.php) says what to collect.
+[`Cod`](../src/Entity/Order/Cod.php) adds what happened to the money: its status and, for a returned
 amount, when and why it was returned.
 
 The pairs:
 
 | You send | You receive |
 |----------|-------------|
-| [`Request\Address\SaveMessage`](../src/Request/Address/SaveMessage.php) | [`Response\Address`](../src/Response/Address.php) |
-| [`Request\BankAccount\SaveMessage`](../src/Request/BankAccount/SaveMessage.php) | [`Response\BankAccount`](../src/Response/BankAccount.php) |
-| [`Request\PackTemplate\SaveMessage`](../src/Request/PackTemplate/SaveMessage.php) | [`Response\PackTemplate`](../src/Response/PackTemplate.php) |
-| [`Request\Order\PackMessage`](../src/Request/Order/PackMessage.php) | [`Response\Order\Pack`](../src/Response/Order/Pack.php) |
-| [`Request\Order\CodMessage`](../src/Request/Order/CodMessage.php) | [`Response\Order\Cod`](../src/Response/Order/Cod.php) |
-| [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) | [`Response\Order\Pickup`](../src/Response/Order/Pickup.php) |
-| [`Request\Order\CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php) | [`Response\Order`](../src/Response/Order.php) |
+| [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php) | [`Address`](../src/Entity/Address/Address.php) |
+| [`SaveBankAccountMessage`](../src/Entity/BankAccount/SaveBankAccountMessage.php) | [`BankAccount`](../src/Entity/BankAccount/BankAccount.php) |
+| [`SavePackTemplateMessage`](../src/Entity/PackTemplate/SavePackTemplateMessage.php) | [`PackTemplate`](../src/Entity/PackTemplate/PackTemplate.php) |
+| [`PackMessage`](../src/Entity/Order/PackMessage.php) | [`Pack`](../src/Entity/Order/Pack.php) |
+| [`CodMessage`](../src/Entity/Order/CodMessage.php) | [`Cod`](../src/Entity/Order/Cod.php) |
+| [`PickupMessage`](../src/Entity/Order/PickupMessage.php) | [`Pickup`](../src/Entity/Order/Pickup.php) |
+| [`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php) | [`Order`](../src/Entity/Order/Order.php) |
 
 The docblock of each response class above names the request that writes it, so you can find the pair
 from either side.
@@ -189,20 +192,21 @@ on both, and most getters would return a nullable type.
 Naming
 ------
 
-Under `Request`, every class ends in `Message`: [`CreateOrderMessage`](../src/Request/Order/CreateOrderMessage.php), [`Address\SaveMessage`](../src/Request/Address/SaveMessage.php),
-[`GetOrdersMessage`](../src/Request/Order/GetOrdersMessage.php). The suffix means "a payload".
+Every class you send ends in `Message`: [`CreateOrderMessage`](../src/Entity/Order/CreateOrderMessage.php), [`SaveAddressMessage`](../src/Entity/Address/SaveAddressMessage.php),
+[`GetOrdersMessage`](../src/Dto/Request/Order/GetOrdersMessage.php). The suffix means "a payload".
 
-Under `Response`, it depends. Entity-like classes that exist independently of any call are named
-after the thing itself: [`Order`](../src/Response/Order.php), [`Address`](../src/Response/Address.php), [`Carrier`](../src/Response/Carrier.php), [`CourierPoint`](../src/Response/CourierPoint.php), [`Country`](../src/Response/Country.php), [`BankAccount`](../src/Response/BankAccount.php),
-[`PackTemplate`](../src/Response/PackTemplate.php). Classes that only exist as the answer from one endpoint keep the suffix:
-[`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`AccountInfoMessage`](../src/Response/Account/AccountInfoMessage.php), [`HeartbeatMessage`](../src/Response/Util/HeartbeatMessage.php).
+For the classes you read, it depends. Entity-like classes that exist independently of any call are named
+after the thing itself: [`Order`](../src/Entity/Order/Order.php), [`Address`](../src/Entity/Address/Address.php), [`Carrier`](../src/Dto/Response/Carrier.php), [`CourierPoint`](../src/Dto/Response/CourierPoint.php), [`Country`](../src/Dto/Response/Country.php), [`BankAccount`](../src/Entity/BankAccount/BankAccount.php),
+[`PackTemplate`](../src/Entity/PackTemplate/PackTemplate.php). Classes that only exist as the answer from one endpoint keep the suffix:
+[`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`AccountInfoMessage`](../src/Dto/Response/Account/AccountInfoMessage.php), [`HeartbeatMessage`](../src/Dto/Response/Util/HeartbeatMessage.php).
 
-When a request and a response class share a short name, like [`Request\Order\PickupMessage`](../src/Request/Order/PickupMessage.php) and
-[`Response\Order\Pickup`](../src/Response/Order/Pickup.php), import one and use the fully qualified name for the other, or alias it:
+When two classes share a short name, like the order's [`PickupMessage`](../src/Entity/Order/PickupMessage.php) and the
+collection check [`Dto\Request\Courier\PickupMessage`](../src/Dto/Request/Courier/PickupMessage.php), import one and use the fully qualified name for
+the other, or alias it:
 
 ```php
-use Polkurier\Webservice\Request\Order\PickupMessage;
-use Polkurier\Webservice\Response\Order\Pickup as PickupResult;
+use Polkurier\Webservice\Entity\Order\PickupMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage as PickupCheckMessage;
 ```
 
 Wire names

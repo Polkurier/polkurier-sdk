@@ -273,7 +273,7 @@ use Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
 use Polkurier\Webservice\Builder\Order\PackMessageBuilder;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Sylius\Component\Core\Model\ShipmentInterface;
 
 final readonly class ShipmentMapper

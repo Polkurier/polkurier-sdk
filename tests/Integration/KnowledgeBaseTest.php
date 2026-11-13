@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
 
 #[Group('integration')]
 #[CoversNothing]

@@ -8,6 +8,24 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage;
+use Polkurier\Webservice\Dto\Response\Order\CancellationMessage;
+use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
+use Polkurier\Webservice\Dto\Response\Order\DocumentMessage;
+use Polkurier\Webservice\Dto\Response\Order\MultiPickupAvailabilityMessage;
+use Polkurier\Webservice\Dto\Response\Order\MultiPickupResultMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderFileMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
+use Polkurier\Webservice\Entity\Order\CreateOrderMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,24 +33,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Request\Order\OrderValuationMessage;
-use Polkurier\Webservice\Response\Order\CancellationMessage;
-use Polkurier\Webservice\Response\Order\CreatedOrderMessage;
-use Polkurier\Webservice\Response\Order\DocumentMessage;
-use Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage;
-use Polkurier\Webservice\Response\Order\MultiPickupResultMessage;
-use Polkurier\Webservice\Response\Order\OrderFileMessage;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\Order\OrderStatusMessage;
-use Polkurier\Webservice\Response\Order\ValuationMessage;
 
 /**
  * @see OrdersServiceInterface
@@ -108,7 +108,7 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
     }
 
     /**
-     * @param OrderIdMessage $orderIdMessage
+     * @param CancelOrderMessage $cancelOrderMessage
      *
      * @return CancellationMessage
      * @throws AuthorizationException
@@ -118,12 +118,12 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function cancelOrder(OrderIdMessage $orderIdMessage): CancellationMessage
+    public function cancelOrder(CancelOrderMessage $cancelOrderMessage): CancellationMessage
     {
         return $this->requestObject(
             ApiMethodEnum::CancelOrder,
             CancellationMessage::class,
-            $orderIdMessage,
+            $cancelOrderMessage,
         );
     }
 

@@ -7,17 +7,17 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Response;
 
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Dto\Response\PagedListMessage;
+use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
+use Polkurier\Webservice\Exception\MalformedResponseException;
+use Polkurier\Webservice\Serializer\ResponseDriftCollector;
+use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Polkurier\Webservice\Api\ParsedResponseInterface;
-use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
-use Polkurier\Webservice\Exception\MalformedResponseException;
-use Polkurier\Webservice\Response\PagedListMessage;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
-use Polkurier\Webservice\Serializer\ResponseDriftCollector;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Turns an HTTP response from the API into a

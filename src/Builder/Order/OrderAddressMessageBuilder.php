@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Order;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Entity\Order\OrderAddressMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
 
 /**
  * Assembles a sender or recipient address on an order.

@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Entity\PhoneNumber\SavePhoneNumberMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\SavePhoneNumberMessage;
 
 
 require __DIR__ . '/bootstrap.php';

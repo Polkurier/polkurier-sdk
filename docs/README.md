@@ -64,8 +64,8 @@ required: it means the wire names can change without a breaking release. See
 Messages and examples
 ---------------------
 
-- "Message" means a request payload: a class under `Request` that implements
-  [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many response classes are also named `…Message`;
-  the namespace tells them apart. [Messages and models](messages.md) explains why.
+- "Message" means a payload you send: a class under `Dto\Request`, or an entity class whose name
+  ends in `Message`, implementing [`Api\MessageInterface`](../src/Api/MessageInterface.php). Many classes you read are also named
+  `…Message`; the namespace tells them apart. [Messages and models](messages.md) explains why.
 - [`examples/`](../examples) has runnable versions of most of this, one file per API method. They
   are safe to run, because scripts that write do nothing without `--confirm`.

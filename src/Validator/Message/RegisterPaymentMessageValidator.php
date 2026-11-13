@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 

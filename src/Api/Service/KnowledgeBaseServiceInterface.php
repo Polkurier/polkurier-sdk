@@ -7,16 +7,16 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 
 /**
  * Help articles from the Polkurier knowledge base.
@@ -73,7 +73,7 @@ interface KnowledgeBaseServiceInterface
      * ```
      *
      * @return KnowledgeBaseEntryMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -119,7 +119,7 @@ interface KnowledgeBaseServiceInterface
      * @param SearchKnowledgeBaseMessage $searchKnowledgeBaseMessage
      *
      * @return KnowledgeBaseEntryMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -181,7 +181,7 @@ interface KnowledgeBaseServiceInterface
      * @param GetKnowledgeBaseArticleMessage $getKnowledgeBaseArticleMessage
      *
      * @return KnowledgeBaseArticleMessage payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

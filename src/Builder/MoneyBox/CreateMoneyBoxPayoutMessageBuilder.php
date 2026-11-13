@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\MoneyBox;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
 /**
  * Assembles a request to pay out collected cash-on-delivery money.

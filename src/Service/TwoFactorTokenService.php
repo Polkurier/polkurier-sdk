@@ -8,6 +8,12 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken\ValidityMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,12 +21,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
 
 /**
  * @see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface
@@ -48,7 +48,7 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
     }
 
     /**
-     * @param TokenMessage $tokenMessage
+     * @param ResendMessage $resendMessage
      *
      * @return TwoFactorToken
      * @throws AuthorizationException
@@ -58,12 +58,12 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenResend(TokenMessage $tokenMessage): TwoFactorToken
+    public function twoFactorTokenResend(ResendMessage $resendMessage): TwoFactorToken
     {
         return $this->requestObject(
             ApiMethodEnum::TwoFactorTokenResend,
             TwoFactorToken::class,
-            $tokenMessage,
+            $resendMessage,
         );
     }
 

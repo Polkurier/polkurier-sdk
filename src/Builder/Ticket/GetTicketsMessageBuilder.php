@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Builder\Ticket;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketsMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Request\Ticket\GetTicketsMessage;
 
 /**
  * Assembles the filters for the ticket list.

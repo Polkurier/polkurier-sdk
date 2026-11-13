@@ -7,15 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
+use Polkurier\Webservice\Entity\BankAccount\BankAccount;
+use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\BankAccount\DeleteBankAccountMessage;
-use Polkurier\Webservice\Request\BankAccount\SaveMessage;
-use Polkurier\Webservice\Response\BankAccount;
 
 /**
  * The account's registered bank accounts.
@@ -145,7 +145,7 @@ interface BankAccountsServiceInterface
      * ```
      * Wrong or expired code, or a token registered for another operation.
      *
-     * @param SaveMessage $saveMessage
+     * @param SaveBankAccountMessage $saveMessage
      *
      * @return BankAccount as stored
      * @throws AuthorizationException
@@ -155,7 +155,7 @@ interface BankAccountsServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveBankAccount(SaveMessage $saveMessage): BankAccount;
+    public function saveBankAccount(SaveBankAccountMessage $saveMessage): BankAccount;
 
     /**
      * Removes a bank account.

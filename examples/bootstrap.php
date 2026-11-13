@@ -17,9 +17,9 @@
 declare(strict_types=1);
 
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
 use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
 
 require __DIR__ . '/../vendor/autoload.php';
 

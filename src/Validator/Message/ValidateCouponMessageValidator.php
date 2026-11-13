@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 

@@ -8,6 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\BankAccountsServiceInterface;
+use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
+use Polkurier\Webservice\Entity\BankAccount\BankAccount;
+use Polkurier\Webservice\Entity\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,9 +18,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\BankAccount\DeleteBankAccountMessage;
-use Polkurier\Webservice\Request\BankAccount\SaveMessage;
-use Polkurier\Webservice\Response\BankAccount;
 
 /**
  * @see \Polkurier\Webservice\Api\Service\BankAccountsServiceInterface
@@ -38,7 +38,7 @@ class BankAccountsService extends AbstractService implements BankAccountsService
     }
 
     /**
-     * @param SaveMessage $saveMessage
+     * @param SaveBankAccountMessage $saveMessage
      *
      * @return BankAccount
      * @throws AuthorizationException
@@ -48,7 +48,7 @@ class BankAccountsService extends AbstractService implements BankAccountsService
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveBankAccount(SaveMessage $saveMessage): BankAccount
+    public function saveBankAccount(SaveBankAccountMessage $saveMessage): BankAccount
     {
         return $this->requestObject(ApiMethodEnum::SaveBankAccount, BankAccount::class, $saveMessage);
     }

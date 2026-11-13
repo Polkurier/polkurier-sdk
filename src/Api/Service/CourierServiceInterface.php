@@ -7,22 +7,22 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetCountriesMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Country;
+use Polkurier\Webservice\Dto\Response\Courier\PickupResponseMessage;
+use Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
-use Polkurier\Webservice\Request\Courier\GetCountriesMessage;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Country;
-use Polkurier\Webservice\Response\CourierPoint;
-use Polkurier\Webservice\Response\Courier\PickupResponseMessage;
-use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
 
 /**
  * Carriers, pickups, pickup points and supported countries.
@@ -83,7 +83,7 @@ interface CourierServiceInterface
      * With `additional_data: true`, each entry also has an `additional_data` object with `COD`,
      * `insurance`, `courierservice`, `shipmenttype`, `pickup`, `points_map` and
      * `additional_fields`. `points_map` can be null. Some keys inside `pickup` aren't sent for
-     * every carrier, see {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\Option}.
+     * every carrier, see {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Option}.
      *
      * @param AvailableCarriersMessage|null $availableCarriersMessage null lists every carrier
      *        without the additional data
@@ -104,7 +104,7 @@ interface CourierServiceInterface
      * Checks whether a carrier can collect on one day, and in which time windows.
      *
      * Nothing is booked. A collection is booked with the order, through
-     * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage::getPickup()}, or for several
+     * {@see \Polkurier\Webservice\Entity\Order\CreateOrderMessage::getPickup()}, or for several
      * orders at once with
      * {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface::createMultiOrderPickup()}.
      * Without a date, today is checked.
@@ -168,7 +168,7 @@ interface CourierServiceInterface
      * @param PickupMessage $pickupMessage
      *
      * @return PickupResponseMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Courier\PickupResponseMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Courier\PickupResponseMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -224,7 +224,7 @@ interface CourierServiceInterface
      * @param GetPickupTimeMessage $getPickupTimeMessage
      *
      * @return PickupTimeMessage[] a list of
-     *         {@see \Polkurier\Webservice\Response\Courier\PickupTimeMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -303,7 +303,7 @@ interface CourierServiceInterface
      * The list is sorted by Polish name and rarely changes, so you can cache it locally. As with
      * getCountries(), several names for one country are joined into one string. `is_default` is true
      * for Poland only. Use the region ids in the province field of an address book entry,
-     * {@see \Polkurier\Webservice\Request\Address\SaveMessage::getProvince()}.
+     * {@see \Polkurier\Webservice\Entity\Address\SaveAddressMessage::getProvince()}.
      *
      * Endpoint: `get_supported_countries_v2`
      *
@@ -355,7 +355,7 @@ interface CourierServiceInterface
      *
      * Name at least one carrier. The SDK checks this before sending. Pass all the codes a carrier's
      * points map lists, from
-     * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\PointsMap::getAvailableProviders()}.
+     * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap::getAvailableProviders()}.
      * A code on its own may match nothing, as DPD_COURIER_POINT does, and so does an unknown code.
      *
      * There are 3 search modes, and the reply's shape depends on which one you use:
