@@ -80,11 +80,6 @@ readonly class SerializerProvider implements SerializerProviderInterface
             ],
         );
 
-        $dateTimeContext = [];
-        if ($config->getTimezone() !== null) {
-            $dateTimeContext[DateTimeNormalizer::TIMEZONE_KEY] = $config->getTimezone();
-        }
-
         $serializer = new Serializer(
             normalizers: [
                 // Must come before the object normalizer, which would read a single order as an
@@ -94,8 +89,10 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 new LenientEnumDenormalizer(),
                 new BackedEnumNormalizer(),
                 // Must come before the date normalizer, so empty strings never reach it.
-                new AbsentDateNormalizer(),
-                new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
+                new AbsentDateDenormalizer(),
+                new LenientDateDenormalizer(
+                    new ExactDateTimeDenormalizer(new DateTimeNormalizer(), $config->getTimezone()),
+                ),
                 // Must come before the array normalizer, so unknown enum values never reach it.
                 new EnumListDenormalizer(),
                 new LenientListDenormalizer(new ArrayDenormalizer()),

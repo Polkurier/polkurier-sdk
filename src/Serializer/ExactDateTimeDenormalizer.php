@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  *
  * Writing is unchanged. Both directions go to {@see DateTimeNormalizer}.
  */
-class ExactDateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
+class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInterface
 {
     /**
      * @param DateTimeNormalizer $inner

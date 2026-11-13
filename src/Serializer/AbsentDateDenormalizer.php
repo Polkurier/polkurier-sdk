@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  * {@see \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer} unchanged. Whether null is
  * allowed is up to the receiving property.
  */
-class AbsentDateNormalizer implements DenormalizerInterface
+class AbsentDateDenormalizer implements DenormalizerInterface
 {
     /**
      * @param mixed $data

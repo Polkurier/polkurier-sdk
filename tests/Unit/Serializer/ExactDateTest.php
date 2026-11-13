@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
 use Polkurier\Webservice\Entity\Order\Pickup;
-use Polkurier\Webservice\Serializer\ExactDateTimeNormalizer;
+use Polkurier\Webservice\Serializer\ExactDateTimeDenormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -74,7 +74,7 @@ final class ExactDateTest extends TestCase
 
     public function testATimestampAndAFormatThatAlreadyResetsAreReadAsTheyAre(): void
     {
-        $normalizer = new ExactDateTimeNormalizer();
+        $normalizer = new ExactDateTimeDenormalizer();
         $read = static fn(int|string $value, string $format): \DateTimeInterface => $normalizer->denormalize(
             $value,
             \DateTimeImmutable::class,

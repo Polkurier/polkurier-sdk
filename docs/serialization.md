@@ -72,8 +72,8 @@ new Serializer(
         new SingleRowPageDenormalizer(),
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
-        new AbsentDateNormalizer(),
-        new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
+        new AbsentDateDenormalizer(),
+        new LenientDateDenormalizer(new ExactDateTimeDenormalizer(new DateTimeNormalizer($dateTimeContext))),
         new EnumListDenormalizer(),
         new LenientListDenormalizer(new ArrayDenormalizer()),
         new OmitEmptyNormalizer(new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
@@ -88,7 +88,7 @@ new Serializer(
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
 first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer/SingleRowPageDenormalizer.php) comes first: where a page of orders,
-tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
+tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
 response, an enum value the SDK doesn't know reads as null or is left out of its list. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes
@@ -163,7 +163,7 @@ An optional date can arrive as an empty string. [`Symfony\Component\Serializer\N
 string is not a date, and its error message talks about parse formats without naming the field or
 the cause.
 
-[`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) runs before it and turns the empty string into `null`. It handles nothing
+[`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) runs before it and turns the empty string into `null`. It handles nothing
 else, so a real date string passes straight through.
 
 ### An absent key
@@ -208,7 +208,7 @@ private ?\DateTimeInterface $dateFrom = null,
 The `timezone` setting in [`SerializerConfig`](../src/Serializer/SerializerConfig.php) only affects *reading*. The formats used for writing
 are fixed by the protocol.
 
-When reading, [`ExactDateTimeNormalizer`](../src/Serializer/ExactDateTimeNormalizer.php) takes only the fields the format has and sets the others to
+When reading, [`ExactDateTimeDenormalizer`](../src/Serializer/ExactDateTimeDenormalizer.php) takes only the fields the format has and sets the others to
 zero. A `Y-m-d` date reads as midnight, and an `H:i` time reads as that time on 1 January 1970.
 Without it, PHP fills the missing fields from the moment of reading, so the same response read
 twice would give different dates.
@@ -307,7 +307,7 @@ Debugging a mapping problem
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
 | An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
 | A field is empty, zero or null, or a list is short | The response lacked it or sent another type. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
-| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
+| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) should have caught it |
 | A required-field error on a response | `strictResponses: true`, or your own serializer call without a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php) |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
 | A changed response breaks the call | `strictResponses: true`. Meant for CI, not production |

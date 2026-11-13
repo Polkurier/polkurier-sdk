@@ -13,7 +13,7 @@ use Polkurier\Webservice\Dto\Response\Carrier;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Pickup;
 use Polkurier\Webservice\Dto\Response\Order\IndividualPricing;
 use Polkurier\Webservice\Entity\Order\Order;
-use Polkurier\Webservice\Serializer\AbsentDateNormalizer;
+use Polkurier\Webservice\Serializer\AbsentDateDenormalizer;
 use Polkurier\Webservice\Serializer\OmitEmptyNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
@@ -27,7 +27,7 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
  * neither the field nor the reason.
  */
 #[CoversClass(OmitEmptyNormalizer::class)]
-#[CoversClass(AbsentDateNormalizer::class)]
+#[CoversClass(AbsentDateDenormalizer::class)]
 final class AbsentValueTest extends TestCase
 {
     public function testAnEmptyBlockIsNoObjectRatherThanAnEmptyOne(): void
