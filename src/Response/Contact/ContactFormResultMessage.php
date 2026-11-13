@@ -8,8 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -19,8 +21,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * A result with the {@see ContactFormResultStatusEnum::Error} status carries a fresh nonce: the
  * form wants another submission, e.g. with the code sent by e-mail.
  */
-readonly class ContactFormResultMessage implements MessageInterface
+readonly class ContactFormResultMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -39,6 +43,7 @@ readonly class ContactFormResultMessage implements MessageInterface
      * @param string $nonce the nonce for the next submission, empty after a success
      * @param ?ContactFormResultDataMessage $data what the form produced, e.g. the ticket number
      * @param ContactFormResultNoticeMessage[] $messages
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -81,6 +86,12 @@ readonly class ContactFormResultMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_MESSAGES)]
         #[OmitWhenEmpty]
         private array $messages = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

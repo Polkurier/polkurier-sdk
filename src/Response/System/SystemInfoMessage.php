@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\System;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -15,8 +17,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * These values can change without an API version bump.
  */
-readonly class SystemInfoMessage implements MessageInterface
+readonly class SystemInfoMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -38,6 +42,7 @@ readonly class SystemInfoMessage implements MessageInterface
      * @param TicketLimitsMessage|null $tickets
      * @param SecurityLimitsMessage|null $security
      * @param array<string, bool> $features feature flags the service reports, keyed by name
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -75,6 +80,12 @@ readonly class SystemInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FEATURES)]
         private array $features = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

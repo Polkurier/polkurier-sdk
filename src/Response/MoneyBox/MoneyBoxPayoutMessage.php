@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -20,8 +22,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Check the cancellable flag before offering a cancel action. It turns false once any part of the
  * payout is on its way or paid, and once its fee is paid other than on an invoice.
  */
-readonly class MoneyBoxPayoutMessage implements MessageInterface
+readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -72,6 +76,7 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
      * @param float $compensationAmount withheld against outstanding debts
      * @param int $itemsCount cash-on-delivery amounts covered by this payout
      * @param bool $cancellable whether it can still be cancelled
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -206,6 +211,12 @@ readonly class MoneyBoxPayoutMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CANCELLABLE)]
         private bool $cancellable = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

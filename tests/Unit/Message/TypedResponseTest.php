@@ -316,7 +316,7 @@ final class TypedResponseTest extends TestCase
 
         $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
             ->create(new Response(200, [], $body), AccountInfoMessage::class)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
 
         self::assertInstanceOf(AccountInfoMessage::class, $info);
@@ -355,7 +355,7 @@ final class TypedResponseTest extends TestCase
 
         return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: $strict))))
             ->create(new Response(200, [], $body), $format)
-            ->getParsedResponse()
+            ->getEnvelope()
             ->getResponse();
     }
 }

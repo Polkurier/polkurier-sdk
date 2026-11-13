@@ -8,13 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Result of `cancel_order`.
  */
-readonly class CancellationMessage implements MessageInterface
+readonly class CancellationMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -23,6 +27,7 @@ readonly class CancellationMessage implements MessageInterface
 
     /**
      * @param bool $cancellation whether the order was cancelled
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -30,6 +35,12 @@ readonly class CancellationMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CANCELLATION)]
         private bool $cancellation = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

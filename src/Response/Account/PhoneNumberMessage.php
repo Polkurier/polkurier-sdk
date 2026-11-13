@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -16,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Removed numbers are not listed. At most one number is the default. Two-factor codes sent by text
  * message go to it.
  */
-readonly class PhoneNumberMessage implements MessageInterface
+readonly class PhoneNumberMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -32,6 +36,7 @@ readonly class PhoneNumberMessage implements MessageInterface
      * @param string $number digits only
      * @param string $name the customer's own label for the number, empty if none
      * @param bool $default whether this is the account's primary number
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -57,6 +62,12 @@ readonly class PhoneNumberMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

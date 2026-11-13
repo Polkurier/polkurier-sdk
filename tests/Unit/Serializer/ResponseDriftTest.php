@@ -102,7 +102,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read([TimeIntervalMessage::FIELD_TIME_TO => '12:00'], TimeIntervalMessage::class);
 
-        $interval = $wrapper->getParsedResponse()->getResponse();
+        $interval = $wrapper->getEnvelope()->getResponse();
         self::assertInstanceOf(TimeIntervalMessage::class, $interval);
         self::assertNull($interval->getTimeFrom());
         self::assertSame([['MISSING_FIELD', 'timeFrom', null, \DateTimeInterface::class]], self::drift($wrapper));
@@ -112,7 +112,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(['time' => 'garbage'], HeartbeatMessage::class);
 
-        $heartbeat = $wrapper->getParsedResponse()->getResponse();
+        $heartbeat = $wrapper->getEnvelope()->getResponse();
         self::assertInstanceOf(HeartbeatMessage::class, $heartbeat);
         self::assertNull($heartbeat->getTime());
         self::assertSame([['CAST_VALUE', 'time', 'garbage', \DateTimeInterface::class]], self::drift($wrapper));
@@ -127,7 +127,7 @@ final class ResponseDriftTest extends TestCase
             PointsMap::class,
         );
 
-        $map = $wrapper->getParsedResponse()->getResponse();
+        $map = $wrapper->getEnvelope()->getResponse();
         self::assertInstanceOf(PointsMap::class, $map);
         self::assertSame(['INPOST', '7', 'DPD'], $map->getAvailableProviders());
         self::assertSame([
@@ -150,7 +150,7 @@ final class ResponseDriftTest extends TestCase
         $wrapper = self::read([self::address(['type' => 12])], Address::class . '[]');
 
         /** @var list<Address> $addresses */
-        $addresses = $wrapper->getParsedResponse()->getResponse();
+        $addresses = $wrapper->getEnvelope()->getResponse();
         self::assertNull($addresses[0]->getType());
         self::assertSame([['CAST_VALUE', '[0].type', 12, AddressTypeEnum::class]], self::drift($wrapper));
     }
@@ -159,7 +159,7 @@ final class ResponseDriftTest extends TestCase
     {
         $wrapper = self::read(['name' => 'phone', 'value' => ['x']], ContactFormValueMessage::class);
 
-        $value = $wrapper->getParsedResponse()->getResponse();
+        $value = $wrapper->getEnvelope()->getResponse();
         self::assertInstanceOf(ContactFormValueMessage::class, $value);
         self::assertNull($value->getValue());
         self::assertSame([['CAST_VALUE', 'value', ['x'], 'string|int|float|bool']], self::drift($wrapper));
@@ -178,7 +178,7 @@ final class ResponseDriftTest extends TestCase
             Carrier::class . '[]',
         );
 
-        $error = $wrapper->getParsedResponse();
+        $error = $wrapper->getEnvelope();
         self::assertInstanceOf(ErrorMessage::class, $error);
         self::assertSame(['phone' => ['Zły numer', '5']], $error->getValidationErrors());
         self::assertSame([
@@ -209,7 +209,7 @@ final class ResponseDriftTest extends TestCase
             Carrier::class . '[]',
         );
 
-        self::assertInstanceOf(ErrorMessage::class, $wrapper->getParsedResponse());
+        self::assertInstanceOf(ErrorMessage::class, $wrapper->getEnvelope());
         self::assertSame([['UNKNOWN_FIELD', 'brand_new', 1, null]], self::drift($wrapper));
     }
 
@@ -263,7 +263,7 @@ final class ResponseDriftTest extends TestCase
         );
 
         /** @var list<Address> $addresses */
-        $addresses = $wrapper->getParsedResponse()->getResponse();
+        $addresses = $wrapper->getEnvelope()->getResponse();
         self::assertNull($addresses[0]->getType());
         self::assertSame(
             [['UNKNOWN_ENUM_VALUE', '[0].type', 'SOMETHING_NEW', AddressTypeEnum::class]],
@@ -339,7 +339,7 @@ final class ResponseDriftTest extends TestCase
     private static function carriers(ResponseWrapper $wrapper): array
     {
         /** @var list<Carrier> $carriers */
-        $carriers = $wrapper->getParsedResponse()->getResponse();
+        $carriers = $wrapper->getEnvelope()->getResponse();
 
         return $carriers;
     }

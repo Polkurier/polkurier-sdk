@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Request\Common\TwoFactorFields;
+use Polkurier\Webservice\Request\Common\TwoFactorFieldsTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -35,7 +35,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 )]
 readonly class SavePhoneNumberMessage implements MessageInterface
 {
-    use TwoFactorFields;
+    use TwoFactorFieldsTrait;
 
     /**+@#
      * JSON parameter keys

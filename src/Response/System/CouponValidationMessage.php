@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\System;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -20,8 +22,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * For a code that does not exist, the descriptive fields are null and the description is empty.
  */
-readonly class CouponValidationMessage implements MessageInterface
+readonly class CouponValidationMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -50,6 +54,7 @@ readonly class CouponValidationMessage implements MessageInterface
      *                                restricted to any carrier or does not exist
      * @param \DateTimeInterface|null $validTo expiry date, or null if it does not expire
      * @param string $description human-readable summary of the terms, in Polish
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -117,6 +122,12 @@ readonly class CouponValidationMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         private string $description = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

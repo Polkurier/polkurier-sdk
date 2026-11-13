@@ -13,7 +13,7 @@ namespace Polkurier\Webservice\Request\Common;
  * The using class declares the `$twoFactorToken` and `$twoFactorCode` properties. Get the token
  * from {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenRegister()}.
  */
-trait TwoFactorFields
+trait TwoFactorFieldsTrait
 {
     public const string FIELD_TWO_FACTOR_TOKEN = 'two_factor_token';
     public const string FIELD_TWO_FACTOR_CODE = 'two_factor_code';

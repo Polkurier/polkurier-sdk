@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -25,8 +27,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * Balances are in PLN. The money box has 3 of them: the total held, the part you can withdraw now,
  * and the part already committed to a payout.
  */
-readonly class AccountInfoMessage implements MessageInterface
+readonly class AccountInfoMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -111,6 +115,7 @@ readonly class AccountInfoMessage implements MessageInterface
      * @param string|null $defaultInpostSenderPoint the `INPOST_PACZKOMAT` entry of
      *        $defaultSenderPoint
      * @param string|null $defaultPocztexSenderPoint the `POCZTEX_PUNKT` entry of $defaultSenderPoint
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -326,6 +331,12 @@ readonly class AccountInfoMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_POCZTEX_SENDER_POINT)]
         private ?string $defaultPocztexSenderPoint = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

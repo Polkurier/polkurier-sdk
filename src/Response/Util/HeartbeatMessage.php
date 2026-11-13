@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Util;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -15,8 +17,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * It shows clock skew between your host and the API, which matters when a pickup is scheduled.
  */
-readonly class HeartbeatMessage implements MessageInterface
+readonly class HeartbeatMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -25,6 +29,7 @@ readonly class HeartbeatMessage implements MessageInterface
 
     /**
      * @param ?\DateTimeInterface $time
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -32,6 +37,12 @@ readonly class HeartbeatMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TIME)]
         private ?\DateTimeInterface $time,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

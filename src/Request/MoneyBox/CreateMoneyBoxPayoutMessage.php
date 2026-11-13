@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Request\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Request\Common\TwoFactorFields;
+use Polkurier\Webservice\Request\Common\TwoFactorFieldsTrait;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -30,7 +30,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 {
-    use TwoFactorFields;
+    use TwoFactorFieldsTrait;
 
     /**+@#
      * JSON parameter keys

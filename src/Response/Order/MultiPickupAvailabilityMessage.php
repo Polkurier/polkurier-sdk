@@ -8,14 +8,18 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether the shipment asked about can be placed for a collective pickup. False also when the API
  * couldn't evaluate the request.
  */
-readonly class MultiPickupAvailabilityMessage implements MessageInterface
+readonly class MultiPickupAvailabilityMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -24,6 +28,7 @@ readonly class MultiPickupAvailabilityMessage implements MessageInterface
 
     /**
      * @param bool $available
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -31,6 +36,12 @@ readonly class MultiPickupAvailabilityMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
         private bool $available = false,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

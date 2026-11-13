@@ -29,6 +29,7 @@ readonly class OrderListMessage extends PagedListMessage
      * @param int|null $currentPage
      * @param int|null $pageSize
      * @param Order[] $result
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         ?int $totalRows = 0,
@@ -48,8 +49,14 @@ readonly class OrderListMessage extends PagedListMessage
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
         private array $result = [],
+        ?string $rawResponse = null,
     ) {
-        parent::__construct(totalRows: $totalRows, currentPage: $currentPage, pageSize: $pageSize);
+        parent::__construct(
+            totalRows: $totalRows,
+            currentPage: $currentPage,
+            pageSize: $pageSize,
+            rawResponse: $rawResponse,
+        );
     }
 
     /**

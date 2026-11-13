@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -18,8 +20,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * for up to three hours: calls within each three-hour period counted from the start of the
  * verification return the same token, and a call in the next period returns a new one.
  */
-readonly class AccountVerificationMessage implements MessageInterface
+readonly class AccountVerificationMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -36,6 +40,7 @@ readonly class AccountVerificationMessage implements MessageInterface
      * @param string $status where the attempt has got to: NEW, PAYMENT_PLACED, PAYMENT_RECEIVED,
      *        INCONCLUSIVE, VERIFIED or CANCELLED
      * @param string|null $accessToken returned only when registering, null when reading back
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -62,6 +67,12 @@ readonly class AccountVerificationMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]
         private ?string $accessToken = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

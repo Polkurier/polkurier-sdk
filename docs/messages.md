@@ -135,8 +135,26 @@ properties. These come as lists of name and value pairs,
 [`ExternalApplicationSettingMessage`](../src/Response/Account/ExternalApplicationSettingMessage.php) and [`ContactFormValueMessage`](../src/Response/Contact/ContactFormValueMessage.php). A value that isn't a single value,
 such as a list, is given as its JSON.
 
-No method returns decoded JSON. For a value the SDK doesn't map, read the response as the API sent
-it, with [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php).
+No method returns decoded JSON. For a value the SDK doesn't map, read the body as the API sent it,
+see [the raw response](#the-raw-response).
+
+### The raw response
+
+An object a service method returns keeps the body of its response.
+[`ParsedResponseInterface::getRawResponse()`](../src/Api/ParsedResponseInterface.php) returns it byte for byte as the API sent it, before any parsing.
+When the SDK misreads or drops a value, decode the body yourself:
+
+```php
+$info = $client->system()->getSystemInfo();
+
+$data = \json_decode((string) $info->getRawResponse(), true);
+```
+
+Objects inside it, list items and objects built in code return null. For a method that returns a
+list, `true`/`false` or a map, read [`PolkurierWebservice::getLastResponse()`](../src/PolkurierWebservice.php).
+
+The body survives `serialize()`, so a cached object keeps its whole response. Two objects with the
+same values from different responses aren't equal under `==`.
 
 Why requests and responses are split
 ------------------------------------
@@ -292,7 +310,8 @@ with a value it doesn't recognise.
 No interfaces on models
 -----------------------
 
-Request and response classes have no interfaces. Wire names, formats and dates
+Request and response classes have no interfaces of their own, only the shared
+[`MessageInterface`](../src/Api/MessageInterface.php) and, on the classes service methods return, [`ParsedResponseInterface`](../src/Api/ParsedResponseInterface.php). Wire names, formats and dates
 are defined in serializer attributes on the classes themselves, so a different implementation of
 an interface wouldn't serialize.
 

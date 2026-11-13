@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -15,8 +16,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The rows themselves, and `totalpages` where a list has it, are on the subclass.
  */
-abstract readonly class PagedListMessage implements MessageInterface
+abstract readonly class PagedListMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -29,6 +32,7 @@ abstract readonly class PagedListMessage implements MessageInterface
      * @param int|null $totalRows rows across all pages
      * @param int|null $currentPage 1-based index of this page
      * @param int|null $pageSize rows per page, as applied to this response
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -48,6 +52,12 @@ abstract readonly class PagedListMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
         private ?int $pageSize = 0,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

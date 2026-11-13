@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Payment;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -17,8 +19,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * The transaction id and the access token together open the payment page for the customer. The
  * transaction id is the only way to look up the payment later.
  */
-readonly class RegisteredPaymentMessage implements MessageInterface
+readonly class RegisteredPaymentMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -32,6 +36,7 @@ readonly class RegisteredPaymentMessage implements MessageInterface
      * @param string $state NEW, REGISTERED, PENDING or DONE, as in
      *        {@see \Polkurier\Webservice\Response\Payment\PaymentInfoMessage}
      * @param ?string $accessToken opens the payment page, together with the transaction id
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -52,6 +57,12 @@ readonly class RegisteredPaymentMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]
         private ?string $accessToken = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

@@ -8,13 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\TwoFactorToken;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * Whether a submitted two-factor code was accepted.
  */
-readonly class ValidityMessage implements MessageInterface
+readonly class ValidityMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -23,6 +27,7 @@ readonly class ValidityMessage implements MessageInterface
 
     /**
      * @param bool $valid
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -30,6 +35,12 @@ readonly class ValidityMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_VALID)]
         private bool $valid,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

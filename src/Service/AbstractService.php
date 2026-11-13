@@ -175,7 +175,7 @@ abstract class AbstractService
                 $wrapper,
                 $request,
                 $payload,
-                $wrapper->getParsedResponse()->getStatus() === ResponseStatusEnum::Error
+                $wrapper->getEnvelope()->getStatus() === ResponseStatusEnum::Error
             );
             $this->logResponseDrift($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
@@ -188,14 +188,14 @@ abstract class AbstractService
             throw $e;
         }
 
-        $parsedResponse = $wrapper->getParsedResponse();
-        if ($parsedResponse instanceof ErrorMessage) {
-            throw $this->buildWebserviceException($parsedResponse, $request, $response);
+        $envelope = $wrapper->getEnvelope();
+        if ($envelope instanceof ErrorMessage) {
+            throw $this->buildWebserviceException($envelope, $request, $response);
         }
 
         $this->lastHttpResponse = $response;
 
-        return $parsedResponse->getResponse();
+        return $envelope->getResponse();
     }
 
     /**
@@ -596,7 +596,7 @@ abstract class AbstractService
                 'sandbox' => $this->config()->isSandbox(),
                 'payload' => $payload,
                 'request' => $request,
-                'parsed_response' => $responseWrapper->getParsedResponse(),
+                'parsed_response' => $responseWrapper->getEnvelope(),
                 'response' => $responseWrapper->getHttpResponse(),
             ], $apiMethod)
         );

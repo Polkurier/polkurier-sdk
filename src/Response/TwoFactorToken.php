@@ -8,14 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Response\TwoFactorToken\TransportMethodMessage;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
  * A registered two-factor confirmation, and how long it stays valid.
  */
-readonly class TwoFactorToken implements MessageInterface
+readonly class TwoFactorToken implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -41,6 +44,7 @@ readonly class TwoFactorToken implements MessageInterface
      * @param TransportMethodMessage|null $transportMethod how the code was sent
      * @param TransportMethodMessage[] $availableMethods the ways the code can be sent, the current
      *        one included
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -96,6 +100,12 @@ readonly class TwoFactorToken implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE_METHODS)]
         private array $availableMethods = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

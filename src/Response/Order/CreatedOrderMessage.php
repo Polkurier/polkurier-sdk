@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -18,8 +20,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * that `get_orders` returns. To read the order back in full, call `get_orders` with the returned
  * order number.
  */
-readonly class CreatedOrderMessage implements MessageInterface
+readonly class CreatedOrderMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -45,6 +49,7 @@ readonly class CreatedOrderMessage implements MessageInterface
      * @param bool $paid
      * @param string|null $trackingUri public track-and-trace URL
      * @param string|null $shipmentCode drop-off code, label-less service only
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -103,6 +108,12 @@ readonly class CreatedOrderMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_CODE)]
         #[OmitWhenEmpty]
         private ?string $shipmentCode = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

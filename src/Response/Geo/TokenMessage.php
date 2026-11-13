@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Geo;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -16,8 +18,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * This is not the API token. The map runs in the browser, and this token is safe to send there. It
  * expires 4 hours after it's issued.
  */
-readonly class TokenMessage implements MessageInterface
+readonly class TokenMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -26,6 +30,7 @@ readonly class TokenMessage implements MessageInterface
 
     /**
      * @param string $token
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -33,6 +38,12 @@ readonly class TokenMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         private string $token = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

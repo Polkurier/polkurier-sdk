@@ -9,7 +9,9 @@ namespace Polkurier\Webservice\Http\Response;
 
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Response\PagedListMessage;
@@ -69,6 +71,11 @@ readonly class ResponseFactory implements ResponseFactoryInterface
     protected const int EXCERPT_LENGTH = 512;
 
     /**
+     * The constructor parameter of every {@see ParsedResponseInterface} class that takes the body.
+     */
+    protected const string RAW_RESPONSE_PARAMETER = 'rawResponse';
+
+    /**
      * @var DenormalizerInterface
      */
     protected DenormalizerInterface $serializer;
@@ -90,7 +97,13 @@ readonly class ResponseFactory implements ResponseFactoryInterface
      */
     public function create(ResponseInterface $httpResponse, string $responseFormat): ResponseWrapper
     {
-        $rawResponse = $httpResponse->getBody()->getContents();
+        // Read from the start, so the raw body is complete even if the client left the stream
+        // elsewhere.
+        $body = $httpResponse->getBody();
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+        $rawResponse = $body->getContents();
         $responseData = \json_decode($rawResponse, true);
 
         if (!\is_array($responseData)) {
@@ -121,7 +134,7 @@ readonly class ResponseFactory implements ResponseFactoryInterface
                 );
             }
 
-            $payload = $this->deserializePayload($responseData, $responseFormat, $drift);
+            $payload = $this->deserializePayload($responseData, $responseFormat, $drift, $rawResponse);
 
             return new ResponseWrapper($httpResponse, new ResponseMessage($status, $payload), $drift->all());
         } catch (SerializerException $e) {
@@ -135,6 +148,8 @@ readonly class ResponseFactory implements ResponseFactoryInterface
      * @param array<string, mixed> $responseData
      * @param string $responseFormat
      * @param ResponseDriftCollector $drift receives how the payload differs from what the SDK expects
+     * @param string|null $rawResponse the body, which the payload keeps when it is a
+     *        {@see ParsedResponseInterface}
      *
      * @return mixed
      * @throws SerializerException when the payload doesn't map. create() turns it into a
@@ -144,6 +159,7 @@ readonly class ResponseFactory implements ResponseFactoryInterface
         array $responseData,
         string $responseFormat,
         ResponseDriftCollector $drift = new ResponseDriftCollector(),
+        ?string $rawResponse = null,
     ): mixed {
         $payload = $responseData[ResponseMessage::FIELD_RESPONSE] ?? null;
 
@@ -169,7 +185,8 @@ readonly class ResponseFactory implements ResponseFactoryInterface
             // payout number.
             return match (true) {
                 \str_ends_with($responseFormat, '[]') => [],
-                \is_subclass_of($responseFormat, PagedListMessage::class) => new $responseFormat(),
+                \is_subclass_of($responseFormat, PagedListMessage::class)
+                    => new $responseFormat(...[static::RAW_RESPONSE_PARAMETER => $rawResponse]),
                 default => null,
             };
         }
@@ -184,9 +201,15 @@ readonly class ResponseFactory implements ResponseFactoryInterface
 
         // A payload that differs from what this version of the SDK expects is read anyway, so one
         // change on the API's side doesn't make the whole response unreadable. Each one is recorded.
-        return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT, [
-            ResponseDriftCollector::CONTEXT_KEY => $drift,
-        ]);
+        $context = [ResponseDriftCollector::CONTEXT_KEY => $drift];
+        if (\is_subclass_of($responseFormat, ParsedResponseInterface::class)) {
+            // Only the object the method returns keeps the body, not the objects inside it.
+            $context[AbstractNormalizer::DEFAULT_CONSTRUCTOR_ARGUMENTS][$responseFormat] = [
+                static::RAW_RESPONSE_PARAMETER => $rawResponse,
+            ];
+        }
+
+        return $this->serializer->denormalize($payload, $responseFormat, static::FORMAT, $context);
     }
 
     /**

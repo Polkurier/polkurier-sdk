@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
@@ -21,8 +23,10 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  * The dates differ from the ones `get_orders` uses: the status timestamp has no seconds, the
  * delivery date has no time, and the scan timestamps in the history are full datetimes.
  */
-readonly class OrderStatusMessage implements MessageInterface
+readonly class OrderStatusMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -42,6 +46,7 @@ readonly class OrderStatusMessage implements MessageInterface
      * @param string $url public track-and-trace URL, empty while the order has no waybill
      * @param TrackingEventMessage[] $tracking scan history, empty unless asked for, or when the
      *                                         carrier has not reported anything yet
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -83,6 +88,12 @@ readonly class OrderStatusMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING)]
         private array $tracking = [],
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

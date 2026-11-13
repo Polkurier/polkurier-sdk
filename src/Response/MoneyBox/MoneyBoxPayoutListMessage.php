@@ -30,6 +30,7 @@ readonly class MoneyBoxPayoutListMessage extends PagedListMessage
      * @param int|null $currentPage
      * @param int|null $pageSize
      * @param MoneyBoxPayoutMessage[] $result the payouts on this page
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         ?int $totalRows = 0,
@@ -49,8 +50,14 @@ readonly class MoneyBoxPayoutListMessage extends PagedListMessage
          */
         #[Serializer\SerializedName(self::FIELD_RESULT)]
         private array $result = [],
+        ?string $rawResponse = null,
     ) {
-        parent::__construct(totalRows: $totalRows, currentPage: $currentPage, pageSize: $pageSize);
+        parent::__construct(
+            totalRows: $totalRows,
+            currentPage: $currentPage,
+            pageSize: $pageSize,
+            rawResponse: $rawResponse,
+        );
     }
 
     /**

@@ -8,7 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Response\DecodesFile;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\DecodesFileTrait;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -17,9 +19,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * The file is base64-encoded. {@see self::getDecodedFile()} returns the raw bytes.
  */
-readonly class TicketFileContentMessage implements MessageInterface
+readonly class TicketFileContentMessage implements MessageInterface, ParsedResponseInterface
 {
-    use DecodesFile;
+    use DecodesFileTrait;
+    use KeepsRawResponseTrait;
 
     /**+@#
      * JSON parameter keys
@@ -39,6 +42,7 @@ readonly class TicketFileContentMessage implements MessageInterface
      * @param string $file base64-encoded contents
      * @param ?\DateTimeInterface $dateCreated when it was attached
      * @param string $hash SHA-256 of the contents, in hex
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -77,6 +81,12 @@ readonly class TicketFileContentMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_HASH)]
         private string $hash = '',
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**

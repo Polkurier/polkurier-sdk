@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Response\Payment;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -21,8 +23,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * - `PENDING`: the customer is back from the provider, and the payment is not yet confirmed.
  * - `DONE`: paid.
  */
-readonly class PaymentInfoMessage implements MessageInterface
+readonly class PaymentInfoMessage implements MessageInterface, ParsedResponseInterface
 {
+    use KeepsRawResponseTrait;
+
     /**+@#
      * JSON parameter keys
      */
@@ -37,6 +41,7 @@ readonly class PaymentInfoMessage implements MessageInterface
      * @param string $state NEW, REGISTERED, PENDING or DONE
      * @param ?int $loginId not sent by the API, always null
      * @param ?string $hash not sent by the API, always null
+     * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
@@ -68,6 +73,12 @@ readonly class PaymentInfoMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_HASH)]
         #[OmitWhenEmpty]
         private ?string $hash = null,
+
+        /**
+         * @var string|null
+         */
+        #[Serializer\Ignore]
+        private ?string $rawResponse = null,
     ) {}
 
     /**
