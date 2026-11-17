@@ -483,6 +483,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
 
         $mapping = $this->metadata->getMetadataFor($class)->getAttributesMetadata();
         $fields = [];
+        // The metadata above is read for the same class and fails first, so this can't fail.
         foreach ((new \ReflectionClass($class))->getConstructor()?->getParameters() ?? [] as $parameter) {
             $name = $parameter->getName();
             $type = $parameter->getType();

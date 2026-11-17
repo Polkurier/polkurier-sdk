@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
+use Polkurier\Webservice\Serializer\ClassMembers;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\IgnoredWhen;
 use Polkurier\Webservice\Validator\Rule\MessageRuleInterface;
@@ -291,11 +292,16 @@ class AttributeValidator implements ValidatorInterface
                 ) {
                     $nested[] = $name;
                 }
-                if ($property->getAttributes(InlineFields::class) !== [] && !\in_array($name, $inlined, true)) {
-                    $inlined[] = $name;
-                }
             }
             $current = $current->getParentClass();
+        }
+
+        // A method can carry the attribute too, but the rules of an inlined record are read from
+        // the property that holds it.
+        foreach (ClassMembers::readMarkedWith($class, InlineFields::class) as $member) {
+            if ($member instanceof \ReflectionProperty && !\in_array($member->getName(), $inlined, true)) {
+                $inlined[] = $member->getName();
+            }
         }
 
         return self::$rules[$class] = [
