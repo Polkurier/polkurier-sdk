@@ -45,3 +45,4 @@ try {
     $event->order->getStatus(),
     $event->order->getStatusCode(),
 );
+

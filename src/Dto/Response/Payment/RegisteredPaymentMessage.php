@@ -37,7 +37,7 @@ final readonly class RegisteredPaymentMessage implements MessageInterface, Parse
      * @param string $transactionId identifier to quote when checking status
      * @param string $state NEW, REGISTERED, PENDING or DONE, as in
      *        {@see \Polkurier\Webservice\Dto\Response\Payment\PaymentInfoMessage}
-     * @param ?string $accessToken opens the payment page, together with the transaction id
+     * @param string|null $accessToken opens the payment page, together with the transaction id
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
@@ -54,7 +54,7 @@ final readonly class RegisteredPaymentMessage implements MessageInterface, Parse
         public string $state = '',
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]

@@ -66,6 +66,11 @@ class InOrder implements MessageRuleInterface
         if (!\is_scalar($earlier) && !($earlier instanceof \DateTimeInterface)) {
             return;
         }
+        // Both sides, or the comparison is between kinds PHP orders by rules that say nothing
+        // about the two values: an object always compares greater than a string.
+        if (!\is_scalar($later) && !($later instanceof \DateTimeInterface)) {
+            return;
+        }
         if ($earlier <= $later) {
             return;
         }

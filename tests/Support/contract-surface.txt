@@ -445,13 +445,11 @@ Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage::FIELD_SAME_AS_
 Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage::FIELD_STREET = 'street'
 Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage::FIELD_USER_TYPE = 'user_type'
 Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage::__construct(addressType: Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum, userType: ?Polkurier\Webservice\Enum\Account\PayerUserTypeEnum = null, sameAsPayer: bool = false, name: string = '', street: string = '', buildingNumber: string = '', postCode: string = '', city: string = '', country: string = '', nipPrefix: string = '', nip: string = '', regon: string = '')
-Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
+Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface, Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$phoneNumber: readonly Polkurier\Webservice\Entity\PhoneNumber
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$twoFactorCode: readonly ?string
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$twoFactorToken: readonly ?string
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::FIELD_PHONE_NUMBER = 'phone_number'
-Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::FIELD_TWO_FACTOR_CODE = 'two_factor_code'
-Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::FIELD_TWO_FACTOR_TOKEN = 'two_factor_token'
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::__construct(phoneNumber: Polkurier\Webservice\Entity\PhoneNumber, twoFactorToken: ?string = null, twoFactorCode: ?string = null)
 Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage: final readonly class extends Polkurier\Webservice\Dto\Request\Account\PinMessage implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Address\DeleteMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
@@ -472,15 +470,13 @@ Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage: final rea
 Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage::$accessPin: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage::FIELD_ACCESS_PIN = 'access_pin'
 Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage::__construct(id: string, accessPin: ?string = null)
-Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
+Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface, Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$accessPin: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$bankAccount: readonly Polkurier\Webservice\Entity\BankAccount
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$twoFactorCode: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$twoFactorToken: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_ACCESS_PIN = 'access_pin'
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_BANK_ACCOUNT = 'bank_account'
-Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_TWO_FACTOR_CODE = 'two_factor_code'
-Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_TWO_FACTOR_TOKEN = 'two_factor_token'
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::__construct(bankAccount: Polkurier\Webservice\Entity\BankAccount, twoFactorToken: ?string = null, twoFactorCode: ?string = null, accessPin: ?string = null)
 Polkurier\Webservice\Dto\Request\Common\DeleteMessage: final readonly class extends Polkurier\Webservice\Dto\Request\Common\IdMessage implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Common\IdMessage: readonly abstract class implements Polkurier\Webservice\Api\MessageInterface
@@ -497,9 +493,9 @@ Polkurier\Webservice\Dto\Request\Common\TokenMessage: readonly abstract class im
 Polkurier\Webservice\Dto\Request\Common\TokenMessage::$token: readonly string
 Polkurier\Webservice\Dto\Request\Common\TokenMessage::FIELD_TOKEN = 'token'
 Polkurier\Webservice\Dto\Request\Common\TokenMessage::__construct(token: string)
-Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait: class
-Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait::FIELD_TWO_FACTOR_CODE = 'two_factor_code'
-Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait::FIELD_TWO_FACTOR_TOKEN = 'two_factor_token'
+Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface: interface
+Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface::FIELD_TWO_FACTOR_CODE = 'two_factor_code'
+Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface::FIELD_TWO_FACTOR_TOKEN = 'two_factor_token'
 Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage::$category: readonly string
 Polkurier\Webservice\Dto\Request\Contact\GetContactFormMessage::FIELD_CATEGORY = 'category'
@@ -589,7 +585,7 @@ Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage: final rea
 Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage::$payoutNumber: readonly string
 Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage::FIELD_PAYOUT_NUMBER = 'payout_number'
 Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage::__construct(payoutNumber: string)
-Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
+Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface, Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::$bankAccountNumber: readonly ?string
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::$city: readonly ?string
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::$company: readonly ?string
@@ -613,9 +609,7 @@ Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_PER
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_POSTCODE = 'postcode'
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_SECURITY_PIN = 'security_pin'
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_STREET = 'street'
-Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_CODE = 'two_factor_code'
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_FORM_ID = 'two_factor_form_id'
-Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_TOKEN = 'two_factor_token'
 Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage::__construct(orders: array = [], payoutType: ?Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum = null, feePaymentType: ?Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum = null, bankAccountNumber: ?string = null, company: ?string = null, person: ?string = null, street: ?string = null, postcode: ?string = null, city: ?string = null, securityPin: ?string = null, twoFactorToken: ?string = null, twoFactorFormId: ?string = null, twoFactorCode: ?string = null)
 Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage: final readonly class extends Polkurier\Webservice\Dto\Request\Common\PagedMessage implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage::$payoutNumber: readonly ?string
@@ -2163,7 +2157,7 @@ Polkurier\Webservice\Entity\Order\Cod::FIELD_RETURN_DETAILS = 'return_details'
 Polkurier\Webservice\Entity\Order\Cod::FIELD_RETURN_TYPE = 'return_cod'
 Polkurier\Webservice\Entity\Order\Cod::FIELD_STATUS = 'status'
 Polkurier\Webservice\Entity\Order\Cod::FIELD_TYPE = 'codtype'
-Polkurier\Webservice\Entity\Order\Cod::__construct(amount: float, bankAccount: string = '', type: ?Polkurier\Webservice\Enum\Order\CodTypeEnum = Polkurier\Webservice\Enum\Order\CodTypeEnum::Standard, returnType: ?Polkurier\Webservice\Enum\Order\CodReturnTypeEnum = Polkurier\Webservice\Enum\Order\CodReturnTypeEnum::BankAccount, status: ?Polkurier\Webservice\Enum\Order\CodStatusEnum = Polkurier\Webservice\Enum\Order\CodStatusEnum::Waiting, returnDetails: array = [])
+Polkurier\Webservice\Entity\Order\Cod::__construct(amount: float, bankAccount: string = '', type: ?Polkurier\Webservice\Enum\Order\CodTypeEnum = Polkurier\Webservice\Enum\Order\CodTypeEnum::Standard, returnType: ?Polkurier\Webservice\Enum\Order\CodReturnTypeEnum = Polkurier\Webservice\Enum\Order\CodReturnTypeEnum::BankAccount, status: ?Polkurier\Webservice\Enum\Order\CodStatusEnum = null, returnDetails: array = [])
 Polkurier\Webservice\Entity\Order\Cod::getAmount(): float
 Polkurier\Webservice\Entity\Order\Cod::getBankAccount(): string
 Polkurier\Webservice\Entity\Order\Cod::getReturnDetails(): array
@@ -2373,6 +2367,7 @@ Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::UnknownError = 'UNKNOWN_ERROR'
 Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::UnsupportedMediaType = 'UNSUPPORTED_MEDIA_TYPE'
 Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::UserDoesNotExist = 'USER_DOES_NOT_EXIST'
 Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::ValidationError = 'VALIDATION_ERROR'
+Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::rejectsCredentials(): bool
 Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::static fromStatusCode(statusCode: int): ?Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum
 Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum::statusCode(): int
 Polkurier\Webservice\Enum\Http\ApiMethodEnum: enum implements BackedEnum, Polkurier\Webservice\Api\Http\ApiMethodInterface, UnitEnum
@@ -2557,7 +2552,6 @@ Polkurier\Webservice\Enum\Payment\PaymentModeEnum::Balance = 'BALANCE'
 Polkurier\Webservice\Enum\Payment\PaymentModeEnum::Invoices = 'INVOICES'
 Polkurier\Webservice\Enum\Payment\PaymentModeEnum::Orders = 'ORDERS'
 Polkurier\Webservice\Enum\Payment\PaymentModeEnum::Prepaid = 'PREPAID'
-Polkurier\Webservice\Enum\Payment\PaymentModeEnum::Verification = 'VERIFICATION'
 Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum: enum implements BackedEnum, UnitEnum
 Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum::CastValue = 'CAST_VALUE'
 Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum::MissingField = 'MISSING_FIELD'
@@ -2665,7 +2659,7 @@ Polkurier\Webservice\Testing\RecordingClient::lastPayload(): array
 Polkurier\Webservice\Testing\RecordingClient::lastRequest(): ?Psr\Http\Message\RequestInterface
 Polkurier\Webservice\Testing\RecordingClient::requestCount(): int
 Polkurier\Webservice\Testing\RecordingClient::sendRequest(request: Psr\Http\Message\RequestInterface): Psr\Http\Message\ResponseInterface
-Polkurier\Webservice\Testing\RecordingClient::willAnswerWith(body: string): void
+Polkurier\Webservice\Testing\RecordingClient::willAnswerWith(body: string, status: ?int = null): void
 Polkurier\Webservice\Validator\AttributeValidator: class implements Polkurier\Webservice\Api\Validation\ValidatorInterface
 Polkurier\Webservice\Validator\AttributeValidator::collect(message: object, violations: Polkurier\Webservice\Validator\ViolationPool): void
 Polkurier\Webservice\Validator\AttributeValidator::validate(data: Polkurier\Webservice\Api\MessageInterface): void

@@ -99,8 +99,9 @@ $client = new PolkurierWebservice($config, $logger);
 ```
 
 Error logging is controlled by `loggingEnabled`. It logs API errors and transport failures: the
-failed request, its body, and the response, if any. It also logs a warning for each enum value in
-a response that the SDK doesn't know (see [enums](messages.md#enums)). It is on by default, which has
+failed request, its body, and the response, if any. It also logs a warning for each way a response
+differed from what the SDK expects: an unknown field, a missing one, a value of another type, and
+an enum value the SDK doesn't know (see [enums](messages.md#enums)). It is on by default, which has
 no effect until you attach a logger.
 
 Extended logging also logs successful calls, with the full request and response. You turn it on

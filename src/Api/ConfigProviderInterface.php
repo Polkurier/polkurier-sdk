@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api;
 
-
 /**
  * Supplies the SDK configuration to everything that needs it.
  *

@@ -30,7 +30,7 @@ final readonly class TicketReferenceMessage implements MessageInterface
 
     /**
      * @param string $number the referenced number
-     * @param ?string $waybillNumber set only on order references
+     * @param string|null $waybillNumber set only on order references
      */
     public function __construct(
         /**
@@ -40,7 +40,7 @@ final readonly class TicketReferenceMessage implements MessageInterface
         public string $number = '',
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_WAYBILL_NUMBER)]
         #[OmitWhenEmpty]

@@ -30,12 +30,12 @@ final readonly class HeartbeatMessage implements MessageInterface, ParsedRespons
     /**-@#*/
 
     /**
-     * @param ?\DateTimeInterface $time
+     * @param \DateTimeInterface|null $time
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_TIME)]
         public ?\DateTimeInterface $time,

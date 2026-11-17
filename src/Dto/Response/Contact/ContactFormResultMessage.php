@@ -43,7 +43,7 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
      * @param ContactFormResultActionEnum|null $action how to present the result
      * @param string $message text to show the customer, in Polish
      * @param string $nonce the nonce for the next submission, empty after a success
-     * @param ?ContactFormResultDataMessage $data what the form produced, e.g. the ticket number
+     * @param ContactFormResultDataMessage|null $data what the form produced, e.g. the ticket number
      * @param ContactFormResultNoticeMessage[] $messages
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
@@ -76,7 +76,7 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
         public string $nonce = '',
 
         /**
-         * @var ?ContactFormResultDataMessage
+         * @var ContactFormResultDataMessage|null
          */
         #[Serializer\SerializedName(self::FIELD_DATA)]
         #[OmitWhenEmpty]

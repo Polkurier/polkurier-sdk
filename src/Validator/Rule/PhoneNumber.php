@@ -12,13 +12,15 @@ use Attribute;
 /**
  * A telephone number.
  *
- * Only the length is checked: at least 9 digits, not counting other characters. No numbering plan
- * is enforced because foreign numbers are accepted.
+ * Only the length is checked: at least 4 digits, not counting other characters. That is the
+ * shortest national number E.164 allows, so no number the API accepts is refused here. A Polish
+ * number is 9 digits and a foreign one may be fewer, so a plan-specific length would reject a
+ * recipient the carrier delivers to.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class PhoneNumber implements ValueValidatorInterface
 {
-    private const int MIN_DIGITS = 9;
+    private const int MIN_DIGITS = 4;
 
     /**
      * @param mixed $value

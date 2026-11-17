@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Message;
 
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
@@ -25,12 +24,9 @@ use Polkurier\Webservice\Dto\Response\Ticket\TicketResponseTemplateMessage;
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Valuations, contact forms and their values read into typed messages, from payloads shaped as the
@@ -77,7 +73,10 @@ final class TypedResponseTest extends TestCase
         $form = self::read(ContactFormMessage::class, [
             'id' => 'form-1',
             'fields' => [
-                ['id' => 'f1', 'type' => 'TEXT', 'name' => 'name', 'value' => '', 'label' => 'Imię', 'maxLength' => 100],
+                [
+                    'id' => 'f1', 'type' => 'TEXT', 'name' => 'name', 'value' => '', 'label' => 'Imię',
+                    'maxLength' => 100,
+                ],
                 [
                     'id' => 'f2', 'type' => 'SELECT', 'name' => 'courier', 'value' => '', 'label' => 'Przewoźnik',
                     'options' => [
@@ -85,14 +84,18 @@ final class TypedResponseTest extends TestCase
                         ['value' => '-1', 'label' => 'Inne', 'condition' => '@a != \'\''],
                     ],
                 ],
-                ['id' => 'f3', 'type' => 'SELECT', 'name' => 'target', 'value' => '', 'label' => 'Cel', 'options' => '@COURIERS'],
+                [
+                    'id' => 'f3', 'type' => 'SELECT', 'name' => 'target', 'value' => '', 'label' => 'Cel',
+                    'options' => '@COURIERS',
+                ],
                 [
                     'id' => 'f4', 'type' => 'ALERT', 'value' => '', 'label' => 'Uwaga', 'severity' => 'WARNING',
                     'condition' => '@courier IN @COURIERS', 'props' => ['fontSize' => 'small', 'inset' => true],
                 ],
                 [
                     'id' => 'f5', 'type' => 'FILES', 'name' => 'attachments[]', 'value' => '', 'label' => 'Pliki',
-                    'maxLength' => 5, 'maxFileSize' => 10485760, 'allowedFileExtensions' => ['pdf', 'png'], 'props' => [],
+                    'maxLength' => 5, 'maxFileSize' => 10485760, 'allowedFileExtensions' => ['pdf', 'png'],
+                    'props' => [],
                 ],
                 ['id' => 'f6', 'type' => 'NEW_KIND', 'name' => 'x', 'value' => '', 'label' => 'X'],
             ],
@@ -210,7 +213,7 @@ final class TypedResponseTest extends TestCase
                 ],
                 ['name' => 'zdjecie.png', 'type' => 'image/png', 'size' => 10, 'hash' => 'def', 'date_created' => null],
             ],
-        ] + self::sample(Order::class));
+        ] + Sample::wire(Order::class));
 
         self::assertInstanceOf(Order::class, $order);
         $files = $order->getFiles();
@@ -256,7 +259,7 @@ final class TypedResponseTest extends TestCase
             $ticket->responseTemplate,
         );
 
-        $sample = self::sample(TicketMessage::class);
+        $sample = Sample::wire(TicketMessage::class);
         unset($sample[TicketMessage::FIELD_RESPONSE_TEMPLATE]);
         $none = self::read(TicketMessage::class, $sample);
         self::assertInstanceOf(TicketMessage::class, $none);
@@ -265,7 +268,7 @@ final class TypedResponseTest extends TestCase
 
     public function testExternalApplicationSettingsReadAsNamedValues(): void
     {
-        $sample = self::sample(AccountInfoMessage::class);
+        $sample = Sample::wire(AccountInfoMessage::class);
         $info = self::read(AccountInfoMessage::class, ['external_application_settings' => [
             'webhook_url' => 'https://shop.example.com/polkurier',
             'statuses' => ['NEW', 'SENT'],
@@ -313,35 +316,13 @@ final class TypedResponseTest extends TestCase
             'pin_locks' => ['PIN_SETTINGS' => false, 'BANK_ACCOUNTS_EDIT' => false, 'COD_MONEY_BOX' => false],
             'settings' => ['user_delivery_pickup_myself' => false, 'cover_address_sender_checked' => false],
         ];
-        $body = \json_encode(['status' => 'success', 'response' => $profile], \JSON_THROW_ON_ERROR);
 
-        $strict = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
-        $info = (new ResponseFactory($strict))
-            ->create(new Response(200, [], $body), AccountInfoMessage::class)
-            ->getEnvelope()
-            ->response;
+        $info = self::read(AccountInfoMessage::class, $profile, strict: true);
 
         self::assertInstanceOf(AccountInfoMessage::class, $info);
         self::assertSame('1357', $info->phonePin);
         self::assertSame('POZ01A', $info->defaultInpostSenderPoint);
-        self::assertNull($info->defaultPocztexSenderPoint);
-    }
-
-    /**
-     * A fully populated response of the class, in its wire form.
-     *
-     * @param class-string $class
-     *
-     * @return array<array-key, mixed>
-     */
-    private static function sample(string $class): array
-    {
-        $serializer = (new SerializerProvider())->getSerializer();
-        self::assertInstanceOf(NormalizerInterface::class, $serializer);
-        $wire = $serializer->normalize(Sample::of($class), 'json');
-        self::assertIsArray($wire);
-
-        return $wire;
+        self::assertNull($info->defaultKurier48SenderPoint);
     }
 
     /**
@@ -353,13 +334,6 @@ final class TypedResponseTest extends TestCase
      */
     private static function read(string $format, array $payload, bool $strict = false): mixed
     {
-        $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
-
-        $serializer = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: $strict)));
-
-        return (new ResponseFactory($serializer))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->response;
+        return Responses::read($format, $payload, new SerializerConfig(strictResponses: $strict));
     }
 }

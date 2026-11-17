@@ -42,14 +42,14 @@ final readonly class SaveAccountSettingsMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_SENDER_ADDRESS_ID)]
         #[OmitWhenEmpty]
         public ?string $defaultSenderAddressId = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_COURIER)]
         #[OmitWhenEmpty]

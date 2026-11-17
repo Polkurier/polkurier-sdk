@@ -33,7 +33,7 @@ final readonly class RegisterAccountVerificationMessage implements MessageInterf
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\OrderNumber]

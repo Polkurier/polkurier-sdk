@@ -5,7 +5,7 @@ Requirements
 ------------
 
 PHP 8.3, 8.4 or 8.5. The SDK uses readonly classes, backed enums, attributes, named arguments and
-typed class constants, and there is no polyfill for older versions.
+typed class constants.
 
 Composer installs the dependencies: Guzzle for HTTP, `symfony/serializer` with `property-info` and
 `property-access` for mapping (Symfony 6.4, 7.4 or 8.x), `psr/cache` for the optional metadata cache, and the PSR interfaces

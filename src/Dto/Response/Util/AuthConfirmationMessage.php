@@ -27,6 +27,10 @@ final readonly class AuthConfirmationMessage implements MessageInterface, Parsed
     public const string FIELD_AUTHORIZATION = 'authorization';
     /**-@#*/
 
+    /**
+     * @param bool $authorized
+     * @param string|null $rawResponse the body of the response, as the API sent it
+     */
     public function __construct(
         /**
          * @var bool

@@ -400,7 +400,7 @@ number and return base64, like order documents.
 only for top-ups ([`PaymentModeEnum::Prepaid`](../src/Enum/Payment/PaymentModeEnum.php)). A top-up needs an amount greater than zero, and the
 SDK checks this before sending. [`PaymentModeEnum::Invoices`](../src/Enum/Payment/PaymentModeEnum.php) and
 [`PaymentModeEnum::Orders`](../src/Enum/Payment/PaymentModeEnum.php) need their list of numbers; an order payment spends the prepaid balance
-first. [`PaymentModeEnum::Verification`](../src/Enum/Payment/PaymentModeEnum.php) fails with UNKNOWN_ERROR. [Webhooks](webhooks.md) don't cover
+first. [Webhooks](webhooks.md) don't cover
 payments; [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) reads their state.
 
 Cash collected on delivery is held on the account until it is paid out:

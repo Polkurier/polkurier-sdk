@@ -25,12 +25,12 @@ final readonly class GetAccountInfoMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param ?string $externalApplicationId UUID of an external application. When set, the
+     * @param string|null $externalApplicationId UUID of an external application. When set, the
      *        application's settings for this account are included
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]

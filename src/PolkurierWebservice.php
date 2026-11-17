@@ -189,7 +189,6 @@ final class PolkurierWebservice
      */
     public function courier(): CourierServiceInterface
     {
-        /** @var CourierServiceInterface */
         return $this->service(CourierService::class);
     }
 
@@ -200,7 +199,6 @@ final class PolkurierWebservice
      */
     public function orders(): OrdersServiceInterface
     {
-        /** @var OrdersServiceInterface */
         return $this->service(OrdersService::class);
     }
 
@@ -211,7 +209,6 @@ final class PolkurierWebservice
      */
     public function account(): AccountServiceInterface
     {
-        /** @var AccountServiceInterface */
         return $this->service(AccountService::class);
     }
 
@@ -222,7 +219,6 @@ final class PolkurierWebservice
      */
     public function addresses(): AddressesServiceInterface
     {
-        /** @var AddressesServiceInterface */
         return $this->service(AddressesService::class);
     }
 
@@ -233,7 +229,6 @@ final class PolkurierWebservice
      */
     public function bankAccounts(): BankAccountsServiceInterface
     {
-        /** @var BankAccountsServiceInterface */
         return $this->service(BankAccountsService::class);
     }
 
@@ -244,7 +239,6 @@ final class PolkurierWebservice
      */
     public function packTemplates(): PackTemplatesServiceInterface
     {
-        /** @var PackTemplatesServiceInterface */
         return $this->service(PackTemplatesService::class);
     }
 
@@ -255,7 +249,6 @@ final class PolkurierWebservice
      */
     public function geo(): GeoServiceInterface
     {
-        /** @var GeoServiceInterface */
         return $this->service(GeoService::class);
     }
 
@@ -266,7 +259,6 @@ final class PolkurierWebservice
      */
     public function twoFactorToken(): TwoFactorTokenServiceInterface
     {
-        /** @var TwoFactorTokenServiceInterface */
         return $this->service(TwoFactorTokenService::class);
     }
 
@@ -277,7 +269,6 @@ final class PolkurierWebservice
      */
     public function system(): SystemServiceInterface
     {
-        /** @var SystemServiceInterface */
         return $this->service(SystemService::class);
     }
 
@@ -288,7 +279,6 @@ final class PolkurierWebservice
      */
     public function utils(): UtilsServiceInterface
     {
-        /** @var UtilsServiceInterface */
         return $this->service(UtilsService::class);
     }
 
@@ -300,7 +290,6 @@ final class PolkurierWebservice
      */
     public function accountVerification(): AccountVerificationServiceInterface
     {
-        /** @var AccountVerificationServiceInterface */
         return $this->service(AccountVerificationService::class);
     }
 
@@ -311,7 +300,6 @@ final class PolkurierWebservice
      */
     public function invoices(): InvoicesServiceInterface
     {
-        /** @var InvoicesServiceInterface */
         return $this->service(InvoicesService::class);
     }
 
@@ -322,7 +310,6 @@ final class PolkurierWebservice
      */
     public function payments(): PaymentsServiceInterface
     {
-        /** @var PaymentsServiceInterface */
         return $this->service(PaymentsService::class);
     }
 
@@ -333,7 +320,6 @@ final class PolkurierWebservice
      */
     public function tickets(): TicketsServiceInterface
     {
-        /** @var TicketsServiceInterface */
         return $this->service(TicketsService::class);
     }
 
@@ -344,7 +330,6 @@ final class PolkurierWebservice
      */
     public function knowledgeBase(): KnowledgeBaseServiceInterface
     {
-        /** @var KnowledgeBaseServiceInterface */
         return $this->service(KnowledgeBaseService::class);
     }
 
@@ -355,7 +340,6 @@ final class PolkurierWebservice
      */
     public function moneyBox(): MoneyBoxServiceInterface
     {
-        /** @var MoneyBoxServiceInterface */
         return $this->service(MoneyBoxService::class);
     }
 

@@ -23,8 +23,9 @@ final class Sample
     /**
      * A sample of a response class as the API sends it: every property under its wire name.
      *
-     * The SDK's serializer writes an object through its getters, under the getters' names, so it can't
-     * produce a response. This reads the properties instead.
+     * The SDK's serializer writes what a request carries, so it leaves out every field marked
+     * {@see \Polkurier\Webservice\Serializer\Attribute\ResponseOnly} — an order's prices and a
+     * pickup's number among them. This reads the properties instead, all of them.
      *
      * @param class-string $class
      *

@@ -15,8 +15,8 @@ use Polkurier\Webservice\Api\Http\ApiMethodInterface;
  * Grouped by service, so each block matches one interface under
  * {@see \Polkurier\Webservice\Api\Service}.
  *
- * 2 case names are shorter than their values: OrderValuation is `order_valuation_v2` and
- * GetSupportedCountries is `get_supported_countries_v2`. The value is what is sent.
+ * The value is what is sent, and a case name does not always spell it: two carry a `_v2` suffix
+ * the name leaves out.
  *
  * @api
  */

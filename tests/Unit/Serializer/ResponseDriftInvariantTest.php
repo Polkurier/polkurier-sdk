@@ -22,6 +22,7 @@ use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Accessors;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Webhook\OrderReader;
@@ -106,7 +107,7 @@ final class ResponseDriftInvariantTest extends TestCase
                     $this->expectStrictFailure($strict, $body, $class, $case);
                     continue;
                 }
-                self::assertReadable($wrapper->getEnvelope()->response);
+                Accessors::readAll($wrapper->getEnvelope()->response);
                 $reported = \array_filter(
                     $wrapper->getDrift(),
                     static fn($drift) => $drift->type !== ResponseDriftTypeEnum::UnknownEnumValue,
@@ -146,7 +147,7 @@ final class ResponseDriftInvariantTest extends TestCase
                 $reader = new OrderReader();
                 try {
                     $read = $reader->read($body);
-                    self::assertReadable($read->event);
+                    Accessors::readAll($read->event);
                 } catch (InvalidArgumentException $e) {
                     self::assertStringContainsString('None of the fields', $e->getMessage(), $case);
                     continue;
@@ -180,36 +181,6 @@ final class ResponseDriftInvariantTest extends TestCase
             $strict->create(new Response(200, [], $body), $class);
             self::fail($case . ': strict reading accepted what lenient reading refused');
         } catch (MalformedResponseException) {
-        }
-    }
-
-    /**
-     * Calls every getter, recursively, so a value of the wrong type raises an error here.
-     *
-     * @param mixed $value
-     * @param int $depth
-     *
-     * @return void
-     */
-    private static function assertReadable(mixed $value, int $depth = 0): void
-    {
-        if (\is_array($value) && $depth < 4) {
-            foreach ($value as $item) {
-                self::assertReadable($item, $depth + 1);
-            }
-
-            return;
-        }
-        if (!\is_object($value) || $value instanceof \DateTimeInterface || $value instanceof \UnitEnum || $depth >= 4) {
-            return;
-        }
-        foreach ((new \ReflectionClass($value))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->getNumberOfRequiredParameters() > 0
-                || !\preg_match('/^(get|is|has)/', $method->getName())
-            ) {
-                continue;
-            }
-            self::assertReadable($method->invoke($value), $depth + 1);
         }
     }
 }

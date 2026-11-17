@@ -63,7 +63,7 @@ class AddressBuilder extends AbstractBuilder
     }
 
     /**
-     * @param string $email required before build()
+     * @param string $email optional
      *
      * @return static
      */
@@ -73,7 +73,7 @@ class AddressBuilder extends AbstractBuilder
     }
 
     /**
-     * @param string $phone required before build()
+     * @param string $phone optional
      *
      * @return static
      */

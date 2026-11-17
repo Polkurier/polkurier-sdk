@@ -21,6 +21,7 @@ use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Test\Support\Arguments;
 use Polkurier\Webservice\Validator\AttributeValidator;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\Email;
@@ -80,12 +81,17 @@ final class RuleTest extends TestCase
             'a Polish IBAN under foreign: false' => [new Iban(foreign: false), 'PL34102010260000000000000001'],
             'a telephone number' => [new PhoneNumber(), '500600700'],
             'a telephone number with a country code' => [new PhoneNumber(), '+48 500 600 700'],
+            // A Danish number is 8 digits and an Icelandic one 7, so a Polish length would reject
+            // a recipient the carrier delivers to.
+            'a foreign telephone number, shorter than a Polish one' => [new PhoneNumber(), '12345678'],
             'a positive integer' => [new Positive(), 1],
             'a positive float' => [new Positive(), 0.5],
             'zero, where zero is allowed' => [new NonNegative(), 0],
             'a value inside the range' => [new IntegerRange(1, 100), 100],
             'a non-empty string' => [new NotBlank(), 'x'],
             'a list with an entry' => [new NotEmptyList(), ['x']],
+            'a list left out' => [new NotEmptyList(), null],
+            'a typed value left out' => [new OfType('string'), null],
             // Presence is {@see NotBlank}'s business, so a format rule passes on an absent value.
             // Without that, every optional field carrying one would become mandatory.
             'an empty postcode, which NotBlank judges' => [new Postcode(), ''],
@@ -129,7 +135,7 @@ final class RuleTest extends TestCase
             'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
             'an IBAN whose check digits do not hold' => [new Iban(), 'DE89370400440532013001'],
             'a foreign IBAN under foreign: false' => [new Iban(foreign: false), 'DE89370400440532013000'],
-            'a telephone number that is too short' => [new PhoneNumber(), '12345'],
+            'a telephone number that is too short' => [new PhoneNumber(), '12'],
             'zero, where it must be positive' => [new Positive(), 0],
             'a negative number' => [new Positive(), -1],
             'a negative number where zero is the floor' => [new NonNegative(), -0.01],
@@ -168,7 +174,7 @@ final class RuleTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Each(\stdClass::class); // @phpstan-ignore argument.type (the wrong class is the point)
+        new Each(Arguments::widen(\stdClass::class));
     }
 
     /**
@@ -256,6 +262,8 @@ final class RuleTest extends TestCase
                 ),
                 ['orders[1]'],
             ],
+            // The message's own country field defaults to PL, so blanking it is an override of
+            // that default, not a payload without a country.
             'PostcodeForCountry: falls back to Polish postcodes' => [
                 new FindCityMessage(postcode: '12345', country: ''),
                 ['postcode'],

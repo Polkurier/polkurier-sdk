@@ -41,7 +41,7 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
      * @param string $type media type
      * @param int $size size in bytes
      * @param string $hash content hash, stable across downloads
-     * @param ?\DateTimeInterface $dateCreated when the document was attached, null if unknown
+     * @param \DateTimeInterface|null $dateCreated when the document was attached, null if unknown
      * @param string $file the file's bytes
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
@@ -71,7 +71,7 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
         public string $hash = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]

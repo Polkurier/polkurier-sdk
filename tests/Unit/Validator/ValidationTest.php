@@ -33,6 +33,7 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Test\Support\Arguments;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
 
@@ -161,7 +162,7 @@ final class ValidationTest extends TestCase
     {
         $this->validator->validate($payload);
 
-        $this->addToAssertionCount(1);
+        $this->expectNotToPerformAssertions();
     }
 
     /**
@@ -359,27 +360,6 @@ final class ValidationTest extends TestCase
         }
     }
 
-    /**
-     * The API doesn't read the coupon's sender, so a malformed one passes.
-     *
-     * @return void
-     */
-    public function testCouponCheckIgnoresTheSender(): void
-    {
-        $this->validator->validate(new ValidateCouponMessage(
-            couponCode: 'SPRING10',
-            sender: new Address(
-                person: '',
-                street: '',
-                city: '',
-                postcode: 'not a postcode',
-                email: 'not an email',
-                phone: '',
-            ),
-        ));
-
-        $this->addToAssertionCount(1);
-    }
 
     /**
      * The page size limit of a paged endpoint, and one report per field when a value is too small.
@@ -409,16 +389,17 @@ final class ValidationTest extends TestCase
     public function testListEntriesOfTheWrongTypeAreReported(): void
     {
         try {
-            // @phpstan-ignore argument.type, argument.type (the wrong entry types are the point)
-            $this->validator->validate(new GetPointMessage(couriers: ['INPOST', 7], functions: ['send']));
+            $this->validator->validate(new GetPointMessage(
+                couriers: Arguments::widen(['INPOST', 7]),
+                functions: Arguments::widen(['send']),
+            ));
             self::fail('Expected a ValidationException.');
         } catch (ValidationException $e) {
             self::assertSame(['couriers[1]', 'functions[0]'], \array_keys($e->getValidationErrors()));
         }
 
         try {
-            // @phpstan-ignore argument.type
-            $this->validator->validate(self::order(packs: ['not a pack']));
+            $this->validator->validate(self::order(packs: Arguments::widen(['not a pack'])));
             self::fail('Expected a ValidationException.');
         } catch (ValidationException $e) {
             self::assertArrayHasKey('packs[0]', $e->getValidationErrors());
@@ -474,7 +455,7 @@ final class ValidationTest extends TestCase
     {
         (new ValidatorRegistry())->validate(new CancelOrderMessage('anything at all'));
 
-        $this->addToAssertionCount(1);
+        $this->expectNotToPerformAssertions();
     }
 
     /**

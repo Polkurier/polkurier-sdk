@@ -28,7 +28,7 @@ final readonly class ContactFormResultNoticeMessage implements MessageInterface
     /**
      * @param string $type `default`, `danger`, `warning`, `info` or `success`
      * @param string $content
-     * @param ?\DateTimeInterface $createdAt
+     * @param \DateTimeInterface|null $createdAt
      */
     public function __construct(
         /**
@@ -44,7 +44,7 @@ final readonly class ContactFormResultNoticeMessage implements MessageInterface
         public string $content = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_CREATED_AT)]
         public ?\DateTimeInterface $createdAt = null,

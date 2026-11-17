@@ -35,7 +35,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType
+     * @param MoneyBoxPayoutTypeEnum|null $payoutType
      *
      * @return static
      */
@@ -45,7 +45,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType
+     * @param MoneyBoxFeePaymentTypeEnum|null $feePaymentType
      *
      * @return static
      */
@@ -55,7 +55,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $bankAccountNumber
+     * @param string|null $bankAccountNumber
      *
      * @return static
      */
@@ -65,7 +65,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $company
+     * @param string|null $company
      *
      * @return static
      */
@@ -75,7 +75,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $person
+     * @param string|null $person
      *
      * @return static
      */
@@ -85,7 +85,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $street
+     * @param string|null $street
      *
      * @return static
      */
@@ -95,7 +95,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $postcode
+     * @param string|null $postcode
      *
      * @return static
      */
@@ -105,7 +105,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $city
+     * @param string|null $city
      *
      * @return static
      */
@@ -115,7 +115,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $securityPin
+     * @param string|null $securityPin
      *
      * @return static
      */
@@ -125,7 +125,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $twoFactorToken
+     * @param string|null $twoFactorToken
      *
      * @return static
      */
@@ -135,7 +135,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $twoFactorFormId
+     * @param string|null $twoFactorFormId
      *
      * @return static
      */
@@ -145,7 +145,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $twoFactorCode
+     * @param string|null $twoFactorCode
      *
      * @return static
      */

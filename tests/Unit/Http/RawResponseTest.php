@@ -21,8 +21,10 @@ use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Accessors;
+use Polkurier\Webservice\Test\Support\MessageClasses;
+use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Polkurier\Webservice\Test\Unit\Serializer\ResponseConstructionTest;
 
 #[CoversClass(ResponseFactory::class)]
 final class RawResponseTest extends TestCase
@@ -100,7 +102,7 @@ final class RawResponseTest extends TestCase
     public function testOnlyReturnedClassesKeepTheRawResponse(): void
     {
         $returned = \array_keys(self::returnedClasses());
-        foreach (ResponseConstructionTest::responseClasses() as [$class]) {
+        foreach (MessageClasses::responses() as $class) {
             if (\is_subclass_of($class, ParsedResponseInterface::class)) {
                 self::assertContains($class, $returned, $class . ' is never returned by a service method.');
             }
@@ -119,7 +121,7 @@ final class RawResponseTest extends TestCase
         $body = "  \n{\n  \"status\" : \"success\",\n  \"extra\": 1.10,\n  \"escaped\": \"a\\u0105\\/\",\n"
             . '  "response": ' . \json_encode(Sample::wire($class), \JSON_PRETTY_PRINT) . "\n}\n";
 
-        $read = self::read($class, $body);
+        $read = Responses::readBody($class, $body)->getEnvelope()->response;
 
         self::assertInstanceOf(ParsedResponseInterface::class, $read);
         self::assertSame($body, $read->getRawResponse());
@@ -132,7 +134,7 @@ final class RawResponseTest extends TestCase
     {
         $body = '{"status":"success","response":[' . \json_encode(Sample::wire(Address::class)) . ']}';
 
-        $addresses = self::read(Address::class . '[]', $body);
+        $addresses = Responses::readBody(Address::class . '[]', $body)->getEnvelope()->response;
 
         self::assertIsArray($addresses);
         self::assertInstanceOf(Address::class, $addresses[0]);
@@ -143,7 +145,7 @@ final class RawResponseTest extends TestCase
     {
         $body = '{"status":"success","response":[]}';
 
-        $page = self::read(OrderListMessage::class, $body);
+        $page = Responses::readBody(OrderListMessage::class, $body)->getEnvelope()->response;
 
         self::assertInstanceOf(OrderListMessage::class, $page);
         self::assertSame($body, $page->getRawResponse());
@@ -183,11 +185,11 @@ final class RawResponseTest extends TestCase
     {
         $body = self::systemInfoBody();
 
-        $strict = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
-        $info = (new ResponseFactory($strict))
-            ->create(new Response(200, [], $body), SystemInfoMessage::class)
-            ->getEnvelope()
-            ->response;
+        $info = Responses::readBody(
+            SystemInfoMessage::class,
+            $body,
+            new SerializerConfig(strictResponses: true),
+        )->getEnvelope()->response;
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
         self::assertSame($body, $info->getRawResponse());
@@ -201,7 +203,7 @@ final class RawResponseTest extends TestCase
     public function testTheBodySurvivesSerialization(): void
     {
         $body = self::systemInfoBody();
-        $info = self::read(SystemInfoMessage::class, $body);
+        $info = Responses::readBody(SystemInfoMessage::class, $body)->getEnvelope()->response;
 
         $copy = \unserialize(\serialize($info));
 
@@ -215,20 +217,6 @@ final class RawResponseTest extends TestCase
     private static function systemInfoBody(): string
     {
         return (string)\json_encode(['status' => 'success', 'response' => Sample::wire(SystemInfoMessage::class)]);
-    }
-
-    /**
-     * @param string $format
-     * @param string $body
-     *
-     * @return mixed
-     */
-    private static function read(string $format, string $body): mixed
-    {
-        return (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->response;
     }
 
     /**
@@ -248,7 +236,7 @@ final class RawResponseTest extends TestCase
             foreach ((new \ReflectionObject($object))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 if ($method->isStatic()
                     || $method->getNumberOfRequiredParameters() > 0
-                    || \preg_match('/^(get|is|has)/', $method->getName()) !== 1
+                    || \preg_match(Accessors::PATTERN, $method->getName()) !== 1
                 ) {
                     continue;
                 }

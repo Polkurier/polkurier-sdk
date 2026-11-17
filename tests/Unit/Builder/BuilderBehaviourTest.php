@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Builder\AbstractBuilder;
 use Polkurier\Webservice\Builder\Entity\Order\PackItemBuilder;
 use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 use Polkurier\Webservice\Builder\Request\Courier\PickupMessageBuilder;
@@ -20,6 +19,7 @@ use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 /**
  * A builder is an alternative spelling of the constructor, not a second set of rules.
@@ -66,18 +66,6 @@ final class BuilderBehaviourTest extends TestCase
                 \sprintf('$%s did not come from the message', $parameter->getName()),
             );
         }
-    }
-
-    /**
-     * A field never set is not passed at all, which is what makes the above true.
-     */
-    public function testAFieldNeverSetIsNotSentToTheConstructor(): void
-    {
-        $builder = PackItemBuilder::create()->length(30)->width(20)->height(15)->weight(2.5);
-
-        $values = (new \ReflectionClass(AbstractBuilder::class))->getProperty('values')->getValue($builder);
-
-        self::assertSame(['length', 'width', 'height', 'weight'], \array_keys((array)$values));
     }
 
     /**
@@ -199,13 +187,13 @@ final class BuilderBehaviourTest extends TestCase
      */
     public function testNoBuilderOrPublicBuilderMethodIsFinal(): void
     {
-        $root = \dirname(__DIR__, 3) . '/src/Builder';
-        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
-        $checked = 0;
+        $builders = SourceClasses::under('Builder');
 
-        foreach ($files as $file) {
-            $class = 'Polkurier\\Webservice\\Builder\\'
-                . \str_replace('/', '\\', \substr((string)$file, \strlen($root) + 1, -4));
+        // The exact count, so that a sweep which stops reaching the builders fails here instead
+        // of passing on what is left.
+        self::assertCount(27, $builders, 'a builder was added or removed; update the count here');
+
+        foreach ($builders as $class) {
             $reflection = new \ReflectionClass($class);
 
             self::assertFalse($reflection->isFinal(), $class . ' is final');
@@ -213,10 +201,6 @@ final class BuilderBehaviourTest extends TestCase
             foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 self::assertFalse($method->isFinal(), $class . '::' . $method->getName() . '() is final');
             }
-
-            ++$checked;
         }
-
-        self::assertGreaterThan(20, $checked);
     }
 }

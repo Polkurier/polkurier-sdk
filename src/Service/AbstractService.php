@@ -16,7 +16,6 @@ use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
-use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -24,6 +23,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
+use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
@@ -158,8 +158,16 @@ abstract class AbstractService
     ): mixed {
         $this->lastResponse->clear();
 
-        if ($payload !== null && $this->config()->validatePayloads()) {
-            $this->validator->validate($payload);
+        if ($this->config()->validatePayloads()) {
+            if ($payload !== null) {
+                $this->validator->validate($payload);
+            }
+            // The credentials are a message with rules of its own, and they are what every
+            // authenticated call sends, so blank ones are caught here rather than by the API.
+            $credentials = RequestFactory::resolveAuthorization($authorization, $this->config());
+            if ($credentials !== null) {
+                $this->validator->validate($credentials);
+            }
         }
 
         $request = $this->requestFactory->create($apiMethod, $payload, $authorization);
@@ -170,13 +178,10 @@ abstract class AbstractService
             $this->lastResponse->setResponse($response);
             $wrapper = $this->responseFactory->create($response, $responseFormat);
             $this->lastResponse->setDrift($wrapper->getDrift());
-            $this->logResponse(
-                $apiMethod,
-                $wrapper,
-                $request,
-                $payload,
-                $wrapper->getEnvelope()->status === ResponseStatusEnum::Error
-            );
+            // The envelope's class is chosen from its status, so the class is the answer to
+            // "did the API report a failure" and the log level and the throw cannot disagree.
+            $envelope = $wrapper->getEnvelope();
+            $this->logResponse($apiMethod, $wrapper, $request, $payload, $envelope instanceof ErrorMessage);
             $this->logResponseDrift($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
             $this->logClientError($e, $apiMethod, $request, $payload);
@@ -188,7 +193,6 @@ abstract class AbstractService
             throw $e;
         }
 
-        $envelope = $wrapper->getEnvelope();
         if ($envelope instanceof ErrorMessage) {
             throw $this->buildWebserviceException($envelope, $request, $response);
         }
@@ -375,7 +379,17 @@ abstract class AbstractService
 
         $map = [];
         foreach ($value as $key => $item) {
-            $map[(string)$key] = \is_scalar($item) ? (string)$item : '';
+            // A value that is not a scalar is not a name, and turning it into an empty string
+            // would hand the caller a key whose value looks merely absent.
+            if (!\is_scalar($item)) {
+                throw MalformedResponseException::unexpectedPayload(
+                    $this->lastHttpResponse(),
+                    $apiMethod->value,
+                    'array<string, string>',
+                    $value,
+                );
+            }
+            $map[(string)$key] = \is_bool($item) ? ($item ? 'true' : 'false') : (string)$item;
         }
 
         return $map;
@@ -607,7 +621,8 @@ abstract class AbstractService
      * enabled.
      *
      * The SDK reads the response anyway, so the call still succeeds. The warning says what differed
-     * and where in the response.
+     * and where in the response. The raw value reaches the log context only when personal and
+     * sensitive data may both be logged, since a field the SDK doesn't know can hold either.
      *
      * @param ApiMethodInterface $apiMethod
      * @param ResponseWrapper $responseWrapper
@@ -622,9 +637,26 @@ abstract class AbstractService
             return;
         }
 
+        // The context carries the value as it arrived, whatever field it came from, including a
+        // field the SDK doesn't know. It cannot be redacted key by key the way a body can, so it
+        // goes in only when nothing would be hidden, as {@see self::contextForLog()} treats an
+        // object. The message itself names a value only for a field whose declared type is an
+        // enum or a scalar the value failed to be, which holds no personal data.
+        $showsValues = $this->logSanitizer->allowsObjects($this->config());
+
         foreach ($responseWrapper->getDrift() as $drift) {
             $value = $drift->value;
             $shown = \is_string($value) ? '"' . $value . '"' : \get_debug_type($value);
+            $context = [
+                'method' => $apiMethod,
+                'sandbox' => $this->config()->isSandbox(),
+                'type' => $drift->type,
+                'path' => $drift->path,
+                'expected' => $drift->expected,
+            ];
+            if ($showsValues) {
+                $context['value'] = $value;
+            }
             $this->logger->warning(\sprintf(
                 match ($drift->type) {
                     ResponseDriftTypeEnum::UnknownField => 'Unknown field "%1$s" in the response from method: "%4$s".'
@@ -640,14 +672,7 @@ abstract class AbstractService
                 $shown,
                 $drift->expected ?? '',
                 $apiMethod->value,
-            ), [
-                'method' => $apiMethod,
-                'sandbox' => $this->config()->isSandbox(),
-                'type' => $drift->type,
-                'path' => $drift->path,
-                'value' => $value,
-                'expected' => $drift->expected,
-            ]);
+            ), $context);
         }
     }
 

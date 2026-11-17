@@ -35,7 +35,7 @@ final readonly class ContactTopicMessage implements MessageInterface
 
     /**
      * @param string $id the id to quote when raising a ticket or fetching the contact form
-     * @param ?string $parentId parent topic, null at the top level
+     * @param string|null $parentId parent topic, null at the top level
      * @param string $title display title, in Polish
      * @param string $content explanatory HTML fragment, in Polish
      * @param bool $hasForm whether the topic has a contact form
@@ -50,7 +50,7 @@ final readonly class ContactTopicMessage implements MessageInterface
         public string $id = '',
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PARENT_ID)]
         #[OmitWhenEmpty]

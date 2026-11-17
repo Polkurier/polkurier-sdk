@@ -41,11 +41,6 @@ class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAw
     ];
 
     /**
-     * The page count key, added only for lists that read one.
-     */
-    protected const string FIELD_TOTAL_PAGES = 'totalpages';
-
-    /**
      * @param mixed $data
      * @param string $type
      * @param string|null $format
@@ -61,9 +56,14 @@ class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAw
             PagedListMessage::FIELD_PAGE_SIZE => 1,
             \constant($type . '::FIELD_RESULT') => [$data],
         ];
-        // Only lists that read a page count get one, so a strict serializer doesn't refuse it.
-        if (\defined($type . '::FIELD_TOTAL_PAGES')) {
-            $page[self::FIELD_TOTAL_PAGES] = 1;
+        // Only lists that read a page count get one, so a strict serializer doesn't refuse it,
+        // and it is keyed by the name that class declares rather than a copy of it.
+        $totalPages = $type . '::FIELD_TOTAL_PAGES';
+        if (\defined($totalPages)) {
+            $key = \constant($totalPages);
+            if (\is_string($key)) {
+                $page[$key] = 1;
+            }
         }
 
         return $this->denormalizer->denormalize($page, $type, $format, $context);

@@ -42,6 +42,7 @@ class PersonalDataRedactor extends FieldRedactor
         OrderAddress::FIELD_STREET,
         OrderAddress::FIELD_STREET_NAME,
         Address::FIELD_HOUSE_NUMBER,
+        SavePayerAddressMessage::FIELD_BUILDING_NUMBER,
         Address::FIELD_FLAT_NUMBER,
         OrderAddress::FIELD_COVER_FLAT_NUMBER,
         OrderAddress::FIELD_POSTCODE,
@@ -62,7 +63,9 @@ class PersonalDataRedactor extends FieldRedactor
 
     /**
      * Wire names of the fields hidden only in some methods, where a generic key holds personal
-     * data: `number` is a bank account or phone number there, and `name` a person's name.
+     * data: `number` is a bank account or phone number there, and `name` a person's or company's
+     * name. Elsewhere `name` is a label the customer chose or a carrier, place or file name, so it
+     * is listed per method rather than for all of them.
      */
     public const array METHOD_FIELDS = [
         ApiMethodEnum::GetBankAccounts->value => [BankAccount::FIELD_NUMBER],
@@ -72,6 +75,7 @@ class PersonalDataRedactor extends FieldRedactor
         ApiMethodEnum::SavePhoneNumber->value => [PhoneNumber::FIELD_NUMBER],
         ApiMethodEnum::DeletePhoneNumber->value => [PhoneNumber::FIELD_NUMBER],
         ApiMethodEnum::CreateTicket->value => [CreateTicketMessage::FIELD_NAME],
+        ApiMethodEnum::SavePayerAddress->value => [SavePayerAddressMessage::FIELD_NAME],
     ];
 
     /**

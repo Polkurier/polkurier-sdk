@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Response;
 
-
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\ResponseMessage;
 use Polkurier\Webservice\Serializer\ResponseDrift;

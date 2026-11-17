@@ -8,10 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Log;
 
 use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Dto\Request\Account\PinMessage;
-use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
 use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
-use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 use Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage;
 
@@ -28,17 +26,17 @@ class SensitiveDataRedactor extends FieldRedactor
 {
     /**
      * Wire names of the fields whose values are hidden.
+     *
+     * A key named `pin` or ending in `_pin` is not listed: {@see self::hides()} hides every one of
+     * them, in any message, so naming the three the SDK happens to declare would add nothing.
      */
     public const array FIELDS = [
         TokenMessage::FIELD_TOKEN,
         RegisteredPaymentMessage::FIELD_ACCESS_TOKEN,
         ChangePasswordMessage::FIELD_PASSWORD,
         ChangePasswordMessage::FIELD_PREVIOUS_PASSWORD,
-        PinMessage::FIELD_PIN,
-        CreateMoneyBoxPayoutMessage::FIELD_SECURITY_PIN,
-        SaveBankAccountMessage::FIELD_ACCESS_PIN,
-        CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_CODE,
-        CreateMoneyBoxPayoutMessage::FIELD_TWO_FACTOR_TOKEN,
+        TwoFactorFieldsInterface::FIELD_TWO_FACTOR_CODE,
+        TwoFactorFieldsInterface::FIELD_TWO_FACTOR_TOKEN,
         VerifyMessage::FIELD_CODE,
     ];
 

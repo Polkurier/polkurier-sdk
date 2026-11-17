@@ -25,11 +25,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 class WireFormatDenormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
     /**
-     * What separates a `data:` URL's media type from its base64 contents.
-     */
-    protected const string DATA_URL_MARKER = ';base64,';
-
-    /**
      * How much of an undecodable value a drift entry quotes, so a whole file doesn't reach the log.
      */
     protected const int EXCERPT_LENGTH = 32;
@@ -225,14 +220,14 @@ class WireFormatDenormalizer implements NormalizerInterface, DenormalizerInterfa
         if (!\is_string($value)) {
             return $value;
         }
-        $marker = \strpos($value, static::DATA_URL_MARKER);
+        $marker = \strpos($value, Base64DataUrl::MARKER);
         if ($marker === false) {
             self::reportUndecodable($value, $at, $drift, 'base64 data: URL');
 
             return '';
         }
 
-        return self::decodeBase64(\substr($value, $marker + \strlen(static::DATA_URL_MARKER)), $at, $drift);
+        return self::decodeBase64(\substr($value, $marker + \strlen(Base64DataUrl::MARKER)), $at, $drift);
     }
 
     /**

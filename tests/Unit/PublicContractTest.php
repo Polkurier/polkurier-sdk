@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 /**
  * What the SDK promises is marked, and only what it promises.
@@ -69,17 +70,9 @@ final class PublicContractTest extends TestCase
      */
     public static function sourceTypes(): array
     {
-        $root = \dirname(__DIR__, 2) . '/src';
         $types = [];
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root)) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-            $name = \str_replace('/', '\\', \substr($file->getPathname(), \strlen($root) + 1, -4));
+        foreach (SourceClasses::under() as $name => $class) {
             $namespace = \explode('\\', $name)[0];
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . $name;
             $types[$name] = [
                 $class,
                 \in_array($namespace, self::PUBLIC_NAMESPACES, true)

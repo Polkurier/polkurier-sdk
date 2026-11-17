@@ -47,6 +47,7 @@ final readonly class AdditionalData implements MessageInterface
      * @param CourierService|null $courierService
      * @param ShipmentType|null $shipmentType
      * @param Pickup|null $pickup
+     * @param PointsMap|null $pointsMap
      * @param AdditionalField[] $additionalFields
      */
     public function __construct(
@@ -88,7 +89,7 @@ final readonly class AdditionalData implements MessageInterface
         public ?PointsMap $pointsMap = null,
 
         /**
-         * @var AdditionalField[] $additionalFields
+         * @var AdditionalField[]
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_FIELDS)]
         public array $additionalFields = [],

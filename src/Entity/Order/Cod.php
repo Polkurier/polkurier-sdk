@@ -94,7 +94,7 @@ class Cod implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         #[ResponseOnly]
-        private ?CodStatusEnum $status = CodStatusEnum::Waiting,
+        private ?CodStatusEnum $status = null,
 
         /**
          * @var ReturnDetails[]

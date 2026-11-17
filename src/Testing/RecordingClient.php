@@ -36,17 +36,26 @@ final class RecordingClient implements ClientInterface, ClientFactoryInterface
      */
     public function __construct(
         private string $body = '{"status":"success","response":true}',
-        private readonly int $status = 200,
+        private int $status = 200,
     ) {}
 
     /**
+     * Sets what the next call is answered with.
+     *
+     * The status is settable with the body, so one client can be driven through a success and a
+     * transport failure in the same test.
+     *
      * @param string $body
+     * @param int|null $status the HTTP status to return from now on, or null to keep the current one
      *
      * @return void
      */
-    public function willAnswerWith(string $body): void
+    public function willAnswerWith(string $body, ?int $status = null): void
     {
         $this->body = $body;
+        if ($status !== null) {
+            $this->status = $status;
+        }
     }
 
     /**

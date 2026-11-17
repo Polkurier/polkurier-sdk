@@ -220,7 +220,6 @@ class AttributeValidator implements ValidatorInterface
         }
     }
 
-
     /**
      * @param class-string $class
      *
@@ -251,16 +250,24 @@ class AttributeValidator implements ValidatorInterface
 
         $reflection = MessageFields::reflect($class);
 
+        // A rule a subclass repeats from its base is one rule, not two, so the same declaration
+        // is taken once however many classes in the chain carry it.
+        $seen = [];
+
         // Class-level rules are inherited, so a rule on a base message applies to its subclasses.
         for ($declaring = $reflection; $declaring !== false; $declaring = $declaring->getParentClass()) {
             // Only the SDK's own attributes are instantiated, so a foreign attribute on a message
             // is never constructed here.
             $rules = $declaring->getAttributes(MessageRuleInterface::class, \ReflectionAttribute::IS_INSTANCEOF);
             foreach ($rules as $attribute) {
-                $message[] = $attribute->newInstance();
+                if (self::isNew($attribute, $seen)) {
+                    $message[] = $attribute->newInstance();
+                }
             }
             foreach ($declaring->getAttributes(IgnoredWhen::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                $ignored[] = $attribute->newInstance();
+                if (self::isNew($attribute, $seen)) {
+                    $ignored[] = $attribute->newInstance();
+                }
             }
             foreach ($declaring->getAttributes(ValidatedBy::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
                 $validators[] = $attribute->newInstance()->validator;
@@ -313,5 +320,27 @@ class AttributeValidator implements ValidatorInterface
             'ignored' => $ignored,
             'validators' => \array_values(\array_unique($validators)),
         ];
+    }
+
+    /**
+     * Whether this declaration has not been taken yet, recording it when it has not.
+     *
+     * Two declarations are the same when they name the same attribute with the same arguments,
+     * which is what a subclass repeating a base's rule produces.
+     *
+     * @param \ReflectionAttribute<object> $attribute
+     * @param array<string, true> $seen
+     *
+     * @return bool
+     */
+    private static function isNew(\ReflectionAttribute $attribute, array &$seen): bool
+    {
+        $key = $attribute->getName() . '(' . \serialize($attribute->getArguments()) . ')';
+        if (isset($seen[$key])) {
+            return false;
+        }
+        $seen[$key] = true;
+
+        return true;
     }
 }

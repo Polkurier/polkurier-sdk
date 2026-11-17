@@ -39,7 +39,7 @@ final readonly class TicketFileContentMessage implements MessageInterface, Parse
      * @param string $type media type
      * @param int $size size in bytes
      * @param string $file the file's bytes
-     * @param ?\DateTimeInterface $dateCreated when it was attached
+     * @param \DateTimeInterface|null $dateCreated when it was attached
      * @param string $hash SHA-256 of the contents, in hex
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
@@ -72,7 +72,7 @@ final readonly class TicketFileContentMessage implements MessageInterface, Parse
         public string $file = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]

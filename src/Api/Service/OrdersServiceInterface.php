@@ -842,7 +842,6 @@ interface OrdersServiceInterface
         MultiPickupRequestMessage $multiPickupRequestMessage
     ): MultiPickupResultMessage;
 
-
     /**
      * Downloads a document attached to an order.
      *
@@ -850,8 +849,7 @@ interface OrdersServiceInterface
      * paperwork, proof of delivery or correspondence. Get the filenames from getOrders() with the
      * file flag turned on, or by order number.
      *
-     * The content hash stays the same across downloads, so it tells a file you already have from a
-     * changed one.
+     * The content hash stays the same across downloads.
      *
      * Endpoint: `get_order_file`
      *

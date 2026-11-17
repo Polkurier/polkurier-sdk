@@ -12,6 +12,8 @@ use Attribute;
 /**
  * A value of the given type: `string`, `int`, `float` or `bool`, or a class, interface or enum.
  *
+ * Null passes, as in every other value rule: {@see NotBlank} is what makes a field required.
+ *
  * Mostly for list entries, whose type PHP can't declare:
  *
  * ```php
@@ -38,6 +40,12 @@ class OfType implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
+        // Empty values pass. {@see \Polkurier\Webservice\Validator\Rule\NotBlank} handles required
+        // fields. Rejecting them here would make every optional field of this kind mandatory.
+        if ($value === null) {
+            return [];
+        }
+
         $matches = match ($this->type) {
             'string' => \is_string($value),
             'int' => \is_int($value),

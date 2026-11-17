@@ -26,8 +26,8 @@ final readonly class GetInvoicesMessage extends PagedMessage
 
     /**
      * @param InvoiceTypeEnum $type which kind of document to list
-     * @param ?int $pageSize invoices per page, defaults to 100, capped at 250
-     * @param ?int $page 1-based page index
+     * @param int|null $pageSize invoices per page, defaults to 100, capped at 250
+     * @param int|null $page 1-based page index
      */
     public function __construct(
         /**

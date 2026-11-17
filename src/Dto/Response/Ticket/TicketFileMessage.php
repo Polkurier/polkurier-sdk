@@ -34,7 +34,7 @@ final readonly class TicketFileMessage implements MessageInterface
      * @param string $name filename, and the handle used to download it
      * @param string $type media type
      * @param int $size size in bytes
-     * @param ?\DateTimeInterface $dateCreated when it was attached
+     * @param \DateTimeInterface|null $dateCreated when it was attached
      */
     public function __construct(
         /**
@@ -56,7 +56,7 @@ final readonly class TicketFileMessage implements MessageInterface
         public int $size = 0,
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
         #[OmitWhenEmpty]

@@ -36,22 +36,22 @@ final readonly class GetTicketsMessage extends PagedMessage
     public const int MAX_PAGE_SIZE = 250;
 
     /**
-     * @param ?string $id narrow to one ticket by UUID
-     * @param ?string $searchQuery words to find in the subject, the ticket number or the numbers of
+     * @param string|null $id narrow to one ticket by UUID
+     * @param string|null $searchQuery words to find in the subject, the ticket number or the numbers of
      *        the orders, waybills, complaints and invoices it refers to; every word must match
-     * @param ?int $pageSize 1-250, defaults to 100
-     * @param ?int $page 1-based page index
+     * @param int|null $pageSize 1-250, defaults to 100
+     * @param int|null $page 1-based page index
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         public ?string $id = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]

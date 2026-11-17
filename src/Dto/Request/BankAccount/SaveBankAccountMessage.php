@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\BankAccount;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait;
+use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Entity\BankAccount;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -24,9 +24,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-final readonly class SaveBankAccountMessage implements MessageInterface
+final readonly class SaveBankAccountMessage implements MessageInterface, TwoFactorFieldsInterface
 {
-    use TwoFactorFieldsTrait;
 
     /**+@#
      * JSON parameter keys
@@ -34,6 +33,9 @@ final readonly class SaveBankAccountMessage implements MessageInterface
     public const string FIELD_BANK_ACCOUNT = 'bank_account';
     public const string FIELD_ACCESS_PIN = 'access_pin';
     /**-@#*/
+
+    // `bank_account` names a field marked #[InlineFields], whose entries are written at this
+    // level, so the key itself never reaches the payload.
 
     /**
      * @param BankAccount $bankAccount the account to save. Its fields are sent at the top level

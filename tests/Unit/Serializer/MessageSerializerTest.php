@@ -13,10 +13,13 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
 use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
 use Polkurier\Webservice\Dto\Response\ResponseMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\PackItem;
@@ -281,6 +284,88 @@ final class MessageSerializerTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $this->serializer->readResponse($body, NeedsAnAddress::class);
+    }
+
+    /**
+     * The configured timezone says how a date without an offset is read. A date being written
+     * already has one, so the setting must not move it, or an order would be collected in a
+     * window the caller never asked for.
+     *
+     * @return void
+     */
+    public function testTheTimezoneSettingDoesNotMoveADateBeingWritten(): void
+    {
+        $at = new \DateTimeImmutable('2026-11-17 23:30:00', new \DateTimeZone('UTC'));
+        $message = new MultiPickupRequestMessage(
+            orders: ['POL123456'],
+            pickupDate: $at,
+            pickupTimeFrom: $at,
+            pickupTimeTo: $at,
+        );
+
+        $written = [];
+        foreach ([null, new \DateTimeZone('Europe/Warsaw'), new \DateTimeZone('America/New_York')] as $timezone) {
+            $serializer = new MessageSerializer(new SerializerProvider(new SerializerConfig(timezone: $timezone)));
+            $written[] = $serializer->encode($message);
+        }
+
+        self::assertSame([$written[0], $written[0], $written[0]], $written);
+        self::assertStringContainsString('"pickuptimefrom":"23:30"', $written[0]);
+    }
+
+    /**
+     * The same setting still decides which zone a date without an offset is read in.
+     *
+     * @return void
+     */
+    public function testTheTimezoneSettingStillSaysHowADateIsRead(): void
+    {
+        $body = (string)\json_encode([
+            'status' => 'success',
+            'response' => ['status' => 'Nowe', 'status_code' => 'NEW', 'status_date' => '2026-11-17 08:00'],
+        ]);
+        $serializer = new MessageSerializer(
+            new SerializerProvider(new SerializerConfig(timezone: new \DateTimeZone('Europe/Warsaw'))),
+        );
+
+        $read = $serializer->readResponse($body, OrderStatusMessage::class);
+
+        $message = $read->envelope->response;
+        self::assertInstanceOf(OrderStatusMessage::class, $message);
+        self::assertSame('2026-11-17 08:00:00 +01:00', $message->statusDate?->format('Y-m-d H:i:s P'));
+    }
+
+    /**
+     * A payload holding none of a class's fields is refused the way the method documents, not by
+     * a type error from the return value.
+     *
+     * @return void
+     */
+    public function testAPayloadWithNoneOfTheClassesFieldsIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->serializer->decode('{}', CreateOrderMessage::class);
+    }
+
+    /**
+     * A response enum the API left out reads as null. A default naming a real case would hand the
+     * caller a fact the response never carried, and nothing would mark it as invented.
+     *
+     * @return void
+     */
+    public function testAnAbsentResponseEnumReadsAsNullRatherThanACase(): void
+    {
+        $body = (string)\json_encode([
+            'status' => 'success',
+            'response' => ['id' => '7', 'number' => 'T-7', 'subject' => 'Re: order'],
+        ]);
+
+        $read = $this->serializer->readResponse($body, TicketMessage::class);
+
+        $ticket = $read->envelope->response;
+        self::assertInstanceOf(TicketMessage::class, $ticket);
+        self::assertNull($ticket->status);
     }
 
     /**

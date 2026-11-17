@@ -128,7 +128,7 @@ class OrderBuilder extends AbstractBuilder
     }
 
     /**
-     * @param array<string, string> $additionalFields
+     * @param array<string, scalar> $additionalFields
      *
      * @return static
      */

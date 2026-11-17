@@ -107,9 +107,6 @@ try {
 }
 ```
 
-These tests are fast, and they catch mistakes that would otherwise each cost a round trip to the
-API.
-
 ### 5. Assert a payload, or read a recorded body
 
 [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) hands out what the client sends and reads with, so a test can

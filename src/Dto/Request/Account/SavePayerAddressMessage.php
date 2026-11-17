@@ -79,7 +79,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
         public PayerAddressTypeEnum $addressType,
 
         /**
-         * @var ?PayerUserTypeEnum
+         * @var PayerUserTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_USER_TYPE)]
         #[OmitWhenEmpty]

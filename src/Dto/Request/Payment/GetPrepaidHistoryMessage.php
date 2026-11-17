@@ -17,8 +17,8 @@ use Polkurier\Webservice\Dto\Request\Common\PagedMessage;
 final readonly class GetPrepaidHistoryMessage extends PagedMessage
 {
     /**
-     * @param ?int $pageSize movements per page, defaults to 100, capped at 250
-     * @param ?int $page 1-based page index
+     * @param int|null $pageSize movements per page, defaults to 100, capped at 250
+     * @param int|null $page 1-based page index
      */
     public function __construct(
         ?int $pageSize = null,

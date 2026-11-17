@@ -64,7 +64,7 @@ final readonly class RegulationsMessage implements MessageInterface, ParsedRespo
         public string $content = '',
 
         /**
-         * @var ?\DateTimeInterface
+         * @var \DateTimeInterface|null
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[OmitWhenEmpty]

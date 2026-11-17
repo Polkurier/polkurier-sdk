@@ -39,6 +39,8 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return string
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface when the wrapped
+     *         serializer refuses the data
      */
     public function serialize(mixed $data, string $format, array $context = []): string
     {
@@ -65,6 +67,8 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface when the wrapped
+     *         serializer refuses the data
      */
     public function normalize(
         mixed $data,

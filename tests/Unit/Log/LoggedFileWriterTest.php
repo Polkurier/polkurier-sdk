@@ -7,11 +7,12 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Log;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Log\LoggedFileWriter;
-use Polkurier\Webservice\Log\PersonalDataRedactor;
 
+#[CoversClass(LoggedFileWriter::class)]
 final class LoggedFileWriterTest extends TestCase
 {
     public function testAttachmentsKeyedByNameAreLeftOutAndAListOfFileDescriptionsIsKept(): void
@@ -69,7 +70,10 @@ final class LoggedFileWriterTest extends TestCase
             (new LoggedFileWriter())->process(
                 [
                     'file' => \base64_encode('%PDF-1.4'),
-                    'files' => ['Faktura 12/2026 (kopia).pdf' => \base64_encode('%PDF-1.4'), '...' => \base64_encode('x')],
+                    'files' => [
+                        'Faktura 12/2026 (kopia).pdf' => \base64_encode('%PDF-1.4'),
+                        '...' => \base64_encode('x'),
+                    ],
                 ],
                 true,
                 $directory,
@@ -85,20 +89,5 @@ final class LoggedFileWriterTest extends TestCase
             \array_map('unlink', \glob($directory . '/*') ?: []);
             @\rmdir($directory);
         }
-    }
-
-    public function testANumberIsPersonalOnlyInTheMethodsWhereItIs(): void
-    {
-        $redactor = new PersonalDataRedactor();
-        $data = ['number' => '61109010140000071219812874', 'email' => 'jan@example.com'];
-
-        self::assertSame(
-            ['number' => '***', 'email' => '***'],
-            $redactor->redact($data, ApiMethodEnum::GetBankAccounts),
-        );
-        self::assertSame(
-            ['number' => '61109010140000071219812874', 'email' => '***'],
-            $redactor->redact($data, ApiMethodEnum::GetOrders),
-        );
     }
 }

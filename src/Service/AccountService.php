@@ -38,7 +38,7 @@ use Polkurier\Webservice\Exception\WebserviceException;
 class AccountService extends AbstractService implements AccountServiceInterface
 {
     /**
-     * @param ?GetAccountInfoMessage $getAccountInfoMessage
+     * @param GetAccountInfoMessage|null $getAccountInfoMessage
      *
      * @return AccountInfoMessage
      * @throws AuthorizationException
@@ -187,7 +187,7 @@ class AccountService extends AbstractService implements AccountServiceInterface
     }
 
     /**
-     * @param ?GetRegulationsMessage $getRegulationsMessage
+     * @param GetRegulationsMessage|null $getRegulationsMessage
      *
      * @return RegulationsMessage
      * @throws AuthorizationException

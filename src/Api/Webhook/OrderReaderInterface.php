@@ -51,6 +51,8 @@ interface OrderReaderInterface
      *
      * @return ReadEvent
      * @throws InvalidArgumentException when the body isn't an order event
+     * @throws \ArgumentCountError when the class the payload maps onto cannot be built from any
+     *         payload, which is a defect in that class rather than in what arrived
      */
     public function read(string $body): ReadEvent;
 }

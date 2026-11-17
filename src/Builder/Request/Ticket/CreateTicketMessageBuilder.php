@@ -51,7 +51,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?TicketOriginEnum $origin
+     * @param TicketOriginEnum|null $origin
      *
      * @return static
      */

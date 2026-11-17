@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\SerializerInterface;
@@ -33,6 +34,7 @@ use Psr\Log\NullLogger;
  * populated instance of the expected class, normalized to its wire form. So every response class
  * is read back from what it would look like on the wire.
  */
+#[CoversNothing]
 final class EveryServiceMethodTest extends TestCase
 {
     /**

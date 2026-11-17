@@ -19,7 +19,7 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 class GetTicketsMessageBuilder extends AbstractBuilder
 {
     /**
-     * @param ?string $id
+     * @param string|null $id
      *
      * @return static
      */
@@ -29,7 +29,7 @@ class GetTicketsMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?string $searchQuery
+     * @param string|null $searchQuery
      *
      * @return static
      */
@@ -39,7 +39,7 @@ class GetTicketsMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?int $pageSize
+     * @param int|null $pageSize
      *
      * @return static
      */
@@ -49,7 +49,7 @@ class GetTicketsMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?int $page
+     * @param int|null $page
      *
      * @return static
      */

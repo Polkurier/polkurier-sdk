@@ -13,8 +13,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * The additional services a carrier reports in `available_carriers`.
  *
- * Each getter is named after the {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum} case
- * to order for that service.
+ * Each property is named after the {@see \Polkurier\Webservice\Enum\Order\AdditionalServiceEnum}
+ * case to order for that service.
  *
  * @api
  */

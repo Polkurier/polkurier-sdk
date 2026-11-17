@@ -44,8 +44,9 @@ final readonly class CreateTicketMessage implements MessageInterface
      * @param string $topicId a topic id from getContactTopics()
      * @param string $content the message body, may be empty when files are attached
      * @param string $name the sender's name
-     * @param ?TicketOriginEnum $origin which channel created it, defaults to API
-     * @param TicketAttachmentMessage[] $files attachments, up to 5
+     * @param TicketOriginEnum|null $origin which channel created it, defaults to API
+     * @param TicketAttachmentMessage[] $files attachments, up to the `max_files_count` that
+     *        `get_system_info` reports
      */
     public function __construct(
         /**
@@ -68,7 +69,7 @@ final readonly class CreateTicketMessage implements MessageInterface
         public string $name = '',
 
         /**
-         * @var ?TicketOriginEnum
+         * @var TicketOriginEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
         #[OmitWhenEmpty]

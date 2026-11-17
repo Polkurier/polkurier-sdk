@@ -49,7 +49,11 @@ class IntegerRange implements ValueValidatorInterface
             return ['must be a whole number'];
         }
         if ($value < $this->min || $value > $this->max) {
-            return [\sprintf('must be between %d and %d', $this->min, $this->max)];
+            // An open-ended maximum states a bound no caller can read: PHP_INT_MAX is the absence
+            // of an upper limit, not a limit.
+            return $this->max === \PHP_INT_MAX
+                ? [\sprintf('must be at least %d', $this->min)]
+                : [\sprintf('must be between %d and %d', $this->min, $this->max)];
         }
 
         return [];

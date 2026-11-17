@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Config;
@@ -23,19 +24,22 @@ use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\AbstractLogger;
+use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * What the SDK hands to the PSR-3 logger, and when.
  */
+#[CoversNothing]
 final class LoggingTest extends TestCase
 {
+    private const string ADDRESS_WITH_UNKNOWN_TYPE = '{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW",'
+        . '"name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001",'
+        . '"email":"jan@example.com","phone":"500600700","housenumber":"12"}]}';
+
     private RecordingClient $client;
 
     private SpyLogger $logger;
@@ -76,7 +80,7 @@ final class LoggingTest extends TestCase
 
     public function testAnUnknownEnumValueIsLoggedAsAWarningAndTheCallSucceeds(): void
     {
-        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
 
         $addresses = $this->sdk()->addresses()->getAddresses();
 
@@ -101,9 +105,36 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('Unknown field "[0].brand_new"', $this->logger->records[0]['message']);
     }
 
+    /**
+     * A field the SDK doesn't know can hold anything the API chose to add, so its value reaches
+     * the log context only where a body's would: when neither redactor is hiding anything.
+     *
+     * @return void
+     */
+    public function testAnUnknownFieldsValueStaysOutOfTheLogContextWhileRedactionIsOn(): void
+    {
+        $response = '{"status":"success","response":[{"servicecode":"DPD","name":"DPD",'
+            . '"foreign_shipments":false,"contact_email":"jan@example.com"}]}';
+
+        $this->client->willAnswerWith($response);
+        $this->sdk()->courier()->availableCarriers();
+
+        self::assertCount(1, $this->logger->records);
+        $hidden = $this->logger->records[0];
+        self::assertArrayNotHasKey('value', $hidden['context']);
+        self::assertStringNotContainsString('jan@example.com', $hidden['message']);
+        self::assertSame('[0].contact_email', $hidden['context']['path']);
+
+        $this->client->willAnswerWith($response);
+        $this->sdk(logSensitiveData: true, logPersonalData: true)->courier()->availableCarriers();
+
+        self::assertCount(2, $this->logger->records);
+        self::assertSame('jan@example.com', $this->logger->records[1]['context']['value']);
+    }
+
     public function testAnUnknownEnumValueIsNotLoggedWhenLoggingIsOff(): void
     {
-        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
 
         $this->sdk(loggingEnabled: false)->addresses()->getAddresses();
 
@@ -217,7 +248,8 @@ final class LoggingTest extends TestCase
 
     public function testPersonalDataIsHiddenByDefaultAndLoggedWhenAllowed(): void
     {
-        $answer = '{"status":"success","response":[{"id":"7","number":"61109010140000071219812874","name":"Firmowe","default":true}]}';
+        $answer = '{"status":"success","response":[{"id":"7","number":"61109010140000071219812874",'
+            . '"name":"Firmowe","default":true}]}';
 
         $this->client->willAnswerWith($answer);
         $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts])->bankAccounts()->getBankAccounts();
@@ -325,25 +357,9 @@ final class SpyLogger extends AbstractLogger
     public function log($level, $message, array $context = []): void
     {
         if (!\is_string($level)) {
-            throw new \Psr\Log\InvalidArgumentException('Level must be a PSR-3 level string.');
+            throw new InvalidArgumentException('Level must be a PSR-3 level string.');
         }
 
         $this->records[] = ['level' => $level, 'message' => (string)$message, 'context' => $context];
-    }
-}
-
-/**
- * A client whose every request fails at the transport level.
- */
-final class RefusingClient implements ClientInterface, ClientFactoryInterface
-{
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        throw new class ('Connection refused') extends \RuntimeException implements ClientExceptionInterface {};
-    }
-
-    public function create(): ClientInterface
-    {
-        return $this;
     }
 }

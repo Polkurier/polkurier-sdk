@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait;
+use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -34,9 +34,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
     property: 'default',
     reason: 'is required when making a number the default',
 )]
-final readonly class SavePhoneNumberMessage implements MessageInterface
+final readonly class SavePhoneNumberMessage implements MessageInterface, TwoFactorFieldsInterface
 {
-    use TwoFactorFieldsTrait;
 
     /**+@#
      * JSON parameter keys

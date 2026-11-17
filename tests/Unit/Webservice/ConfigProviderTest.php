@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Config;
@@ -21,6 +22,7 @@ use Polkurier\Webservice\Testing\RecordingClient;
 /**
  * A configuration provider is asked on every call, so one client can serve several tenants.
  */
+#[CoversNothing]
 final class ConfigProviderTest extends TestCase
 {
     public function testEachCallUsesTheConfigurationCurrentAtThatTime(): void

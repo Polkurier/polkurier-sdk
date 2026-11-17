@@ -26,22 +26,22 @@ final readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
     /**-@#*/
 
     /**
-     * @param ?string $payoutNumber narrow to one payout by its reference
-     * @param ?string $searchQuery matches the payout number, or the number, waybill number,
+     * @param string|null $payoutNumber narrow to one payout by its reference
+     * @param string|null $searchQuery matches the payout number, or the number, waybill number,
      *        recipient name or company of an order the payout covers
-     * @param ?int $pageSize payouts per page, 1 when left out, capped at 100
-     * @param ?int $page 1-based page index
+     * @param int|null $pageSize payouts per page, 1 when left out, capped at 100
+     * @param int|null $page 1-based page index
      */
     public function __construct(
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_NUMBER)]
         #[OmitWhenEmpty]
         public ?string $payoutNumber = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]

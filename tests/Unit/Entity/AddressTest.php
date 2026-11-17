@@ -142,7 +142,6 @@ final class AddressTest extends TestCase
             'json'
         );
 
-        /** @var array<string, mixed> $decoded */
         $decoded = \json_decode($json, true);
 
         self::assertArrayHasKey($key, $decoded);
@@ -166,7 +165,6 @@ final class AddressTest extends TestCase
             'json'
         );
 
-        /** @var array<string, mixed> $decoded */
         $decoded = \json_decode($json, true);
 
         self::assertArrayNotHasKey('company', $decoded);

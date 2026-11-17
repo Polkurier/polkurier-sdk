@@ -70,6 +70,27 @@ enum ApiErrorCodeEnum: string
     case TwoFactorNoValidSmsPhoneNumber = 'TWO_FACTOR_NO_VALID_SMS_PHONE_NUMBER_EXCEPTION';
 
     /**
+     * Whether this condition means the credentials were rejected.
+     *
+     * Retrying does not help; the credentials have to change. The SDK raises
+     * {@see \Polkurier\Webservice\Exception\AuthorizationException} for exactly these.
+     *
+     * @return bool
+     */
+    public function rejectsCredentials(): bool
+    {
+        return match ($this) {
+            self::EmptyAuthData,
+            self::EmptyLogin,
+            self::EmptyToken,
+            self::InvalidAuthData,
+            self::TokenNotActive,
+            self::InvalidAuthMethod => true,
+            default => false,
+        };
+    }
+
+    /**
      * The numeric `status_code` for this condition.
      *
      * @return int

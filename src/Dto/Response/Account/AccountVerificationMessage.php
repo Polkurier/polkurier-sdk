@@ -64,7 +64,7 @@ final readonly class AccountVerificationMessage implements MessageInterface, Par
         public string $status = '',
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
         #[OmitWhenEmpty]

@@ -42,9 +42,9 @@ The full documentation is in [`./docs`](docs/README.md). There are pages on
 [validation](docs/validation.md), [errors](docs/errors.md), [webhooks](docs/webhooks.md),
 [serialization](docs/serialization.md) and [architecture](docs/architecture.md), plus
 [worked recipes](docs/recipes.md) and
-[integration guides](docs/integrations/README.md) for Symfony, Laravel, Laminas and Mezzio, PSR-11
-containers, PrestaShop, WooCommerce, Shopware and Sylius. For Magento, Polkurier has its own
-module, described in the [Magento page](docs/integrations/magento2.md).
+[integration guides](docs/integrations/README.md) for Symfony, Laravel, Laminas and Mezzio, Slim
+and any PSR-11 container, PrestaShop, WooCommerce, Shopware and Sylius. For Magento, Polkurier has
+its own module, described in the [Magento page](docs/integrations/magento2.md).
 
 `./examples` has one runnable script per API method, named after the method it calls. Each script
 runs on its own:

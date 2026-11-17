@@ -52,7 +52,7 @@ final readonly class RegisterPaymentMessage implements MessageInterface
 
     /**
      * @param PaymentModeEnum $mode what the payment settles
-     * @param ?float $amount amount in PLN, where the mode allows a free choice
+     * @param float|null $amount amount in PLN, where the mode allows a free choice
      * @param string[] $invoiceNumbers numbers of the invoices to pay, for {@see PaymentModeEnum::Invoices}
      * @param string[] $orderNumbers numbers of the orders to pay for, for {@see PaymentModeEnum::Orders}
      */
@@ -64,7 +64,7 @@ final readonly class RegisterPaymentMessage implements MessageInterface
         public PaymentModeEnum $mode,
 
         /**
-         * @var ?float
+         * @var float|null
          */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         #[Validate\NonNegative]

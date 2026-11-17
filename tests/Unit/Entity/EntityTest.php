@@ -15,6 +15,7 @@ use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\Cod;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 /**
  * Entities are the records Polkurier stores. You can keep your own copies, subclass them with
@@ -28,15 +29,9 @@ final class EntityTest extends TestCase
      */
     public static function entityClasses(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
         $classes = [];
-        foreach (\glob($root . '/Entity/{*.php,*/*.php}', \GLOB_BRACE) ?: [] as $file) {
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . \str_replace('/', '\\', \substr($file, \strlen($root) + 1, -4));
-            if ((new \ReflectionClass($class))->isAbstract()) {
-                continue;
-            }
-            $classes[\substr($class, \strlen('Polkurier\\Webservice\\Entity\\'))] = [$class];
+        foreach (SourceClasses::instantiableUnder('Entity') as $name => $class) {
+            $classes[\substr($name, \strlen('Entity\\'))] = [$class];
         }
         self::assertNotEmpty($classes);
 
@@ -84,11 +79,52 @@ final class EntityTest extends TestCase
             self::assertNotNull($getter, $class . '::$' . $name . ' has a setter but no getter');
 
             $value = $sample->{$getter}();
-            self::assertSame($sample, $sample->{$setter}($value), $setter . ' returns the entity');
-            self::assertEquals($value, $sample->{$getter}(), $setter);
+            $other = self::aDifferentValue($value);
+            self::assertSame($sample, $sample->{$setter}($other), $setter . ' returns the entity');
+            // A value the getter did not already hold, so a setter that assigns nothing fails
+            // here instead of returning what it was handed.
+            self::assertEquals($other, $sample->{$getter}(), $setter);
             ++$checked;
         }
         self::assertGreaterThan(0, $checked);
+    }
+
+    /**
+     * A value of the same type that the sample does not already hold.
+     *
+     * For a type with no second value to reach for, such as an object the test cannot build, the
+     * value itself comes back and the assertion falls back to a round trip.
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    private static function aDifferentValue(mixed $value): mixed
+    {
+        if ($value instanceof \DateTimeImmutable) {
+            return $value->modify('+1 day');
+        }
+        if ($value instanceof \DateTime) {
+            return (clone $value)->modify('+1 day');
+        }
+        if ($value instanceof \BackedEnum) {
+            foreach ($value::cases() as $case) {
+                if ($case !== $value) {
+                    return $case;
+                }
+            }
+
+            return $value;
+        }
+
+        return match (true) {
+            \is_bool($value) => !$value,
+            \is_int($value) => $value + 1,
+            \is_float($value) => $value + 1.0,
+            \is_string($value) => $value . '-other',
+            \is_array($value) => $value === [] ? [] : \array_slice($value, 1),
+            default => $value,
+        };
     }
 
     public function testASubclassCanAddAColumnOfItsOwn(): void

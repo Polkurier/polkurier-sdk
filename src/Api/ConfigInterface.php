@@ -29,8 +29,6 @@ interface ConfigInterface
      */
     public function getApiUrl(): string;
 
-
-
     /**
      * @return int
      */
@@ -78,8 +76,8 @@ interface ConfigInterface
     /**
      * Whether secrets are logged as they are.
      *
-     * Off by default: the API token, passwords, PINs, two-factor codes and access tokens are
-     * replaced with `***` in logged bodies, and objects that could hold them are left out of the log
+     * Off by default: every field {@see \Polkurier\Webservice\Log\SensitiveDataRedactor} names is
+     * replaced with `***` in logged bodies, and objects that could hold one are left out of the log
      * context. On, it logs the full payloads, and the logs are then as sensitive as the credentials
      * in them.
      *
@@ -90,8 +88,8 @@ interface ConfigInterface
     /**
      * Whether personal data is logged as it is.
      *
-     * Off by default: names, street addresses, email addresses, phone numbers, tax and company
-     * registration numbers, and bank account numbers are replaced with `***` in logged bodies.
+     * Off by default: every field {@see \Polkurier\Webservice\Log\PersonalDataRedactor} names is
+     * replaced with `***` in logged bodies.
      *
      * @return bool
      */

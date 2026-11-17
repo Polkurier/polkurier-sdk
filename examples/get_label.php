@@ -14,6 +14,7 @@ declare(strict_types=1);
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Exception\Exception;
 
+
 require __DIR__ . '/bootstrap.php';
 
 $orderNumbers = arguments();
@@ -34,3 +35,4 @@ try {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);
 }
+

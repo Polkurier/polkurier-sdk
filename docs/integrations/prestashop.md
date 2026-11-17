@@ -153,6 +153,7 @@ use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
+use Polkurier\Webservice\Service\OrdersService;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 final class Client
@@ -178,6 +179,11 @@ final class Client
             ),
             serializerConfig: self::serializerConfig(),
         );
+    }
+
+    public static function orders(): OrdersService
+    {
+        return self::build()->orders();
     }
 
     private static function serializerConfig(): SerializerConfig
@@ -217,7 +223,7 @@ services:
         factory: ['Polkurier\PrestaShop\Client', 'orders']
 ```
 
-This needs a matching static `Client::orders()` method on `Client`. Front-office code keeps using
+`Client::orders()` above is the factory this refers to. Front-office code keeps using
 `Client::build()`.
 
 Placing the shipment

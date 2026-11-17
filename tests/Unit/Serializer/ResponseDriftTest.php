@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Serializer;
 
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Carrier;
@@ -19,17 +18,15 @@ use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
 use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\Serializer\LenientDateDenormalizer;
 use Polkurier\Webservice\Serializer\LenientEnumDenormalizer;
 use Polkurier\Webservice\Serializer\LenientListDenormalizer;
 use Polkurier\Webservice\Serializer\LenientObjectDenormalizer;
-use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\StrictResponseSerializer;
+use Polkurier\Webservice\Test\Support\Responses;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
 
 /**
@@ -45,7 +42,7 @@ final class ResponseDriftTest extends TestCase
 {
     public function testAnUnknownFieldIsRecordedAndIgnored(): void
     {
-        $wrapper = self::read(self::carrier(['brand_new' => 'x']), Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(Carrier::class . '[]', self::carrier(['brand_new' => 'x']));
 
         self::assertSame('DPD', self::carriers($wrapper)[0]->serviceCode);
         self::assertSame([['UNKNOWN_FIELD', '[0].brand_new', 'x', null]], self::drift($wrapper));
@@ -56,7 +53,7 @@ final class ResponseDriftTest extends TestCase
         $carrier = self::carrier();
         unset($carrier[0][Carrier::FIELD_NAME]);
 
-        $wrapper = self::read($carrier, Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(Carrier::class . '[]', $carrier);
 
         self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['MISSING_FIELD', '[0].name', null, 'string']], self::drift($wrapper));
@@ -64,7 +61,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testANullFieldReadsAsAnEmptyValueAndIsRecorded(): void
     {
-        $wrapper = self::read(self::carrier([Carrier::FIELD_NAME => null]), Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(Carrier::class . '[]', self::carrier([Carrier::FIELD_NAME => null]));
 
         self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['MISSING_FIELD', '[0].name', null, 'string']], self::drift($wrapper));
@@ -72,14 +69,14 @@ final class ResponseDriftTest extends TestCase
 
     public function testAnOptionalFieldLeftOutIsNotRecorded(): void
     {
-        self::assertSame([], self::drift(self::read(self::carrier(), Carrier::class . '[]')));
+        self::assertSame([], self::drift(Responses::readWrapped(Carrier::class . '[]', self::carrier())));
     }
 
     public function testASimpleValueOfAnotherTypeIsConverted(): void
     {
-        $wrapper = self::read(
-            self::carrier([Carrier::FIELD_SERVICE_CODE => 12, Carrier::FIELD_FOREIGN_SHIPMENTS => 'true']),
+        $wrapper = Responses::readWrapped(
             Carrier::class . '[]',
+            self::carrier([Carrier::FIELD_SERVICE_CODE => 12, Carrier::FIELD_FOREIGN_SHIPMENTS => 'true']),
         );
 
         $carrier = self::carriers($wrapper)[0];
@@ -93,7 +90,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAValueThatCanNotBeConvertedReadsAsAnEmptyValue(): void
     {
-        $wrapper = self::read(self::carrier([Carrier::FIELD_NAME => ['x']]), Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(Carrier::class . '[]', self::carrier([Carrier::FIELD_NAME => ['x']]));
 
         self::assertSame('', self::carriers($wrapper)[0]->name);
         self::assertSame([['CAST_VALUE', '[0].name', ['x'], 'string']], self::drift($wrapper));
@@ -101,7 +98,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAMissingDateReadsAsNull(): void
     {
-        $wrapper = self::read([TimeIntervalMessage::FIELD_TIME_TO => '12:00'], TimeIntervalMessage::class);
+        $wrapper = Responses::readWrapped(TimeIntervalMessage::class, [TimeIntervalMessage::FIELD_TIME_TO => '12:00']);
 
         $interval = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(TimeIntervalMessage::class, $interval);
@@ -111,7 +108,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testADateThatDoesNotParseReadsAsNullAndIsRecorded(): void
     {
-        $wrapper = self::read(['time' => 'garbage'], HeartbeatMessage::class);
+        $wrapper = Responses::readWrapped(HeartbeatMessage::class, ['time' => 'garbage']);
 
         $heartbeat = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(HeartbeatMessage::class, $heartbeat);
@@ -123,9 +120,9 @@ final class ResponseDriftTest extends TestCase
     {
         self::skipWithoutItemTypes();
 
-        $wrapper = self::read(
-            [PointsMap::FIELD_AVAILABLE_PROVIDERS => ['INPOST', 7, ['x'], 'DPD']],
+        $wrapper = Responses::readWrapped(
             PointsMap::class,
+            [PointsMap::FIELD_AVAILABLE_PROVIDERS => ['INPOST', 7, ['x'], 'DPD']],
         );
 
         $map = $wrapper->getEnvelope()->response;
@@ -139,7 +136,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAListItemThatIsNotAnObjectIsLeftOut(): void
     {
-        $wrapper = self::read(['x', ...self::carrier()], Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(Carrier::class . '[]', ['x', ...self::carrier()]);
 
         self::assertCount(1, self::carriers($wrapper));
         self::assertSame('DPD', self::carriers($wrapper)[0]->serviceCode);
@@ -148,7 +145,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAnEnumValueOfAnotherTypeIsConvertedOrReadAsNull(): void
     {
-        $wrapper = self::read([self::address(['type' => 12])], Address::class . '[]');
+        $wrapper = Responses::readWrapped(Address::class . '[]', [self::address(['type' => 12])]);
 
         /** @var list<Address> $addresses */
         $addresses = $wrapper->getEnvelope()->response;
@@ -158,7 +155,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAValueOfNoneOfAUnionsTypesReadsAsNull(): void
     {
-        $wrapper = self::read(['name' => 'phone', 'value' => ['x']], ContactFormValueMessage::class);
+        $wrapper = Responses::readWrapped(ContactFormValueMessage::class, ['name' => 'phone', 'value' => ['x']]);
 
         $value = $wrapper->getEnvelope()->response;
         self::assertInstanceOf(ContactFormValueMessage::class, $value);
@@ -170,14 +167,11 @@ final class ResponseDriftTest extends TestCase
     {
         self::skipWithoutItemTypes();
 
-        $wrapper = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))->create(
-            new Response(200, [], (string)\json_encode([
-                'status' => 'error',
-                'response' => 'Błędne dane',
-                'validation_errors' => ['name' => 'Pole wymagane', 'phone' => ['Zły numer', 5]],
-            ])),
-            Carrier::class . '[]',
-        );
+        $wrapper = Responses::readBody(Carrier::class . '[]', (string)\json_encode([
+            'status' => 'error',
+            'response' => 'Błędne dane',
+            'validation_errors' => ['name' => 'Pole wymagane', 'phone' => ['Zły numer', 5]],
+        ]));
 
         $error = $wrapper->getEnvelope();
         self::assertInstanceOf(ErrorMessage::class, $error);
@@ -193,21 +187,24 @@ final class ResponseDriftTest extends TestCase
         $this->expectException(MalformedResponseException::class);
         $this->expectExceptionMessage('None of the fields of ' . Carrier::class);
 
-        self::read([['code' => 'DPD', 'label' => 'DPD Classic']], Carrier::class . '[]');
+        Responses::readWrapped(Carrier::class . '[]', [['code' => 'DPD', 'label' => 'DPD Classic']]);
     }
 
     public function testAnObjectWithOneOfItsFieldsReads(): void
     {
-        $wrapper = self::read([[Carrier::FIELD_NAME => 'DPD Classic', 'label' => 'x']], Carrier::class . '[]');
+        $wrapper = Responses::readWrapped(
+            Carrier::class . '[]',
+            [[Carrier::FIELD_NAME => 'DPD Classic', 'label' => 'x']],
+        );
 
         self::assertSame('DPD Classic', self::carriers($wrapper)[0]->name);
     }
 
     public function testAnErrorEnvelopeRecordsItsUnknownFields(): void
     {
-        $wrapper = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))->create(
-            new Response(200, [], '{"status":"error","response":"Brak","brand_new":1}'),
+        $wrapper = Responses::readBody(
             Carrier::class . '[]',
+            '{"status":"error","response":"Brak","brand_new":1}',
         );
 
         self::assertInstanceOf(ErrorMessage::class, $wrapper->getEnvelope());
@@ -220,15 +217,15 @@ final class ResponseDriftTest extends TestCase
         unset($carrier[0][Carrier::FIELD_NAME]);
 
         $this->expectException(MalformedResponseException::class);
-        self::read($carrier, Carrier::class . '[]', new SerializerConfig(strictResponses: true));
+        Responses::readWrapped(Carrier::class . '[]', $carrier, new SerializerConfig(strictResponses: true));
     }
 
     public function testStrictReadingFailsOnAMissingFieldThatCanBeNull(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(
-            [TimeIntervalMessage::FIELD_TIME_FROM => '10:00'],
+        Responses::readWrapped(
             TimeIntervalMessage::class,
+            [TimeIntervalMessage::FIELD_TIME_FROM => '10:00'],
             new SerializerConfig(strictResponses: true),
         );
     }
@@ -236,30 +233,38 @@ final class ResponseDriftTest extends TestCase
     public function testStrictReadingFailsOnADateThatDoesNotParse(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(['time' => 'garbage'], HeartbeatMessage::class, new SerializerConfig(strictResponses: true));
+        Responses::readWrapped(
+            HeartbeatMessage::class,
+            ['time' => 'garbage'],
+            new SerializerConfig(strictResponses: true),
+        );
     }
 
     public function testStrictReadingFailsOnAListItemOfAnotherType(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(['x', ...self::carrier()], Carrier::class . '[]', new SerializerConfig(strictResponses: true));
+        Responses::readWrapped(
+            Carrier::class . '[]',
+            ['x', ...self::carrier()],
+            new SerializerConfig(strictResponses: true),
+        );
     }
 
     public function testStrictReadingFailsOnAnEnumValueOfAnotherType(): void
     {
         $this->expectException(MalformedResponseException::class);
-        self::read(
-            [self::address(['type' => 12])],
+        Responses::readWrapped(
             Address::class . '[]',
+            [self::address(['type' => 12])],
             new SerializerConfig(strictResponses: true),
         );
     }
 
     public function testStrictReadingStillReadsAnUnknownEnumValueAsNull(): void
     {
-        $wrapper = self::read(
-            [self::address(['type' => 'SOMETHING_NEW'])],
+        $wrapper = Responses::readWrapped(
             Address::class . '[]',
+            [self::address(['type' => 'SOMETHING_NEW'])],
             new SerializerConfig(strictResponses: true),
         );
 
@@ -313,24 +318,6 @@ final class ResponseDriftTest extends TestCase
             'email' => 'jan@example.com', 'phone' => '500600700',
             ...$extra,
         ];
-    }
-
-    /**
-     * @param mixed $payload
-     * @param string $format
-     * @param SerializerConfig $config
-     *
-     * @return ResponseWrapper
-     */
-    private static function read(
-        mixed $payload,
-        string $format,
-        SerializerConfig $config = new SerializerConfig(),
-    ): ResponseWrapper {
-        $body = (string)\json_encode(['status' => 'success', 'response' => $payload]);
-
-        return (new ResponseFactory(new MessageSerializer(new SerializerProvider($config))))
-            ->create(new Response(200, [], $body), $format);
     }
 
     /**

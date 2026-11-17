@@ -16,6 +16,9 @@ use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
  * read leniently: unknown fields and enum values, missing fields and values of another type are
  * read as described by {@see ResponseDriftTypeEnum}, and each case is recorded here. Without it in
  * the context, they fail as usual.
+ *
+ * Internal: {@see \Polkurier\Webservice\Api\SerializerInterface::readResponse()} puts one in the
+ * context, and hands what it collected back as {@see ReadResponse::$drift}, which is the contract.
  */
 class ResponseDriftCollector
 {

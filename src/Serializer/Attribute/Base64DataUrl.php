@@ -17,4 +17,12 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Base64DataUrl
 {
+    /**
+     * What separates the URL's media type from the base64 it introduces.
+     *
+     * Everything that has to find the bytes inside such a value reads it here: the denormalizer
+     * that decodes the field, and the log writer, which sees the same value before any class is
+     * built from it.
+     */
+    public const string MARKER = ';base64,';
 }

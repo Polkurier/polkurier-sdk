@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Log;
 
 use Polkurier\Webservice\Api\Http\ApiMethodInterface;
+use Polkurier\Webservice\Serializer\Attribute\Base64DataUrl;
 
 /**
  * Takes file contents out of a body before it is logged.
@@ -30,14 +31,14 @@ class LoggedFileWriter
      * file's own name, e.g. `20261005T101500-get_label-1a2b3c4d-file.pdf`.
      *
      * Use it to recognise saved files, e.g. to delete old ones, without touching other files in
-     * the same directory. Names keep matching it in later versions.
+     * the same directory.
      */
     public const string FILE_NAME_PATTERN = '/^\d{8}T\d{6}-[A-Za-z0-9_]+-[0-9a-f]{8}-[A-Za-z0-9._-]+$/';
 
     /**
      * Keys of a file's name next to its contents.
      */
-    protected const array NAME_FIELDS = ['name', 'filename'];
+    protected const array NAME_FIELDS = ['name', 'filename', 'fileName'];
 
     /**
      * File extensions by the first bytes of the contents.
@@ -122,7 +123,12 @@ class LoggedFileWriter
         string $directory,
         ApiMethodInterface $apiMethod,
     ): string {
-        $contents = \base64_decode($base64, true);
+        // A field marked {@see Base64DataUrl} arrives as `data:<type>;base64,<bytes>`, and `:`
+        // and `;` are not base64, so the contents have to be found before they can be decoded.
+        $marker = \strpos($base64, Base64DataUrl::MARKER);
+        $encoded = $marker === false ? $base64 : \substr($base64, $marker + \strlen(Base64DataUrl::MARKER));
+
+        $contents = \base64_decode($encoded, true);
         if ($contents === false || $contents === '') {
             // Not file contents after all, e.g. a file name.
             return $base64;

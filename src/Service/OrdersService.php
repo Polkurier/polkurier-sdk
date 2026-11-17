@@ -229,7 +229,6 @@ class OrdersService extends AbstractService implements OrdersServiceInterface
         );
     }
 
-
     /**
      * @param GetOrderFileMessage $getOrderFileMessage
      *

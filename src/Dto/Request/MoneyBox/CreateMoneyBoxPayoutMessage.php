@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsTrait;
+use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -30,9 +30,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
+final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, TwoFactorFieldsInterface
 {
-    use TwoFactorFieldsTrait;
 
     /**+@#
      * JSON parameter keys
@@ -52,20 +51,20 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
 
     /**
      * @param string[] $orders order numbers whose cash-on-delivery amounts to pay out, empty for everything available
-     * @param ?MoneyBoxPayoutTypeEnum $payoutType delivery method, ACCOUNT when left out
-     * @param ?MoneyBoxFeePaymentTypeEnum $feePaymentType how to pay the handling fee, one of those
+     * @param MoneyBoxPayoutTypeEnum|null $payoutType delivery method, ACCOUNT when left out
+     * @param MoneyBoxFeePaymentTypeEnum|null $feePaymentType how to pay the handling fee, one of those
      *        `get_money_box_config` lists as available
-     * @param ?string $bankAccountNumber for a bank transfer, one of the account's saved bank accounts
-     * @param ?string $company for a postal money order
-     * @param ?string $person for a postal money order
-     * @param ?string $street for a postal money order
-     * @param ?string $postcode for a postal money order
-     * @param ?string $city for a postal money order
-     * @param ?string $securityPin for a money order to another address while the money box PIN lock is engaged
-     * @param ?string $twoFactorToken for a money order to another address without the PIN lock, registered under
+     * @param string|null $bankAccountNumber for a bank transfer, one of the account's saved bank accounts
+     * @param string|null $company for a postal money order
+     * @param string|null $person for a postal money order
+     * @param string|null $street for a postal money order
+     * @param string|null $postcode for a postal money order
+     * @param string|null $city for a postal money order
+     * @param string|null $securityPin for a money order to another address while the money box PIN lock is engaged
+     * @param string|null $twoFactorToken for a money order to another address without the PIN lock, registered under
      *        MONEY_BOX_PAYOUT
-     * @param ?string $twoFactorFormId form identifier issued with the token
-     * @param ?string $twoFactorCode the code the customer entered
+     * @param string|null $twoFactorFormId form identifier issued with the token
+     * @param string|null $twoFactorCode the code the customer entered
      */
     public function __construct(
         /**
@@ -77,21 +76,21 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         public array $orders = [],
 
         /**
-         * @var ?MoneyBoxPayoutTypeEnum
+         * @var MoneyBoxPayoutTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
         #[OmitWhenEmpty]
         public ?MoneyBoxPayoutTypeEnum $payoutType = null,
 
         /**
-         * @var ?MoneyBoxFeePaymentTypeEnum
+         * @var MoneyBoxFeePaymentTypeEnum|null
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT_TYPE)]
         #[OmitWhenEmpty]
         public ?MoneyBoxFeePaymentTypeEnum $feePaymentType = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
         #[Validate\Iban]
@@ -99,28 +98,28 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         public ?string $bankAccountNumber = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
         public ?string $company = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[OmitWhenEmpty]
         public ?string $person = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
         public ?string $street = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\Postcode]
@@ -128,35 +127,35 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface
         public ?string $postcode = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
         public ?string $city = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY_PIN)]
         #[OmitWhenEmpty]
         public ?string $securityPin = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
         public ?string $twoFactorToken = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_FORM_ID)]
         #[OmitWhenEmpty]
         public ?string $twoFactorFormId = null,
 
         /**
-         * @var ?string
+         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]

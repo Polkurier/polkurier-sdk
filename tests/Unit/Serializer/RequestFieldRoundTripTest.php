@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Serializer;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
@@ -23,6 +24,7 @@ use Polkurier\Webservice\Test\Support\Sample;
  * appears means the normalizer can't reach the property, e.g. because its getter is named after
  * something else.
  */
+#[CoversNothing]
 final class RequestFieldRoundTripTest extends TestCase
 {
     /**
@@ -35,6 +37,24 @@ final class RequestFieldRoundTripTest extends TestCase
         // Written by RequestQuirksNormalizer from the flat number, inside an order's cover address.
         OrderAddress::class => ['FIELD_COVER_FLAT_NUMBER'],
     ];
+
+    /**
+     * The exceptions name constants, so a constant that is renamed or dropped takes its exception
+     * with it instead of quietly excusing a field that is now serialized.
+     *
+     * @return void
+     */
+    public function testEverySyntheticFieldStillNamesAConstant(): void
+    {
+        foreach (self::SYNTHETIC_FIELDS as $owner => $constants) {
+            foreach ($constants as $name) {
+                self::assertTrue(
+                    (new \ReflectionClass($owner))->hasConstant($name),
+                    $owner . '::' . $name . ' no longer exists; drop it from ' . self::class,
+                );
+            }
+        }
+    }
 
     /**
      * @return array<string, array{class-string}>

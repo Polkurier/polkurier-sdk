@@ -138,9 +138,6 @@ Reading a rejection
 | [`ValidationException::getMessage()`](../src/Exception/ValidationException.php) | All of it flattened into a sentence |
 | [`WebserviceException::getErrorMessage()->validationErrors`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
 
-Because of the last row, you can display a local rejection and a server-side one with the same
-code.
-
 Changing how requests are made
 ------------------------------
 

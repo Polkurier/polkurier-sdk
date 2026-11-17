@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Test\Support\MessageClasses;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 /**
  * The committed builders still match the messages they build.
@@ -35,26 +36,13 @@ final class BuilderDriftTest extends TestCase
      */
     public static function builders(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
         $pairs = [];
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Builder')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $builder */
-            $builder = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
+        foreach (SourceClasses::under('Builder') as $name => $builder) {
             // A builder mirrors what it builds, e.g. Builder\Entity\Order\CodBuilder builds
             // Entity\Order\Cod, and Builder\Request\Order\GetOrdersMessageBuilder builds
             // Dto\Request\Order\GetOrdersMessage.
-            $relative = \substr($builder, \strlen('Polkurier\\Webservice\\Builder\\'), -\strlen('Builder'));
+            $relative = \substr($name, \strlen('Builder\\'), -\strlen('Builder'));
             $candidates = \array_filter(
                 MessageClasses::requests(),
                 static fn(string $class): bool => \str_ends_with($class, '\\' . $relative),
@@ -71,7 +59,7 @@ final class BuilderDriftTest extends TestCase
 
             // Several builders share a short name, e.g. Address\SaveMessageBuilder and
             // BankAccount\SaveMessageBuilder, so the data set is named by the namespace too.
-            $pairs[\str_replace('Polkurier\\Webservice\\Builder\\', '', $builder)] = [$builder, $message];
+            $pairs[\substr($name, \strlen('Builder\\'))] = [$builder, $message];
         }
 
         self::assertNotEmpty($pairs);
@@ -149,7 +137,8 @@ final class BuilderDriftTest extends TestCase
 
             $sent = \array_filter(
                 $constructor?->getParameters() ?? [],
-                static fn(\ReflectionParameter $parameter): bool => $parameter->getAttributes(ResponseOnly::class) === []
+                static fn(\ReflectionParameter $parameter): bool
+                    => $parameter->getAttributes(ResponseOnly::class) === []
                     && $parameter->getName() !== 'rawResponse',
             );
 

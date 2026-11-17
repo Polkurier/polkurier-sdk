@@ -7,12 +7,14 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Http;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\ClientFactory;
 use Polkurier\Webservice\Test\Unit\Webservice\SwitchingConfigProvider;
 
+#[CoversClass(ClientFactory::class)]
 final class ClientFactoryTest extends TestCase
 {
     public function testTheSameConfigurationReusesOneClient(): void

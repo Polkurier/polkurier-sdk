@@ -20,7 +20,7 @@ final class MessageClasses
      */
     public static function requests(): array
     {
-        return self::scan('Dto/Request') + self::scan('Entity');
+        return SourceClasses::instantiableUnder('Dto/Request') + SourceClasses::instantiableUnder('Entity');
     }
 
     /**
@@ -28,38 +28,6 @@ final class MessageClasses
      */
     public static function responses(): array
     {
-        return self::scan('Dto/Response') + self::scan('Entity');
-    }
-
-    /**
-     * Every concrete class under a directory of the source.
-     *
-     * @param string $directory relative to src
-     *
-     * @return array<string, class-string>
-     */
-    private static function scan(string $directory): array
-    {
-        $root = \dirname(__DIR__, 2) . '/src';
-        $classes = [];
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($root . '/' . $directory, \FilesystemIterator::SKIP_DOTS),
-        );
-        /** @var \SplFileInfo $file */
-        foreach ($files as $file) {
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
-            $name = \str_replace('/', '\\', \substr($file->getPathname(), \strlen($root) + 1, -4));
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . $name;
-            if (!\class_exists($class) || (new \ReflectionClass($class))->isAbstract()) {
-                continue;
-            }
-            $classes[$name] = $class;
-        }
-        \ksort($classes);
-
-        return $classes;
+        return SourceClasses::instantiableUnder('Dto/Response') + SourceClasses::instantiableUnder('Entity');
     }
 }

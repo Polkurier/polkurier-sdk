@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-#[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
+#[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country', whenEmpty: self::DEFAULT_COUNTRY)]
 final readonly class FindCityMessage implements MessageInterface
 {
     /**+@#
@@ -41,10 +41,6 @@ final readonly class FindCityMessage implements MessageInterface
         public string $postcode,
 
         /**
-         * ISO country code the postcode belongs to.
-         *
-         * Any country other than PL gives an empty list.
-         *
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]

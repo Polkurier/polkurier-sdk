@@ -7,16 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Serializer;
 
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\System\CourierMessage;
 use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Enum\Courier\CourierMessageTypeEnum;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Responses;
 
 /**
  * Responses shaped as the API sends them still read with unknown fields rejected.
@@ -101,13 +98,6 @@ final class StrictReadingTest extends TestCase
      */
     private static function read(string $format, array $payload): mixed
     {
-        $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
-
-        $serializer = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
-
-        return (new ResponseFactory($serializer))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->response;
+        return Responses::read($format, $payload, new SerializerConfig(strictResponses: true));
     }
 }

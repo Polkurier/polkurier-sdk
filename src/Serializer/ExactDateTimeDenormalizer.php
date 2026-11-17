@@ -25,9 +25,11 @@ class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInte
 {
     /**
      * @param DateTimeNormalizer $inner
+     * @param \DateTimeZone|null $timezone the zone a date without an offset is read in
      */
     public function __construct(
         protected readonly DateTimeNormalizer $inner = new DateTimeNormalizer(),
+        protected readonly ?\DateTimeZone $timezone = null,
     ) {}
 
     /**
@@ -68,6 +70,13 @@ class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInte
         ?string $format = null,
         array $context = [],
     ): \DateTimeInterface {
+        // Reading only. In the normalizer's own context the zone would also apply to writing,
+        // where it would move a date the caller gave in another zone, and the fields a format
+        // leaves out would move with it.
+        if ($this->timezone !== null && !\array_key_exists(DateTimeNormalizer::TIMEZONE_KEY, $context)) {
+            $context[DateTimeNormalizer::TIMEZONE_KEY] = $this->timezone;
+        }
+
         $dateFormat = $context[DateTimeNormalizer::FORMAT_KEY] ?? null;
 
         // A Unix timestamp has every field already, and the inner normalizer reads it by its exact

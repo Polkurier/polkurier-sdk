@@ -36,7 +36,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-#[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country')]
+#[Validate\PostcodeForCountry(postcode: 'postcode', country: 'country', whenEmpty: self::DEFAULT_COUNTRY)]
 #[Validate\RequiredWhen(
     field: 'email',
     property: 'type',

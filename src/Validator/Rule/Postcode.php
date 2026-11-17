@@ -15,11 +15,11 @@ use Attribute;
  * Polish postcodes must be NN-NNN. Postcodes from other countries are not checked, so a German
  * address is not held to the Polish format.
  *
- * Pass the country code if the postcode is not Polish:
+ * Pass the country code to turn the check off for a field that holds a foreign postcode:
  *
  * ```php
- * #[Postcode]                 // Poland
- * #[Postcode(country: 'DE')]   // anywhere else
+ * #[Postcode]                 // checked against NN-NNN
+ * #[Postcode(country: 'DE')]  // not checked
  * private string $postcode;
  * ```
  */

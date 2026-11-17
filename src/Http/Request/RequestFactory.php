@@ -62,7 +62,7 @@ readonly class RequestFactory implements RequestFactoryInterface
         $config = $this->configProvider->getConfig();
         $requestMessage = new RequestMessage(
             $apiMethod,
-            $this->resolveAuthorization($authorization, $config),
+            static::resolveAuthorization($authorization, $config),
             $payload,
         );
 
@@ -115,14 +115,15 @@ readonly class RequestFactory implements RequestFactoryInterface
      * {@see \Polkurier\Webservice\Http\Request\RequestMessage} accepts.
      *
      * `null` means "use the configured credentials" and `false` means "send none". The request
-     * message takes no bool, so `false` becomes null here.
+     * message takes no bool, so `false` becomes null here. Static, so a caller that validates the
+     * credentials before a call resolves them by the same rule rather than a copy of it.
      *
      * @param AuthorizationMessage|bool|null $authorization
      * @param ConfigInterface $config
      *
      * @return AuthorizationMessage|null
      */
-    protected function resolveAuthorization(
+    public static function resolveAuthorization(
         AuthorizationMessage|bool|null $authorization,
         ConfigInterface $config,
     ): ?AuthorizationMessage {

@@ -19,7 +19,7 @@ use Attribute;
  * that is also marked {@see \Polkurier\Webservice\Validator\Rule\Valid} is validated at the
  * enclosing level, so its errors carry the field names as they are sent.
  *
- * Applied by {@see \Polkurier\Webservice\Serializer\OmitEmptyNormalizer}.
+ * Applied by {@see \Polkurier\Webservice\Serializer\InlineFieldsNormalizer}.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD)]
 final class InlineFields

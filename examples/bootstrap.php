@@ -21,6 +21,7 @@ use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 
+
 require __DIR__ . '/../vendor/autoload.php';
 
 /**
@@ -28,16 +29,21 @@ require __DIR__ . '/../vendor/autoload.php';
  *
  * Logging is left at its default, which discards everything. Pass any PSR-3 logger as the second
  * constructor argument to see the requests and responses the SDK exchanges.
+ *
+ * @param bool $credentialsNeeded false for a method that sends no authorization block, so the
+ *        example runs without an account
  */
-function polkurier(): PolkurierWebservice
+function polkurier(bool $credentialsNeeded = true): PolkurierWebservice
 {
     $login = \getenv('POLKURIER_API_LOGIN');
     $token = \getenv('POLKURIER_API_TOKEN');
 
-    if ($login === false || $token === false) {
+    if ($credentialsNeeded && ($login === false || $token === false)) {
         \fwrite(STDERR, "Set POLKURIER_API_LOGIN and POLKURIER_API_TOKEN before running this example.\n");
         exit(1);
     }
+    $login = $login === false ? '' : $login;
+    $token = $token === false ? '' : $token;
 
     $apiUrl = \getenv('POLKURIER_API_URL');
 
@@ -107,3 +113,4 @@ function dumpResponse(mixed $payload): void
 {
     \var_dump($payload);
 }
+

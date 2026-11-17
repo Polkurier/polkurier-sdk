@@ -33,7 +33,7 @@ class RegisterPaymentMessageBuilder extends AbstractBuilder
     }
 
     /**
-     * @param ?float $amount
+     * @param float|null $amount
      *
      * @return static
      */

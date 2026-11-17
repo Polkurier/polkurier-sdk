@@ -26,6 +26,11 @@ final readonly class PointsMap implements MessageInterface
     public const string FIELD_RECIPIENT_POINT = 'recipient_point';
     /**-@#*/
 
+    /**
+     * @param string[] $availableProviders
+     * @param PointRequirementEnum|null $senderPoint
+     * @param PointRequirementEnum|null $recipientPoint
+     */
     public function __construct(
         /**
          * The carrier codes to pass, all together, to

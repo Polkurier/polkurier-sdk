@@ -239,9 +239,8 @@ interface CourierServiceInterface
     /**
      * Lists the countries one international carrier delivers to.
      *
-     * Only the carriers the error message lists are accepted (currently UPS_EX, DPDEXP, GLS_FOREIGN
-     * and INPOST_INTERNATIONAL). Any other code is rejected. Use getSupportedCountries() for the
-     * full country list.
+     * Only the carriers the error message below lists are accepted; any other code is rejected.
+     * {@see self::getSupportedCountries()} gives the full country list.
      *
      * The payload maps ISO country codes to Polish country names. If a country has several names,
      * they are joined with ", " into one string. There are no regions here. getSupportedCountries()

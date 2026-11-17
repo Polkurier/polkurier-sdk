@@ -65,7 +65,7 @@ final class ValidatorWiringTest extends TestCase
     {
         (new AttributeValidator())->validate(new WiringInnerMessage('anything'));
 
-        self::expectNotToPerformAssertions();
+        $this->expectNotToPerformAssertions();
     }
 
     /**

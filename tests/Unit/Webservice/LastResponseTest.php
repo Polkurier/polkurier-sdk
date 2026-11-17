@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
@@ -21,6 +22,7 @@ use Polkurier\Webservice\Testing\RecordingClient;
 /**
  * What the client keeps about the last call: the HTTP response and how it differed from the SDK.
  */
+#[CoversNothing]
 final class LastResponseTest extends TestCase
 {
     private const string ADDRESS_WITH_UNKNOWN_TYPE = '{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW",'
