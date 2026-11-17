@@ -17,6 +17,7 @@ file:
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
@@ -29,9 +30,9 @@ use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Service\CourierService;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
@@ -64,12 +65,20 @@ return [
         ),
     ),
 
-    // The facade builds its own serializer; the factories wired below need this one.
-    SerializerProviderInterface::class => factory(
-        static fn(ContainerInterface $c): SerializerProviderInterface => new SerializerProvider(
+    // The facade builds its own serializer; the factories wired below need this one. The provider
+    // is bound by its class: the SDK has no interface for it.
+    SerializerProvider::class => factory(
+        static fn(ContainerInterface $c): SerializerProvider => new SerializerProvider(
             $c->get(SerializerConfig::class),
         ),
     ),
+
+    MessageSerializer::class => factory(
+        static fn(ContainerInterface $c): MessageSerializer => new MessageSerializer(
+            $c->get(SerializerProvider::class),
+        ),
+    ),
+    SerializerInterface::class => get(MessageSerializer::class),
 
     ClientFactoryInterface::class   => autowire(ClientFactory::class),
     RequestFactoryInterface::class  => autowire(RequestFactory::class),
@@ -95,8 +104,9 @@ return [
 ];
 ```
 
-PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services because each required constructor parameter is an
-interface bound above. The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/): unless it is bound to the application's
+PHP-DI's [`DI\autowire()`](https://php-di.org/doc/php-definitions.html) can build the services and the two factories because every required
+constructor parameter is bound above, by its interface or, for [`SerializerProvider`](../../src/Serializer/SerializerProvider.php), by its class.
+The exception is [`Psr\Log\LoggerInterface`](https://www.php-fig.org/psr/psr-3/): unless it is bound to the application's
 logger, PHP-DI tries to instantiate the interface and fails. Autowiring leaves optional parameters at
 their defaults, so without the `validator` entry each service builds its own default validator,
 and rules registered on the container's one don't apply.
@@ -217,18 +227,19 @@ foreach ($client->orders()->getOrders($filter)->result as $order) {
 The facade builds what it needs on first use and caches the services after that.
 
 If you only want one service, you can wire it by hand. Every service takes the same arguments, and
-these 6 are the ones to pass:
+these 5 are the ones to pass:
 
 ```php
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Http\ClientFactory;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Service\OrdersService;
 
 $configProvider = new ConfigProvider($config);
-$serializer     = new SerializerProvider();
+$serializer     = new MessageSerializer(new SerializerProvider());
 
 $orders = new OrdersService(
     requestFactory:  new RequestFactory($serializer, $configProvider),
@@ -266,5 +277,8 @@ call, so that exceptions can report the response that came back. In a shared-not
 harmless. With real concurrency, coroutines that share a client overwrite it for each other.
 
 **Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFields`](../../src/Validator/MessageFields.php),
-[`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php) and [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php) each keep a static reflection cache keyed by class
-name. Once filled, they stay filled for every client in the process.
+[`ClassMembers`](../../src/Serializer/ClassMembers.php), [`WireNameReader`](../../src/Serializer/WireNameReader.php), [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php), and, in the serializer chain,
+[`InlineFieldsNormalizer`](../../src/Serializer/InlineFieldsNormalizer.php), [`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php), [`SentFieldsNormalizer`](../../src/Serializer/SentFieldsNormalizer.php), [`WireFormatDenormalizer`](../../src/Serializer/WireFormatDenormalizer.php) and
+[`LenientObjectDenormalizer`](../../src/Serializer/LenientObjectDenormalizer.php) each keep a static reflection cache keyed by class name. Once filled, they stay
+filled for every client in the process, and no setting empties them: the configured
+[`metadataCache`](../configuration.md#metadatacache) covers the serializer's own metadata, not these.

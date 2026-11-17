@@ -557,7 +557,22 @@ Reading webhook events
 | [`OrderReaderInterface::getLastDrift()`](../src/Api/Webhook/OrderReaderInterface.php) | How the last event's order differed from the SDK |
 
 [`PolkurierWebservice::orderReader()`](../src/PolkurierWebservice.php) returns the reader as
-[`Api\Webhook\OrderReaderInterface`](../src/Api/Webhook/OrderReaderInterface.php), built on first use with the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) the
-client was given and kept after that, or the one passed under [`OrderReader`](../src/Webhook/OrderReader.php) in `services:`. It reads the
-request body and calls no endpoint.
+[`Api\Webhook\OrderReaderInterface`](../src/Api/Webhook/OrderReaderInterface.php), built on first use with the [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php)
+the client was given and kept after that, or the one passed under [`OrderReader`](../src/Webhook/OrderReader.php) in `services:`. It
+reads the request body and calls no endpoint.
 [Webhooks](webhooks.md) covers the exchange.
+
+Reading and writing bodies
+--------------------------
+
+| Method | What it does |
+|--------|--------------|
+| [`SerializerInterface::encode()`](../src/Api/SerializerInterface.php) | Writes a message as the client would send it |
+| [`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) | Reads such a payload back into its class |
+| [`SerializerInterface::readResponse()`](../src/Api/SerializerInterface.php) | Reads a response body into a [`ReadResponse`](../src/Serializer/ReadResponse.php): the envelope, and how it differed from the SDK |
+
+[`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) returns what the client's services read and write with, as
+[`Api\SerializerInterface`](../src/Api/SerializerInterface.php). Nothing is sent, so a payload can be recorded before the call that
+carries it, and a stored body read long after.
+[Serialization: using the serializer yourself](serialization.md#using-the-serializer-yourself)
+shows both.

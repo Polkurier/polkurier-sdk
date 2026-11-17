@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
@@ -18,6 +19,7 @@ use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
@@ -113,7 +115,7 @@ final class EveryServiceMethodTest extends TestCase
             platformVersion: '1.0.0',
             validatePayloads: false,
         ));
-        $serializer = new SerializerProvider();
+        $serializer = new MessageSerializer(new SerializerProvider());
 
         return new $class(
             new RequestFactory($serializer, $configProvider),
@@ -134,7 +136,7 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
 
     public function __construct()
     {
-        $this->inner = new ResponseFactory(new SerializerProvider());
+        $this->inner = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
     }
 
     public function create(ResponseInterface $httpResponse, string $responseFormat): ResponseWrapper
@@ -150,9 +152,9 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
     private static function payload(string $format): mixed
     {
         return match (true) {
-            $format === '' || $format === ResponseFactory::FORMAT_BOOLEAN => true,
-            $format === ResponseFactory::FORMAT_RAW_ARRAY,
-            $format === ResponseFactory::FORMAT_STRING_LIST => ['a' => 'b'],
+            $format === '' || $format === SerializerInterface::FORMAT_BOOLEAN => true,
+            $format === SerializerInterface::FORMAT_RAW_ARRAY,
+            $format === SerializerInterface::FORMAT_STRING_LIST => ['a' => 'b'],
             \str_ends_with($format, '[]') => [self::payload(\substr($format, 0, -2))],
             default => self::normalized($format),
         };

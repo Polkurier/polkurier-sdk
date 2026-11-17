@@ -143,8 +143,9 @@ Nothing is logged unless you pass a PSR-3 logger as the second constructor argum
 anything is logged, secrets and personal data are hidden and files are left out, unless the options
 above allow them. See [Configuration: logging](docs/configuration.md#logging).
 
-The serializer has its own configuration. Pass a [`SerializerConfig`](src/Serializer/SerializerConfig.php) as the third
-constructor argument, `serializerConfig`:
+The serializer has its own configuration. Pass a [`SerializerConfig`](src/Serializer/SerializerConfig.php), or any
+[`Api\SerializerConfigInterface`](src/Api/SerializerConfigInterface.php) of your own, as the third constructor argument,
+`serializerConfig`:
 
 | Option                | Default              | Meaning                                              |
 |-----------------------|----------------------|------------------------------------------------------|
@@ -165,6 +166,11 @@ production, it would turn each change into a failed call, which is why it is off
 
 An object a service method returns keeps the body as the API sent it, from
 `ParsedResponseInterface::getRawResponse()`, for values the SDK misreads or drops.
+
+`PolkurierWebservice::serializer()` hands out what the client writes and reads bodies with, as an
+[`Api\SerializerInterface`](src/Api/SerializerInterface.php). Use it to record a payload before the call that carries it, or to
+read a stored body. See
+[Serialization: using the serializer yourself](docs/serialization.md#using-the-serializer-yourself).
 
 Error handling
 --------------

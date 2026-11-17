@@ -110,7 +110,28 @@ try {
 These tests are fast, and they catch mistakes that would otherwise each cost a round trip to the
 API.
 
-### 5. Test against the real API
+### 5. Assert a payload, or read a recorded body
+
+[`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) hands out what the client sends and reads with, so a test can
+write a payload or read a body without a transport at all:
+
+```php
+$serializer = $client->serializer();
+
+self::assertJsonStringEqualsJsonString($expected, $serializer->encode($createOrderMessage));
+
+$read = $serializer->readResponse($recordedBody, CreatedOrderMessage::class);
+
+self::assertSame('10001234', $read->envelope->response->orderNumber);
+self::assertSame([], $read->drift);
+```
+
+[`SerializerInterface::encode()`](../src/Api/SerializerInterface.php) writes the message alone, without the `apimethod` and
+`authorization` around it, which [`RecordingClient::lastPayload()`](../src/Testing/RecordingClient.php) shows instead. Asserting the
+drift of a body recorded from the real API catches a response that has changed, the way
+`strictResponses` does, without failing the read.
+
+### 6. Test against the real API
 
 None of the above catches a mapping bug, because a fixture only contains what you expected. Only a
 real response shows which optional values are really optional, which nested objects can be absent

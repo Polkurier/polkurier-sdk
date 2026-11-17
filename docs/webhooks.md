@@ -39,14 +39,15 @@ Polkurier expects HTTP 200 with `OK` as the whole body, within 30 seconds.
 `examples/order_webhook.php` does the same with a body saved to a file.
 
 Where you already have a client, [`PolkurierWebservice::orderReader()`](../src/PolkurierWebservice.php) hands out a reader built
-with that client's [`SerializerConfig`](../src/Serializer/SerializerConfig.php), and keeps it for the next event. Like a service, it
-is replaceable: pass your own under [`OrderReader`](../src/Webhook/OrderReader.php) in the client's `services:` argument.
+with the [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php) that client was given, and keeps it for the next
+event. Like a service, it is replaceable: pass your own under [`OrderReader`](../src/Webhook/OrderReader.php) in the client's
+`services:` argument.
 
 ```php
 $event = $client->orderReader()->read($body);
 ```
 
-The client hands out its [`SerializerConfig`](../src/Serializer/SerializerConfig.php) nowhere else, so this is how a reader comes to share
+The client passes that configuration on nowhere else, so this is how a reader comes to share
 the client's settings: strict reading, the timezone for dates and the metadata cache. Constructed
 directly, [`OrderReader`](../src/Webhook/OrderReader.php) takes a configuration of its own, and reads with the SDK's defaults when
 given none.

@@ -151,12 +151,12 @@ Services
             <argument type="service" id="polkurier.metadata_cache"/>
         </service>
 
-        <!-- The facade builds its own serializer; the factories wired below need this one. -->
+        <!-- The facade builds its own serializer; the factories wired below need this one. The
+             provider gets no interface alias, unlike the services under it: it is the one piece
+             of serialization the SDK has no interface for. -->
         <service id="Polkurier\Webservice\Serializer\SerializerProvider">
             <argument type="service" id="Polkurier\Webservice\Serializer\SerializerConfig"/>
         </service>
-        <service id="Polkurier\Webservice\Serializer\SerializerProviderInterface"
-                 alias="Polkurier\Webservice\Serializer\SerializerProvider"/>
 
         <service id="Polkurier\Webservice\Http\ClientFactory">
             <argument type="service" id="Polkurier\Webservice\Api\ConfigProviderInterface"/>
@@ -164,15 +164,21 @@ Services
         <service id="Polkurier\Webservice\Api\Http\ClientFactoryInterface"
                  alias="Polkurier\Webservice\Http\ClientFactory"/>
 
+        <service id="Polkurier\Webservice\Serializer\MessageSerializer">
+            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProvider"/>
+        </service>
+        <service id="Polkurier\Webservice\Api\SerializerInterface"
+                 alias="Polkurier\Webservice\Serializer\MessageSerializer"/>
+
         <service id="Polkurier\Webservice\Http\Request\RequestFactory">
-            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProviderInterface"/>
+            <argument type="service" id="Polkurier\Webservice\Serializer\MessageSerializer"/>
             <argument type="service" id="Polkurier\Webservice\Api\ConfigProviderInterface"/>
         </service>
         <service id="Polkurier\Webservice\Http\Request\RequestFactoryInterface"
                  alias="Polkurier\Webservice\Http\Request\RequestFactory"/>
 
         <service id="Polkurier\Webservice\Http\Response\ResponseFactory">
-            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProviderInterface"/>
+            <argument type="service" id="Polkurier\Webservice\Serializer\MessageSerializer"/>
         </service>
         <service id="Polkurier\Webservice\Http\Response\ResponseFactoryInterface"
                  alias="Polkurier\Webservice\Http\Response\ResponseFactory"/>

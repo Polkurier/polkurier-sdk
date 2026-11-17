@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Api\SerializerConfigInterface;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -49,7 +50,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  * {@see SerializerConfig}. Everything else is fixed by
  * the API.
  */
-readonly class SerializerProvider implements SerializerProviderInterface
+readonly class SerializerProvider
 {
     /**
      * @var SerializerInterface&DenormalizerInterface
@@ -57,9 +58,9 @@ readonly class SerializerProvider implements SerializerProviderInterface
     protected SerializerInterface&DenormalizerInterface $serializer;
 
     /**
-     * @param SerializerConfig $config
+     * @param SerializerConfigInterface $config
      */
-    public function __construct(SerializerConfig $config = new SerializerConfig())
+    public function __construct(SerializerConfigInterface $config = new SerializerConfig())
     {
         $metadata = static::metadataFactory($config);
         $strict = $config->strictResponses();
@@ -97,13 +98,15 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 new EnumListDenormalizer(),
                 new LenientListDenormalizer(new ArrayDenormalizer()),
                 new RequestQuirksNormalizer(
-                    // The ownership filter runs inside the inlining, so the entries an
-                    // #[InlineFields] field writes are not filtered: their keys aren't known here.
-                    new OmitEmptyNormalizer(new SentFieldsNormalizer(
+                    // The inlining runs outside the two filters, so a field is dropped for being
+                    // empty or response-only before its entries would be moved up, and the entries
+                    // of a map-valued #[InlineFields] field reach the payload unfiltered: their
+                    // keys aren't known here.
+                    new InlineFieldsNormalizer(new OmitEmptyNormalizer(new SentFieldsNormalizer(
                         new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
                             new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
                         )),
-                    )),
+                    ))),
                 ),
             ],
             encoders: [
@@ -120,11 +123,11 @@ readonly class SerializerProvider implements SerializerProviderInterface
     /**
      * Wraps the metadata factory in a cache if a pool was configured.
      *
-     * @param SerializerConfig $config
+     * @param SerializerConfigInterface $config
      *
      * @return ClassMetadataFactoryInterface
      */
-    protected static function metadataFactory(SerializerConfig $config): ClassMetadataFactoryInterface
+    protected static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
         $cache = $config->getMetadataCache();
@@ -133,7 +136,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * The serializer the SDK maps requests and responses with, built once and shared.
      *
      * @return SerializerInterface&DenormalizerInterface
      */

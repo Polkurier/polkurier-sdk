@@ -14,6 +14,7 @@ use Polkurier\Webservice\Dto\Response\System\CourierMessage;
 use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Enum\Courier\CourierMessageTypeEnum;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
@@ -102,7 +103,9 @@ final class StrictReadingTest extends TestCase
     {
         $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
 
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
+        $serializer = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
+
+        return (new ResponseFactory($serializer))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
             ->response;

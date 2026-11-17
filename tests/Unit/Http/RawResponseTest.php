@@ -18,6 +18,7 @@ use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
@@ -154,7 +155,7 @@ final class RawResponseTest extends TestCase
         $stream = Utils::streamFor($body);
         $stream->getContents();
 
-        $info = (new ResponseFactory(new SerializerProvider()))
+        $info = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], $stream), SystemInfoMessage::class)
             ->getEnvelope()
             ->response;
@@ -168,7 +169,7 @@ final class RawResponseTest extends TestCase
         $body = self::systemInfoBody();
         $response = new Response(200, [], new NoSeekStream(Utils::streamFor($body)));
 
-        $info = (new ResponseFactory(new SerializerProvider()))
+        $info = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create($response, SystemInfoMessage::class)
             ->getEnvelope()
             ->response;
@@ -182,7 +183,8 @@ final class RawResponseTest extends TestCase
     {
         $body = self::systemInfoBody();
 
-        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
+        $strict = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
+        $info = (new ResponseFactory($strict))
             ->create(new Response(200, [], $body), SystemInfoMessage::class)
             ->getEnvelope()
             ->response;
@@ -223,7 +225,7 @@ final class RawResponseTest extends TestCase
      */
     private static function read(string $format, string $body): mixed
     {
-        return (new ResponseFactory(new SerializerProvider()))
+        return (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
             ->response;

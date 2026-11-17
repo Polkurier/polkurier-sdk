@@ -25,6 +25,7 @@ use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken;
 use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
@@ -191,7 +192,7 @@ final class ResponseShapeTest extends TestCase
             ],
         ], \JSON_THROW_ON_ERROR);
 
-        $list = (new ResponseFactory(new SerializerProvider()))
+        $list = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], $body), $class)
             ->getEnvelope()
             ->response;
@@ -211,7 +212,7 @@ final class ResponseShapeTest extends TestCase
     #[DataProvider('pagedLists')]
     public function testEveryPagedListReadsAnEmptyPayloadAsAnEmptyPage(string $class): void
     {
-        $list = (new ResponseFactory(new SerializerProvider()))
+        $list = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], '{"status": "success", "response": []}'), $class)
             ->getEnvelope()
             ->response;
@@ -248,7 +249,7 @@ final class ResponseShapeTest extends TestCase
             ['status' => 'success', 'response' => $change($wire)],
             \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION,
         );
-        $result = (new ResponseFactory(new SerializerProvider()))
+        $result = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
             ->response;

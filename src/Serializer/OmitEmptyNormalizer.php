@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
-use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -25,8 +24,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  * the keys that shouldn't be there. Keys are matched by wire name, since that is what the wrapped
  * normalizer returns.
  *
- * It also leaves out the fields marked {@see ResponseOnly}, and writes the entries of a field marked
- * {@see InlineFields} into the enclosing object.
+ * It also leaves out the fields marked {@see ResponseOnly}, which the API sends but never reads.
  *
  * The list of fields is read once per class and cached, to avoid reflection on every request.
  */
@@ -91,16 +89,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
             unset($normalized[$field]);
         }
 
-        $inlined = [];
-        foreach (static::findFieldsMarkedWith($data::class, InlineFields::class) as $field) {
-            $entries = $normalized[$field] ?? [];
-            unset($normalized[$field]);
-            if (\is_array($entries)) {
-                $inlined += $entries;
-            }
-        }
-
-        return $normalized + $inlined;
+        return $normalized;
     }
 
     /**

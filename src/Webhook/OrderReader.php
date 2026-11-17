@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Webhook;
 
+use Polkurier\Webservice\Api\SerializerConfigInterface;
 use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
 use Polkurier\Webservice\Entity\Order;
@@ -15,7 +16,6 @@ use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -33,15 +33,15 @@ class OrderReader implements OrderReaderInterface
     protected array $lastDrift = [];
 
     /**
-     * @var SerializerProviderInterface
+     * @var SerializerProvider
      */
-    protected readonly SerializerProviderInterface $serializerProvider;
+    protected readonly SerializerProvider $serializerProvider;
 
     /**
-     * @param SerializerConfig|null $serializerConfig how the order in an event is read. Defaults to
+     * @param SerializerConfigInterface|null $serializerConfig how the order in an event is read. Defaults to
      *        the SDK's own settings
      */
-    public function __construct(?SerializerConfig $serializerConfig = null)
+    public function __construct(?SerializerConfigInterface $serializerConfig = null)
     {
         $this->serializerProvider = new SerializerProvider($serializerConfig ?? new SerializerConfig());
     }

@@ -26,6 +26,7 @@ use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
@@ -314,7 +315,8 @@ final class TypedResponseTest extends TestCase
         ];
         $body = \json_encode(['status' => 'success', 'response' => $profile], \JSON_THROW_ON_ERROR);
 
-        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
+        $strict = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true)));
+        $info = (new ResponseFactory($strict))
             ->create(new Response(200, [], $body), AccountInfoMessage::class)
             ->getEnvelope()
             ->response;
@@ -353,7 +355,9 @@ final class TypedResponseTest extends TestCase
     {
         $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
 
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: $strict))))
+        $serializer = new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: $strict)));
+
+        return (new ResponseFactory($serializer))
             ->create(new Response(200, [], $body), $format)
             ->getEnvelope()
             ->response;

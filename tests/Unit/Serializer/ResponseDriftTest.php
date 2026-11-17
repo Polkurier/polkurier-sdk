@@ -25,6 +25,7 @@ use Polkurier\Webservice\Serializer\LenientDateDenormalizer;
 use Polkurier\Webservice\Serializer\LenientEnumDenormalizer;
 use Polkurier\Webservice\Serializer\LenientListDenormalizer;
 use Polkurier\Webservice\Serializer\LenientObjectDenormalizer;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -169,7 +170,7 @@ final class ResponseDriftTest extends TestCase
     {
         self::skipWithoutItemTypes();
 
-        $wrapper = (new ResponseFactory(new SerializerProvider()))->create(
+        $wrapper = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))->create(
             new Response(200, [], (string)\json_encode([
                 'status' => 'error',
                 'response' => 'Błędne dane',
@@ -204,7 +205,7 @@ final class ResponseDriftTest extends TestCase
 
     public function testAnErrorEnvelopeRecordsItsUnknownFields(): void
     {
-        $wrapper = (new ResponseFactory(new SerializerProvider()))->create(
+        $wrapper = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))->create(
             new Response(200, [], '{"status":"error","response":"Brak","brand_new":1}'),
             Carrier::class . '[]',
         );
@@ -328,7 +329,8 @@ final class ResponseDriftTest extends TestCase
     ): ResponseWrapper {
         $body = (string)\json_encode(['status' => 'success', 'response' => $payload]);
 
-        return (new ResponseFactory(new SerializerProvider($config)))->create(new Response(200, [], $body), $format);
+        return (new ResponseFactory(new MessageSerializer(new SerializerProvider($config))))
+            ->create(new Response(200, [], $body), $format);
     }
 
     /**

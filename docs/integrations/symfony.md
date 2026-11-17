@@ -59,11 +59,14 @@ services:
             $metadataCache: '@cache.polkurier'
             $strictResponses: '%kernel.debug%'
 
-    # The facade builds its own serializer; the factories wired below need this one.
+    # The facade builds its own serializer; the factories wired below need this one. The provider
+    # gets no interface alias, unlike the services under it: the SDK has no interface for it.
     Polkurier\Webservice\Serializer\SerializerProvider:
         arguments:
             $config: '@Polkurier\Webservice\Serializer\SerializerConfig'
-    Polkurier\Webservice\Serializer\SerializerProviderInterface: '@Polkurier\Webservice\Serializer\SerializerProvider'
+
+    Polkurier\Webservice\Serializer\MessageSerializer: ~
+    Polkurier\Webservice\Api\SerializerInterface: '@Polkurier\Webservice\Serializer\MessageSerializer'
 
     # Transport and envelope.
     Polkurier\Webservice\Http\ClientFactory: ~

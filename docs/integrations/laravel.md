@@ -49,6 +49,7 @@ use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Config;
@@ -60,9 +61,9 @@ use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Service\CourierService;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
@@ -103,11 +104,19 @@ final class PolkurierServiceProvider extends ServiceProvider
             );
         });
 
-        // The facade builds its own serializer; the factories wired below need this one.
+        // The facade builds its own serializer; the factories wired below need this one. Bound
+        // by its class, the one piece of serialization the SDK has no interface for.
+        // Without this binding the container would build one with the default configuration.
         $this->app->singleton(
-            SerializerProviderInterface::class,
+            SerializerProvider::class,
             static fn($app) => new SerializerProvider($app->make(SerializerConfig::class)),
         );
+
+        $this->app->singleton(
+            MessageSerializer::class,
+            static fn($app) => new MessageSerializer($app->make(SerializerProvider::class)),
+        );
+        $this->app->alias(MessageSerializer::class, SerializerInterface::class);
 
         $this->app->singleton(
             ClientFactoryInterface::class,
@@ -115,13 +124,13 @@ final class PolkurierServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(RequestFactoryInterface::class, static fn($app) => new RequestFactory(
-            $app->make(SerializerProviderInterface::class),
+            $app->make(MessageSerializer::class),
             $app->make(ConfigProviderInterface::class),
         ));
 
         $this->app->singleton(
             ResponseFactoryInterface::class,
-            static fn($app) => new ResponseFactory($app->make(SerializerProviderInterface::class)),
+            static fn($app) => new ResponseFactory($app->make(MessageSerializer::class)),
         );
 
         $this->app->singleton(

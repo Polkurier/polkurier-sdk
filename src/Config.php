@@ -25,10 +25,9 @@ use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
  */
 readonly class Config implements ConfigInterface
 {
-    public const string SERIALIZATION_FORMAT = 'json';
     public const string API_URL = 'https://api.polkurier.pl';
     public const string SANDBOX_API_URL = 'https://api-sandbox.polkurier.pl';
-    public const string LOG_FILES_DIRECTORY = 'polkurier-sdk-log-files';
+    public const string LOG_FILES_DIRECTORY = 'polkurier-log-files';
 
     /**
      * @param AuthorizationMessage $authorization

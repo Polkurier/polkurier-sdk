@@ -22,6 +22,7 @@ use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Service\UtilsService;
@@ -91,7 +92,7 @@ final class ServiceSubstitutionTest extends TestCase
     private static function collaborators(ClientFactoryInterface $clientFactory): array
     {
         $configProvider = new ConfigProvider(self::config());
-        $serializer = new SerializerProvider();
+        $serializer = new MessageSerializer(new SerializerProvider());
 
         return [
             'requestFactory' => new RequestFactory($serializer, $configProvider),

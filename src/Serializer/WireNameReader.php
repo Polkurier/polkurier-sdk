@@ -8,14 +8,22 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 /**
- * Reads the name a property or method is written under, for the code that works on the payload's
- * keys and so cannot ask the name converter.
+ * Reads the names a class writes its fields under, for the code that works on the payload's keys
+ * and so cannot ask the name converter: one member's name with {@see self::read()}, a whole
+ * class's with {@see self::readNames()}.
  *
  * The attribute is matched by its short name and its argument read positionally or by name,
  * because its namespace and its accessors differ across Symfony versions.
  */
 final class WireNameReader
 {
+    /**
+     * The names each class writes, read once.
+     *
+     * @var array<string, string[]>
+     */
+    private static array $names = [];
+
     /**
      * The name a property or method is written under.
      *
@@ -36,6 +44,33 @@ final class WireNameReader
         }
 
         return $name;
+    }
+
+    /**
+     * Every name a class writes, its parents' included.
+     *
+     * A member writes a field when it carries a serializer name, or when the object normalizer
+     * reads it: any property, and a method only if it is a getter. A setter or a helper is left
+     * out, since nothing it is called puts a key in the payload.
+     *
+     * @param string $class
+     *
+     * @return string[]
+     */
+    public static function readNames(string $class): array
+    {
+        if (isset(self::$names[$class])) {
+            return self::$names[$class];
+        }
+
+        $names = [];
+        foreach (ClassMembers::readAll($class) as $member) {
+            if (self::readDeclared($member) !== null || ClassMembers::writesAField($member)) {
+                $names[] = self::read($member);
+            }
+        }
+
+        return self::$names[$class] = \array_values(\array_unique($names));
     }
 
     /**

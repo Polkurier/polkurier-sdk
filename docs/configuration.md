@@ -213,6 +213,10 @@ $client = new PolkurierWebservice(
 | `timezone` | `?DateTimeZone` | `null` | The zone a date without an offset is read in |
 | `strictResponses` | `bool` | `false` | Whether a response that differs from the SDK is an error |
 
+The four are [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php), which [`PolkurierWebservice`](../src/PolkurierWebservice.php), [`OrderReader`](../src/Webhook/OrderReader.php) and
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) take. Implement it to read them from a settings store or a parameter
+bag, as [`ConfigInterface`](../src/Api/ConfigInterface.php) is implemented for the API's own settings.
+
 ### metadataCache
 
 Reading the serializer attributes of around 150 classes is the SDK's biggest start-up cost, and
@@ -355,7 +359,7 @@ All of [`PolkurierWebservice`](../src/PolkurierWebservice.php)'s collaborators a
 new PolkurierWebservice(
     config: $config,                       // ConfigInterface, required
     logger: $logger,                       // ?LoggerInterface, defaults to NullLogger
-    serializerConfig: $serializerConfig,   // ?SerializerConfig, how responses are read and written
+    serializerConfig: $serializerConfig,   // ?SerializerConfigInterface, reading and writing bodies
     configProvider: $provider,             // ?ConfigProviderInterface, overrides $config
     clientFactory: $clientFactory,         // ?ClientFactoryInterface, for your own PSR-18 client
     validator: $validator,                 // ?ValidatorInterface

@@ -10,6 +10,8 @@ namespace Polkurier\Webservice;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\SerializerConfigInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Service\AccountServiceInterface;
 use Polkurier\Webservice\Api\Service\AccountVerificationServiceInterface;
 use Polkurier\Webservice\Api\Service\AddressesServiceInterface;
@@ -34,10 +36,10 @@ use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Service\AbstractService;
 use Polkurier\Webservice\Service\AccountService;
 use Polkurier\Webservice\Service\AccountVerificationService;
@@ -122,16 +124,19 @@ final class PolkurierWebservice
     private readonly LastResponseHolder $lastResponse;
 
     /**
-     * @var SerializerProviderInterface
-     */
-    private readonly SerializerProviderInterface $serializerProvider;
-
-    /**
      * Kept so the webhook reader is built with the same settings as the services.
      *
-     * @var SerializerConfig
+     * @var SerializerConfigInterface
      */
-    private readonly SerializerConfig $serializerConfig;
+    private readonly SerializerConfigInterface $serializerConfig;
+
+    /**
+     * The one the factories write and read through. Not in `$services`: a caller can replace a
+     * service, and the serializer is the one collaborator the SDK does not take from outside.
+     *
+     * @var MessageSerializer
+     */
+    private readonly MessageSerializer $serializer;
 
     /**
      * Services, keyed by class name: the ones handed in, and the ones built on first use.
@@ -145,7 +150,7 @@ final class PolkurierWebservice
      *
      * @param ConfigInterface $config
      * @param LoggerInterface|null $logger defaults to a logger that discards everything
-     * @param SerializerConfig|null $serializerConfig how responses are read: strictly or
+     * @param SerializerConfigInterface|null $serializerConfig how responses are read: strictly or
      *        leniently, and how payloads are written. Defaults to the SDK's own settings
      * @param ConfigProviderInterface|null $configProvider overrides $config entirely when given
      * @param ClientFactoryInterface|null $clientFactory
@@ -158,20 +163,20 @@ final class PolkurierWebservice
     public function __construct(
         ConfigInterface $config,
         ?LoggerInterface $logger = null,
-        ?SerializerConfig $serializerConfig = null,
+        ?SerializerConfigInterface $serializerConfig = null,
         ?ConfigProviderInterface $configProvider = null,
         ?ClientFactoryInterface $clientFactory = null,
         ?ValidatorInterface $validator = null,
         array $services = [],
     ) {
         $this->serializerConfig = $serializerConfig ?? new SerializerConfig();
-        $this->serializerProvider = new SerializerProvider($this->serializerConfig);
+        $this->serializer = new MessageSerializer(new SerializerProvider($this->serializerConfig));
 
         $this->configProvider = $configProvider ?? new ConfigProvider($config);
         $this->logger = $logger ?? new NullLogger();
         $this->clientFactory = $clientFactory ?? new ClientFactory($this->configProvider);
-        $this->requestFactory = new RequestFactory($this->serializerProvider, $this->configProvider);
-        $this->responseFactory = new ResponseFactory($this->serializerProvider);
+        $this->requestFactory = new RequestFactory($this->serializer, $this->configProvider);
+        $this->responseFactory = new ResponseFactory($this->serializer);
         $this->validator = $validator ?? DefaultValidatorRegistryFactory::create();
         $this->services = $services;
         $this->lastResponse = new LastResponseHolder();
@@ -366,6 +371,22 @@ final class PolkurierWebservice
     {
         /** @var OrderReaderInterface */
         return $this->services[OrderReader::class] ??= new OrderReader($this->serializerConfig);
+    }
+
+    /**
+     * Reads and writes the API's bodies the way this client does.
+     *
+     * This is the instance the client's own calls go through, so what it writes is what a call
+     * sends and what it reads is what a call returns. It keeps nothing of what it read: reading
+     * a body hands back the drift with the envelope, and leaves the client's record of its last
+     * call, {@see self::getLastResponseDrift()}, where it was. The SDK hands it out and never
+     * takes one, see {@see \Polkurier\Webservice\Api\SerializerInterface}.
+     *
+     * @return SerializerInterface
+     */
+    public function serializer(): SerializerInterface
+    {
+        return $this->serializer;
     }
 
     /**

@@ -82,9 +82,9 @@ details.
 --------------------------
 
 The SDK rejected a value without asking the API: a builder's [`build()`](../src/Builder/) called without a required field, a
-payload the serializer can't write, a [`ValidatedBy`](../src/Validator/Rule/ValidatedBy.php) or [`Each`](../src/Validator/Rule/Each.php) that names the wrong kind of class, or a webhook
-body that isn't an order event. Apart from the webhook body, these mean the code is wrong, not the
-data.
+payload the serializer can't write, a [`ValidatedBy`](../src/Validator/Rule/ValidatedBy.php) or [`Each`](../src/Validator/Rule/Each.php) that names the wrong kind of class, a
+stored body or payload [`Api\SerializerInterface`](../src/Api/SerializerInterface.php) is asked to read and can't, or a webhook body
+that isn't an order event. The last two are bad data; the rest mean the code is wrong.
 
 [`ConnectionException`](../src/Exception/ConnectionException.php)
 ---------------------
@@ -105,11 +105,14 @@ endpoint returns. There are five causes, each with its own message:
 
 | Cause | Message reads |
 |-------|---------------|
-| Body was not JSON | `Expected a JSON object from the Polkurier API, got HTTP 502 with body: "…"` |
-| No `status` field | `Polkurier API response (HTTP 200) has no "status" field, body: "…"` |
-| Unrecognised status | `Unknown Polkurier API response status: "…"` |
-| Payload didn't map | `The response could not be mapped onto …\CreatedOrderMessage: …` |
+| Body was not JSON | `Expected a JSON object from the Polkurier API, got body: "…"` |
+| No `status` field | `The response has no "status" field, body: "…"` |
+| Unrecognised status | `The response status "…" is unknown.` |
+| Payload didn't map | `The payload could not be read as …\CreatedOrderMessage: …` |
 | Payload was the wrong shape | `create_order answered with null where …\CreatedOrderMessage was expected.` |
+
+The first four come from the serializer, and [`ResponseFactory`](../src/Http/Response/ResponseFactory.php) prefixes each with
+`Polkurier API response (HTTP 502): `, naming the status the body arrived with.
 
 The first two usually mean something else answered in place of the API, such as a proxy error page,
 a captive portal or a WAF. The message quotes the raw body, truncated to 512 characters so a full

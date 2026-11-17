@@ -147,17 +147,21 @@ Changing how requests are made
 | Route | Replaces |
 |-------|----------|
 | [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
-| [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Caching, JSON flags, timezone, strictness |
+| [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php), or the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) that implements it | Caching, JSON flags, timezone, strictness |
 | Subclassing a service | One method, at the risk of changes in any release |
 | `services: [...]` with your own implementation | One service entirely |
 
 See [Architecture: extension points](architecture.md#extension-points).
 
-The facade builds its serializer itself, from the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) it is given.
-[`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php), [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) and
-[`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) are arguments of the services, so you replace them where you wire a
-service by hand ([Architecture: not using the facade at all](architecture.md#not-using-the-facade-at-all)), and a release may change
-them.
+The facade builds its serializer itself, from the [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php) it is given.
+The serializer is not on this list: it applies the quirks sending and reading depend on, so the
+SDK guarantees it instead of offering it as a seam
+([Serialization](serialization.md#configuring-the-serializer)). [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) hands
+it out as an [`Api\SerializerInterface`](../src/Api/SerializerInterface.php), to write a payload or read a stored body with
+([Serialization: using the serializer yourself](serialization.md#using-the-serializer-yourself)).
+[`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) and [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) are arguments of the services, so you
+replace them where you wire a service by hand
+([Architecture: not using the facade at all](architecture.md#not-using-the-facade-at-all)), and a release may change them.
 
 Logging
 -------
@@ -178,6 +182,7 @@ Testing
 | `services: [Foo::class => $mock]` | Testing your flow through the facade |
 | Replace [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | [`AttributeValidator`](../src/Validator/AttributeValidator.php) on its own | Testing a payload, with no client at all |
+| [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) | Asserting what a call would write, or reading a recorded body |
 | The live API with `strictResponses: true` | Catching a response that has changed |
 
 [Testing](testing.md) covers each of these.

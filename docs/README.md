@@ -13,7 +13,7 @@ Start here
 | [Builders](builders.md) | Building a payload step by step instead of in one constructor call |
 | [Validation](validation.md) | What is checked before a request is sent, reading a rejection, changing the rules |
 | [Errors](errors.md) | Every exception the SDK throws, when, and how to handle it |
-| [Serialization](serialization.md) | How PHP objects are converted to the API's JSON and back |
+| [Serialization](serialization.md) | How PHP objects are converted to the API's JSON and back, and writing or reading a body yourself |
 | [Architecture](architecture.md) | The request lifecycle, the collaborators, and which classes you can replace |
 | [Webhooks](webhooks.md) | Checking and reading the order events Polkurier posts to your system |
 | [Recipes](recipes.md) | Worked examples: placing an order, paging, labels, two-factor, payouts, retries |

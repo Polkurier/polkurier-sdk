@@ -19,6 +19,7 @@ use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\MessageClasses;
@@ -78,8 +79,10 @@ final class ResponseDriftInvariantTest extends TestCase
     public function testEveryChangedFieldReadsAndStrictReadingAgrees(string $class): void
     {
         $sample = Sample::wire($class);
-        $lenient = new ResponseFactory(new SerializerProvider());
-        $strict = new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true)));
+        $lenient = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
+        $strict = new ResponseFactory(
+            new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true))),
+        );
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {

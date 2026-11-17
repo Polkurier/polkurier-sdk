@@ -84,13 +84,12 @@ namespace App\Polkurier;
 
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 
 final class SerializerProviderFactory
 {
-    public function __invoke(ContainerInterface $container): SerializerProviderInterface
+    public function __invoke(ContainerInterface $container): SerializerProvider
     {
         return new SerializerProvider(new SerializerConfig(
             metadataCache: $container->has(CacheItemPoolInterface::class)
@@ -176,6 +175,7 @@ use Laminas\ServiceManager\Factory\InvokableFactory;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Http\ClientFactory;
@@ -183,25 +183,30 @@ use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Serializer\MessageSerializer;
+use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 return [
     'dependencies' => [
         'factories' => [
-            ConfigInterface::class             => ConfigFactory::class,
-            SerializerProviderInterface::class => SerializerProviderFactory::class,
+            ConfigInterface::class    => ConfigFactory::class,
+            SerializerProvider::class => SerializerProviderFactory::class,
 
             ConfigProviderInterface::class => static fn($c) => new ConfigProvider($c->get(ConfigInterface::class)),
             ClientFactoryInterface::class  => static fn($c) => new ClientFactory(
                 $c->get(ConfigProviderInterface::class),
             ),
+            MessageSerializer::class => static fn($c) => new MessageSerializer(
+                $c->get(SerializerProvider::class),
+            ),
+            SerializerInterface::class => static fn($c) => $c->get(MessageSerializer::class),
             RequestFactoryInterface::class => static fn($c) => new RequestFactory(
-                $c->get(SerializerProviderInterface::class),
+                $c->get(MessageSerializer::class),
                 $c->get(ConfigProviderInterface::class),
             ),
             ResponseFactoryInterface::class => static fn($c) => new ResponseFactory(
-                $c->get(SerializerProviderInterface::class),
+                $c->get(MessageSerializer::class),
             ),
             ValidatorInterface::class => static fn() => DefaultValidatorRegistryFactory::create(),
         ]
@@ -215,10 +220,13 @@ ServiceManager passes the requested service name to the factory as the second ar
 how a single factory class can build every service.
 
 This page wires the services directly, so the container also holds three collaborators the SDK
-does not promise: [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php), [`RequestFactoryInterface`](../../src/Http/Request/RequestFactoryInterface.php) and
+does not promise: [`SerializerProvider`](../../src/Serializer/SerializerProvider.php), [`RequestFactoryInterface`](../../src/Http/Request/RequestFactoryInterface.php) and
 [`ResponseFactoryInterface`](../../src/Http/Response/ResponseFactoryInterface.php). A release may change them, see
-[Architecture: what a release can change](../architecture.md#what-a-release-can-change). Build
-[`PolkurierWebservice`](../../src/PolkurierWebservice.php) with a [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) instead to stay on the contract.
+[Architecture: what a release can change](../architecture.md#what-a-release-can-change). The
+serializer provider is keyed by its class, the one piece of serialization the SDK has no interface
+for, and the serializer it builds is not replaceable
+([Serialization](../serialization.md#configuring-the-serializer)). Build [`PolkurierWebservice`](../../src/PolkurierWebservice.php) with an
+[`Api\SerializerConfigInterface`](../../src/Api/SerializerConfigInterface.php) instead to stay on the contract.
 
 Using it
 --------

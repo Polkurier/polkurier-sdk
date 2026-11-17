@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
@@ -25,7 +26,6 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\Log\LogSanitizer;
@@ -359,7 +359,7 @@ abstract class AbstractService
     ): array {
         $value = $this->processRequest(
             $apiMethod,
-            ResponseFactory::FORMAT_STRING_LIST,
+            SerializerInterface::FORMAT_STRING_LIST,
             $payload,
             $authorization,
         );
@@ -403,7 +403,7 @@ abstract class AbstractService
     ): array {
         $value = $this->processRequest(
             $apiMethod,
-            ResponseFactory::FORMAT_RAW_ARRAY,
+            SerializerInterface::FORMAT_RAW_ARRAY,
             $payload,
             $authorization,
         );
@@ -442,7 +442,7 @@ abstract class AbstractService
     ): bool {
         return $this->processRequest(
             $apiMethod,
-            ResponseFactory::FORMAT_BOOLEAN,
+            SerializerInterface::FORMAT_BOOLEAN,
             $payload,
             $authorization,
         ) !== false;

@@ -50,6 +50,7 @@ final class PublicContractTest extends TestCase
         'Config',
         'ConfigProvider',
         'PolkurierWebservice',
+        'Serializer\\ReadResponse',
         'Serializer\\ResponseDrift',
         'Serializer\\SerializerConfig',
         'Validator\\AttributeValidator',

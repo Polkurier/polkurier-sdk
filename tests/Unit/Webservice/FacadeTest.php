@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
@@ -20,6 +21,7 @@ use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Testing\RecordingClient;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Exercises the facade and everything it wires.
@@ -111,6 +113,32 @@ final class FacadeTest extends TestCase
     }
 
     /**
+     * The serializer the facade hands out is the one its own calls write through, so a payload
+     * written before a call is byte for byte what that call sends.
+     *
+     * @return void
+     */
+    public function testTheSerializerItHandsOutIsTheOneItsCallsWriteThrough(): void
+    {
+        // Settings that change the bytes, so that a call writing through a serializer built
+        // anywhere but from these settings spells the payload differently.
+        $sdk = $this->facade(new SerializerConfig(jsonEncodeOptions: \JSON_UNESCAPED_SLASHES));
+        $message = new GetPointMessage(couriers: ['DPD'], searchQuery: 'Poznań');
+
+        $written = $sdk->serializer()->encode($message);
+        $sdk->courier()->findCourierPoints($message);
+
+        self::assertStringContainsString('Pozna\u0144', $written);
+        $request = $this->client->lastRequest();
+        self::assertInstanceOf(RequestInterface::class, $request);
+        self::assertStringContainsString($written, (string)$request->getBody());
+        self::assertSame(
+            \json_decode($written, true),
+            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+        );
+    }
+
+    /**
      * The reader is given the serializer settings the facade was built with, so `strictResponses`
      * decides whether an order that differs from what the SDK expects is reported or refused.
      *
@@ -170,6 +198,8 @@ final class FacadeTest extends TestCase
             }
         }
 
-        self::assertGreaterThan(15, \count($called), 'expected the argumentless methods to be exercised');
+        // The exact count, so that a method dropped from the sweep fails here rather than
+        // thinning it unnoticed.
+        self::assertCount(22, $called, 'an argumentless service method was added or removed');
     }
 }

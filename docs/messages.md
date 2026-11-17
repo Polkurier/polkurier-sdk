@@ -54,7 +54,9 @@ $message = new GetPointMessage(...$validatedInput);
 
 PHP matches string keys to parameter names, and a key with no matching parameter throws an
 `Error` instead of being ignored, so this suits input that has already been checked. Messages have
-no `fromArray()`, and the serializer only maps responses into objects, never requests.
+no `fromArray()`. A JSON payload keyed by the API's wire names is read by
+[`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) instead
+([Serialization](serialization.md#using-the-serializer-yourself)).
 
 ### Extending a message
 

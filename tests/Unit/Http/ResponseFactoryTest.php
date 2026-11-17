@@ -11,6 +11,7 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Dto\Response\Carrier;
 use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
@@ -33,6 +34,7 @@ use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
@@ -44,7 +46,7 @@ final class ResponseFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->factory = new ResponseFactory(new SerializerProvider());
+        $this->factory = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
     }
 
     public function testDeserializesAnOrderListEnvelope(): void
@@ -461,7 +463,7 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => true]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
         self::assertSame(ResponseStatusEnum::Success, $wrapper->getEnvelope()->status);
@@ -476,7 +478,7 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
         self::assertTrue($wrapper->getEnvelope()->response);
@@ -519,7 +521,7 @@ final class ResponseFactoryTest extends TestCase
                 'error_code' => 'EMPTY_AUTH_DATA',
                 'response' => 'Brak danych do autoryzacji',
             ]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         )->getEnvelope();
 
         self::assertInstanceOf(ErrorMessage::class, $parsed);
@@ -535,7 +537,7 @@ final class ResponseFactoryTest extends TestCase
     {
         $parsed = $this->factory->create(
             $this->jsonResponse(['status' => 'error', 'response' => 'Coś poszło nie tak']),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         )->getEnvelope();
 
         self::assertInstanceOf(ErrorMessage::class, $parsed);
@@ -561,14 +563,14 @@ final class ResponseFactoryTest extends TestCase
     {
         $this->expectException(MalformedResponseException::class);
 
-        $this->factory->create(new Response($httpStatus, [], $body), ResponseFactory::FORMAT_BOOLEAN);
+        $this->factory->create(new Response($httpStatus, [], $body), SerializerInterface::FORMAT_BOOLEAN);
     }
 
     public function testRejectsAnEnvelopeWithoutAStatusField(): void
     {
         $this->expectException(MalformedResponseException::class);
 
-        $this->factory->create($this->jsonResponse(['response' => []]), ResponseFactory::FORMAT_BOOLEAN);
+        $this->factory->create($this->jsonResponse(['response' => []]), SerializerInterface::FORMAT_BOOLEAN);
     }
 
     /**
@@ -583,7 +585,7 @@ final class ResponseFactoryTest extends TestCase
                 'validation_errors' => ['marketing_consent' => ['Należy wyrazić zgodę']],
                 'nonce' => 'eyJ0eXAi…',
             ]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
         $error = $wrapper->getEnvelope();
@@ -597,7 +599,7 @@ final class ResponseFactoryTest extends TestCase
 
         $this->factory->create(
             $this->jsonResponse(['status' => 'partial', 'response' => []]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
     }
 
@@ -607,7 +609,7 @@ final class ResponseFactoryTest extends TestCase
     public function testMalformedResponseExceptionCarriesTheHttpResponse(): void
     {
         try {
-            $this->factory->create(new Response(503, [], 'maintenance'), ResponseFactory::FORMAT_BOOLEAN);
+            $this->factory->create(new Response(503, [], 'maintenance'), SerializerInterface::FORMAT_BOOLEAN);
             self::fail('Expected a MalformedResponseException.');
         } catch (MalformedResponseException $e) {
             self::assertSame(503, $e->getResponse()->getStatusCode());

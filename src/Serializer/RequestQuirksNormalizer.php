@@ -15,7 +15,8 @@ use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Fits a payload to the quirks of the method that receives it, after the object has been written.
+ * Fits a payload to the quirks of the method that receives it, after the object has been written,
+ * and undoes what it renamed when such a payload is read back.
  *
  * The counterpart of {@see ResponseQuirksDenormalizer}, which repairs what the API sends. Each fix
  * applies to one class and the fields it names.
@@ -115,6 +116,20 @@ class RequestQuirksNormalizer implements NormalizerInterface, DenormalizerInterf
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
+        // Only a payload this class wrote carries the cover address's flat number under
+        // `flat_number`; a response spells it as every other address does. The property accessor
+        // reads either spelling, so what this restores is the name the record declares: without
+        // it the key is reported as one no field claims, and strict reading refuses the payload.
+        // A subclass is written through the same quirk, so it is read back through it too.
+        if (\is_array($data) && \is_a($type, Order::class, true)) {
+            $cover = $data[Order::FIELD_COVER_ADDRESS] ?? null;
+            if (\is_array($cover) && \array_key_exists(Address::FIELD_COVER_FLAT_NUMBER, $cover)) {
+                $cover[Address::FIELD_FLAT_NUMBER] = $cover[Address::FIELD_COVER_FLAT_NUMBER];
+                unset($cover[Address::FIELD_COVER_FLAT_NUMBER]);
+                $data[Order::FIELD_COVER_ADDRESS] = $cover;
+            }
+        }
+
         return $this->inner->denormalize($data, $type, $format, $context);
     }
 
