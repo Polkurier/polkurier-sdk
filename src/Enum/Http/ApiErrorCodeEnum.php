@@ -11,10 +11,10 @@ namespace Polkurier\Webservice\Enum\Http;
  * The error codes an API error can carry.
  *
  * An error names its condition twice: as the `error_code` string, which is the case's value, and
- * as the numeric `status_code`, which statusCode() returns and fromStatusCode() maps back. Case
- * names follow SDK conventions. The values are the exact strings the API returns, including its
- * spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. The high-numbered
- * status codes reuse HTTP status numbers, but they arrive in the JSON body, not as the HTTP status.
+ * as the numeric `status_code`, which statusCode() returns and fromStatusCode() maps back. The
+ * values are the exact strings the API returns, including its spellings: TOKEN_IS_NO_ACTIV and
+ * UNKNOWN_API_METOD are correct as written. The high-numbered status codes reuse HTTP status
+ * numbers, but they arrive in the JSON body, not as the HTTP status.
  *
  * Both fields are optional in an error payload. `error_code` is the more precise of the two: a
  * status code can stand for more than one condition, e.g. 506006.

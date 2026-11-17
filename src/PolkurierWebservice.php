@@ -408,7 +408,7 @@ final class PolkurierWebservice
     }
 
     /**
-     * How the last response differed from what this version of the SDK expects.
+     * How the last response differed from what the SDK expects.
      *
      * The SDK reads such a response anyway, as
      * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum} describes, so the call

@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Enum\Serializer;
 
 /**
- * How a response differed from what this version of the SDK expects.
+ * How a response differed from what the SDK expects.
  *
  * @api
  */

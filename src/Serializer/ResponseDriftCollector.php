@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Serializer;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 
 /**
- * Collects how a response differed from what this version of the SDK expects.
+ * Collects how a response differed from what the SDK expects.
  *
  * Put an instance in the denormalization context under {@see self::CONTEXT_KEY}. Responses are then
  * read leniently: unknown fields and enum values, missing fields and values of another type are

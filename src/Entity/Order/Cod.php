@@ -187,7 +187,7 @@ class Cod implements MessageInterface
     /**
      * Where the collected money has got to.
      *
-     * @return CodStatusEnum|null null for a value this version of the SDK doesn't know
+     * @return CodStatusEnum|null null for a value the SDK doesn't know
      */
     public function getStatus(): ?CodStatusEnum
     {

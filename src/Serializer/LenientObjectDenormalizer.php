@@ -23,8 +23,8 @@ use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\UnionType;
 
 /**
- * Reads a response object that differs from what this version of the SDK expects, and records how,
- * as {@see ResponseDriftTypeEnum} describes.
+ * Reads a response object that differs from what the SDK expects, and records how, as
+ * {@see ResponseDriftTypeEnum} describes.
  *
  * It wraps the object normalizer and acts when the context holds a {@see ResponseDriftCollector}.
  * Text formats such as CSV carry every value as a string and an empty value as `''`, so there a

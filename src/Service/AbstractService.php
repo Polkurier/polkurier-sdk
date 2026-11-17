@@ -628,13 +628,13 @@ abstract class AbstractService
             $this->logger->warning(\sprintf(
                 match ($drift->type) {
                     ResponseDriftTypeEnum::UnknownField => 'Unknown field "%1$s" in the response from method: "%4$s".'
-                        . ' This version of the SDK ignores it.',
+                        . ' The SDK ignores it.',
                     ResponseDriftTypeEnum::MissingField => 'Field "%1$s" (%3$s) is missing or null in the response'
-                        . ' from method: "%4$s". This version of the SDK reads it as its default or empty value.',
+                        . ' from method: "%4$s". The SDK reads it as its default or empty value.',
                     ResponseDriftTypeEnum::CastValue => 'Field "%1$s" (%3$s) is %2$s in the response from method:'
-                        . ' "%4$s". This version of the SDK converts it, or reads it as its default or empty value.',
+                        . ' "%4$s". The SDK converts it, or reads it as its default or empty value.',
                     ResponseDriftTypeEnum::UnknownEnumValue => 'Unknown %3$s value %2$s at "%1$s" in the response'
-                        . ' from method: "%4$s". This version of the SDK reads it as null, or leaves it out of a list.',
+                        . ' from method: "%4$s". The SDK reads it as null, or leaves it out of a list.',
                 },
                 $drift->path,
                 $shown,
