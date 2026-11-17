@@ -12,7 +12,6 @@ use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
@@ -25,17 +24,12 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
  *
  * @api
  */
-class OrderReader implements OrderReaderInterface
+readonly class OrderReader implements OrderReaderInterface
 {
-    /**
-     * @var list<ResponseDrift>
-     */
-    protected array $lastDrift = [];
-
     /**
      * @var SerializerProvider
      */
-    protected readonly SerializerProvider $serializerProvider;
+    protected SerializerProvider $serializerProvider;
 
     /**
      * @param SerializerConfigInterface|null $serializerConfig how the order in an event is read. Defaults to
@@ -78,14 +72,13 @@ class OrderReader implements OrderReaderInterface
      *
      * @param string $body the request body, as it came
      *
-     * @return OrderEventMessage
+     * @return ReadEvent
      * @throws InvalidArgumentException when the body isn't an order event
      * @throws \ArgumentCountError when the class the payload maps onto cannot be built from any
      *         payload, which is a defect in that class rather than in what arrived
      */
-    public function read(string $body): OrderEventMessage
+    public function read(string $body): ReadEvent
     {
-        $this->lastDrift = [];
         $fields = $this->decode($body);
         if (!isset($fields[OrderEventMessage::FIELD_TYPE])
             || !\is_array($fields[OrderEventMessage::FIELD_DATA] ?? null)
@@ -99,8 +92,8 @@ class OrderReader implements OrderReaderInterface
             // Form fields are all strings. For a text format such as CSV, the serializer casts a
             // string to the scalar type the property declares. A form leaves out null values and
             // empty lists, so a field that can be null may be absent, and an order without waybills
-            // arrives without the field. An order that differs from what the SDK expects is read as
-            // in a response, see self::getLastDrift().
+            // arrives without the field. An order that differs from what the SDK expects is read
+            // as in a response, and the differences come back with the event.
             $message = $this->serializerProvider->getSerializer()->denormalize(
                 $fields,
                 OrderEventMessage::class,
@@ -128,22 +121,8 @@ class OrderReader implements OrderReaderInterface
         if (!$message instanceof OrderEventMessage) {
             throw new InvalidArgumentException('The body is not a Polkurier order event.');
         }
-        $this->lastDrift = $drift->all();
 
-        return $message;
-    }
-
-    /**
-     * How the order in the last event read differed from what this version of the SDK expects.
-     *
-     * The event is read anyway, as {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}
-     * describes.
-     *
-     * @return list<ResponseDrift> empty when the order was as expected, or nothing was read
-     */
-    public function getLastDrift(): array
-    {
-        return $this->lastDrift;
+        return new ReadEvent($message, $drift->all());
     }
 
     /**

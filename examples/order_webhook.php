@@ -32,7 +32,7 @@ if (!$reader->isAuthentic($body, $secret)) {
 }
 
 try {
-    $event = $reader->read($body);
+    $event = $reader->read($body)->event;
 } catch (InvalidArgumentException $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

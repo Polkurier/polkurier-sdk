@@ -19,7 +19,7 @@ The source is organised by role:
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, the SDK's own normalizers and 6 attributes, and three contract types: [`ReadResponse`](../src/Serializer/ReadResponse.php), [`ResponseDrift`](../src/Serializer/ResponseDrift.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) |
 | `Log` | Preparing request and response bodies for the log |
-| `Webhook` | [`OrderReader`](../src/Webhook/OrderReader.php), for the order events Polkurier posts to your system |
+| `Webhook` | [`OrderReader`](../src/Webhook/OrderReader.php), for the order events Polkurier posts to your system, and the [`ReadEvent`](../src/Webhook/ReadEvent.php) it answers with |
 | `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
 | `Validator` | The rules, and the machinery that runs them |
 | `Enum` | Values the API accepts and returns |
@@ -88,8 +88,6 @@ protected helper per shape:
 | [`AbstractService::requestRawArray()`](../src/Service/AbstractService.php) | `array` | A response with no fixed structure, as decoded JSON |
 | [`AbstractService::requestAcknowledgement()`](../src/Service/AbstractService.php) | `bool` | Endpoints that only acknowledge |
 
-So a service method is usually a single statement:
-
 ```php
 public function createOrder(CreateOrderMessage $createOrderMessage): CreatedOrderMessage
 {
@@ -122,7 +120,8 @@ break code that relies only on:
   their `FIELD_*` constants and their setters;
 - the request and response classes under [`Dto`](../src/Dto/) and the enums under [`Enum`](../src/Enum/), including the
   envelope ([`ResponseMessage`](../src/Dto/Response/ResponseMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php)) and [`ResponseDrift`](../src/Serializer/ResponseDrift.php);
-- the builders under [`Builder`](../src/Builder/), the exceptions, [`OrderReader`](../src/Webhook/OrderReader.php) and [`RecordingClient`](../src/Testing/RecordingClient.php);
+- the builders under [`Builder`](../src/Builder/), the exceptions, [`RecordingClient`](../src/Testing/RecordingClient.php), and [`OrderReader`](../src/Webhook/OrderReader.php) with the
+  [`ReadEvent`](../src/Webhook/ReadEvent.php) it answers with;
 - how responses are read and payloads written: [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php) and
   [`SerializerConfig`](../src/Serializer/SerializerConfig.php), and [`Api\SerializerInterface`](../src/Api/SerializerInterface.php), which
   [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) returns, with the [`ReadResponse`](../src/Serializer/ReadResponse.php) it answers a body with;
@@ -143,8 +142,8 @@ break code that relies only on:
 Anything else can change in any release: the concrete factories, services and serializer setup, the
 normalizers and their attributes, the validation rules and the machinery behind them, the log
 preparation, and the `protected` members of every class not listed above. That includes the
-envelope's own classes ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the collaborators the facade no
-longer takes ([`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php), [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php)), and the classes behind
+envelope's own classes ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), the request and response factories the facade
+builds itself ([`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php), [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php)), and the classes behind
 [`Api\SerializerInterface`](../src/Api/SerializerInterface.php): [`MessageSerializer`](../src/Serializer/MessageSerializer.php), and [`SerializerProvider`](../src/Serializer/SerializerProvider.php), which
 has no interface and is wired only inside the SDK.
 
@@ -152,15 +151,10 @@ Most classes aren't `final`, so you can subclass one to change a single step, bu
 may need changes after an update. A record is the exception: subclassing it is how you add columns
 of your own, and the SDK sends only the fields it declares itself.
 
-The final classes are [`PolkurierWebservice`](../src/PolkurierWebservice.php), the JSON envelope ([`RequestMessage`](../src/Http/Request/RequestMessage.php), [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php),
-[`ResponseWrapper`](../src/Http/Response/ResponseWrapper.php)), what a body read through [`Api\SerializerInterface`](../src/Api/SerializerInterface.php) comes back as
-([`ReadResponse`](../src/Serializer/ReadResponse.php)), the serializer attributes under [`Serializer\Attribute`](../src/Serializer/Attribute/), [`RecordingClient`](../src/Testing/RecordingClient.php),
-[`LogJson`](../src/Log/LogJson.php), and every request and response class under [`Dto`](../src/Dto/) except
-[`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), which a subclass extends to carry credentials of another kind, and
-the 7 abstract bases the SDK's own messages extend: [`Dto\Response\PagedListMessage`](../src/Dto/Response/PagedListMessage.php),
-[`Dto\Request\Common\IdMessage`](../src/Dto/Request/Common/IdMessage.php), [`Dto\Request\Common\PagedMessage`](../src/Dto/Request/Common/PagedMessage.php),
-[`Dto\Request\Common\TokenMessage`](../src/Dto/Request/Common/TokenMessage.php), [`Dto\Request\Account\PinMessage`](../src/Dto/Request/Account/PinMessage.php),
-[`Dto\Request\Courier\PickupQueryMessage`](../src/Dto/Request/Courier/PickupQueryMessage.php) and [`Dto\Request\Order\OrderIdMessage`](../src/Dto/Request/Order/OrderIdMessage.php).
+Under [`Dto`](../src/Dto/) every class is `final` apart from [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), which a
+subclass extends to carry credentials of another kind, and the abstract bases the SDK's own
+messages extend. [`tests/Support/contract-surface.txt`](../tests/Support/contract-surface.txt) carries the declaration of every
+promised class, `final` and `readonly` included.
 
 Extension points
 ----------------
@@ -277,9 +271,6 @@ final class RetryingOrders extends OrdersService
     }
 }
 ```
-
-Implementing the interface suits wrapping and composing. Subclassing suits
-small changes.
 
 Not using the facade at all
 ---------------------------

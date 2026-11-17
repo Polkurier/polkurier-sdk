@@ -149,10 +149,10 @@ final class FacadeTest extends TestCase
         $body = \http_build_query(['type' => 'UPDATED', 'data' => ['number' => '20534-7674', 'status' => 'Nowe']]);
         $reader = $this->sdk->orderReader();
 
-        $event = $reader->read($body);
+        $read = $reader->read($body);
 
-        self::assertSame('20534-7674', $event->order->getNumber());
-        self::assertNotSame([], $reader->getLastDrift());
+        self::assertSame('20534-7674', $read->event->order->getNumber());
+        self::assertNotSame([], $read->drift);
 
         $this->expectException(InvalidArgumentException::class);
 

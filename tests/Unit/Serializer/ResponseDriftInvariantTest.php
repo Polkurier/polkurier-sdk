@@ -145,13 +145,14 @@ final class ResponseDriftInvariantTest extends TestCase
 
                 $reader = new OrderReader();
                 try {
-                    self::assertReadable($reader->read($body));
+                    $read = $reader->read($body);
+                    self::assertReadable($read->event);
                 } catch (InvalidArgumentException $e) {
                     self::assertStringContainsString('None of the fields', $e->getMessage(), $case);
                     continue;
                 }
                 $reported = \array_filter(
-                    $reader->getLastDrift(),
+                    $read->drift,
                     static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,
                 );
 

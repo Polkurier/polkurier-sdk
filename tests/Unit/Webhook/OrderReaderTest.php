@@ -31,17 +31,17 @@ final class OrderReaderTest extends TestCase
     {
         $order = self::order();
         $reader = new OrderReader();
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
+        $read = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
 
-        self::assertSame(OrderEventTypeEnum::Updated, $event->type);
-        self::assertEquals(self::fromJson($order), $event->order);
-        self::assertSame([], $reader->getLastDrift());
+        self::assertSame(OrderEventTypeEnum::Updated, $read->event->type);
+        self::assertEquals(self::fromJson($order), $read->event->order);
+        self::assertSame([], $read->drift);
     }
 
     public function testAnOrderWithoutWaybillsOrSenderStillReads(): void
     {
         $order = ['waybills' => [], 'sender' => null] + self::order();
-        $event = (new OrderReader())->read(self::body(['type' => 'CREATED', 'data' => $order]));
+        $event = (new OrderReader())->read(self::body(['type' => 'CREATED', 'data' => $order]))->event;
 
         self::assertSame([], $event->order->getWaybills());
         self::assertNull($event->order->getSender());
@@ -55,7 +55,7 @@ final class OrderReaderTest extends TestCase
         $body = self::body(['type' => 'UPDATED', 'data' => $order]);
         self::assertGreaterThan(1000, \substr_count($body, '&'));
 
-        $event = (new OrderReader())->read($body);
+        $event = (new OrderReader())->read($body)->event;
 
         self::assertCount(300, $event->order->getItems());
         self::assertTrue((new OrderReader())->isAuthentic($body, self::SECRET));
@@ -63,7 +63,7 @@ final class OrderReaderTest extends TestCase
 
     public function testAnUnknownTypeReadsAsNull(): void
     {
-        $event = (new OrderReader())->read(self::body(['type' => 'MERGED', 'data' => self::order()]));
+        $event = (new OrderReader())->read(self::body(['type' => 'MERGED', 'data' => self::order()]))->event;
 
         self::assertNull($event->type);
     }
@@ -105,12 +105,12 @@ final class OrderReaderTest extends TestCase
     {
         $reader = new OrderReader();
 
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
+        $read = $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
 
-        self::assertSame('1', $event->order->getNumber());
-        self::assertNull($event->order->getStatusCode());
-        self::assertSame('', $event->order->getCourier());
-        $missing = \array_map(static fn(ResponseDrift $drift) => $drift->getPath(), $reader->getLastDrift());
+        self::assertSame('1', $read->event->order->getNumber());
+        self::assertNull($read->event->order->getStatusCode());
+        self::assertSame('', $read->event->order->getCourier());
+        $missing = \array_map(static fn(ResponseDrift $drift) => $drift->getPath(), $read->drift);
         self::assertContains('order.courier', $missing);
         self::assertNotContains('order.statusCode', $missing);
     }
@@ -131,7 +131,8 @@ final class OrderReaderTest extends TestCase
             'date' => 'garbage',
         ] + self::order();
 
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->order;
+        $read = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
+        $event = $read->event->order;
 
         self::assertNull($event->getPriceNet());
         self::assertNull($event->getPriceGross());
@@ -140,7 +141,7 @@ final class OrderReaderTest extends TestCase
         self::assertNull($event->getDate());
         $drift = \array_map(
             static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
-            $reader->getLastDrift(),
+            $read->drift,
         );
         self::assertEqualsCanonicalizing([
             'CAST_VALUE order.priceNet',
@@ -158,15 +159,15 @@ final class OrderReaderTest extends TestCase
     {
         $order = ['status_date' => null, 'sender' => null] + self::order();
         $body = self::body(['type' => 'UPDATED', 'data' => $order]);
-        $strict = new SerializerProvider(new SerializerConfig(strictResponses: true));
+        $strict = new SerializerConfig(strictResponses: true);
 
         $reader = new OrderReader();
-        $event = $reader->read($body);
+        $read = $reader->read($body);
         (new OrderReader($strict))->read($body);
 
-        self::assertNull($event->order->getStatusDate());
-        self::assertNull($event->order->getSender());
-        self::assertSame([], $reader->getLastDrift());
+        self::assertNull($read->event->order->getStatusDate());
+        self::assertNull($read->event->order->getSender());
+        self::assertSame([], $read->drift);
     }
 
     /**
@@ -182,13 +183,14 @@ final class OrderReaderTest extends TestCase
         $order['is_paid'] = 'yes';
         $reader = new OrderReader();
 
-        $event = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]))->order;
+        $read = $reader->read(self::body(['type' => 'UPDATED', 'data' => $order]));
+        $event = $read->event->order;
 
         self::assertSame(2, $event->getItems()[0]->amount);
         self::assertTrue($event->isPaid());
         $drift = \array_map(
             static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
-            $reader->getLastDrift(),
+            $read->drift,
         );
         self::assertEqualsCanonicalizing(['CAST_VALUE order.items[0].amount', 'CAST_VALUE order.paid'], $drift);
     }
@@ -200,19 +202,22 @@ final class OrderReaderTest extends TestCase
         (new OrderReader())->read(self::body(['type' => 'UPDATED', 'data' => ['id' => '1', 'state' => 'x']]));
     }
 
-    public function testABodyThatIsNotAnOrderEventMessageClearsTheLastDrift(): void
+    /**
+     * The drift belongs to the event it came with, so one reader can be shared: a later read
+     * reports only its own differences and does not erase what an earlier one reported.
+     *
+     * @return void
+     */
+    public function testEachEventCarriesItsOwnDrift(): void
     {
         $reader = new OrderReader();
-        $reader->read(self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]));
-        self::assertNotSame([], $reader->getLastDrift());
+        $incomplete = self::body(['type' => 'UPDATED', 'data' => ['number' => '1', 'status' => 'Nowe']]);
 
-        try {
-            $reader->read('type=UPDATED&hash=abc');
-            self::fail('The body should have been refused.');
-        } catch (InvalidArgumentException) {
-        }
+        $first = $reader->read($incomplete);
+        $second = $reader->read(self::body(['type' => 'UPDATED', 'data' => self::order()]));
 
-        self::assertSame([], $reader->getLastDrift());
+        self::assertNotSame([], $first->drift);
+        self::assertSame([], $second->drift);
     }
 
     /**

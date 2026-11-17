@@ -24,10 +24,12 @@ if (!$reader->isAuthentic($body, $webhookSecret)) {
     exit;
 }
 
-$event = $reader->read($body);
+$read  = $reader->read($body);
+$event = $read->event;
 
 // $event->type  OrderEventTypeEnum::Created, Updated or Cancelled, or null if unknown
 // $event->order the order, as getOrders() gives it
+// $read->drift  how the order differed from what the SDK expects
 
 refreshOrder($event->order->getNumber());
 
@@ -44,7 +46,7 @@ event. Like a service, it is replaceable: pass your own under [`OrderReader`](..
 `services:` argument.
 
 ```php
-$event = $client->orderReader()->read($body);
+$event = $client->orderReader()->read($body)->event;
 ```
 
 The client passes that configuration on nowhere else, so this is how a reader comes to share
@@ -88,8 +90,8 @@ state comes from [`OrdersServiceInterface::getOrders()`](../src/Api/Service/Orde
 A type the SDK doesn't know yet reads as null, and the event still reads. An order that differs
 from what the SDK expects reads as a response does (see
 [Serialization](serialization.md#responses-that-differ-from-the-sdk)), and
-[`OrderReader::getLastDrift()`](../src/Webhook/OrderReader.php) lists the differences in the last event read. A field
-the form leaves out because it is null isn't one.
+[`ReadEvent::$drift`](../src/Webhook/ReadEvent.php) lists the differences in the event it came with. A field the form leaves
+out because it is null isn't one.
 [`OrderReader::read()`](../src/Webhook/OrderReader.php) throws [`Exception\InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) for a body that isn't an
 order event, for an order with none of an order's fields, and, with `strictResponses` on, for an
 order that differs.

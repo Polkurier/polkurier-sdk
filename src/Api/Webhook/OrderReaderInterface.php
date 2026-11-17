@@ -7,9 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Webhook;
 
-use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Webhook\ReadEvent;
 
 /**
  * Reads the order events Polkurier posts to the webhook address set in the Polkurier panel.
@@ -21,9 +20,6 @@ use Polkurier\Webservice\Serializer\ResponseDrift;
  *
  * Both methods take the request body as it came, e.g. `file_get_contents('php://input')`, rather
  * than `$_POST`. A large order has more fields than PHP's `max_input_vars` lets `$_POST` hold.
- *
- * {@see self::getLastDrift()} reports on the event read last, so one reader handles one event at a
- * time.
  *
  * @api
  */
@@ -45,22 +41,16 @@ interface OrderReaderInterface
     public function isAuthentic(string $body, string $secret): bool;
 
     /**
-     * Reads the event. It doesn't check the hash, see {@see self::isAuthentic()}.
+     * Reads the event, with how the order in it differed from what the SDK expects. It doesn't
+     * check the hash, see {@see self::isAuthentic()}.
+     *
+     * An order that differs is read anyway, as
+     * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum} describes.
      *
      * @param string $body the request body, as it came
      *
-     * @return OrderEventMessage
+     * @return ReadEvent
      * @throws InvalidArgumentException when the body isn't an order event
      */
-    public function read(string $body): OrderEventMessage;
-
-    /**
-     * How the order in the last event read differed from what this version of the SDK expects.
-     *
-     * The event is read anyway, as
-     * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum} describes.
-     *
-     * @return list<ResponseDrift> empty when the order was as expected, or nothing was read
-     */
-    public function getLastDrift(): array;
+    public function read(string $body): ReadEvent;
 }

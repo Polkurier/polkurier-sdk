@@ -128,9 +128,8 @@ Polkurier\Webservice\Api\Validation\ValidatorInterface: interface
 Polkurier\Webservice\Api\Validation\ValidatorInterface::validate(data: Polkurier\Webservice\Api\MessageInterface): void
 Polkurier\Webservice\Api\Webhook\OrderReaderInterface: interface
 Polkurier\Webservice\Api\Webhook\OrderReaderInterface::ACKNOWLEDGEMENT = 'OK'
-Polkurier\Webservice\Api\Webhook\OrderReaderInterface::getLastDrift(): array
 Polkurier\Webservice\Api\Webhook\OrderReaderInterface::isAuthentic(body: string, secret: string): bool
-Polkurier\Webservice\Api\Webhook\OrderReaderInterface::read(body: string): Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage
+Polkurier\Webservice\Api\Webhook\OrderReaderInterface::read(body: string): Polkurier\Webservice\Webhook\ReadEvent
 Polkurier\Webservice\Builder\AbstractBuilder: abstract class
 Polkurier\Webservice\Builder\AbstractBuilder::__construct()
 Polkurier\Webservice\Builder\AbstractBuilder::reset(): static
@@ -2677,8 +2676,11 @@ Polkurier\Webservice\Validator\NullValidator::validate(data: Polkurier\Webservic
 Polkurier\Webservice\Validator\ValidatorRegistry: class implements Polkurier\Webservice\Api\Validation\ValidatorInterface
 Polkurier\Webservice\Validator\ValidatorRegistry::register(messageClass: string, validator: Polkurier\Webservice\Api\Validation\ValidatorInterface): static
 Polkurier\Webservice\Validator\ValidatorRegistry::validate(data: Polkurier\Webservice\Api\MessageInterface): void
-Polkurier\Webservice\Webhook\OrderReader: class implements Polkurier\Webservice\Api\Webhook\OrderReaderInterface
+Polkurier\Webservice\Webhook\OrderReader: readonly class implements Polkurier\Webservice\Api\Webhook\OrderReaderInterface
 Polkurier\Webservice\Webhook\OrderReader::__construct(serializerConfig: ?Polkurier\Webservice\Api\SerializerConfigInterface = null)
-Polkurier\Webservice\Webhook\OrderReader::getLastDrift(): array
 Polkurier\Webservice\Webhook\OrderReader::isAuthentic(body: string, secret: string): bool
-Polkurier\Webservice\Webhook\OrderReader::read(body: string): Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage
+Polkurier\Webservice\Webhook\OrderReader::read(body: string): Polkurier\Webservice\Webhook\ReadEvent
+Polkurier\Webservice\Webhook\ReadEvent: final readonly class
+Polkurier\Webservice\Webhook\ReadEvent::$drift: readonly array
+Polkurier\Webservice\Webhook\ReadEvent::$event: readonly Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage
+Polkurier\Webservice\Webhook\ReadEvent::__construct(event: Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage, drift: array = [])

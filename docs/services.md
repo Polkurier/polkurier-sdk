@@ -553,8 +553,7 @@ Reading webhook events
 | Method | What it does |
 |--------|--------------|
 | [`OrderReaderInterface::isAuthentic()`](../src/Api/Webhook/OrderReaderInterface.php) | Checks an event against the webhook's secret |
-| [`OrderReaderInterface::read()`](../src/Api/Webhook/OrderReaderInterface.php) | Reads the event into an [`OrderEventMessage`](../src/Dto/Response/Webhook/OrderEventMessage.php) |
-| [`OrderReaderInterface::getLastDrift()`](../src/Api/Webhook/OrderReaderInterface.php) | How the last event's order differed from the SDK |
+| [`OrderReaderInterface::read()`](../src/Api/Webhook/OrderReaderInterface.php) | Reads the event into a [`ReadEvent`](../src/Webhook/ReadEvent.php): the [`OrderEventMessage`](../src/Dto/Response/Webhook/OrderEventMessage.php), and how its order differed from the SDK |
 
 [`PolkurierWebservice::orderReader()`](../src/PolkurierWebservice.php) returns the reader as
 [`Api\Webhook\OrderReaderInterface`](../src/Api/Webhook/OrderReaderInterface.php), built on first use with the [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php)
