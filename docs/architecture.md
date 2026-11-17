@@ -148,8 +148,12 @@ builds itself ([`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInt
 has no interface and is wired only inside the SDK.
 
 Most classes aren't `final`, so you can subclass one to change a single step, but such a subclass
-may need changes after an update. A record is the exception: subclassing it is how you add columns
-of your own, and the SDK sends only the fields it declares itself.
+may need changes after an update. A `readonly` class can only be extended by a `readonly` one, so a
+subclass of [`Config`](../src/Config.php), [`ConfigProvider`](../src/ConfigProvider.php), [`RequestFactory`](../src/Http/Request/RequestFactory.php), [`ResponseFactory`](../src/Http/Response/ResponseFactory.php), [`SerializerProvider`](../src/Serializer/SerializerProvider.php),
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php), [`MessageSerializer`](../src/Serializer/MessageSerializer.php), [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), [`ResponseDrift`](../src/Serializer/ResponseDrift.php) or [`OrderReader`](../src/Webhook/OrderReader.php) can
+override a method but cannot add state of its own; to hold state, implement the interface instead.
+A record is the exception: subclassing it is how you add columns of your own, and the SDK sends
+only the fields it declares itself.
 
 Under [`Dto`](../src/Dto/) every class is `final` apart from [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php), which a
 subclass extends to carry credentials of another kind, and the abstract bases the SDK's own
