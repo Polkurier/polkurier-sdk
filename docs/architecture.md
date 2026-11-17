@@ -128,9 +128,11 @@ break code that relies only on:
   [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) returns, with the [`ReadResponse`](../src/Serializer/ReadResponse.php) it answers a body with;
 - what you replace validation with: [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php), [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php),
   [`AttributeValidator`](../src/Validator/AttributeValidator.php) and [`NullValidator`](../src/Validator/NullValidator.php);
-- the parameter names of everything above, because a named argument is how you call a constructor
-  with many optional parameters, and some frameworks pass every argument by name. They are
-  recorded in `tests/Support/contract-parameters.txt`, and a rename fails the test suite;
+- the shape of everything above: the parameter names, because a named argument is how you call a
+  constructor with many optional parameters and some frameworks pass every argument by name, and
+  with them the return types, the methods themselves, the public properties and the constants and
+  their values. They are recorded in `tests/Support/contract-surface.txt`, and any change to one
+  fails the test suite;
 - the keys of [`ValidationException::getValidationErrors()`](../src/Exception/ValidationException.php): the API's wire names, a field of a
   nested record under its parent (`sender.postcode`), a list entry with its index
   (`packs[1].weight`), and a record the payload inlines reporting at the top level;
