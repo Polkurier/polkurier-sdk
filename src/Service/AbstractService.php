@@ -623,10 +623,10 @@ abstract class AbstractService
         }
 
         foreach ($responseWrapper->getDrift() as $drift) {
-            $value = $drift->getValue();
+            $value = $drift->value;
             $shown = \is_string($value) ? '"' . $value . '"' : \get_debug_type($value);
             $this->logger->warning(\sprintf(
-                match ($drift->getType()) {
+                match ($drift->type) {
                     ResponseDriftTypeEnum::UnknownField => 'Unknown field "%1$s" in the response from method: "%4$s".'
                         . ' This version of the SDK ignores it.',
                     ResponseDriftTypeEnum::MissingField => 'Field "%1$s" (%3$s) is missing or null in the response'
@@ -636,17 +636,17 @@ abstract class AbstractService
                     ResponseDriftTypeEnum::UnknownEnumValue => 'Unknown %3$s value %2$s at "%1$s" in the response'
                         . ' from method: "%4$s". This version of the SDK reads it as null, or leaves it out of a list.',
                 },
-                $drift->getPath(),
+                $drift->path,
                 $shown,
-                $drift->getExpected() ?? '',
+                $drift->expected ?? '',
                 $apiMethod->value,
             ), [
                 'method' => $apiMethod,
                 'sandbox' => $this->config()->isSandbox(),
-                'type' => $drift->getType(),
-                'path' => $drift->getPath(),
+                'type' => $drift->type,
+                'path' => $drift->path,
                 'value' => $value,
-                'expected' => $drift->getExpected(),
+                'expected' => $drift->expected,
             ]);
         }
     }

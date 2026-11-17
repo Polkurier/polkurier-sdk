@@ -103,8 +103,8 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
 
         $differences = [];
         foreach (\array_slice($drift?->all() ?? [], $before) as $entry) {
-            if ($entry->getType() !== ResponseDriftTypeEnum::UnknownEnumValue) {
-                $differences[] = $entry->getType()->value . ' at "' . $entry->getPath() . '"';
+            if ($entry->type !== ResponseDriftTypeEnum::UnknownEnumValue) {
+                $differences[] = $entry->type->value . ' at "' . $entry->path . '"';
             }
         }
         if ($differences !== []) {

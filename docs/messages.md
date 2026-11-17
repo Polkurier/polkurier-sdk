@@ -286,8 +286,8 @@ $templates = $client->packTemplates()->getPackTemplates();
 
 foreach ($client->getLastResponseDrift() as $drift) {
     // e.g. UNKNOWN_ENUM_VALUE, "[0].type", "XX", Polkurier\Webservice\Enum\Order\PackTypeEnum
-    echo $drift->getType()->value, ' ', $drift->getPath(), ' ', \json_encode($drift->getValue()), ' ',
-        $drift->getExpected(), "\n";
+    echo $drift->type->value, ' ', $drift->path, ' ', \json_encode($drift->value), ' ',
+        $drift->expected, "\n";
 }
 
 $json = (string) $client->getLastResponse()?->getBody();

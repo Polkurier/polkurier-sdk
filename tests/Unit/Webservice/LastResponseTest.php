@@ -61,10 +61,10 @@ final class LastResponseTest extends TestCase
 
         $drift = $this->sdk->getLastResponseDrift();
         self::assertCount(1, $drift);
-        self::assertSame(ResponseDriftTypeEnum::UnknownEnumValue, $drift[0]->getType());
-        self::assertSame(AddressTypeEnum::class, $drift[0]->getExpected());
-        self::assertSame('SOMETHING_NEW', $drift[0]->getValue());
-        self::assertSame('[0].type', $drift[0]->getPath());
+        self::assertSame(ResponseDriftTypeEnum::UnknownEnumValue, $drift[0]->type);
+        self::assertSame(AddressTypeEnum::class, $drift[0]->expected);
+        self::assertSame('SOMETHING_NEW', $drift[0]->value);
+        self::assertSame('[0].type', $drift[0]->path);
     }
 
     public function testTheNextCallThroughAnyServiceReplacesIt(): void

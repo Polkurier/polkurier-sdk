@@ -109,7 +109,7 @@ final class ResponseDriftInvariantTest extends TestCase
                 self::assertReadable($wrapper->getEnvelope()->response);
                 $reported = \array_filter(
                     $wrapper->getDrift(),
-                    static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,
+                    static fn($drift) => $drift->type !== ResponseDriftTypeEnum::UnknownEnumValue,
                 );
 
                 try {
@@ -153,7 +153,7 @@ final class ResponseDriftInvariantTest extends TestCase
                 }
                 $reported = \array_filter(
                     $read->drift,
-                    static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,
+                    static fn($drift) => $drift->type !== ResponseDriftTypeEnum::UnknownEnumValue,
                 );
 
                 try {

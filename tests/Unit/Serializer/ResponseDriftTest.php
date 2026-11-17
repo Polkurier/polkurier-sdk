@@ -355,10 +355,10 @@ final class ResponseDriftTest extends TestCase
     {
         return \array_map(
             static fn(ResponseDrift $drift): array => [
-                $drift->getType()->value,
-                $drift->getPath(),
-                $drift->getValue(),
-                $drift->getExpected(),
+                $drift->type->value,
+                $drift->path,
+                $drift->value,
+                $drift->expected,
             ],
             $wrapper->getDrift(),
         );

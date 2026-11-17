@@ -110,7 +110,7 @@ final class OrderReaderTest extends TestCase
         self::assertSame('1', $read->event->order->getNumber());
         self::assertNull($read->event->order->getStatusCode());
         self::assertSame('', $read->event->order->getCourier());
-        $missing = \array_map(static fn(ResponseDrift $drift) => $drift->getPath(), $read->drift);
+        $missing = \array_map(static fn(ResponseDrift $drift) => $drift->path, $read->drift);
         self::assertContains('order.courier', $missing);
         self::assertNotContains('order.statusCode', $missing);
     }
@@ -140,7 +140,7 @@ final class OrderReaderTest extends TestCase
         self::assertNull($event->getSender());
         self::assertNull($event->getDate());
         $drift = \array_map(
-            static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
+            static fn(ResponseDrift $drift) => $drift->type->value . ' ' . $drift->path,
             $read->drift,
         );
         self::assertEqualsCanonicalizing([
@@ -189,7 +189,7 @@ final class OrderReaderTest extends TestCase
         self::assertSame(2, $event->getItems()[0]->amount);
         self::assertTrue($event->isPaid());
         $drift = \array_map(
-            static fn(ResponseDrift $drift) => $drift->getType()->value . ' ' . $drift->getPath(),
+            static fn(ResponseDrift $drift) => $drift->type->value . ' ' . $drift->path,
             $read->drift,
         );
         self::assertEqualsCanonicalizing(['CAST_VALUE order.items[0].amount', 'CAST_VALUE order.paid'], $drift);

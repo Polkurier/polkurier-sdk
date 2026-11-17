@@ -27,53 +27,21 @@ readonly class ResponseDrift
         /**
          * @var ResponseDriftTypeEnum
          */
-        private ResponseDriftTypeEnum $type,
+        public ResponseDriftTypeEnum $type,
 
         /**
          * @var string
          */
-        private string $path,
+        public string $path,
 
         /**
          * @var mixed
          */
-        private mixed $value = null,
+        public mixed $value = null,
 
         /**
          * @var string|null
          */
-        private ?string $expected = null,
+        public ?string $expected = null,
     ) {}
-
-    /**
-     * @return ResponseDriftTypeEnum
-     */
-    public function getType(): ResponseDriftTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getValue(): mixed
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return string|null null for an unknown field
-     */
-    public function getExpected(): ?string
-    {
-        return $this->expected;
-    }
 }

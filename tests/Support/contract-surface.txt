@@ -2646,11 +2646,11 @@ Polkurier\Webservice\Serializer\ReadResponse::$drift: readonly array
 Polkurier\Webservice\Serializer\ReadResponse::$envelope: readonly Polkurier\Webservice\Dto\Response\ResponseMessage|Polkurier\Webservice\Dto\Response\ErrorMessage
 Polkurier\Webservice\Serializer\ReadResponse::__construct(envelope: Polkurier\Webservice\Dto\Response\ResponseMessage|Polkurier\Webservice\Dto\Response\ErrorMessage, drift: array = [])
 Polkurier\Webservice\Serializer\ResponseDrift: readonly class
+Polkurier\Webservice\Serializer\ResponseDrift::$expected: readonly ?string
+Polkurier\Webservice\Serializer\ResponseDrift::$path: readonly string
+Polkurier\Webservice\Serializer\ResponseDrift::$type: readonly Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum
+Polkurier\Webservice\Serializer\ResponseDrift::$value: readonly mixed
 Polkurier\Webservice\Serializer\ResponseDrift::__construct(type: Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum, path: string, value: mixed = null, expected: ?string = null)
-Polkurier\Webservice\Serializer\ResponseDrift::getExpected(): ?string
-Polkurier\Webservice\Serializer\ResponseDrift::getPath(): string
-Polkurier\Webservice\Serializer\ResponseDrift::getType(): Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum
-Polkurier\Webservice\Serializer\ResponseDrift::getValue(): mixed
 Polkurier\Webservice\Serializer\SerializerConfig: readonly class implements Polkurier\Webservice\Api\SerializerConfigInterface
 Polkurier\Webservice\Serializer\SerializerConfig::DEFAULT_JSON_OPTIONS = 1344
 Polkurier\Webservice\Serializer\SerializerConfig::__construct(metadataCache: ?Psr\Cache\CacheItemPoolInterface = null, jsonEncodeOptions: int = self::DEFAULT_JSON_OPTIONS, timezone: ?DateTimeZone = null, strictResponses: bool = false)

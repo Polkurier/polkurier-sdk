@@ -110,7 +110,7 @@ final class MessageSerializerTest extends TestCase
         self::assertInstanceOf(OrderListMessage::class, $list);
         self::assertSame('202610-000009', $list->result[0]->getNumber());
         self::assertCount(1, $read->drift);
-        self::assertSame(ResponseDriftTypeEnum::UnknownField, $read->drift[0]->getType());
+        self::assertSame(ResponseDriftTypeEnum::UnknownField, $read->drift[0]->type);
     }
 
     /**

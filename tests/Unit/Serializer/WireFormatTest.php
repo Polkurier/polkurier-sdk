@@ -76,8 +76,8 @@ final class WireFormatTest extends TestCase
         self::assertInstanceOf(DocumentMessage::class, $document);
         self::assertSame('', $document->file);
         self::assertCount(1, $this->drift->all());
-        self::assertSame(ResponseDriftTypeEnum::CastValue, $this->drift->all()[0]->getType());
-        self::assertSame('file', $this->drift->all()[0]->getPath());
+        self::assertSame(ResponseDriftTypeEnum::CastValue, $this->drift->all()[0]->type);
+        self::assertSame('file', $this->drift->all()[0]->path);
     }
 
     public function testAContactFormDocumentReadsFromItsDataUrl(): void

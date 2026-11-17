@@ -316,7 +316,7 @@ final class ResponseFactoryTest extends TestCase
         self::assertSame(ShipmentTypeEnum::Box, $templates[1]->getShipmentType());
 
         $unknown = \array_map(
-            static fn(ResponseDrift $u) => [$u->getExpected(), $u->getValue(), $u->getPath()],
+            static fn(ResponseDrift $u) => [$u->expected, $u->value, $u->path],
             $wrapper->getDrift(),
         );
         self::assertEqualsCanonicalizing([
