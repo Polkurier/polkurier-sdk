@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -75,9 +76,13 @@ class InOrder implements MessageRuleInterface
             return;
         }
 
+        $laterField = $fields->field($this->later);
+
         $violations->add(
             $fields->field($this->earlier),
-            $this->reason ?? \sprintf('must not be greater than %s', $fields->field($this->later))
+            $this->reason ?? \sprintf('must not be greater than %s', $laterField),
+            ValidationErrorCodeEnum::OutOfOrder,
+            ['field' => $laterField],
         );
     }
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -47,7 +48,12 @@ class PageSizeAtMost implements MessageRuleInterface
         // The lower bound and the type are checked on the property itself.
         $pageSize = $fields->value('pageSize');
         if (\is_int($pageSize) && $pageSize > $this->max) {
-            $violations->add($fields->field('pageSize'), \sprintf('must be between 1 and %d', $this->max));
+            $violations->add(
+                $fields->field('pageSize'),
+                \sprintf('must be between 1 and %d', $this->max),
+                ValidationErrorCodeEnum::OutOfRange,
+                ['minimum' => 1, 'maximum' => $this->max],
+            );
         }
     }
 }

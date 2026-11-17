@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A value of the given type: `string`, `int`, `float` or `bool`, or a class, interface or enum.
@@ -36,7 +38,7 @@ class OfType implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -60,6 +62,12 @@ class OfType implements ValueValidatorInterface
 
         $name = \str_contains($this->type, '\\') ? \substr((string)\strrchr($this->type, '\\'), 1) : $this->type;
 
-        return [\sprintf('must be a %s', $name)];
+        return [
+            new RuleFailure(
+                ValidationErrorCodeEnum::WrongType,
+                \sprintf('must be a %s', $name),
+                ['type' => $name, 'declared' => $this->type],
+            ),
+        ];
     }
 }

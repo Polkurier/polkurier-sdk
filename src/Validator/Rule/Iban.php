@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * An international bank account number (IBAN).
@@ -69,7 +71,7 @@ class Iban implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -80,16 +82,16 @@ class Iban implements ValueValidatorInterface
         }
 
         if (!\is_string($value)) {
-            return ['must be a bank account number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotABankAccount, 'must be a bank account number')];
         }
 
         $normalised = \strtoupper((string)\preg_replace('/[\s-]/', '', $value));
 
         if ($normalised === '') {
-            return ['must not be empty'];
+            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
         }
         if (\preg_match('/^[A-Z0-9]+$/', $normalised) !== 1) {
-            return ['must contain only letters and digits'];
+            return [new RuleFailure(ValidationErrorCodeEnum::BankAccountBadCharacters, 'must contain only letters and digits')];
         }
 
         // A national number already contains its check digits (for Poland the first 2 digits
@@ -99,16 +101,35 @@ class Iban implements ValueValidatorInterface
             : \strtoupper($this->country) . $normalised;
 
         $country = \substr($iban, 0, 2);
-        if (!$this->foreign && $country !== \strtoupper($this->country)) {
-            return [\sprintf('must be a %s account', \strtoupper($this->country))];
+        $accepted = \strtoupper($this->country);
+
+        if (!$this->foreign && $country !== $accepted) {
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::BankAccountWrongCountry,
+                    \sprintf('must be a %s account', $accepted),
+                    ['country' => $accepted],
+                ),
+            ];
         }
         $expected = self::LENGTHS[$country] ?? null;
 
         if ($expected !== null && \strlen($iban) !== $expected) {
-            return [\sprintf('must be %d characters long for %s', $expected, $country)];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::BankAccountWrongLength,
+                    \sprintf('must be %d characters long for %s', $expected, $country),
+                    ['country' => $country, 'expected' => $expected],
+                ),
+            ];
         }
         if (!static::checksumHolds($iban)) {
-            return ['is not a valid account number; check the digits'];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::BankAccountBadChecksum,
+                    'is not a valid account number; check the digits',
+                ),
+            ];
         }
 
         return [];

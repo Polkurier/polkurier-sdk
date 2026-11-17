@@ -69,6 +69,14 @@ class ValidatorRegistry implements ValidatorInterface
             try {
                 $validator->validate($data);
             } catch (ValidationException $e) {
+                // Keep the code each violation was recorded with. Rebuilding them from the
+                // English report would reduce every one of them to the fallback.
+                foreach ($e->getViolations() as $violation) {
+                    $violations->take($violation);
+                }
+                if ($e->getViolations() !== []) {
+                    continue;
+                }
                 foreach ($e->getValidationErrors() as $field => $messages) {
                     foreach ($messages as $singleMessage) {
                         $violations->add($field, $singleMessage);

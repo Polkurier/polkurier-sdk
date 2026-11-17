@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -66,9 +67,13 @@ class RequiredWith implements MessageRuleInterface
             return;
         }
 
+        $with = $fields->field($this->with);
+
         $violations->add(
             $fields->field($this->field),
-            $this->reason ?? \sprintf('is required when %s is set', $fields->field($this->with))
+            $this->reason ?? \sprintf('is required when %s is set', $with),
+            ValidationErrorCodeEnum::Blank,
+            ['field' => $with, 'condition' => 'set'],
         );
     }
 }

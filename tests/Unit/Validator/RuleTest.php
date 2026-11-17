@@ -19,6 +19,7 @@ use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Entity\Order\Cod;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Test\Support\Arguments;
@@ -36,6 +37,7 @@ use Polkurier\Webservice\Validator\Rule\PhoneNumber;
 use Polkurier\Webservice\Validator\Rule\Positive;
 use Polkurier\Webservice\Validator\Rule\Postcode;
 use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * The individual field rules, exercised on their own.
@@ -79,11 +81,11 @@ final class RuleTest extends TestCase
             'a German IBAN' => [new Iban(), 'DE89370400440532013000'],
             'a British IBAN, which has letters in it' => [new Iban(), 'GB82WEST12345698765432'],
             'a Polish IBAN under foreign: false' => [new Iban(foreign: false), 'PL34102010260000000000000001'],
-            'a telephone number' => [new PhoneNumber(), '500600700'],
-            'a telephone number with a country code' => [new PhoneNumber(), '+48 500 600 700'],
+            'a phone number' => [new PhoneNumber(), '500600700'],
+            'a phone number with a country code' => [new PhoneNumber(), '+48 500 600 700'],
             // A Danish number is 8 digits and an Icelandic one 7, so a Polish length would reject
             // a recipient the carrier delivers to.
-            'a foreign telephone number, shorter than a Polish one' => [new PhoneNumber(), '12345678'],
+            'a foreign phone number, shorter than a Polish one' => [new PhoneNumber(), '12345678'],
             'a positive integer' => [new Positive(), 1],
             'a positive float' => [new Positive(), 0.5],
             'zero, where zero is allowed' => [new NonNegative(), 0],
@@ -96,7 +98,7 @@ final class RuleTest extends TestCase
             // Without that, every optional field carrying one would become mandatory.
             'an empty postcode, which NotBlank judges' => [new Postcode(), ''],
             'an empty account number, likewise' => [new Iban(), ''],
-            'an empty telephone number, likewise' => [new PhoneNumber(), ''],
+            'an empty phone number, likewise' => [new PhoneNumber(), ''],
             'an empty order number, likewise' => [new OrderNumber(), ''],
             'a null page size, likewise' => [new IntegerRange(1, 100), null],
         ];
@@ -135,7 +137,7 @@ final class RuleTest extends TestCase
             'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
             'an IBAN whose check digits do not hold' => [new Iban(), 'DE89370400440532013001'],
             'a foreign IBAN under foreign: false' => [new Iban(foreign: false), 'DE89370400440532013000'],
-            'a telephone number that is too short' => [new PhoneNumber(), '12'],
+            'a phone number that is too short' => [new PhoneNumber(), '12'],
             'zero, where it must be positive' => [new Positive(), 0],
             'a negative number' => [new Positive(), -1],
             'a negative number where zero is the floor' => [new NonNegative(), -0.01],
@@ -162,8 +164,10 @@ final class RuleTest extends TestCase
 
         self::assertNotSame([], $problems);
         foreach ($problems as $problem) {
-            self::assertIsString($problem);
-            self::assertNotSame('', \trim($problem));
+            self::assertNotSame('', \trim($problem->message));
+            // A rule that cannot say what is wrong beyond its own sentence belongs to a message,
+            // not to a value, so a value rule never reports the fallback.
+            self::assertNotSame(ValidationErrorCodeEnum::Other, $problem->code);
         }
     }
 
@@ -185,10 +189,23 @@ final class RuleTest extends TestCase
      */
     public function testMessagesReadAsAContinuationOfTheFieldName(): void
     {
-        self::assertSame(['must not be empty'], (new NotBlank())->validate(''));
-        self::assertSame(['must be greater than zero'], (new Positive())->validate(0));
-        self::assertSame(['must be 28 characters long for PL'], (new Iban())->validate('123'));
-        self::assertSame(['must be between 1 and 100'], (new IntegerRange(1, 100))->validate(500));
+        self::assertSame(['must not be empty'], self::messagesOf((new NotBlank())->validate('')));
+        self::assertSame(['must be greater than zero'], self::messagesOf((new Positive())->validate(0)));
+        self::assertSame(['must be 28 characters long for PL'], self::messagesOf((new Iban())->validate('123')));
+        self::assertSame(
+            ['must be between 1 and 100'],
+            self::messagesOf((new IntegerRange(1, 100))->validate(500)),
+        );
+    }
+
+    /**
+     * @param RuleFailure[] $failures
+     *
+     * @return string[]
+     */
+    private static function messagesOf(array $failures): array
+    {
+        return \array_map(static fn(RuleFailure $failure): string => $failure->message, $failures);
     }
 
     /**

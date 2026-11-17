@@ -178,6 +178,14 @@ class AttributeValidator implements ValidatorInterface
         try {
             self::$declared[$validator]->validate($message);
         } catch (ValidationException $e) {
+            // Keep the code each violation was recorded with. Rebuilding them from the English
+            // report would reduce every one of them to the fallback.
+            foreach ($e->getViolations() as $violation) {
+                $violations->take($violation);
+            }
+            if ($e->getViolations() !== []) {
+                return;
+            }
             foreach ($e->getValidationErrors() as $field => $messages) {
                 foreach ($messages as $singleMessage) {
                     $violations->add($field, $singleMessage);

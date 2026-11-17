@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A whole number within bounds.
@@ -38,7 +40,7 @@ class IntegerRange implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -46,14 +48,28 @@ class IntegerRange implements ValueValidatorInterface
             return [];
         }
         if (!\is_int($value)) {
-            return ['must be a whole number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAWholeNumber, 'must be a whole number')];
         }
         if ($value < $this->min || $value > $this->max) {
             // An open-ended maximum states a bound no caller can read: PHP_INT_MAX is the absence
             // of an upper limit, not a limit.
-            return $this->max === \PHP_INT_MAX
-                ? [\sprintf('must be at least %d', $this->min)]
-                : [\sprintf('must be between %d and %d', $this->min, $this->max)];
+            if ($this->max === \PHP_INT_MAX) {
+                return [
+                    new RuleFailure(
+                        ValidationErrorCodeEnum::OutOfRange,
+                        \sprintf('must be at least %d', $this->min),
+                        ['minimum' => $this->min],
+                    ),
+                ];
+            }
+
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::OutOfRange,
+                    \sprintf('must be between %d and %d', $this->min, $this->max),
+                    ['minimum' => $this->min, 'maximum' => $this->max],
+                ),
+            ];
         }
 
         return [];

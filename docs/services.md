@@ -351,13 +351,13 @@ The account
 | [`AccountServiceInterface::changeDefaultSenderPoint()`](../src/Api/Service/AccountServiceInterface.php) | Sets, or clears, the default drop-off point for one carrier |
 | [`AccountServiceInterface::savePayerAddress()`](../src/Api/Service/AccountServiceInterface.php) | Writes the billing, correspondence or contact address, as [`PayerAddressTypeEnum`](../src/Enum/Account/PayerAddressTypeEnum.php) says |
 | [`AccountServiceInterface::changePassword()`](../src/Api/Service/AccountServiceInterface.php) | Changes the account password |
-| [`AccountServiceInterface::changePhonePin()`](../src/Api/Service/AccountServiceInterface.php) | Sets or changes the account's telephone PIN |
+| [`AccountServiceInterface::changePhonePin()`](../src/Api/Service/AccountServiceInterface.php) | Sets or changes the account's phone PIN |
 | [`AccountServiceInterface::validateUserPin()`](../src/Api/Service/AccountServiceInterface.php) | Checks a security PIN without changing anything |
 | [`AccountServiceInterface::getRegulations()`](../src/Api/Service/AccountServiceInterface.php) | Fetches the terms of service or the privacy policy |
 | [`AccountServiceInterface::acceptRegulations()`](../src/Api/Service/AccountServiceInterface.php) | Records the customer's acceptance of the current terms |
-| [`AccountServiceInterface::getPhoneNumbers()`](../src/Api/Service/AccountServiceInterface.php) | Lists the account's telephone numbers |
-| [`AccountServiceInterface::savePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Adds a telephone number, optionally as the account's default |
-| [`AccountServiceInterface::deletePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Removes a telephone number from the account |
+| [`AccountServiceInterface::getPhoneNumbers()`](../src/Api/Service/AccountServiceInterface.php) | Lists the account's phone numbers |
+| [`AccountServiceInterface::savePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Adds a phone number, optionally as the account's default |
+| [`AccountServiceInterface::deletePhoneNumber()`](../src/Api/Service/AccountServiceInterface.php) | Removes a phone number from the account |
 | [`AccountVerificationServiceInterface::register()`](../src/Api/Service/AccountVerificationServiceInterface.php) | Starts an identity verification, or returns the one in progress |
 | [`AccountVerificationServiceInterface::getInfo()`](../src/Api/Service/AccountVerificationServiceInterface.php) | The most recent verification attempt and its outcome, or null |
 

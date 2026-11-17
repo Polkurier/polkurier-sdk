@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Validator\Message;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
@@ -49,6 +50,11 @@ class RegisterPaymentMessageValidator extends AbstractMessageValidator
         $violations->add(
             RegisterPaymentMessage::FIELD_AMOUNT,
             'is required when topping up the prepaid balance, and must be greater than zero',
+            ValidationErrorCodeEnum::Blank,
+            [
+                'field' => RegisterPaymentMessage::FIELD_MODE,
+                'equals' => PaymentModeEnum::Prepaid->value,
+            ],
         );
     }
 }

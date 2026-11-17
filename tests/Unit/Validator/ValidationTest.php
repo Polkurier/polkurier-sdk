@@ -32,10 +32,13 @@ use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Test\Support\Arguments;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
+use Polkurier\Webservice\Validator\Rule\Iban;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
+use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
  * The rules applied to a payload before it leaves.
@@ -53,6 +56,94 @@ final class ValidationTest extends TestCase
     protected function setUp(): void
     {
         $this->validator = DefaultValidatorRegistryFactory::create();
+    }
+
+    /**
+     * A violation names why the field was rejected with a value that does not change, and the
+     * values its English sentence spells out, so an integration can word its own report.
+     *
+     * @return void
+     */
+    public function testAViolationCarriesACodeAndTheValuesItsMessageNames(): void
+    {
+        try {
+            $this->validator->validate(new GetOrdersMessage(pageSize: 0));
+            self::fail('The payload should have been rejected.');
+        } catch (ValidationException $e) {
+            $byPath = [];
+            foreach ($e->getViolations() as $violation) {
+                $byPath[$violation->path][] = $violation;
+            }
+
+            self::assertArrayHasKey('pagesize', $byPath);
+            $violation = $byPath['pagesize'][0];
+            self::assertSame(ValidationErrorCodeEnum::OutOfRange, $violation->code);
+            self::assertSame(1, $violation->parameters['minimum'] ?? null);
+            // The English is still there, and still says the same thing it says in the array form.
+            self::assertContains($violation->message, $e->getFieldErrors('pagesize'));
+        }
+    }
+
+    /**
+     * A field made required by another one says which field and what about it, so a translation
+     * can tell "is set" from "is empty" from "is this value".
+     *
+     * @return void
+     */
+    public function testAConditionalRequirementNamesTheFieldAndTheCondition(): void
+    {
+        try {
+            $this->validator->validate(new Cod(amount: 10.0, returnType: CodReturnTypeEnum::BankAccount));
+            self::fail('The payload should have been rejected.');
+        } catch (ValidationException $e) {
+            $violation = $e->getViolations()[0];
+
+            self::assertSame(ValidationErrorCodeEnum::Blank, $violation->code);
+            self::assertSame(
+                ['field' => 'return_cod', 'condition' => 'equals', 'equals' => 'BA'],
+                $violation->parameters,
+            );
+        }
+    }
+
+    /**
+     * One code per condition, not per rule: the account rule tells a wrong country from a wrong
+     * length from failed check digits, so a translation can say which.
+     *
+     * @return void
+     */
+    public function testOneRuleReportsADifferentCodePerCondition(): void
+    {
+        $codes = [];
+        foreach (['PL!!0102', 'DE89370400440532013000', 'PL34102010260000000000000002'] as $number) {
+            foreach ((new Iban(foreign: false))->validate($number) as $failure) {
+                $codes[] = $failure->code;
+            }
+        }
+
+        self::assertSame(
+            [
+                ValidationErrorCodeEnum::BankAccountBadCharacters,
+                ValidationErrorCodeEnum::BankAccountWrongCountry,
+                ValidationErrorCodeEnum::BankAccountBadChecksum,
+            ],
+            $codes,
+        );
+    }
+
+    /**
+     * A rule written for one message, which no general code describes, reports the fallback, so
+     * an integration knows to show the English instead of translating it.
+     *
+     * @return void
+     */
+    public function testARuleWithNoGeneralCodeReportsTheFallback(): void
+    {
+        $pool = new ViolationPool();
+        $pool->add('sender.postcode', 'is wrong in a way only this message knows');
+
+        self::assertSame(ValidationErrorCodeEnum::Other, $pool->all()[0]->code);
+        self::assertSame([], $pool->all()[0]->parameters);
     }
 
     /**

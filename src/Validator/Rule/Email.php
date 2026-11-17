@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * An email address.
@@ -25,7 +27,7 @@ class Email implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -33,10 +35,10 @@ class Email implements ValueValidatorInterface
             return [];
         }
         if (!\is_string($value)) {
-            return ['must be an email address'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAnEmail, 'must be an email address')];
         }
         if (\preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', \trim($value)) !== 1) {
-            return ['must be an email address'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAnEmail, 'must be an email address')];
         }
 
         return [];

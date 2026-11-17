@@ -2587,6 +2587,26 @@ Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum: enum implem
 Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum::Authenticator = 'AUTHENTICATOR'
 Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum::Email = 'EMAIL'
 Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum::Sms = 'SMS'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum: enum implements BackedEnum, UnitEnum
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::BankAccountBadCharacters = 'bank_account_bad_characters'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::BankAccountBadChecksum = 'bank_account_bad_checksum'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::BankAccountWrongCountry = 'bank_account_wrong_country'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::BankAccountWrongLength = 'bank_account_wrong_length'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::Blank = 'blank'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::EmptyList = 'empty_list'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotABankAccount = 'not_a_bank_account'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAList = 'not_a_list'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotANumber = 'not_a_number'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAPhoneNumber = 'not_a_phone_number'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAPostcode = 'not_a_postcode'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAWholeNumber = 'not_a_whole_number'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAnEmail = 'not_an_email'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::NotAnOrderNumber = 'not_an_order_number'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::Other = 'other'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::OutOfOrder = 'out_of_order'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::OutOfRange = 'out_of_range'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::PhoneNumberTooShort = 'phone_number_too_short'
+Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum::WrongType = 'wrong_type'
 Polkurier\Webservice\Enum\Webhook\OrderEventTypeEnum: enum implements BackedEnum, UnitEnum
 Polkurier\Webservice\Enum\Webhook\OrderEventTypeEnum::Cancelled = 'CANCELLED'
 Polkurier\Webservice\Enum\Webhook\OrderEventTypeEnum::Created = 'CREATED'
@@ -2604,9 +2624,10 @@ Polkurier\Webservice\Exception\MalformedResponseException::getResponse(): Psr\Ht
 Polkurier\Webservice\Exception\MalformedResponseException::static unexpectedPayload(response: Psr\Http\Message\ResponseInterface, apiMethod: string, expected: string, actual: mixed): Polkurier\Webservice\Exception\MalformedResponseException
 Polkurier\Webservice\Exception\MalformedResponseException::static unreadableBody(response: Psr\Http\Message\ResponseInterface, cause: Polkurier\Webservice\Exception\InvalidArgumentException): Polkurier\Webservice\Exception\MalformedResponseException
 Polkurier\Webservice\Exception\ValidationException: class extends Polkurier\Webservice\Exception\InvalidArgumentException implements Stringable, Throwable
-Polkurier\Webservice\Exception\ValidationException::__construct(validationErrors: array, message: string = '')
+Polkurier\Webservice\Exception\ValidationException::__construct(validationErrors: array, message: string = '', violations: array = [])
 Polkurier\Webservice\Exception\ValidationException::getFieldErrors(field: string): array
 Polkurier\Webservice\Exception\ValidationException::getValidationErrors(): array
+Polkurier\Webservice\Exception\ValidationException::getViolations(): array
 Polkurier\Webservice\Exception\WebserviceException: class extends Polkurier\Webservice\Exception\Exception implements Stringable, Throwable
 Polkurier\Webservice\Exception\WebserviceException::__construct(errorResponse: Polkurier\Webservice\Dto\Response\ErrorMessage, request: Psr\Http\Message\RequestInterface, response: Psr\Http\Message\ResponseInterface)
 Polkurier\Webservice\Exception\WebserviceException::getErrorMessage(): Polkurier\Webservice\Dto\Response\ErrorMessage
@@ -2667,9 +2688,20 @@ Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory: class
 Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory::static create(): Polkurier\Webservice\Validator\ValidatorRegistry
 Polkurier\Webservice\Validator\NullValidator: class implements Polkurier\Webservice\Api\Validation\ValidatorInterface
 Polkurier\Webservice\Validator\NullValidator::validate(data: Polkurier\Webservice\Api\MessageInterface): void
+Polkurier\Webservice\Validator\RuleFailure: final readonly class
+Polkurier\Webservice\Validator\RuleFailure::$code: readonly Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum
+Polkurier\Webservice\Validator\RuleFailure::$message: readonly string
+Polkurier\Webservice\Validator\RuleFailure::$parameters: readonly array
+Polkurier\Webservice\Validator\RuleFailure::__construct(code: Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum, message: string, parameters: array = [])
 Polkurier\Webservice\Validator\ValidatorRegistry: class implements Polkurier\Webservice\Api\Validation\ValidatorInterface
 Polkurier\Webservice\Validator\ValidatorRegistry::register(messageClass: string, validator: Polkurier\Webservice\Api\Validation\ValidatorInterface): static
 Polkurier\Webservice\Validator\ValidatorRegistry::validate(data: Polkurier\Webservice\Api\MessageInterface): void
+Polkurier\Webservice\Validator\Violation: final readonly class
+Polkurier\Webservice\Validator\Violation::$code: readonly Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum
+Polkurier\Webservice\Validator\Violation::$message: readonly string
+Polkurier\Webservice\Validator\Violation::$parameters: readonly array
+Polkurier\Webservice\Validator\Violation::$path: readonly string
+Polkurier\Webservice\Validator\Violation::__construct(path: string, code: Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum, message: string, parameters: array = [])
 Polkurier\Webservice\Webhook\OrderReader: readonly class implements Polkurier\Webservice\Api\Webhook\OrderReaderInterface
 Polkurier\Webservice\Webhook\OrderReader::__construct(serializerConfig: ?Polkurier\Webservice\Api\SerializerConfigInterface = null)
 Polkurier\Webservice\Webhook\OrderReader::isAuthentic(body: string, secret: string): bool

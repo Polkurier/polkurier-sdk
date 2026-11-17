@@ -86,7 +86,7 @@ enum AdditionalServiceEnum: string
     case CheckContent = 'CHECK_CONTENT';
 
     /**
-     * The courier telephones the recipient before delivering.
+     * The courier calls the recipient before delivering.
      */
     case PhoneCallBeforeDelivery = 'PHONE_NOTIFICATION_RECIPIENT';
 
@@ -112,7 +112,7 @@ enum AdditionalServiceEnum: string
     case SaturdayDelivery = 'SATURDAY_DELIVERY';
 
     /**
-     * The courier telephones the sender before collecting.
+     * The courier calls the sender before collecting.
      */
     case PhoneCallBeforePickup = 'PHONE_NOTIFICATION_COLLECTION';
 

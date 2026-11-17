@@ -69,10 +69,32 @@ so you can fix the payload in one pass.
 ```php
 $e->getValidationErrors();            // array<string, string[]>: every field
 $e->getFieldErrors('sender.postcode'); // string[]: one field, empty if it passed
+$e->getViolations();                  // Violation[]: the same failures, with a code each
 ```
 
 Messages are written to follow a field name ("must not be empty", "must be greater than zero"),
 so `"$field $message"` reads as a sentence.
+
+**The wording is not contract; the code is.** A message is phrased to follow the field name and
+spells values out inside itself, so it cannot be matched on. Each
+[`Violation`](../src/Validator/Violation.php) carries a
+[`ValidationErrorCodeEnum`](../src/Enum/Validator/ValidationErrorCodeEnum.php) that does not
+change, and the values the sentence names, so an integration can word its own report:
+
+```php
+foreach ($e->getViolations() as $violation) {
+    $label = $this->translator->trans('polkurier.' . $violation->code->value, $violation->parameters);
+
+    $this->addFieldError($violation->path, $label ?? $violation->message);
+}
+```
+
+There is one code per condition, not per rule: a rule that rejects a value for several different
+reasons reports a different code for each, so
+[`Iban`](../src/Validator/Rule/Iban.php) distinguishes a wrong country from a wrong length from
+failed check digits. A rule written for one message and described by no general code reports
+[`ValidationErrorCodeEnum::Other`](../src/Enum/Validator/ValidationErrorCodeEnum.php), where
+the English is all there is; fall back to `$violation->message` for it.
 
 How the rules are attached
 --------------------------

@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * An order number: digits, a hyphen, digits, and nothing else (e.g. `12345-678`).
@@ -20,7 +22,7 @@ class OrderNumber implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -31,7 +33,7 @@ class OrderNumber implements ValueValidatorInterface
         }
 
         if (!\is_string($value) || \preg_match(self::PATTERN, $value) !== 1) {
-            return ['is not a valid order number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAnOrderNumber, 'is not a valid order number')];
         }
 
         return [];

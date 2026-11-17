@@ -15,7 +15,8 @@ namespace Polkurier\Webservice\Validator\Rule;
  * was required. So the same postcode rule works for a sender, a recipient, a payer address and a
  * city lookup.
  *
- * It returns what it found and the caller decides which field that belongs to.
+ * It returns what it found, as {@see \Polkurier\Webservice\Validator\RuleFailure}, and the
+ * caller decides which field that belongs to.
  * {@see \Polkurier\Webservice\Validator\ViolationPool::check()} handles the usual case.
  *
  * Rules that depend on more than one value go in a
@@ -26,8 +27,9 @@ interface ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[] reasons the value is invalid, worded to follow the field name. Empty if the
-     *                  value is fine
+     * @return \Polkurier\Webservice\Validator\RuleFailure[] reasons the value is invalid, each
+     *         with the code to match on and the English worded to follow the field name. Empty if
+     *         the value is fine
      */
     public function validate(mixed $value): array;
 }

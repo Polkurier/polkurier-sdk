@@ -8,9 +8,11 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
- * A telephone number.
+ * A phone number.
  *
  * Only the length is checked: at least 4 digits, not counting other characters. That is the
  * shortest national number E.164 allows, so no number the API accepts is refused here. A Polish
@@ -25,7 +27,7 @@ class PhoneNumber implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -36,16 +38,22 @@ class PhoneNumber implements ValueValidatorInterface
         }
 
         if (!\is_string($value)) {
-            return ['must be a telephone number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAPhoneNumber, 'must be a phone number')];
         }
 
         $digits = \preg_replace('/\D/', '', $value) ?? '';
 
         if ($digits === '') {
-            return ['must not be empty'];
+            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
         }
         if (\strlen($digits) < self::MIN_DIGITS) {
-            return ['is too short to be a telephone number'];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::PhoneNumberTooShort,
+                    'is too short to be a phone number',
+                    ['minimum' => self::MIN_DIGITS],
+                ),
+            ];
         }
 
         return [];

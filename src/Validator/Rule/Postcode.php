@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A postcode.
@@ -46,7 +48,7 @@ class Postcode implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -60,7 +62,13 @@ class Postcode implements ValueValidatorInterface
             return [];
         }
         if (!\is_string($value) || \preg_match(self::PATTERN, \trim($value)) !== 1) {
-            return ['must be a Polish postcode in the format NN-NNN'];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::NotAPostcode,
+                    'must be a Polish postcode in the format NN-NNN',
+                    ['country' => self::SERVED_COUNTRY],
+                ),
+            ];
         }
 
         return [];

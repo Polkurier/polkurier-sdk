@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Carries one of the account's PINs.
  *
- * {@see \Polkurier\Webservice\Dto\Request\Account\ChangePinMessage} carries the telephone PIN, {@see
+ * {@see \Polkurier\Webservice\Dto\Request\Account\ChangePinMessage} carries the phone PIN, {@see
  * \Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage} the security PIN, a different value.
  *
  * @api

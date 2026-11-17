@@ -113,7 +113,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
      * @param AccountSettingsMessage|null $settings
      * @param ExternalApplicationSettingMessage[]|null $externalApplicationSettings the settings of
      *        the external application the request named
-     * @param string $phonePin the telephone PIN, the code given when contacting support, empty if
+     * @param string $phonePin the phone PIN, the code given when contacting support, empty if
      *        none is set
      * @param string|null $defaultInpostSenderPoint the `INPOST_PACZKOMAT` entry of
      *        $defaultSenderPoint
@@ -333,7 +333,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
         public ?array $externalApplicationSettings = null,
 
         /**
-         * The telephone PIN, given when contacting support. Not the security PIN.
+         * The phone PIN, given when contacting support. Not the security PIN.
          *
          * @var string empty when none is set
          */

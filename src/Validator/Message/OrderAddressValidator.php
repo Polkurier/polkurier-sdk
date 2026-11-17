@@ -21,9 +21,9 @@ use Polkurier\Webservice\Validator\ViolationPool;
  * order's cover address is a sender address the carrier prints, so it is checked as one.
  *
  * A recipient collecting from a pickup point is another exception. Several carriers need only a
- * telephone number in that case, so an address that names a point is only checked for the phone.
+ * phone number in that case, so an address that names a point is only checked for the phone.
  *
- * Formats are not checked here. The telephone number and the postcode declare their own rules on
+ * Formats are not checked here. The phone number and the postcode declare their own rules on
  * the address. This class only decides which fields must be filled in.
  */
 class OrderAddressValidator

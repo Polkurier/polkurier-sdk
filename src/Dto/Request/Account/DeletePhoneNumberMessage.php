@@ -12,7 +12,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Removes a telephone number from the account.
+ * Removes a phone number from the account.
  *
  * The id picks the number; `number` is only checked for format. The default number can't be
  * removed.
@@ -32,7 +32,7 @@ final readonly class DeletePhoneNumberMessage implements MessageInterface
 
     /**
      * @param string $id identifier from getPhoneNumbers()
-     * @param string $number the telephone number, checked for format only
+     * @param string $number the phone number, checked for format only
      */
     public function __construct(
         /**

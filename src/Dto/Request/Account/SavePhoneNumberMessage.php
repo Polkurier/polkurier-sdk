@@ -16,7 +16,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * Adds a telephone number, with the confirmation making it the default requires.
+ * Adds a phone number, with the confirmation making it the default requires.
  *
  * Making the number the default requires a confirmed two-factor token registered under
  * CHANGE_DEFAULT_PHONE_NUMBER, and a Polish mobile number. Adding a non-default number needs no

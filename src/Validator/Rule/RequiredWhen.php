@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Validator\MessageFields;
 use Polkurier\Webservice\Validator\ViolationPool;
@@ -71,9 +72,18 @@ class RequiredWhen implements MessageRuleInterface
             return;
         }
 
+        $property = $fields->field($this->property);
+        $parameters = ['field' => $property, 'condition' => $this->condition()];
+        $value = $this->conditionValue();
+        if ($value !== null) {
+            $parameters['equals'] = $value;
+        }
+
         $violations->add(
             $fields->field($this->field),
-            $this->reason ?? $this->reason($fields->field($this->property)),
+            $this->reason ?? $this->reason($property),
+            ValidationErrorCodeEnum::Blank,
+            $parameters,
         );
     }
 
@@ -89,13 +99,51 @@ class RequiredWhen implements MessageRuleInterface
      */
     protected function reason(string $property): string
     {
-        return match (true) {
-            $this->equals === true => \sprintf('is required when %s is set', $property),
-            $this->equals === false => \sprintf('is required when %s is not set', $property),
-            $this->equals === null, $this->equals === [], $this->equals === '' =>
-                \sprintf('is required when %s is empty', $property),
-            \is_scalar($this->equals) => \sprintf('is required when %s is %s', $property, $this->equals),
-            default => \sprintf('is required when %s has that value', $property),
+        return match ($this->condition()) {
+            'set' => \sprintf('is required when %s is set', $property),
+            'not_set' => \sprintf('is required when %s is not set', $property),
+            'empty' => \sprintf('is required when %s is empty', $property),
+            default => $this->conditionValue() === null
+                ? \sprintf('is required when %s has that value', $property)
+                : \sprintf('is required when %s is %s', $property, $this->conditionValue()),
         };
+    }
+
+    /**
+     * Which kind of condition makes the field required, as the violation reports it.
+     *
+     * The wording above is built from this, so a report and a translation of it describe the same
+     * condition.
+     *
+     * @return string one of `set`, `not_set`, `empty` or `equals`
+     */
+    protected function condition(): string
+    {
+        return match (true) {
+            $this->equals === true => 'set',
+            $this->equals === false => 'not_set',
+            $this->equals === null, $this->equals === [], $this->equals === '' => 'empty',
+            default => 'equals',
+        };
+    }
+
+    /**
+     * The value the condition compares against, or null when it compares against no value.
+     *
+     * A backed enum is reported as its backing value, which is what the API carries and what a
+     * caller reading the payload sees.
+     *
+     * @return scalar|null
+     */
+    protected function conditionValue(): string|int|float|bool|null
+    {
+        if ($this->condition() !== 'equals') {
+            return null;
+        }
+        if ($this->equals instanceof \BackedEnum) {
+            return $this->equals->value;
+        }
+
+        return \is_scalar($this->equals) ? $this->equals : null;
     }
 }

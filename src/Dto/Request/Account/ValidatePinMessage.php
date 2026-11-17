@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Dto\Request\Account;
 /**
  * Checks a security PIN without changing anything.
  *
- * Use it to confirm a PIN before a PIN-locked operation. Not the telephone PIN.
+ * Use it to confirm a PIN before a PIN-locked operation. Not the phone PIN.
  *
  * @api
  */

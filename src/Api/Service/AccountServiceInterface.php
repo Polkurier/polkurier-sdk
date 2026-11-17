@@ -31,7 +31,7 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 
 /**
- * The account: profile, balances, preferences, credentials and telephone numbers.
+ * The account: profile, balances, preferences, credentials and phone numbers.
  *
  * Most integrations call getAccountInfo() first. Its flags say whether the account can place orders
  * and which operations take the security PIN instead of a two-factor code.
@@ -404,7 +404,7 @@ interface AccountServiceInterface
     public function changePassword(ChangePasswordMessage $changePasswordMessage): bool;
 
     /**
-     * Sets or changes the account's telephone PIN.
+     * Sets or changes the account's phone PIN.
      *
      * The code given when contacting support: 4 digits, no run of 3 consecutive (123, 321) or
      * identical (111) digits. Not the security PIN, which validateUserPin() checks.
@@ -448,7 +448,7 @@ interface AccountServiceInterface
      * Checks a security PIN without changing anything.
      *
      * The security PIN unlocks PIN-locked operations such as editing bank accounts. Not the
-     * telephone PIN. `get_system_info` reports its length under `security`.
+     * phone PIN. `get_system_info` reports its length under `security`.
      *
      * A wrong PIN does not cause an error. The response is a success envelope with `valid` set to
      * false, as it is for an account without a security PIN.
@@ -579,7 +579,7 @@ interface AccountServiceInterface
     public function acceptRegulations(AcceptRegulationsMessage $acceptRegulationsMessage): bool;
 
     /**
-     * Lists the account's telephone numbers.
+     * Lists the account's phone numbers.
      *
      * At most one number is the default. Two-factor codes sent by text message go to it.
      *
@@ -616,7 +616,7 @@ interface AccountServiceInterface
     public function getPhoneNumbers(): array;
 
     /**
-     * Adds a telephone number, optionally making it the account's default.
+     * Adds a phone number, optionally making it the account's default.
      *
      * The SDK checks before sending that the number has at least 9 digits. A malformed number is
      * rejected with an error on the `number` field.
@@ -685,7 +685,7 @@ interface AccountServiceInterface
     ): PhoneNumber;
 
     /**
-     * Removes a telephone number from the account.
+     * Removes a phone number from the account.
      *
      * The id picks the number; `number` is required but only checked for format, by the SDK too. An
      * unknown id removes nothing and succeeds.

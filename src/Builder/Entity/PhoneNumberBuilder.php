@@ -12,7 +12,7 @@ use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 
 /**
- * Assembles a telephone number being added to the account.
+ * Assembles a phone number being added to the account.
  *
  * @api
  */

@@ -57,7 +57,9 @@ final class PublicContractTest extends TestCase
         'Validator\\AttributeValidator',
         'Validator\\DefaultValidatorRegistryFactory',
         'Validator\\NullValidator',
+        'Validator\\RuleFailure',
         'Validator\\ValidatorRegistry',
+        'Validator\\Violation',
     ];
 
     /**

@@ -25,7 +25,7 @@ use Polkurier\Webservice\Exception\WebserviceException;
  *
  * Register a token for the operation, have the user enter the code sent to them, and verify it.
  * Then repeat the original call with the token and code. Operations that need it include
- * registering or changing a bank account and making a telephone number the default.
+ * registering or changing a bank account and making a phone number the default.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:

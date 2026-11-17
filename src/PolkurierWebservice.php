@@ -203,7 +203,7 @@ final class PolkurierWebservice
     }
 
     /**
-     * The account itself: profile, balances, preferences, credentials and telephone numbers.
+     * The account itself: profile, balances, preferences, credentials and phone numbers.
      *
      * @return AccountServiceInterface
      */

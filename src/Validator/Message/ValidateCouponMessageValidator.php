@@ -47,6 +47,8 @@ class ValidateCouponMessageValidator extends AbstractMessageValidator
 
         foreach ($supplied as $field => $given) {
             if (!$given) {
+                // The three are required together, so no single field is the one that made this
+                // one required. Naming an arbitrary one of the other two would say otherwise.
                 $violations->add($field, 'is required when checking a coupon against an order');
             }
         }

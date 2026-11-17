@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A list with at least one non-blank entry.
@@ -21,7 +23,7 @@ class NotEmptyList implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -32,7 +34,7 @@ class NotEmptyList implements ValueValidatorInterface
         }
 
         if (!\is_array($value)) {
-            return ['must be a list'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAList, 'must be a list')];
         }
 
         $usable = \array_filter(
@@ -40,6 +42,8 @@ class NotEmptyList implements ValueValidatorInterface
             static fn(mixed $item): bool => $item !== null && $item !== '' && $item !== [],
         );
 
-        return $usable === [] ? ['must contain at least one entry'] : [];
+        return $usable === []
+            ? [new RuleFailure(ValidationErrorCodeEnum::EmptyList, 'must contain at least one entry')]
+            : [];
     }
 }

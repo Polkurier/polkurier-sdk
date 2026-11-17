@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A number that may be zero but not below it.
@@ -22,7 +24,7 @@ class NonNegative implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -30,10 +32,16 @@ class NonNegative implements ValueValidatorInterface
             return [];
         }
         if (!\is_int($value) && !\is_float($value)) {
-            return ['must be a number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotANumber, 'must be a number')];
         }
         if ($value < 0) {
-            return ['must not be negative'];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::OutOfRange,
+                    'must not be negative',
+                    ['minimum' => 0],
+                ),
+            ];
         }
 
         return [];

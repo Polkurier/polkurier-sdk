@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * change_phone_pin — set the telephone PIN.
+ * change_phone_pin — set the phone PIN.
  *
  * The code given when contacting support: 4 digits. Not the security PIN.
  */
@@ -17,7 +17,7 @@ use Polkurier\Webservice\Exception\Exception;
 require __DIR__ . '/bootstrap.php';
 
 if (!hasFlag('--confirm')) {
-    echo "This example changes the real telephone PIN. Re-run with --confirm to do it for real.\n";
+    echo "This example changes the real phone PIN. Re-run with --confirm to do it for real.\n";
     exit(0);
 }
 

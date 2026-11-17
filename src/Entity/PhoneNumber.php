@@ -15,7 +15,7 @@ use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
- * One telephone number on the account.
+ * One phone number on the account.
  *
  * Removed numbers are not listed. At most one number is the default. Two-factor codes sent by text
  * message go to it. Formatting such as spaces or dashes does not matter when adding a number. An

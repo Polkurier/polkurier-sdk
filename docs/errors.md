@@ -71,6 +71,7 @@ The payload was rejected locally. **Nothing was sent and nothing changed.**
 ```php
 $e->getValidationErrors();              // array<string, string[]>, keyed by wire field name
 $e->getFieldErrors('sender.postcode');  // string[], empty when that field passed
+$e->getViolations();                    // Violation[], each with a code that does not change
 $e->getMessage();                       // every failure, flattened into one sentence
 ```
 
