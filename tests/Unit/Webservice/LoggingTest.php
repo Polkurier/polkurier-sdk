@@ -14,8 +14,10 @@ use Polkurier\Webservice\Config;
 use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
+use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
@@ -78,6 +80,68 @@ final class LoggingTest extends TestCase
         self::assertSame(LogLevel::ERROR, $this->logger->records[0]['level']);
     }
 
+    /**
+     * The exception's own message quotes the body it could not read, unredacted. The log message
+     * carries the body prepared the way every other logged body is, so personal data in a body
+     * that is JSON but not an envelope is hidden key by key.
+     *
+     * @return void
+     */
+    public function testAResponseThatCannotBeReadIsLoggedThroughTheSanitizerRatherThanTheException(): void
+    {
+        $this->client->willAnswerWith('[{"person":"Jan Kowalski","email":"jan@example.com"}]');
+
+        try {
+            $this->sdk()->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        $message = $this->logger->records[0]['message'];
+        self::assertStringNotContainsString('Jan Kowalski', $message);
+        self::assertStringNotContainsString('jan@example.com', $message);
+        self::assertStringContainsString('[{"person":"***","email":"***"}]', $message);
+    }
+
+    /**
+     * The exception carries the response it was raised for and a message quoting its body, neither
+     * of which goes through the sanitizer, so the context names its class instead.
+     *
+     * @return void
+     */
+    public function testAMalformedResponsesExceptionIsNamedInTheContextAndCarriedOnlyWhenAllowed(): void
+    {
+        $this->client->willAnswerWith('<html>Bad gateway</html>');
+
+        try {
+            $this->sdk()->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        self::assertSame(MalformedResponseException::class, $this->logger->records[0]['context']['exception']);
+
+        $this->client->willAnswerWith('<html>Bad gateway</html>');
+
+        try {
+            $this->sdk(logSensitiveData: true, logPersonalData: true)->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        self::assertInstanceOf(
+            MalformedResponseException::class,
+            $this->logger->records[1]['context']['exception'],
+        );
+    }
+
+    /**
+     * A value the SDK's enum doesn't list arrived under a field the API chose the values of, so
+     * the warning names where it is and what type it came as, and the value itself only where a
+     * body's would be shown.
+     *
+     * @return void
+     */
     public function testAnUnknownEnumValueIsLoggedAsAWarningAndTheCallSucceeds(): void
     {
         $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
@@ -88,8 +152,14 @@ final class LoggingTest extends TestCase
         self::assertNull($addresses[0]->getType());
         self::assertCount(1, $this->logger->records);
         self::assertSame(LogLevel::WARNING, $this->logger->records[0]['level']);
-        self::assertStringContainsString('"SOMETHING_NEW"', $this->logger->records[0]['message']);
+        self::assertStringNotContainsString('SOMETHING_NEW', $this->logger->records[0]['message']);
         self::assertStringContainsString('[0].type', $this->logger->records[0]['message']);
+
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
+
+        $this->sdk(logSensitiveData: true, logPersonalData: true)->addresses()->getAddresses();
+
+        self::assertStringContainsString('"SOMETHING_NEW"', $this->logger->records[1]['message']);
     }
 
     public function testAnUnknownFieldIsLoggedAsAWarningAndTheCallSucceeds(): void
@@ -187,6 +257,10 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('"token":"***"', $this->logger->records[0]['message']);
         self::assertStringContainsString('"login":"20534"', $this->logger->records[0]['message']);
         self::assertArrayNotHasKey('payload', $this->logger->records[0]['context']);
+        self::assertIsString(
+            $this->logger->records[0]['context']['client_exception'],
+            'the exception object is named rather than carried',
+        );
         $request = $this->logger->records[0]['context']['request'] ?? null;
         self::assertInstanceOf(RequestInterface::class, $request);
         self::assertStringNotContainsString('test-token', (string)$request->getBody());
@@ -244,6 +318,7 @@ final class LoggingTest extends TestCase
         }
 
         self::assertArrayHasKey('payload', $this->logger->records[0]['context']);
+        self::assertInstanceOf(\Throwable::class, $this->logger->records[0]['context']['client_exception']);
     }
 
     public function testPersonalDataIsHiddenByDefaultAndLoggedWhenAllowed(): void
@@ -266,6 +341,39 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('"number":"***"', $hidden);
         self::assertStringContainsString('"login":"20534"', $hidden);
         self::assertStringContainsString('61109010140000071219812874', $shown);
+    }
+
+    /**
+     * `id` is the token itself on a two-factor response and the record's id on a bank account row.
+     * The same key is hidden in one log entry and kept in the other, decided by the class the body
+     * was read into.
+     *
+     * @return void
+     */
+    public function testTheIdOfATwoFactorTokenIsHiddenWhileABankAccountsIdIsLogged(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"id":"DT-20534-8f3a",'
+            . '"phone_number":"500600700","operation_title":"Zmiana numeru konta","operation_number":9,'
+            . '"operation_date":null,"sent_at":null,"expires_at":null,"transport_method":null,'
+            . '"available_methods":[]}}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::TwoFactorTokenRegister])
+            ->twoFactorToken()
+            ->twoFactorTokenRegister(new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber));
+
+        $token = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        $this->logger->records = [];
+        $this->client->willAnswerWith('{"status":"success","response":[{"id":"7",'
+            . '"number":"61109010140000071219812874","name":"Firmowe","default":true}]}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts])->bankAccounts()->getBankAccounts();
+
+        $account = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        self::assertStringNotContainsString('DT-20534-8f3a', $token);
+        self::assertStringContainsString('"id":"***"', $token);
+        self::assertStringContainsString('"id":"7"', $account);
     }
 
     public function testAFileIsLeftOutOfTheLogByDefault(): void

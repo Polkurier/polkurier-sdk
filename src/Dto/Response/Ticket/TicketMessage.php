@@ -11,6 +11,7 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Ticket\TicketStatusEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -112,6 +113,7 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_EMPLOYEE_NAME)]
+        #[PersonalData]
         public string $employeeName = '',
 
         /**

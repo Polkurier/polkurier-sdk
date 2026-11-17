@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Request\BankAccount;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Entity\BankAccount;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -30,12 +31,8 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
     /**+@#
      * JSON parameter keys
      */
-    public const string FIELD_BANK_ACCOUNT = 'bank_account';
     public const string FIELD_ACCESS_PIN = 'access_pin';
     /**-@#*/
-
-    // `bank_account` names a field marked #[InlineFields], whose entries are written at this
-    // level, so the key itself never reaches the payload.
 
     /**
      * @param BankAccount $bankAccount the account to save. Its fields are sent at the top level
@@ -47,9 +44,7 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
         /**
          * @var BankAccount
          */
-        #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT)]
         #[InlineFields]
-        #[Validate\Valid]
         public BankAccount $bankAccount,
 
         /**
@@ -57,6 +52,7 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $twoFactorToken = null,
 
         /**
@@ -64,6 +60,7 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $twoFactorCode = null,
 
         /**
@@ -71,6 +68,7 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_PIN)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $accessPin = null,
     ) {}
 }

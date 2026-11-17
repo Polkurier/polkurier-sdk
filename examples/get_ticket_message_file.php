@@ -26,7 +26,7 @@ try {
         new GetTicketMessageFileMessage(messageId: $messageId, filename: $filename)
     );
 
-    $path = \sys_get_temp_dir() . '/' . $file->name;
+    $path = \sys_get_temp_dir() . '/' . \basename($file->name);
     \file_put_contents($path, $file->file);
 
     \printf("Saved %s (%s, %d bytes)\n", $path, $file->type, $file->size);

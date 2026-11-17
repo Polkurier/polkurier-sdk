@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -31,7 +33,6 @@ final readonly class SaveContactFormMessage implements MessageInterface
     public const string FIELD_CATEGORY = 'category';
     public const string FIELD_FORM_ID = 'form_id';
     public const string FIELD_NONCE = 'nonce';
-    public const string FIELD_FIELDS = 'fields';
     /**-@#*/
 
     /**
@@ -61,13 +62,14 @@ final readonly class SaveContactFormMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[Validate\NotBlank]
+        #[Sensitive]
         public string $nonce,
 
         /**
          * @var array<string, scalar|list<\Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage>>
          */
-        #[Serializer\SerializedName(self::FIELD_FIELDS)]
         #[InlineFields]
+        #[PersonalData]
         public array $fields = [],
     ) {}
 }

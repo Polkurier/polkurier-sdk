@@ -449,7 +449,6 @@ Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage: final readonly 
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$phoneNumber: readonly Polkurier\Webservice\Entity\PhoneNumber
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$twoFactorCode: readonly ?string
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::$twoFactorToken: readonly ?string
-Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::FIELD_PHONE_NUMBER = 'phone_number'
 Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage::__construct(phoneNumber: Polkurier\Webservice\Entity\PhoneNumber, twoFactorToken: ?string = null, twoFactorCode: ?string = null)
 Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage: final readonly class extends Polkurier\Webservice\Dto\Request\Account\PinMessage implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Address\DeleteMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
@@ -476,7 +475,6 @@ Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$bankAccoun
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$twoFactorCode: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::$twoFactorToken: readonly ?string
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_ACCESS_PIN = 'access_pin'
-Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::FIELD_BANK_ACCOUNT = 'bank_account'
 Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage::__construct(bankAccount: Polkurier\Webservice\Entity\BankAccount, twoFactorToken: ?string = null, twoFactorCode: ?string = null, accessPin: ?string = null)
 Polkurier\Webservice\Dto\Request\Common\DeleteMessage: final readonly class extends Polkurier\Webservice\Dto\Request\Common\IdMessage implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Common\IdMessage: readonly abstract class implements Polkurier\Webservice\Api\MessageInterface
@@ -506,7 +504,6 @@ Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::$fields: readon
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::$formId: readonly string
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::$nonce: readonly string
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::FIELD_CATEGORY = 'category'
-Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::FIELD_FIELDS = 'fields'
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::FIELD_FORM_ID = 'form_id'
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::FIELD_NONCE = 'nonce'
 Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage::__construct(category: string, formId: string, nonce: string, fields: array = [])
@@ -622,7 +619,6 @@ Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage: final readonly class 
 Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage::$couponCode: readonly ?string
 Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage::$order: readonly Polkurier\Webservice\Entity\Order
 Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage::FIELD_COUPON_CODE = 'coupon_code'
-Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage::FIELD_ORDER = 'order'
 Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage::__construct(order: Polkurier\Webservice\Entity\Order, couponCode: ?string = null)
 Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage::$fileFormat: readonly ?Polkurier\Webservice\Enum\Order\LabelFileFormatEnum
@@ -696,7 +692,6 @@ Polkurier\Webservice\Dto\Request\Order\OrderIdMessage::__construct(orderNo: stri
 Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage::$courier: readonly string
 Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage::$order: readonly Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage
-Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage::FIELD_ORDER = 'order'
 Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage::FIELD_RETURN_VALUATIONS = 'returnvaluations'
 Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage::__construct(order: Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage, courier: string)
 Polkurier\Webservice\Dto\Request\Payment\GetPaymentInfoMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
@@ -1251,7 +1246,7 @@ Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage::$time: readonly arr
 Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage::FIELD_PICKUP_DATE = 'pickupdate'
 Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage::FIELD_TIME = 'time'
 Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage::__construct(pickupDate: ?DateTimeInterface, time: array = [])
-Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage: final readonly class
+Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage: final readonly class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage::$timeFrom: readonly ?DateTimeInterface
 Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage::$timeTo: readonly ?DateTimeInterface
 Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage::FIELD_TIME_FROM = 'timefrom'
@@ -1924,9 +1919,8 @@ Polkurier\Webservice\Entity\Address::FIELD_POSTCODE = 'postcode'
 Polkurier\Webservice\Entity\Address::FIELD_PROVINCE = 'province'
 Polkurier\Webservice\Entity\Address::FIELD_SHARED = 'shared'
 Polkurier\Webservice\Entity\Address::FIELD_STREET = 'street'
-Polkurier\Webservice\Entity\Address::FIELD_STREET_NAME = 'streetname'
 Polkurier\Webservice\Entity\Address::FIELD_TYPE = 'type'
-Polkurier\Webservice\Entity\Address::__construct(name: string, person: string, street: string, houseNumber: ?string, postcode: string, city: string, email: ?string, phone: ?string, id: ?string = null, type: ?Polkurier\Webservice\Enum\Address\AddressTypeEnum = self::DEFAULT_TYPE, company: ?string = null, flatNumber: ?string = null, province: ?string = null, country: string = self::DEFAULT_COUNTRY, pointId: ?string = null, default: bool = false, coverAddress: bool = false, shared: bool = false, streetName: ?string = null, point: ?Polkurier\Webservice\Dto\Response\CourierPoint = null, rawResponse: ?string = null)
+Polkurier\Webservice\Entity\Address::__construct(name: string, person: string, street: string, houseNumber: ?string, postcode: string, city: string, email: ?string, phone: ?string, id: ?string = null, type: ?Polkurier\Webservice\Enum\Address\AddressTypeEnum = self::DEFAULT_TYPE, company: ?string = null, flatNumber: ?string = null, province: ?string = null, country: string = self::DEFAULT_COUNTRY, pointId: ?string = null, default: bool = false, coverAddress: bool = false, shared: bool = false, point: ?Polkurier\Webservice\Dto\Response\CourierPoint = null, rawResponse: ?string = null)
 Polkurier\Webservice\Entity\Address::getCity(): string
 Polkurier\Webservice\Entity\Address::getCompany(): ?string
 Polkurier\Webservice\Entity\Address::getCountry(): string
@@ -1943,7 +1937,6 @@ Polkurier\Webservice\Entity\Address::getPostcode(): string
 Polkurier\Webservice\Entity\Address::getProvince(): ?string
 Polkurier\Webservice\Entity\Address::getRawResponse(): ?string
 Polkurier\Webservice\Entity\Address::getStreet(): string
-Polkurier\Webservice\Entity\Address::getStreetName(): ?string
 Polkurier\Webservice\Entity\Address::getType(): ?Polkurier\Webservice\Enum\Address\AddressTypeEnum
 Polkurier\Webservice\Entity\Address::isCoverAddress(): bool
 Polkurier\Webservice\Entity\Address::isDefault(): bool
@@ -1960,13 +1953,10 @@ Polkurier\Webservice\Entity\Address::setId(id: ?string): static
 Polkurier\Webservice\Entity\Address::setName(name: string): static
 Polkurier\Webservice\Entity\Address::setPerson(person: string): static
 Polkurier\Webservice\Entity\Address::setPhone(phone: ?string): static
-Polkurier\Webservice\Entity\Address::setPoint(point: ?Polkurier\Webservice\Dto\Response\CourierPoint): static
 Polkurier\Webservice\Entity\Address::setPointId(pointId: ?string): static
 Polkurier\Webservice\Entity\Address::setPostcode(postcode: string): static
 Polkurier\Webservice\Entity\Address::setProvince(province: ?string): static
-Polkurier\Webservice\Entity\Address::setShared(shared: bool): static
 Polkurier\Webservice\Entity\Address::setStreet(street: string): static
-Polkurier\Webservice\Entity\Address::setStreetName(streetName: ?string): static
 Polkurier\Webservice\Entity\Address::setType(type: ?Polkurier\Webservice\Enum\Address\AddressTypeEnum): static
 Polkurier\Webservice\Entity\BankAccount: class implements Polkurier\Webservice\Api\MessageInterface, Polkurier\Webservice\Api\ParsedResponseInterface
 Polkurier\Webservice\Entity\BankAccount::FIELD_DEFAULT = 'default'
@@ -2066,41 +2056,18 @@ Polkurier\Webservice\Entity\Order::isPaid(): bool
 Polkurier\Webservice\Entity\Order::setAdditionalFields(additionalFields: ?array): static
 Polkurier\Webservice\Entity\Order::setCod(cod: ?Polkurier\Webservice\Entity\Order\Cod): static
 Polkurier\Webservice\Entity\Order::setCourier(courier: string): static
-Polkurier\Webservice\Entity\Order::setCourierName(courierName: ?string): static
 Polkurier\Webservice\Entity\Order::setCourierService(courierService: array): static
-Polkurier\Webservice\Entity\Order::setCourierServiceNames(courierServiceNames: ?array): static
 Polkurier\Webservice\Entity\Order::setCoverAddress(coverAddress: ?Polkurier\Webservice\Entity\Order\Address): static
-Polkurier\Webservice\Entity\Order::setDate(date: ?DateTimeInterface): static
-Polkurier\Webservice\Entity\Order::setDeliveredDate(deliveredDate: ?DateTimeInterface): static
 Polkurier\Webservice\Entity\Order::setDescription(description: ?string): static
 Polkurier\Webservice\Entity\Order::setExternalApplicationId(externalApplicationId: ?string): static
 Polkurier\Webservice\Entity\Order::setExternalOrderId(externalOrderId: ?string): static
 Polkurier\Webservice\Entity\Order::setExternalOrderNumber(externalOrderNumber: ?string): static
-Polkurier\Webservice\Entity\Order::setFiles(files: ?array): static
-Polkurier\Webservice\Entity\Order::setIndividualPricing(individualPricing: ?Polkurier\Webservice\Dto\Response\Order\IndividualPricing): static
 Polkurier\Webservice\Entity\Order::setInsurance(insurance: ?float): static
-Polkurier\Webservice\Entity\Order::setInvoice(invoice: bool): static
-Polkurier\Webservice\Entity\Order::setItems(items: array): static
-Polkurier\Webservice\Entity\Order::setLabel(label: ?array): static
-Polkurier\Webservice\Entity\Order::setNumber(number: ?string): static
 Polkurier\Webservice\Entity\Order::setPacks(packs: array): static
-Polkurier\Webservice\Entity\Order::setPaid(paid: bool): static
 Polkurier\Webservice\Entity\Order::setPickup(pickup: ?Polkurier\Webservice\Entity\Order\Pickup): static
-Polkurier\Webservice\Entity\Order::setPriceGross(priceGross: ?float): static
-Polkurier\Webservice\Entity\Order::setPriceNet(priceNet: ?float): static
-Polkurier\Webservice\Entity\Order::setRebateGross(rebateGross: ?float): static
-Polkurier\Webservice\Entity\Order::setRebateNet(rebateNet: ?float): static
 Polkurier\Webservice\Entity\Order::setRecipient(recipient: ?Polkurier\Webservice\Entity\Order\Address): static
 Polkurier\Webservice\Entity\Order::setSender(sender: ?Polkurier\Webservice\Entity\Order\Address): static
-Polkurier\Webservice\Entity\Order::setShipmentCode(shipmentCode: ?string): static
 Polkurier\Webservice\Entity\Order::setShipmentType(shipmentType: ?Polkurier\Webservice\Enum\Order\ShipmentTypeEnum): static
-Polkurier\Webservice\Entity\Order::setStatus(status: ?string): static
-Polkurier\Webservice\Entity\Order::setStatusCode(statusCode: ?string): static
-Polkurier\Webservice\Entity\Order::setStatusDate(statusDate: ?DateTimeInterface): static
-Polkurier\Webservice\Entity\Order::setTrackingUri(trackingUri: ?string): static
-Polkurier\Webservice\Entity\Order::setUnpaidAmount(unpaidAmount: ?float): static
-Polkurier\Webservice\Entity\Order::setVatRate(vatRate: ?float): static
-Polkurier\Webservice\Entity\Order::setWaybills(waybills: array): static
 Polkurier\Webservice\Entity\Order\Address: class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Entity\Order\Address::DEFAULT_COUNTRY = 'PL'
 Polkurier\Webservice\Entity\Order\Address::FIELD_CITY = 'city'
@@ -2141,15 +2108,11 @@ Polkurier\Webservice\Entity\Order\Address::setCountry(country: string): static
 Polkurier\Webservice\Entity\Order\Address::setEmail(email: ?string): static
 Polkurier\Webservice\Entity\Order\Address::setFlatNumber(flatNumber: ?string): static
 Polkurier\Webservice\Entity\Order\Address::setHouseNumber(houseNumber: ?string): static
-Polkurier\Webservice\Entity\Order\Address::setMachineName(machineName: ?string): static
 Polkurier\Webservice\Entity\Order\Address::setPerson(person: string): static
 Polkurier\Webservice\Entity\Order\Address::setPhone(phone: ?string): static
-Polkurier\Webservice\Entity\Order\Address::setPoint(point: ?Polkurier\Webservice\Dto\Response\CourierPoint): static
 Polkurier\Webservice\Entity\Order\Address::setPointId(pointId: ?string): static
 Polkurier\Webservice\Entity\Order\Address::setPostcode(postcode: string): static
-Polkurier\Webservice\Entity\Order\Address::setProvince(province: ?string): static
 Polkurier\Webservice\Entity\Order\Address::setStreet(street: string): static
-Polkurier\Webservice\Entity\Order\Address::setStreetName(streetName: ?string): static
 Polkurier\Webservice\Entity\Order\Cod: class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Entity\Order\Cod::FIELD_AMOUNT = 'codamount'
 Polkurier\Webservice\Entity\Order\Cod::FIELD_BANK_ACCOUNT = 'codbankaccount'
@@ -2166,9 +2129,7 @@ Polkurier\Webservice\Entity\Order\Cod::getStatus(): ?Polkurier\Webservice\Enum\O
 Polkurier\Webservice\Entity\Order\Cod::getType(): ?Polkurier\Webservice\Enum\Order\CodTypeEnum
 Polkurier\Webservice\Entity\Order\Cod::setAmount(amount: float): static
 Polkurier\Webservice\Entity\Order\Cod::setBankAccount(bankAccount: string): static
-Polkurier\Webservice\Entity\Order\Cod::setReturnDetails(returnDetails: array): static
 Polkurier\Webservice\Entity\Order\Cod::setReturnType(returnType: ?Polkurier\Webservice\Enum\Order\CodReturnTypeEnum): static
-Polkurier\Webservice\Entity\Order\Cod::setStatus(status: ?Polkurier\Webservice\Enum\Order\CodStatusEnum): static
 Polkurier\Webservice\Entity\Order\Cod::setType(type: ?Polkurier\Webservice\Enum\Order\CodTypeEnum): static
 Polkurier\Webservice\Entity\Order\PackItem: class extends Polkurier\Webservice\Entity\Pack implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Entity\Order\PackItem::FIELD_AMOUNT = 'amount'
@@ -2179,8 +2140,6 @@ Polkurier\Webservice\Entity\Order\PackItem::getAmount(): int
 Polkurier\Webservice\Entity\Order\PackItem::getPriceGross(): ?float
 Polkurier\Webservice\Entity\Order\PackItem::getPriceNet(): ?float
 Polkurier\Webservice\Entity\Order\PackItem::setAmount(amount: int): static
-Polkurier\Webservice\Entity\Order\PackItem::setPriceGross(priceGross: ?float): static
-Polkurier\Webservice\Entity\Order\PackItem::setPriceNet(priceNet: ?float): static
 Polkurier\Webservice\Entity\Order\Pickup: class implements Polkurier\Webservice\Api\MessageInterface
 Polkurier\Webservice\Entity\Order\Pickup::FIELD_MULTI_PICKUP = 'multiPickup'
 Polkurier\Webservice\Entity\Order\Pickup::FIELD_NO_COURIER_ORDER = 'nocourierorder'
@@ -2198,7 +2157,6 @@ Polkurier\Webservice\Entity\Order\Pickup::isNoCourierOrder(): bool
 Polkurier\Webservice\Entity\Order\Pickup::setMultiPickup(multiPickup: bool): static
 Polkurier\Webservice\Entity\Order\Pickup::setNoCourierOrder(noCourierOrder: bool): static
 Polkurier\Webservice\Entity\Order\Pickup::setPickupDate(pickupDate: ?DateTimeInterface): static
-Polkurier\Webservice\Entity\Order\Pickup::setPickupNumber(pickupNumber: ?string): static
 Polkurier\Webservice\Entity\Order\Pickup::setPickupTimeFrom(pickupTimeFrom: ?DateTimeInterface): static
 Polkurier\Webservice\Entity\Order\Pickup::setPickupTimeTo(pickupTimeTo: ?DateTimeInterface): static
 Polkurier\Webservice\Entity\Pack: abstract class implements Polkurier\Webservice\Api\MessageInterface
@@ -2257,7 +2215,6 @@ Polkurier\Webservice\Entity\PhoneNumber::getNumber(): string
 Polkurier\Webservice\Entity\PhoneNumber::getRawResponse(): ?string
 Polkurier\Webservice\Entity\PhoneNumber::isDefault(): bool
 Polkurier\Webservice\Entity\PhoneNumber::setDefault(default: bool): static
-Polkurier\Webservice\Entity\PhoneNumber::setId(id: string): static
 Polkurier\Webservice\Entity\PhoneNumber::setName(name: string): static
 Polkurier\Webservice\Entity\PhoneNumber::setNumber(number: string): static
 Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum: enum implements BackedEnum, UnitEnum

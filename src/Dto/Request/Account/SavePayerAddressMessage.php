@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Request\Account;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Enum\Account\PayerUserTypeEnum;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -96,6 +97,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $name = '',
 
         /**
@@ -103,6 +105,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $street = '',
 
         /**
@@ -110,6 +113,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_BUILDING_NUMBER)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $buildingNumber = '',
 
         /**
@@ -117,6 +121,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_POST_CODE)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $postCode = '',
 
         /**
@@ -124,6 +129,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $city = '',
 
         /**
@@ -145,6 +151,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NIP)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $nip = '',
 
         /**
@@ -152,6 +159,7 @@ final readonly class SavePayerAddressMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_REGON)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public string $regon = '',
     ) {}
 }

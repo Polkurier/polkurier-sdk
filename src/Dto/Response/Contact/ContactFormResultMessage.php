@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -73,6 +74,7 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public string $nonce = '',
 
         /**

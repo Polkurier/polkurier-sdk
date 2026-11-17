@@ -126,7 +126,6 @@ readonly class WiringOuterMessage implements MessageInterface
      * @param WiringInnerMessage $inner
      */
     public function __construct(
-        #[Validate\Valid]
         public WiringInnerMessage $inner,
     ) {}
 }

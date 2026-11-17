@@ -128,21 +128,49 @@ message.
 Requests and responses carry things that don't belong in a log by default. Before anything is
 logged, the SDK prepares each body:
 
-- **Secrets** are hidden: the API token, which is in every authenticated request, and passwords,
-  PINs, two-factor codes and access tokens. The fields are [`SensitiveDataRedactor::FIELDS`](../src/Log/SensitiveDataRedactor.php), and
-  any key named `pin` or ending in `_pin`.
+- **Secrets** are hidden: the API token, which is in every authenticated request, passwords, PINs,
+  two-factor codes and tokens, access tokens, and a contact form's `nonce`. Each such field carries
+  [`#[Sensitive]`](../src/Log/Attribute/Sensitive.php). A key named `pin` or ending in `_pin` is
+  hidden as well, whatever class it came from.
 - **Personal data** is hidden: names, street addresses, email addresses, phone numbers, tax and
-  company registration numbers, and bank account numbers. The fields are
-  [`PersonalDataRedactor::FIELDS`](../src/Log/PersonalDataRedactor.php), plus a few generic keys that only hold personal data in some methods,
-  such as a bank account's `number` ([`PersonalDataRedactor::METHOD_FIELDS`](../src/Log/PersonalDataRedactor.php)).
+  company registration numbers, and bank account numbers. Each such field carries
+  [`#[PersonalData]`](../src/Log/Attribute/PersonalData.php).
 - **Files**, such as labels, protocols, invoices and attachments, are taken out. Each one is
   replaced with a note of its size, e.g. `[file left out of the log: 48213 bytes]`.
 
-Hidden values are replaced with `***`. The login is kept, since it identifies the account without
-giving access to it. In the context, `request` and `response` are copies prepared the same way.
+Hidden values are replaced with `***`. The marks sit on the property, so what a key means is
+decided by the class that declares it: `id` is the two-factor token on
+[`Dto\Response\TwoFactorToken`](../src/Dto/Response/TwoFactorToken.php) and an ordinary record id
+everywhere else, `number` is a bank account on [`Entity\BankAccount`](../src/Entity/BankAccount.php)
+and an order number elsewhere.
+
+**A field no class marks is logged**: the marks say what the SDK hides, not what it may show. A
+contact form's answers are named by the form definition, so there is no property to mark and they
+reach the log as they arrived. [`Entity\Order::$additionalFields`](../src/Entity/Order.php) is
+unmarked on purpose, so a carrier's additional fields are logged, keys and values. So is the login,
+which identifies the account without giving access to it.
+
+A field a subclass of yours adds ([Serialization](serialization.md#fields-a-subclass-of-yours-adds))
+is logged with the rest of the body. A mark on it is read where the SDK is told the payload is that
+class, which is the message you pass to a service method; a record nested inside one is read as the
+type the SDK declares, so a mark a subclass of [`Entity\Order`](../src/Entity/Order.php) or
+[`Entity\Order\Address`](../src/Entity/Order/Address.php) adds is not read.
+
+A body that is not an API envelope, such as a gateway's error page or a truncated reply, has no
+keys to hide anything by and is what a failed call is diagnosed from, so it goes in whole,
+shortened to [`LogSanitizer::EXCERPT_LENGTH`](../src/Log/LogSanitizer.php) characters.
+
+In the context, `request` and `response` are copies prepared the same way.
 `payload` and `parsed_response` are objects that can't be prepared, so they are left out unless
 both secrets and personal data may be logged. Their contents are in the request and response
-bodies either way.
+bodies either way. An exception under `exception` or `client_exception` is replaced by its class
+name under the same condition: it carries the response it was raised for, and its own message
+quotes the body it could not read, neither of which goes through the preparation.
+
+A drift warning falls under that condition too: the value that differed arrived under a field the
+SDK doesn't know, or under one whose type it didn't match, so it cannot be hidden key by key.
+Without both options the context leaves the value out and no message quotes it; with both, the
+context carries the value and the message quotes it when it is a string.
 
 Each of these can be turned off separately when you need it, e.g. to reproduce a call exactly:
 
@@ -178,9 +206,9 @@ foreach (new DirectoryIterator($directory) as $file) {
 ```
 
 Such logs and files are as sensitive as what's in them. A label, for example, shows the recipient's
-name and address even with `logPersonalData` off. Exceptions in the context (`exception`,
-`client_exception`) are never altered, and some of them hold the full request or response, so a
-logger that serializes exceptions in depth can still record what was hidden.
+name and address even with `logPersonalData` off. With both options on, the context holds the
+exceptions themselves, and a logger that serializes an exception in depth records the request or
+response inside it.
 
 ### Payload validation
 

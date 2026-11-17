@@ -10,6 +10,8 @@ namespace Polkurier\Webservice\Dto\Response\Account;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\NamedValues;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -133,12 +135,14 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_DISPLAY_NAME)]
+        #[PersonalData]
         public string $displayName = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
+        #[PersonalData]
         public string $email = '',
 
         /**
@@ -271,6 +275,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
          */
         #[Serializer\SerializedName(self::FIELD_INVOICE_PAYMENT_ACCOUNT_NUMBER)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $invoicePaymentAccountNumber = null,
 
         /**
@@ -338,6 +343,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
          * @var string empty when none is set
          */
         #[Serializer\SerializedName(self::FIELD_PHONE_PIN)]
+        #[Sensitive]
         public string $phonePin = '',
 
         /**

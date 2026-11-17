@@ -24,7 +24,7 @@ try {
         new GetInvoiceDocumentMessage(number: $number)
     );
 
-    $path = \sys_get_temp_dir() . '/' . $document->filename;
+    $path = \sys_get_temp_dir() . '/' . \basename($document->filename);
     \file_put_contents($path, $document->file);
 
     \printf("Saved %s\n", $path);

@@ -12,6 +12,7 @@ use Polkurier\Webservice\Dto\Response\Order\Cod\ReturnDetails;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\CodStatusEnum;
 use Polkurier\Webservice\Enum\Order\CodTypeEnum;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -73,6 +74,7 @@ class Cod implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT)]
         #[Validate\Iban(foreign: false)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private string $bankAccount = '',
 
         /**
@@ -195,34 +197,10 @@ class Cod implements MessageInterface
     }
 
     /**
-     * @param CodStatusEnum|null $status
-     *
-     * @return static
-     */
-    public function setStatus(?CodStatusEnum $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    /**
      * @return ReturnDetails[]
      */
     public function getReturnDetails(): array
     {
         return $this->returnDetails;
-    }
-
-    /**
-     * @param ReturnDetails[] $returnDetails
-     *
-     * @return static
-     */
-    public function setReturnDetails(array $returnDetails): static
-    {
-        $this->returnDetails = $returnDetails;
-
-        return $this;
     }
 }

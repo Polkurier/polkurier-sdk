@@ -9,89 +9,233 @@ namespace Polkurier\Webservice\Test\Unit\Log;
 
 use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\SaveBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountVerificationMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\BankAccount;
+use Polkurier\Webservice\Http\Request\RequestMessage;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Log\SensitiveDataRedactor;
+use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\WireNameReader;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 #[CoversClass(SensitiveDataRedactor::class)]
 final class SensitiveDataRedactorTest extends TestCase
 {
-    public function testHidesSecretsAtAnyDepthAndKeepsTheRest(): void
-    {
-        $json = (string)\json_encode([
-            'apimethod' => 'save_bank_account',
-            'authorization' => ['login' => '12345', 'token' => 'secret-token'],
-            'data' => [
-                'account_number' => '61109010140000071219812874',
-                'access_pin' => '1234',
-                'two_factor_code' => '987654',
-                'nested' => [['password' => 'hunter2', 'pin_locks' => ['PIN_SETTINGS' => true]]],
-            ],
-        ]);
-
-        $redacted = \json_decode((new SensitiveDataRedactor())->redactJson($json), true);
-
-        self::assertSame(['login' => '12345', 'token' => '***'], $redacted['authorization']);
-        self::assertSame([
-            'account_number' => '61109010140000071219812874',
-            'access_pin' => '***',
-            'two_factor_code' => '***',
-            'nested' => [['password' => '***', 'pin_locks' => ['PIN_SETTINGS' => true]]],
-        ], $redacted['data']);
-    }
+    private const string NUMBER = '61109010140000071219812874';
 
     /**
-     * The kinds of secret a logged body hides are promised, so an integration can stop hiding
-     * them itself. The set only grows, which is why this names each kind rather than the list.
-     *
-     * @see docs/architecture.md
+     * A request body carries the credentials beside the payload, each written by a class of its
+     * own, and the walk reads each level beside the class that wrote it.
      *
      * @return void
      */
-    public function testHidesEveryKindOfSecretTheContractNames(): void
+    public function testHidesTheSecretsOfEachBlockOfARequestAndKeepsTheRest(): void
     {
-        $sent = [
-            'token' => 'api-token',
-            'password' => 'hunter2',
-            'previous_password' => 'hunter1',
-            'pin' => '1234',
-            'security_pin' => '5678',
-            'access_pin' => '9012',
-            'two_factor_code' => '987654',
-            'two_factor_token' => 'tf-token',
-            'code' => '112233',
-            'access_token' => 'oauth-token',
-        ];
+        $body = (string)\json_encode([
+            RequestMessage::FIELD_AUTHORIZATION => [
+                AuthorizationMessage::FIELD_LOGIN => '12345',
+                TokenMessage::FIELD_TOKEN => 'secret-token',
+            ],
+            RequestMessage::FIELD_DATA => [
+                BankAccount::FIELD_NUMBER => self::NUMBER,
+                SaveBankAccountMessage::FIELD_ACCESS_PIN => '1234',
+                SaveBankAccountMessage::FIELD_TWO_FACTOR_CODE => '987654',
+            ],
+        ]);
 
         $redacted = \json_decode(
-            (new SensitiveDataRedactor())->redactJson((string)\json_encode($sent)),
+            (new SensitiveDataRedactor())->redactJson($body, [
+                RequestMessage::FIELD_AUTHORIZATION => AuthorizationMessage::class,
+                RequestMessage::FIELD_DATA => SaveBankAccountMessage::class,
+            ]),
             true,
         );
 
-        // Built from what went in, not from what came back: an expectation taken from the output
-        // would also pass for a redactor that dropped a secret, or for an empty body.
-        self::assertSame(\array_fill_keys(\array_keys($sent), '***'), $redacted);
+        self::assertSame([
+            RequestMessage::FIELD_AUTHORIZATION => [
+                AuthorizationMessage::FIELD_LOGIN => '12345',
+                TokenMessage::FIELD_TOKEN => '***',
+            ],
+            RequestMessage::FIELD_DATA => [
+                BankAccount::FIELD_NUMBER => self::NUMBER,
+                SaveBankAccountMessage::FIELD_ACCESS_PIN => '***',
+                SaveBankAccountMessage::FIELD_TWO_FACTOR_CODE => '***',
+            ],
+        ], $redacted);
     }
 
-    public function testLeavesEmptySecretsAndNonJsonBodiesAlone(): void
+    /**
+     * The kinds of secret a logged body hides are promised, so an integration can stop hiding them
+     * itself. The set only grows, which is why this names each kind, with the class that declares
+     * it, rather than the list.
+     *
+     * @see docs/architecture.md
+     *
+     * @return array<string, array{class-string, string}>
+     */
+    public static function kindsTheContractNames(): array
+    {
+        return [
+            'the API token' => [AuthorizationMessage::class, TokenMessage::FIELD_TOKEN],
+            'a password' => [ChangePasswordMessage::class, ChangePasswordMessage::FIELD_PASSWORD],
+            'the password it replaces' => [
+                ChangePasswordMessage::class,
+                ChangePasswordMessage::FIELD_PREVIOUS_PASSWORD,
+            ],
+            'the phone PIN' => [ChangePinMessage::class, ChangePinMessage::FIELD_PIN],
+            'the security PIN' => [
+                CreateMoneyBoxPayoutMessage::class,
+                CreateMoneyBoxPayoutMessage::FIELD_SECURITY_PIN,
+            ],
+            'the access PIN' => [SaveBankAccountMessage::class, SaveBankAccountMessage::FIELD_ACCESS_PIN],
+            'a two-factor code' => [SaveBankAccountMessage::class, SaveBankAccountMessage::FIELD_TWO_FACTOR_CODE],
+            'a two-factor token' => [SaveBankAccountMessage::class, SaveBankAccountMessage::FIELD_TWO_FACTOR_TOKEN],
+            'the code confirming a token' => [VerifyMessage::class, VerifyMessage::FIELD_CODE],
+            'the token a two-factor response registers' => [TwoFactorToken::class, TwoFactorToken::FIELD_ID],
+            'an access token' => [
+                AccountVerificationMessage::class,
+                AccountVerificationMessage::FIELD_ACCESS_TOKEN,
+            ],
+            'a contact form nonce' => [SaveContactFormMessage::class, SaveContactFormMessage::FIELD_NONCE],
+        ];
+    }
+
+    #[DataProvider('kindsTheContractNames')]
+    public function testHidesEveryKindOfSecretTheContractNames(string $class, string $field): void
+    {
+        self::assertSame([$field => '***'], self::redacted($class, [$field => 'hunter2']));
+    }
+
+    /**
+     * Every member the source marks, under the name its class writes it. A mark the reader cannot
+     * match to a wire name hides nothing, and nothing else would report it.
+     *
+     * @return array<string, array{class-string, string}>
+     */
+    public static function markedFields(): array
+    {
+        $cases = [];
+        foreach (SourceClasses::instantiableUnder() as $name => $class) {
+            foreach (ClassMembers::readMarkedWith($class, Sensitive::class) as $member) {
+                $field = WireNameReader::read($member);
+                $cases[$name . ' ' . $field] = [$class, $field];
+            }
+        }
+
+        self::assertNotEmpty($cases);
+
+        return $cases;
+    }
+
+    #[DataProvider('markedFields')]
+    public function testHidesEveryFieldMarkedAsASecret(string $class, string $field): void
+    {
+        self::assertSame([$field => '***'], self::redacted($class, [$field => 'hunter2']));
+    }
+
+    /**
+     * `id` is the token itself on a two-factor response and an ordinary record id everywhere else,
+     * where hiding it would cost the log its reference. The key is the same and the class decides.
+     *
+     * @return void
+     */
+    public function testHidesTheIdOfATwoFactorTokenAndKeepsTheIdOfABankAccount(): void
+    {
+        $row = [BankAccount::FIELD_ID => 'DT-20534-8f3a', BankAccount::FIELD_NAME => 'Firmowe'];
+
+        self::assertSame(
+            [TwoFactorToken::FIELD_ID => '***'],
+            self::redacted(TwoFactorToken::class, [TwoFactorToken::FIELD_ID => 'DT-20534-8f3a']),
+        );
+        self::assertSame($row, self::redacted(BankAccount::class, $row));
+    }
+
+    /**
+     * A PIN reaches the API under no other name and nothing else is called one, so the key is
+     * hidden wherever it turns up, including under a key the walk has no class for. A key that
+     * merely starts with the word is not one.
+     *
+     * @return void
+     */
+    public function testHidesAPinUnderAnyKeyThatNamesOneWhateverDeclaresIt(): void
+    {
+        $body = (string)\json_encode([
+            'pin' => '1234',
+            'security_pin' => '5678',
+            'pin_locks' => ['PIN_SETTINGS' => true],
+        ]);
+
+        $redacted = \json_decode((new SensitiveDataRedactor())->redactJson($body, []), true);
+
+        self::assertSame(
+            ['pin' => '***', 'security_pin' => '***', 'pin_locks' => ['PIN_SETTINGS' => true]],
+            $redacted,
+        );
+    }
+
+    /**
+     * An empty value says the field was there and nothing more, so hiding it would cost the log a
+     * fact and give nothing away. A body that is not JSON has no keys to hide anything by.
+     *
+     * @return void
+     */
+    public function testLeavesEmptySecretsAndBodiesThatAreNotJsonAlone(): void
     {
         $redactor = new SensitiveDataRedactor();
+        $empty = '{"data":{"token":"","pin":null,"access_pin":[]}}';
 
-        self::assertSame('{"token":"","pin":null}', $redactor->redactJson('{"token":"","pin":null}'));
-        self::assertSame('<html>Bad gateway</html>', $redactor->redactJson('<html>Bad gateway</html>'));
+        self::assertSame(
+            $empty,
+            $redactor->redactJson($empty, [RequestMessage::FIELD_DATA => AuthorizationMessage::class]),
+        );
+        self::assertSame('<html>Bad gateway</html>', $redactor->redactJson('<html>Bad gateway</html>', []));
     }
 
     public function testACopyOfTheMessageHasTheSecretHiddenAndTheOriginalIsUntouched(): void
     {
-        $request = new Request(
-            'POST',
-            'https://api.example.test',
-            [],
-            '{"authorization":{"login":"1","token":"t0k3n"}}',
-        );
+        $body = '{"authorization":{"login":"1","token":"t0k3n"}}';
+        $request = new Request('POST', 'https://api.example.test', [], $body);
 
-        $copy = (new SensitiveDataRedactor())->message($request);
+        $copy = (new SensitiveDataRedactor())->message($request, [
+            RequestMessage::FIELD_AUTHORIZATION => AuthorizationMessage::class,
+        ]);
 
         self::assertSame('{"authorization":{"login":"1","token":"***"}}', (string)$copy->getBody());
-        self::assertSame('{"authorization":{"login":"1","token":"t0k3n"}}', (string)$request->getBody());
+        self::assertSame($body, (string)$request->getBody());
+    }
+
+    /**
+     * The fields as a logged body carries them: under one key, walked beside the class that wrote
+     * them. A class map names the keys of the level below the body's own, and which key that is
+     * belongs to the caller, not to the redactor.
+     *
+     * @param class-string $class
+     * @param array<string, mixed> $fields
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function redacted(string $class, array $fields): array
+    {
+        $body = (string)\json_encode([RequestMessage::FIELD_DATA => $fields]);
+        $redacted = \json_decode(
+            (new SensitiveDataRedactor())->redactJson($body, [RequestMessage::FIELD_DATA => $class]),
+            true,
+        );
+
+        self::assertIsArray($redacted);
+        self::assertIsArray($redacted[RequestMessage::FIELD_DATA]);
+
+        return $redacted[RequestMessage::FIELD_DATA];
     }
 }

@@ -7,52 +7,37 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Log;
 
-use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
-use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
-use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Dto\Response\Payment\RegisteredPaymentMessage;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 
 /**
- * Hides secrets in request and response bodies before they are logged.
+ * Hides the fields marked {@see Sensitive} in request and response bodies before they are logged:
+ * the API token, passwords, PINs, two-factor codes and tokens, access tokens and a contact form's
+ * nonce.
  *
- * A value is hidden when its key is one of {@see self::FIELDS}, or is named `pin` or ends in
- * `_pin`, at any depth: the API token, passwords, PINs, two-factor codes and tokens, and
- * access tokens.
- * Matching is by key alone, so a field that shares a name with a secret, such as a coupon's `code`,
- * is hidden too.
+ * A key named `pin` or ending in `_pin` is hidden as well, in any message and whatever class it
+ * comes from.
  */
 class SensitiveDataRedactor extends FieldRedactor
 {
     /**
-     * Wire names of the fields whose values are hidden.
-     *
-     * A key named `pin` or ending in `_pin` is not listed: {@see self::hides()} hides every one of
-     * them, in any message, so naming the three the SDK happens to declare would add nothing.
+     * @return class-string
      */
-    public const array FIELDS = [
-        TokenMessage::FIELD_TOKEN,
-        RegisteredPaymentMessage::FIELD_ACCESS_TOKEN,
-        ChangePasswordMessage::FIELD_PASSWORD,
-        ChangePasswordMessage::FIELD_PREVIOUS_PASSWORD,
-        TwoFactorFieldsInterface::FIELD_TWO_FACTOR_CODE,
-        TwoFactorFieldsInterface::FIELD_TWO_FACTOR_TOKEN,
-        VerifyMessage::FIELD_CODE,
-    ];
-
-    /**
-     * @param string[] $fields wire names of the fields to hide
-     */
-    public function __construct(array $fields = self::FIELDS)
+    protected function actsOn(): string
     {
-        parent::__construct($fields);
+        return Sensitive::class;
     }
 
     /**
-     * A key named `pin` or ending in `_pin` is hidden too, in any message.
+     * A key named `pin` or ending in `_pin` is hidden too, whether or not a class declares it: a
+     * PIN reaches the API under no other name, and nothing else is called one.
+     *
+     * @param string $key
+     * @param list<class-string> $marks
+     *
+     * @return bool
      */
-    protected function hides(string $key, array $fields): bool
+    protected function hides(string $key, array $marks): bool
     {
-        return parent::hides($key, $fields) || $key === 'pin' || \str_ends_with($key, '_pin');
+        return parent::hides($key, $marks) || $key === 'pin' || \str_ends_with($key, '_pin');
     }
 }

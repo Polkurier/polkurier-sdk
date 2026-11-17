@@ -487,7 +487,6 @@ final class ServiceCallTest extends TestCase
         self::assertSame('DPD', $data[OrderValuationMessage::FIELD_RETURN_VALUATIONS]);
         self::assertSame('UPS', $data[Order::FIELD_COURIER]);
         self::assertArrayHasKey(Order::FIELD_SENDER, $data);
-        self::assertArrayNotHasKey(OrderValuationMessage::FIELD_ORDER, $data);
         self::assertCount(1, $quotes);
         self::assertSame('DPD', $quotes[0]->serviceCode);
         self::assertSame('', $quotes[0]->serviceName);

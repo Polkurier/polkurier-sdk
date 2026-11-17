@@ -43,8 +43,10 @@ class PhoneNumber implements ValueValidatorInterface
 
         $digits = \preg_replace('/\D/', '', $value) ?? '';
 
+        // A value with no digits in it is not an empty field, so it is not {@see NotBlank}'s fault
+        // to report: the customer typed something and it is not a phone number.
         if ($digits === '') {
-            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotAPhoneNumber, 'must be a phone number')];
         }
         if (\strlen($digits) < self::MIN_DIGITS) {
             return [

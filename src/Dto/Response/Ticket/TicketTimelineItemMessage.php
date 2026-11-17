@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Ticket\TicketAuthorEnum;
 use Polkurier\Webservice\Enum\Ticket\TicketTimelineItemTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -85,6 +86,7 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_AUTHOR_NAME)]
+        #[PersonalData]
         public string $authorName = '',
 
         /**

@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Entity\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Response\CourierPoint;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -87,24 +88,28 @@ class Address implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
+        #[PersonalData]
         private string $person,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
+        #[PersonalData]
         private string $street,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
+        #[PersonalData]
         private string $city,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
+        #[PersonalData]
         private string $postcode,
 
         /**
@@ -113,6 +118,7 @@ class Address implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
         #[OmitWhenEmpty]
         #[Validate\Email]
+        #[PersonalData]
         private ?string $email = null,
 
         /**
@@ -121,6 +127,7 @@ class Address implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_PHONE)]
         #[OmitWhenEmpty]
         #[Validate\PhoneNumber]
+        #[PersonalData]
         private ?string $phone = null,
 
         /**
@@ -128,6 +135,7 @@ class Address implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private ?string $company = null,
 
         /**
@@ -135,6 +143,7 @@ class Address implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private ?string $houseNumber = null,
 
         /**
@@ -142,6 +151,7 @@ class Address implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private ?string $flatNumber = null,
 
         /**
@@ -176,6 +186,7 @@ class Address implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_STREET_NAME)]
         #[ResponseOnly]
+        #[PersonalData]
         private ?string $streetName = null,
 
         /**
@@ -418,35 +429,11 @@ class Address implements MessageInterface
     }
 
     /**
-     * @param string|null $machineName
-     *
-     * @return static
-     */
-    public function setMachineName(?string $machineName): static
-    {
-        $this->machineName = $machineName;
-
-        return $this;
-    }
-
-    /**
      * @return string|null null if the response leaves it out
      */
     public function getProvince(): ?string
     {
         return $this->province;
-    }
-
-    /**
-     * @param string|null $province
-     *
-     * @return static
-     */
-    public function setProvince(?string $province): static
-    {
-        $this->province = $province;
-
-        return $this;
     }
 
     /**
@@ -463,18 +450,6 @@ class Address implements MessageInterface
     }
 
     /**
-     * @param string|null $streetName
-     *
-     * @return static
-     */
-    public function setStreetName(?string $streetName): static
-    {
-        $this->streetName = $streetName;
-
-        return $this;
-    }
-
-    /**
      * The pickup point this address resolves to, in full.
      *
      * Set when the address names a point that is still known. Null for an ordinary street address,
@@ -486,17 +461,5 @@ class Address implements MessageInterface
     public function getPoint(): ?CourierPoint
     {
         return $this->point;
-    }
-
-    /**
-     * @param CourierPoint|null $point
-     *
-     * @return static
-     */
-    public function setPoint(?CourierPoint $point): static
-    {
-        $this->point = $point;
-
-        return $this;
     }
 }

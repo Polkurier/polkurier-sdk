@@ -16,6 +16,7 @@ use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\ResponseMessage;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -25,6 +26,7 @@ use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
+use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Http\Response\LastResponseHolder;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
@@ -181,14 +183,21 @@ abstract class AbstractService
             // The envelope's class is chosen from its status, so the class is the answer to
             // "did the API report a failure" and the log level and the throw cannot disagree.
             $envelope = $wrapper->getEnvelope();
-            $this->logResponse($apiMethod, $wrapper, $request, $payload, $envelope instanceof ErrorMessage);
+            $this->logResponse(
+                $apiMethod,
+                $wrapper,
+                $request,
+                $payload,
+                $responseFormat,
+                $envelope instanceof ErrorMessage,
+            );
             $this->logResponseDrift($apiMethod, $wrapper);
         } catch (ClientExceptionInterface $e) {
             $this->logClientError($e, $apiMethod, $request, $payload);
 
             throw new ConnectionException($e->getMessage(), $e->getCode(), $e);
         } catch (MalformedResponseException $e) {
-            $this->logMalformedResponse($e, $apiMethod, $request, $payload);
+            $this->logMalformedResponse($e, $apiMethod, $request, $payload, $responseFormat);
 
             throw $e;
         }
@@ -517,12 +526,78 @@ abstract class AbstractService
      *
      * @param HttpMessageInterface $message
      * @param ApiMethodInterface $apiMethod
+     * @param MessageInterface|null $payload
+     * @param string|null $responseFormat
      *
      * @return string
      */
-    protected function bodyForLog(HttpMessageInterface $message, ApiMethodInterface $apiMethod): string
+    protected function bodyForLog(
+        HttpMessageInterface $message,
+        ApiMethodInterface $apiMethod,
+        ?MessageInterface $payload,
+        ?string $responseFormat = null,
+        bool $envelope = true,
+    ): string {
+        return $this->logSanitizer->body(
+            $message,
+            $this->config(),
+            $apiMethod,
+            $this->mapClasses($message, $payload, $responseFormat),
+            $envelope ? null : $this->responseClass($responseFormat),
+        );
+    }
+
+    /**
+     * The class a response payload is read as, with the list format stripped.
+     *
+     * @param string|null $responseFormat
+     *
+     * @return class-string|null null when the format names no class, as the acknowledgement and
+     *         plain-list formats do
+     */
+    protected function responseClass(?string $responseFormat): ?string
     {
-        return $this->logSanitizer->body($message, $this->config(), $apiMethod);
+        $class = (string)$responseFormat;
+        $class = \str_ends_with($class, '[]') ? \substr($class, 0, -2) : $class;
+
+        return \class_exists($class) ? $class : null;
+    }
+
+    /**
+     * The class the value under each top-level key of a message's body holds, which is what the
+     * redactors read the marks of each field off.
+     *
+     * The envelope declares every field it writes but the two the caller fills: the payload under
+     * {@see RequestMessage::FIELD_DATA}, and the reply under
+     * {@see ResponseMessage::FIELD_RESPONSE}, read into the shape the service method asked for.
+     * What the envelope declares itself, the method name and the status, names nothing to hide.
+     *
+     * @param HttpMessageInterface $message a request or a response
+     * @param MessageInterface|null $payload the payload the request was built from
+     * @param string|null $responseFormat the shape the reply is read into, as
+     *        {@see self::processRequest()} takes it
+     *
+     * @return array<string, class-string>
+     */
+    protected function mapClasses(
+        HttpMessageInterface $message,
+        ?MessageInterface $payload,
+        ?string $responseFormat,
+    ): array {
+        if ($message instanceof RequestInterface) {
+            $classes = [RequestMessage::FIELD_AUTHORIZATION => AuthorizationMessage::class];
+            if ($payload !== null) {
+                $classes[RequestMessage::FIELD_DATA] = $payload::class;
+            }
+
+            return $classes;
+        }
+
+        // A list is read into one class repeated, which is how the redactors walk a list of
+        // objects, so the shape it arrives in says nothing more than the class does.
+        $class = $this->responseClass($responseFormat);
+
+        return $class === null ? [] : [ResponseMessage::FIELD_RESPONSE => $class];
     }
 
     /**
@@ -533,19 +608,39 @@ abstract class AbstractService
      * the configuration allows logging both secrets and personal data. Their contents are in the
      * request and response bodies either way.
      *
+     * An exception is named by its class for the same reason: it carries the response it was
+     * raised for, and its own message quotes the body it could not read, neither of which goes
+     * through the sanitizer. The prepared bodies are in the context beside it.
+     *
      * @param array<string, mixed> $context
      * @param ApiMethodInterface $apiMethod
+     * @param MessageInterface|null $payload
+     * @param string|null $responseFormat
      *
      * @return array<string, mixed>
      */
-    protected function contextForLog(array $context, ApiMethodInterface $apiMethod): array
-    {
+    protected function contextForLog(
+        array $context,
+        ApiMethodInterface $apiMethod,
+        ?MessageInterface $payload,
+        ?string $responseFormat = null,
+    ): array {
         if (!$this->logSanitizer->allowsObjects($this->config())) {
             unset($context['payload'], $context['parsed_response']);
+            foreach (['exception', 'client_exception'] as $key) {
+                if (($context[$key] ?? null) instanceof \Throwable) {
+                    $context[$key] = $context[$key]::class;
+                }
+            }
         }
         foreach (['request', 'response'] as $key) {
             if (($context[$key] ?? null) instanceof HttpMessageInterface) {
-                $context[$key] = $this->logSanitizer->message($context[$key], $this->config(), $apiMethod);
+                $context[$key] = $this->logSanitizer->message(
+                    $context[$key],
+                    $this->config(),
+                    $apiMethod,
+                    $this->mapClasses($context[$key], $payload, $responseFormat),
+                );
             }
         }
 
@@ -570,13 +665,13 @@ abstract class AbstractService
         $this->logger->info(\sprintf(
             'Request method: "%s", payload: "%s"',
             $apiMethod->value,
-            $this->bodyForLog($request, $apiMethod),
+            $this->bodyForLog($request, $apiMethod, $payload),
         ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
-        ], $apiMethod));
+        ], $apiMethod, $payload));
     }
 
     /**
@@ -584,6 +679,7 @@ abstract class AbstractService
      * @param ResponseWrapper $responseWrapper
      * @param RequestInterface $request
      * @param MessageInterface|null $payload
+     * @param string $responseFormat
      * @param bool $error
      *
      * @return void
@@ -593,6 +689,7 @@ abstract class AbstractService
         ResponseWrapper $responseWrapper,
         RequestInterface $request,
         ?MessageInterface $payload,
+        string $responseFormat,
         bool $error = false,
     ): void {
         if ($error ? !$this->config()->isLoggingEnabled() : !$this->config()->isExtendedLoggingEnabled($apiMethod)) {
@@ -603,7 +700,7 @@ abstract class AbstractService
             sprintf(
                 'Response from method: "%s", response: "%s"',
                 $apiMethod->value,
-                $this->bodyForLog($responseWrapper->getHttpResponse(), $apiMethod),
+                $this->bodyForLog($responseWrapper->getHttpResponse(), $apiMethod, $payload, $responseFormat),
             ),
             $this->contextForLog([
                 'method' => $apiMethod,
@@ -612,7 +709,7 @@ abstract class AbstractService
                 'request' => $request,
                 'parsed_response' => $responseWrapper->getEnvelope(),
                 'response' => $responseWrapper->getHttpResponse(),
-            ], $apiMethod)
+            ], $apiMethod, $payload, $responseFormat)
         );
     }
 
@@ -637,16 +734,19 @@ abstract class AbstractService
             return;
         }
 
-        // The context carries the value as it arrived, whatever field it came from, including a
-        // field the SDK doesn't know. It cannot be redacted key by key the way a body can, so it
-        // goes in only when nothing would be hidden, as {@see self::contextForLog()} treats an
-        // object. The message itself names a value only for a field whose declared type is an
-        // enum or a scalar the value failed to be, which holds no personal data.
+        // The value arrived under a field the SDK doesn't know, or under one whose type it did
+        // not match, so it cannot be redacted key by key the way a body can. Neither the context
+        // nor the message names it unless nothing would be hidden anyway, as
+        // {@see self::contextForLog()} treats an object.
         $showsValues = $this->logSanitizer->allowsObjects($this->config());
 
         foreach ($responseWrapper->getDrift() as $drift) {
             $value = $drift->value;
-            $shown = \is_string($value) ? '"' . $value . '"' : \get_debug_type($value);
+            // The value is named only where it may be logged. A field the SDK doesn't know can
+            // hold anything, and a string arriving where a class is declared is drift like any
+            // other, so naming it would put a recipient's name in the message whatever the
+            // configuration says.
+            $shown = $showsValues && \is_string($value) ? '"' . $value . '"' : \get_debug_type($value);
             $context = [
                 'method' => $apiMethod,
                 'sandbox' => $this->config()->isSandbox(),
@@ -683,6 +783,7 @@ abstract class AbstractService
      * @param ApiMethodInterface $apiMethod
      * @param RequestInterface $request
      * @param MessageInterface|null $payload
+     * @param string $responseFormat
      *
      * @return void
      */
@@ -690,22 +791,28 @@ abstract class AbstractService
         MalformedResponseException $exception,
         ApiMethodInterface $apiMethod,
         RequestInterface $request,
-        ?MessageInterface $payload
+        ?MessageInterface $payload,
+        string $responseFormat,
     ): void {
         if (!$this->config()->isLoggingEnabled()) {
             return;
         }
+        // The exception's own message quotes the body it could not read, as the serializer saw it:
+        // unredacted, and up to its excerpt limit. What goes in here is the same body prepared the
+        // way every other logged body is.
         $this->logger->error(\sprintf(
-            'Malformed response: "%s", while requesting method: "%s"',
-            $exception->getMessage(),
+            'Malformed response from method: "%s", response: "%s"',
             $apiMethod->value,
+            // The body did not read as an envelope, so there is no `response` key to hang the
+            // payload's class on: it is walked as that class itself.
+            $this->bodyForLog($exception->getResponse(), $apiMethod, $payload, $responseFormat, envelope: false),
         ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
             'exception' => $exception,
-        ], $apiMethod));
+        ], $apiMethod, $payload, $responseFormat));
     }
 
     /**
@@ -729,13 +836,13 @@ abstract class AbstractService
             'HTTP client error: "%s", while requesting method: "%s" with payload: "%s"',
             $exception->getMessage(),
             $apiMethod->value,
-            $this->bodyForLog($request, $apiMethod),
+            $this->bodyForLog($request, $apiMethod, $payload),
         ), $this->contextForLog([
             'method' => $apiMethod,
             'sandbox' => $this->config()->isSandbox(),
             'payload' => $payload,
             'request' => $request,
             'client_exception' => $exception,
-        ], $apiMethod));
+        ], $apiMethod, $payload));
     }
 }

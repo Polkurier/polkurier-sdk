@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
@@ -47,9 +48,15 @@ class ValidateCouponMessageValidator extends AbstractMessageValidator
 
         foreach ($supplied as $field => $given) {
             if (!$given) {
-                // The three are required together, so no single field is the one that made this
-                // one required. Naming an arbitrary one of the other two would say otherwise.
-                $violations->add($field, 'is required when checking a coupon against an order');
+                // The 3 are required together, so no single field is the one that made this one
+                // required: `condition` says a field of the group was given and `field` is left
+                // out, because naming an arbitrary one of the other 2 would say otherwise.
+                $violations->add(
+                    $field,
+                    'is required when checking a coupon against an order',
+                    ValidationErrorCodeEnum::Blank,
+                    ['condition' => 'any_set'],
+                );
             }
         }
     }

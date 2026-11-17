@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Entity;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -57,6 +58,7 @@ class BankAccount implements MessageInterface, ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\Iban(foreign: false)]
+        #[PersonalData]
         private string $number,
 
         /**

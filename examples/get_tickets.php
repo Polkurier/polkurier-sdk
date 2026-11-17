@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * get_tickets — page through the account’s tickets.
+ * get_tickets — page through the account's tickets.
  *
  * A paging envelope. Each entry carries its read state, which is what drives an unread badge
  * without fetching every ticket's messages.

@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\Contact;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\NamedValues;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -86,6 +87,7 @@ final readonly class ContactFormMessage implements MessageInterface, ParsedRespo
          * @var string to quote when submitting the form
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
+        #[Sensitive]
         public string $nonce = '',
 
         /**

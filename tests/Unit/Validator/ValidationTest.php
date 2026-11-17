@@ -38,6 +38,7 @@ use Polkurier\Webservice\Test\Support\Arguments;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\Rule\Iban;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
+use Polkurier\Webservice\Validator\Violation;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
@@ -104,6 +105,114 @@ final class ValidationTest extends TestCase
                 $violation->parameters,
             );
         }
+    }
+
+    /**
+     * The amount is required by the mode, so the violation names the mode field, the comparison
+     * and the value compared against.
+     *
+     * @return void
+     */
+    public function testATopUpWithNoAmountIsBlankAndNamesTheMode(): void
+    {
+        $violations = $this->violationsOf(new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid));
+
+        self::assertCount(1, $violations);
+        self::assertSame('amount', $violations[0]->path);
+        self::assertSame(ValidationErrorCodeEnum::Blank, $violations[0]->code);
+        self::assertSame(
+            ['field' => 'mode', 'condition' => 'equals', 'equals' => 'PREPAID'],
+            $violations[0]->parameters,
+        );
+    }
+
+    /**
+     * A top-up of zero is a field that arrived, carrying a number the field does not take, so it
+     * reports the range it is outside of and not the code for an empty field.
+     *
+     * @return void
+     */
+    public function testATopUpOfZeroIsOutOfRangeAndNamesTheBound(): void
+    {
+        $violations = $this->violationsOf(
+            new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 0.0),
+        );
+
+        self::assertCount(1, $violations);
+        self::assertSame('amount', $violations[0]->path);
+        self::assertSame(ValidationErrorCodeEnum::OutOfRange, $violations[0]->code);
+        self::assertSame(['minimum' => 0, 'exclusiveMinimum' => true], $violations[0]->parameters);
+    }
+
+    /**
+     * A negative amount is out of the field's own range whatever the mode, and the rule on the
+     * field reports it, so the top-up rule stays silent: 1 fault, 1 violation.
+     *
+     * @return void
+     */
+    public function testANegativeTopUpIsReportedByTheFieldRuleAlone(): void
+    {
+        $violations = $this->violationsOf(
+            new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: -1.0),
+        );
+
+        self::assertCount(1, $violations);
+        self::assertSame('amount', $violations[0]->path);
+        self::assertSame(ValidationErrorCodeEnum::OutOfRange, $violations[0]->code);
+        self::assertSame(['minimum' => 0], $violations[0]->parameters);
+    }
+
+    /**
+     * The 3 order fields of a coupon check require each other, so a missing one carries the
+     * condition and names no field: none of the other 2 is the trigger on its own.
+     *
+     * @return void
+     */
+    public function testACouponCheckedAgainstHalfAnOrderBlamesTheGroupAndNoField(): void
+    {
+        $violations = $this->violationsOf(
+            new ValidateCouponMessage(couponCode: 'PROMO2026', courier: 'UPS'),
+        );
+
+        self::assertSame(
+            ['shipmenttype', 'packs'],
+            \array_map(static fn(Violation $violation): string => $violation->path, $violations),
+        );
+        foreach ($violations as $violation) {
+            self::assertSame(ValidationErrorCodeEnum::Blank, $violation->code);
+            self::assertSame(['condition' => 'any_set'], $violation->parameters);
+        }
+    }
+
+    /**
+     * Every number and quoted value the hand-written validators spell out is in the violation's
+     * parameters, so a report worded elsewhere can name the same values.
+     *
+     * @return void
+     */
+    public function testTheMessageValidatorsCarryTheValuesTheirEnglishSpellsOut(): void
+    {
+        $payloads = [
+            new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid),
+            new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 0.0),
+            new ValidateCouponMessage(couponCode: 'PROMO2026', courier: 'UPS'),
+        ];
+
+        $named = [];
+        foreach ($payloads as $payload) {
+            foreach ($this->violationsOf($payload) as $violation) {
+                $carried = \array_map(self::asText(...), $violation->parameters);
+
+                foreach (self::valuesSpelledOutIn($violation->message) as $value) {
+                    self::assertContains($value, $carried, $violation->message);
+                    $named[] = $value;
+                }
+            }
+        }
+
+        // A sentence that names no value passes this on its own, so at least one of them has to
+        // have named one.
+        self::assertNotSame([], $named);
     }
 
     /**
@@ -236,6 +345,11 @@ final class ValidationTest extends TestCase
             ],
             'a balance payment, which needs no list' => [
                 new RegisterPaymentMessage(mode: PaymentModeEnum::Balance),
+            ],
+            // The amount rules are the top-up's, so another mode carrying a figure the top-up
+            // would refuse is still a payload the API accepts.
+            'a balance payment carrying a zero amount' => [
+                new RegisterPaymentMessage(mode: PaymentModeEnum::Balance, amount: 0.0),
             ],
             'a lookup outside Poland, which the API answers with an empty list' => [
                 new FindCityMessage('10115', country: 'DE'),
@@ -547,6 +661,60 @@ final class ValidationTest extends TestCase
         (new ValidatorRegistry())->validate(new CancelOrderMessage('anything at all'));
 
         $this->expectNotToPerformAssertions();
+    }
+
+    /**
+     * The violations the default validator reports for a payload, which it has to reject.
+     *
+     * @param MessageInterface $payload
+     *
+     * @return list<Violation>
+     */
+    private function violationsOf(MessageInterface $payload): array
+    {
+        try {
+            $this->validator->validate($payload);
+        } catch (ValidationException $e) {
+            return $e->getViolations();
+        }
+
+        self::fail('The payload should have been rejected.');
+    }
+
+    /**
+     * The values a sentence names: digit runs, quoted text, and the words these sentences write a
+     * number out in.
+     *
+     * @param string $message
+     *
+     * @return list<string>
+     */
+    private static function valuesSpelledOutIn(string $message): array
+    {
+        \preg_match_all('/\d+(?:\.\d+)?/', $message, $numbers);
+        \preg_match_all('/["\']([^"\']+)["\']/', $message, $quoted);
+
+        $values = [...$numbers[0], ...$quoted[1]];
+        foreach (['zero' => '0', 'one' => '1', 'two' => '2', 'three' => '3'] as $word => $digit) {
+            if (\preg_match('/\b' . $word . '\b/i', $message) === 1) {
+                $values[] = $digit;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * A parameter as a sentence would print it, so that a number and the word for it compare
+     * equal.
+     *
+     * @param scalar $value
+     *
+     * @return string
+     */
+    private static function asText(mixed $value): string
+    {
+        return \is_bool($value) ? ($value ? 'true' : 'false') : (string)$value;
     }
 
     /**

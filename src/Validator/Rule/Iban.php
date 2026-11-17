@@ -87,11 +87,19 @@ class Iban implements ValueValidatorInterface
 
         $normalised = \strtoupper((string)\preg_replace('/[\s-]/', '', $value));
 
+        // Spaces and hyphens are the separators an account number is written with, so a value made
+        // only of them is not an empty field, which is {@see NotBlank}'s fault to report. The
+        // customer wrote something and it is not an account number.
         if ($normalised === '') {
-            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotABankAccount, 'must be a bank account number')];
         }
         if (\preg_match('/^[A-Z0-9]+$/', $normalised) !== 1) {
-            return [new RuleFailure(ValidationErrorCodeEnum::BankAccountBadCharacters, 'must contain only letters and digits')];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::BankAccountBadCharacters,
+                    'must contain only letters and digits',
+                ),
+            ];
         }
 
         // A national number already contains its check digits (for Poland the first 2 digits

@@ -101,34 +101,10 @@ class PackItem extends Pack
     }
 
     /**
-     * @param float|null $priceNet
-     *
-     * @return static
-     */
-    public function setPriceNet(?float $priceNet): static
-    {
-        $this->priceNet = $priceNet;
-
-        return $this;
-    }
-
-    /**
      * @return float|null null if the response leaves it out
      */
     public function getPriceGross(): ?float
     {
         return $this->priceGross;
-    }
-
-    /**
-     * @param float|null $priceGross
-     *
-     * @return static
-     */
-    public function setPriceGross(?float $priceGross): static
-    {
-        $this->priceGross = $priceGross;
-
-        return $this;
     }
 }

@@ -18,7 +18,7 @@ The source is organised by role:
 | `Builder` | [`AbstractBuilder`](../src/Builder/AbstractBuilder.php), with [`Builder\Entity`](../src/Builder/Entity/) and [`Builder\Request`](../src/Builder/Request/) mirroring what they build |
 | `Http` | The transport: client factory, request and response factories, JSON envelope |
 | `Serializer` | Serializer wiring, the SDK's own normalizers and 6 attributes, and three contract types: [`ReadResponse`](../src/Serializer/ReadResponse.php), [`ResponseDrift`](../src/Serializer/ResponseDrift.php), [`SerializerConfig`](../src/Serializer/SerializerConfig.php) |
-| `Log` | Preparing request and response bodies for the log |
+| `Log` | Preparing request and response bodies for the log, and the [`#[Sensitive]`](../src/Log/Attribute/Sensitive.php) and [`#[PersonalData]`](../src/Log/Attribute/PersonalData.php) marks that say what is hidden |
 | `Webhook` | [`OrderReader`](../src/Webhook/OrderReader.php), for the order events Polkurier posts to your system, and the [`ReadEvent`](../src/Webhook/ReadEvent.php) it answers with |
 | `Testing` | [`RecordingClient`](../src/Testing/RecordingClient.php), a fake transport for your tests |
 | `Validator` | The rules, and the machinery that runs them |
@@ -136,8 +136,8 @@ break code that relies only on:
   nested record under its parent (`sender.postcode`), a list entry with its index
   (`packs[1].weight`), and a record the payload inlines reporting at the top level;
 - that a logged body hides secrets unless `logSensitiveData` is on: the API token, passwords,
-  PINs, two-factor codes and tokens, and access tokens, a set that only grows. Which class does
-  it, and how, is not promised.
+  PINs, two-factor codes and tokens, access tokens, and a contact form's nonce, a set that only
+  grows. Which class does it, and how, is not promised.
 
 Anything else can change in any release: the concrete factories, services and serializer setup, the
 normalizers and their attributes, the validation rules and the machinery behind them, the log

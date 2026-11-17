@@ -33,6 +33,10 @@ enum ValidationErrorCodeEnum: string
      *
      * `field` is a wire name, not a path: it names a field beside this one, under the same parent
      * as the violation's own path.
+     *
+     * A field required because any member of a fixed group was given carries `condition` as
+     * `any_set` and no `field`: every member of the group makes every other one required, so no
+     * single one of them is the trigger.
      */
     case Blank = 'blank';
 

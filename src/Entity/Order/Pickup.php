@@ -213,16 +213,4 @@ class Pickup implements MessageInterface
     {
         return $this->pickupNumber;
     }
-
-    /**
-     * @param string|null $pickupNumber
-     *
-     * @return static
-     */
-    public function setPickupNumber(?string $pickupNumber): static
-    {
-        $this->pickupNumber = $pickupNumber;
-
-        return $this;
-    }
 }

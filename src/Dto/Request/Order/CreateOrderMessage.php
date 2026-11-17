@@ -11,7 +11,6 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -27,7 +26,6 @@ final readonly class CreateOrderMessage implements MessageInterface
     /**+@#
      * JSON parameter keys
      */
-    public const string FIELD_ORDER = 'order';
     public const string FIELD_COUPON_CODE = 'coupon_code';
     /**-@#*/
 
@@ -39,9 +37,7 @@ final readonly class CreateOrderMessage implements MessageInterface
         /**
          * @var Order
          */
-        #[Serializer\SerializedName(self::FIELD_ORDER)]
         #[InlineFields]
-        #[Validate\Valid]
         public Order $order,
 
         /**

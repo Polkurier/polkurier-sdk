@@ -11,6 +11,8 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken\TransportMethodMessage;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -54,6 +56,7 @@ final readonly class TwoFactorToken implements MessageInterface, ParsedResponseI
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
+        #[Sensitive]
         public string $id,
 
         /**
@@ -61,6 +64,7 @@ final readonly class TwoFactorToken implements MessageInterface, ParsedResponseI
          *         see {@see self::$transportMethod}
          */
         #[Serializer\SerializedName(self::FIELD_PHONE_NUMBER)]
+        #[PersonalData]
         public string $phoneNumber,
 
         /**

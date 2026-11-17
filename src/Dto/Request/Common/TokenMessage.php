@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Common;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -37,6 +38,7 @@ abstract readonly class TokenMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Validate\NotBlank]
+        #[Sensitive]
         public string $token,
     ) {}
 }

@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Dto\Request\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Ticket\TicketOriginEnum;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -66,6 +67,7 @@ final readonly class CreateTicketMessage implements MessageInterface
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
+        #[PersonalData]
         public string $name = '',
 
         /**
@@ -80,7 +82,6 @@ final readonly class CreateTicketMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
-        #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, TicketAttachmentMessage::class)]
         public array $files = [],
     ) {}

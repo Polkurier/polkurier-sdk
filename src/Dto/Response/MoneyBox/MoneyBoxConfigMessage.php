@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -77,36 +78,42 @@ final readonly class MoneyBoxConfigMessage implements MessageInterface, ParsedRe
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
+        #[PersonalData]
         public string $bankAccountNumber = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
+        #[PersonalData]
         public string $company = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
+        #[PersonalData]
         public string $person = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
+        #[PersonalData]
         public string $street = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
+        #[PersonalData]
         public string $postcode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
+        #[PersonalData]
         public string $city = '',
 
         /**

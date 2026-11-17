@@ -12,6 +12,7 @@ use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Rule as Validate;
@@ -24,15 +25,22 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * entry is listed under and is always required. Each entry has one role, so a place used as both
  * sender and recipient is 2 entries with 2 ids.
  *
- * Put the house and flat numbers in their own fields, not at the end of the street. The API joins
- * them into one line and requires at least two words, which it reports under `housenumber`.
+ * Put the house and flat numbers in their own fields, not at the end of the street. The API
+ * stores the three as one line and splits them again on the way back, cutting at the first digit.
+ * A street whose name contains a digit comes back cut at that digit, and a third part such as
+ * `10/2/3` loses its tail, so an entry read back is not always the entry that was saved: compare
+ * {@see self::getStreet()} against what you sent before relying on the parts.
+ *
+ * The street, house number and flat number together must be at least 2 words. A sender is always
+ * checked; a recipient is checked unless its point is an InPost, Orlen or DPD pickup point. The
+ * failure is reported under `housenumber`.
  *
  * `default` is for senders only: it makes this the preselected sender, or the preselected
  * alternative return address.
  *
  * A sender entry needs an email address, a recipient entry does not.
  *
- * `shared`, `streetName` and `point` are reported by the API and not sent.
+ * `shared` and `point` are reported by the API and not sent.
  *
  * @api
  */
@@ -68,7 +76,6 @@ class Address implements MessageInterface, ParsedResponseInterface
     public const string FIELD_DEFAULT = 'default';
     public const string FIELD_COVER_ADDRESS = 'is_cover_address';
     public const string FIELD_SHARED = 'shared';
-    public const string FIELD_STREET_NAME = 'streetname';
     public const string FIELD_POINT = 'point';
     /**-@#*/
 
@@ -95,7 +102,6 @@ class Address implements MessageInterface, ParsedResponseInterface
      * @param bool $coverAddress the sender is an alternative return address
      * @param bool $shared the entry belongs to the main account's address book, which this
      *        sub-account shares
-     * @param string|null $streetName the street without the house and flat number, split from
      * @param CourierPoint|null $point
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
@@ -112,6 +118,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[Validate\NotBlank]
+        #[PersonalData]
         private string $person,
 
         /**
@@ -119,6 +126,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[Validate\NotBlank]
+        #[PersonalData]
         private string $street,
 
         /**
@@ -126,6 +134,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
         #[Validate\NotBlank]
+        #[PersonalData]
         private ?string $houseNumber,
 
         /**
@@ -133,6 +142,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\NotBlank]
+        #[PersonalData]
         private string $postcode,
 
         /**
@@ -140,6 +150,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[Validate\NotBlank]
+        #[PersonalData]
         private string $city,
 
         /**
@@ -148,6 +159,7 @@ class Address implements MessageInterface, ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
         #[OmitWhenEmpty]
         #[Validate\Email]
+        #[PersonalData]
         private ?string $email,
 
         /**
@@ -156,6 +168,7 @@ class Address implements MessageInterface, ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_PHONE)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
+        #[PersonalData]
         private ?string $phone,
 
         /**
@@ -177,6 +190,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private ?string $company = null,
 
         /**
@@ -184,6 +198,7 @@ class Address implements MessageInterface, ParsedResponseInterface
          */
         #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         private ?string $flatNumber = null,
 
         /**
@@ -224,13 +239,6 @@ class Address implements MessageInterface, ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_SHARED)]
         #[ResponseOnly]
         private bool $shared = false,
-
-        /**
-         * @var string|null
-         */
-        #[Serializer\SerializedName(self::FIELD_STREET_NAME)]
-        #[ResponseOnly]
-        private ?string $streetName = null,
 
         /**
          * @var CourierPoint|null
@@ -595,43 +603,6 @@ class Address implements MessageInterface, ParsedResponseInterface
     }
 
     /**
-     * @param bool $shared
-     *
-     * @return static
-     */
-    public function setShared(bool $shared): static
-    {
-        $this->shared = $shared;
-
-        return $this;
-    }
-
-    /**
-     * The street name without the house and flat number, split from {@see self::getStreet()}.
-     *
-     * The split doesn't always succeed. When it doesn't, this, the house number and the flat number
-     * are empty while the street still holds the full text, so rely on the street.
-     *
-     * @return string|null null if the response leaves it out
-     */
-    public function getStreetName(): ?string
-    {
-        return $this->streetName;
-    }
-
-    /**
-     * @param string|null $streetName
-     *
-     * @return static
-     */
-    public function setStreetName(?string $streetName): static
-    {
-        $this->streetName = $streetName;
-
-        return $this;
-    }
-
-    /**
      * The pickup point this address resolves to, in full.
      *
      * Set when the address names a point that is still known. Null for an ordinary street address,
@@ -643,17 +614,5 @@ class Address implements MessageInterface, ParsedResponseInterface
     public function getPoint(): ?CourierPoint
     {
         return $this->point;
-    }
-
-    /**
-     * @param CourierPoint|null $point
-     *
-     * @return static
-     */
-    public function setPoint(?CourierPoint $point): static
-    {
-        $this->point = $point;
-
-        return $this;
     }
 }

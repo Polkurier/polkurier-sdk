@@ -19,7 +19,7 @@ use Polkurier\Webservice\Exception\Exception;
 require __DIR__ . '/bootstrap.php';
 
 if (!hasFlag('--confirm')) {
-    echo "This example changes a real ticket’s status. Re-run with --confirm to do it for real.\n";
+    echo "This example changes a real ticket's status. Re-run with --confirm to do it for real.\n";
     exit(0);
 }
 

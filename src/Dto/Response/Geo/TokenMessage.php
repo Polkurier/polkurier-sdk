@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\Geo;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -39,6 +40,7 @@ final readonly class TokenMessage implements MessageInterface, ParsedResponseInt
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
+        #[Sensitive]
         public string $token = '',
 
         /**

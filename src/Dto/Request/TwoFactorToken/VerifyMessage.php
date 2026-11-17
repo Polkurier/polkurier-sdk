@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\TwoFactorToken;
 
 use Polkurier\Webservice\Dto\Request\Common\TokenMessage;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -36,6 +37,7 @@ final readonly class VerifyMessage extends TokenMessage
          */
         #[Serializer\SerializedName(self::FIELD_CODE)]
         #[Validate\NotBlank]
+        #[Sensitive]
         public string $code,
     ) {
         parent::__construct($token);

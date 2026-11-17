@@ -30,6 +30,8 @@ require __DIR__ . '/../vendor/autoload.php';
  * Logging is left at its default, which discards everything. Pass any PSR-3 logger as the second
  * constructor argument to see the requests and responses the SDK exchanges.
  *
+ * The platform name and version go into the User-Agent and identify these scripts, not the SDK.
+ *
  * @param bool $credentialsNeeded false for a method that sends no authorization block, so the
  *        example runs without an account
  */
@@ -50,7 +52,7 @@ function polkurier(bool $credentialsNeeded = true): PolkurierWebservice
     return new PolkurierWebservice(new Config(
         authorization: new AuthorizationMessage(token: $token, login: $login),
         platform: 'polkurier-sdk-examples',
-        platformVersion: '2.0.0',
+        platformVersion: '1.0.0',
         apiUrl: $apiUrl === false || $apiUrl === '' ? null : $apiUrl,
         sandbox: (bool)\getenv('POLKURIER_API_SANDBOX'),
     ));
@@ -104,13 +106,5 @@ function attachments(array $paths): array
 
         return TicketAttachmentMessage::fromContents(\basename($path), $contents, $type);
     }, $paths);
-}
-
-/**
- * Prints whatever a service method answered with.
- */
-function dumpResponse(mixed $payload): void
-{
-    \var_dump($payload);
 }
 

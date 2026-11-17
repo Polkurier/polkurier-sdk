@@ -99,14 +99,11 @@ final class AddressTest extends TestCase
             'name' => 'Magazyn',
             'housenumber' => '12',
             'flatnumber' => null,
-            'streetname' => 'Długa',
-            'machinename' => 'POZ01A',
             'point' => ['id' => 'POZ01A', 'city' => 'Poznań'],
         ], Address::class, 'json');
 
         self::assertInstanceOf(Address::class, $address);
         self::assertNull($address->getFlatNumber());
-        self::assertSame('Długa', $address->getStreetName());
         self::assertSame('POZ01A', $address->getPoint()?->id);
     }
 

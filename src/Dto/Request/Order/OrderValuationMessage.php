@@ -26,17 +26,14 @@ final readonly class OrderValuationMessage implements MessageInterface
     /**+@#
      * JSON parameter keys
      */
-    public const string FIELD_ORDER = 'order';
     public const string FIELD_RETURN_VALUATIONS = 'returnvaluations';
     /**-@#*/
 
-    // `order` names a field marked #[InlineFields], whose entries are written at this level, so
-    // the key itself never reaches the payload. `returnvaluations` is the key the API reads the
-    // carrier code from, which is why it sits on a property named for the carrier.
+    // `returnvaluations` is the key the API reads the carrier code from, which is why it sits on
+    // a property named for the carrier.
 
     /**
-     * @param CreateOrderMessage $order the order to price. Its fields are sent at the top level, not
-     *        under `order`
+     * @param CreateOrderMessage $order the order to price. Its fields are sent at the top level
      * @param string $courier the carrier to price it for, a service code from
      *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::availableCarriers()}
      */
@@ -44,9 +41,7 @@ final readonly class OrderValuationMessage implements MessageInterface
         /**
          * @var CreateOrderMessage
          */
-        #[Serializer\SerializedName(self::FIELD_ORDER)]
         #[InlineFields]
-        #[Validate\Valid]
         public CreateOrderMessage $order,
 
         /**

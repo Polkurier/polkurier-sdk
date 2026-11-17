@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Dto\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -87,6 +88,7 @@ final readonly class ErrorMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $nonce = null,
     ) {}
 }

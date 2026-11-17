@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * get_couriers_messages — read the carriers’ current service notices.
+ * get_couriers_messages — read the carriers' current service notices.
  *
  * Delays, suspensions and general information. Each notice carries a severity and the carrier it
  * concerns, so a shop can warn a customer before they choose a carrier. The message is HTML in

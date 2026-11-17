@@ -11,7 +11,6 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
-use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\WireNameReader;
@@ -86,7 +85,7 @@ final class RequestFieldRoundTripTest extends TestCase
         $payload = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
 
         self::assertIsArray($payload);
-        $skipped = [...self::inlinedKeys($class), ...self::responseOnlyKeys($class)];
+        $skipped = self::responseOnlyKeys($class);
         $synthetic = self::syntheticFields($class);
         foreach ($fields as $name => $key) {
             if (\in_array($key, $skipped, true) || \in_array($name, $synthetic, true)) {
@@ -107,18 +106,6 @@ final class RequestFieldRoundTripTest extends TestCase
     private static function responseOnlyKeys(string $class): array
     {
         return self::keysMarkedWith($class, ResponseOnly::class);
-    }
-
-    /**
-     * Wire names of the maps whose entries are written into the enclosing object instead.
-     *
-     * @param class-string $class
-     *
-     * @return list<string>
-     */
-    private static function inlinedKeys(string $class): array
-    {
-        return self::keysMarkedWith($class, InlineFields::class);
     }
 
     /**

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Dto\Response\Courier;
 
+use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
@@ -18,7 +19,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
  *
  * @api
  */
-final readonly class TimeIntervalMessage
+final readonly class TimeIntervalMessage implements MessageInterface
 {
     /**+@#
      * JSON parameter keys

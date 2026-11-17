@@ -288,16 +288,27 @@ as the API token, personal data and file contents are left out unless you turn t
 If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
 whose body contains the API token. [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) has the error without the request.
 For the payload, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives a copy with the secrets hidden, and
-[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Both together hide both:
+[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Both together hide both.
+[`FieldRedactor::message()`](../src/Log/FieldRedactor.php) reads the marks off the classes the body
+holds, so its second argument names the class under each key of the request envelope:
+[`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) under `authorization`, and
+under `data` the payload you passed to the service method.
 
 ```php
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Log\PersonalDataRedactor;
 use Polkurier\Webservice\Log\SensitiveDataRedactor;
 
-$request = (new PersonalDataRedactor())->message((new SensitiveDataRedactor())->message($e->getRequest()));
+$classes = ['authorization' => AuthorizationMessage::class, 'data' => $message::class];
+
+$request = (new PersonalDataRedactor())->message(
+    (new SensitiveDataRedactor())->message($e->getRequest(), $classes),
+    $classes,
+);
 ```
 
-Files in the body, such as a label, are left in.
+A key none of those classes declares is logged as it arrived, including a contact form's own
+answers and a carrier's `additional_fields`. Files in the body, such as a label, are left in.
 
 A complete handler
 ------------------

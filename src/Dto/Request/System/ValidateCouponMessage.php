@@ -71,7 +71,6 @@ final readonly class ValidateCouponMessage implements MessageInterface
          * @var PackItem[]
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
-        #[Validate\Valid]
         #[OmitWhenEmpty]
         #[Validate\Each(Validate\OfType::class, PackItem::class)]
         public array $packs = [],

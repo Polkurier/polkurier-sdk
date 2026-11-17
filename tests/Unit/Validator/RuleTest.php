@@ -98,7 +98,9 @@ final class RuleTest extends TestCase
             // Without that, every optional field carrying one would become mandatory.
             'an empty postcode, which NotBlank judges' => [new Postcode(), ''],
             'an empty account number, likewise' => [new Iban(), ''],
+            'an account number left out, likewise' => [new Iban(), null],
             'an empty phone number, likewise' => [new PhoneNumber(), ''],
+            'a phone number left out, likewise' => [new PhoneNumber(), null],
             'an empty order number, likewise' => [new OrderNumber(), ''],
             'a null page size, likewise' => [new IntegerRange(1, 100), null],
         ];
@@ -172,6 +174,103 @@ final class RuleTest extends TestCase
     }
 
     /**
+     * @return array<string, array{ValueValidatorInterface, mixed, ValidationErrorCodeEnum, array<string, scalar>}>
+     */
+    public static function faults(): array
+    {
+        return [
+            // A value with no digits in it, or one written out of the separators an account number
+            // uses, is something the customer typed, not an absent field: the format rule names
+            // the fault instead of borrowing the one {@see NotBlank} reports.
+            'a phone number that is letters' => [
+                new PhoneNumber(),
+                'abc',
+                ValidationErrorCodeEnum::NotAPhoneNumber,
+                [],
+            ],
+            'a phone number that is plus signs' => [
+                new PhoneNumber(),
+                '+++',
+                ValidationErrorCodeEnum::NotAPhoneNumber,
+                [],
+            ],
+            'a phone number that is hyphens' => [
+                new PhoneNumber(),
+                '---',
+                ValidationErrorCodeEnum::NotAPhoneNumber,
+                [],
+            ],
+            'a phone number that is not a string' => [
+                new PhoneNumber(),
+                Arguments::widen(500600700),
+                ValidationErrorCodeEnum::NotAPhoneNumber,
+                [],
+            ],
+            'a phone number with too few digits' => [
+                new PhoneNumber(),
+                '12',
+                ValidationErrorCodeEnum::PhoneNumberTooShort,
+                ['minimum' => 4],
+            ],
+            'an account number that is spaces' => [
+                new Iban(),
+                '   ',
+                ValidationErrorCodeEnum::NotABankAccount,
+                [],
+            ],
+            'an account number that is hyphens' => [
+                new Iban(),
+                '---',
+                ValidationErrorCodeEnum::NotABankAccount,
+                [],
+            ],
+            'an account number that is the separators a written one is grouped with' => [
+                new Iban(),
+                ' - - ',
+                ValidationErrorCodeEnum::NotABankAccount,
+                [],
+            ],
+            'an account number that is not a string' => [
+                new Iban(),
+                Arguments::widen(1020),
+                ValidationErrorCodeEnum::NotABankAccount,
+                [],
+            ],
+            'an account number too short for its country' => [
+                new Iban(),
+                '5810203958',
+                ValidationErrorCodeEnum::BankAccountWrongLength,
+                ['country' => 'PL', 'expected' => 28],
+            ],
+        ];
+    }
+
+    /**
+     * A rejected value names which fault it is and carries the values its sentence spells out, so
+     * an integration words its own report from those instead of matching on the English.
+     *
+     * @param ValueValidatorInterface $validator
+     * @param mixed $value
+     * @param ValidationErrorCodeEnum $code
+     * @param array<string, scalar> $parameters
+     *
+     * @return void
+     */
+    #[DataProvider('faults')]
+    public function testARejectedValueNamesItsFaultAndTheValuesItsMessageSpellsOut(
+        ValueValidatorInterface $validator,
+        mixed $value,
+        ValidationErrorCodeEnum $code,
+        array $parameters,
+    ): void {
+        $failures = $validator->validate($value);
+
+        self::assertCount(1, $failures);
+        self::assertSame($code, $failures[0]->code);
+        self::assertSame($parameters, $failures[0]->parameters);
+    }
+
+    /**
      * {@see Each} names its rule by class, so a class that isn't a value rule is refused up front.
      */
     public function testEachRefusesAClassThatIsNotAValueRule(): void
@@ -192,6 +291,11 @@ final class RuleTest extends TestCase
         self::assertSame(['must not be empty'], self::messagesOf((new NotBlank())->validate('')));
         self::assertSame(['must be greater than zero'], self::messagesOf((new Positive())->validate(0)));
         self::assertSame(['must be 28 characters long for PL'], self::messagesOf((new Iban())->validate('123')));
+        self::assertSame(['must be a phone number'], self::messagesOf((new PhoneNumber())->validate('abc')));
+        self::assertSame(
+            ['must be a bank account number'],
+            self::messagesOf((new Iban())->validate(' - ')),
+        );
         self::assertSame(
             ['must be between 1 and 100'],
             self::messagesOf((new IntegerRange(1, 100))->validate(500)),

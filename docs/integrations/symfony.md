@@ -126,8 +126,8 @@ monolog:
 ```
 
 > With `methodsToLog` set on [`Config`](../../src/Config.php), full request and response bodies are logged. Secrets and
-> personal data in them are hidden unless allowed. The exceptions in an error record's context are
-> logged unaltered and can hold the full request.
+> personal data in them are hidden unless allowed. An exception in an error record's context is
+> logged as its class name until both are allowed, because it can hold the full request.
 
 Autowiring
 ----------

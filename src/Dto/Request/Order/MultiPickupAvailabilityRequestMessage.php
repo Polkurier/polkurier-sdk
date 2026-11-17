@@ -54,7 +54,6 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[Validate\NotEmptyList]
-        #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, PackItem::class)]
         public array $packs,
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\BankAccount;
 
 use Polkurier\Webservice\Dto\Request\Common\IdMessage;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -36,6 +37,7 @@ final readonly class DeleteBankAccountMessage extends IdMessage
          */
         #[Serializer\SerializedName(self::FIELD_ACCESS_PIN)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $accessPin = null,
     ) {
         parent::__construct($id);

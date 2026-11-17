@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Dto\Response\MoneyBox;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -110,36 +111,42 @@ final readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedRe
          * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
+        #[PersonalData]
         public ?string $bankAccountNumber = null,
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
+        #[PersonalData]
         public string $company = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
+        #[PersonalData]
         public string $person = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
+        #[PersonalData]
         public string $street = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
+        #[PersonalData]
         public string $postcode = '',
 
         /**
          * @var string
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
+        #[PersonalData]
         public string $city = '',
 
         /**

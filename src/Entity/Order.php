@@ -180,7 +180,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[Validate\NotEmptyList]
-        #[Validate\Valid]
         #[Validate\Each(Validate\OfType::class, PackItem::class)]
         private array $packs = [],
 
@@ -189,7 +188,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
         #[Validate\NotBlank]
-        #[Validate\Valid]
         private ?Address $sender = null,
 
         /**
@@ -197,7 +195,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_RECIPIENT)]
         #[Validate\NotBlank]
-        #[Validate\Valid]
         private ?Address $recipient = null,
 
         /**
@@ -205,7 +202,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_CASH_ON_DELIVERY)]
         #[OmitWhenEmpty]
-        #[Validate\Valid]
         private ?Cod $cod = null,
 
         /**
@@ -221,7 +217,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS)]
         #[OmitWhenEmpty]
-        #[Validate\Valid]
         private ?Address $coverAddress = null,
 
         /**
@@ -229,7 +224,6 @@ class Order implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PICKUP)]
         #[OmitWhenEmpty]
-        #[Validate\Valid]
         private ?Pickup $pickup = null,
 
         /**
@@ -767,35 +761,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string|null $number
-     *
-     * @return static
-     */
-    public function setNumber(?string $number): static
-    {
-        $this->number = $number;
-
-        return $this;
-    }
-
-    /**
      * @return string|null
      */
     public function getStatus(): ?string
     {
         return $this->status;
-    }
-
-    /**
-     * @param string|null $status
-     *
-     * @return static
-     */
-    public function setStatus(?string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
     }
 
     /**
@@ -807,35 +777,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string|null $statusCode
-     *
-     * @return static
-     */
-    public function setStatusCode(?string $statusCode): static
-    {
-        $this->statusCode = $statusCode;
-
-        return $this;
-    }
-
-    /**
      * @return \DateTimeInterface|null
      */
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
-    }
-
-    /**
-     * @param \DateTimeInterface|null $date
-     *
-     * @return static
-     */
-    public function setDate(?\DateTimeInterface $date): static
-    {
-        $this->date = $date;
-
-        return $this;
     }
 
     /**
@@ -847,35 +793,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $statusDate
-     *
-     * @return static
-     */
-    public function setStatusDate(?\DateTimeInterface $statusDate): static
-    {
-        $this->statusDate = $statusDate;
-
-        return $this;
-    }
-
-    /**
      * @return Waybill[]
      */
     public function getWaybills(): array
     {
         return $this->waybills;
-    }
-
-    /**
-     * @param Waybill[] $waybills
-     *
-     * @return static
-     */
-    public function setWaybills(array $waybills): static
-    {
-        $this->waybills = $waybills;
-
-        return $this;
     }
 
     /**
@@ -887,35 +809,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float|null $priceNet
-     *
-     * @return static
-     */
-    public function setPriceNet(?float $priceNet): static
-    {
-        $this->priceNet = $priceNet;
-
-        return $this;
-    }
-
-    /**
      * @return float|null
      */
     public function getPriceGross(): ?float
     {
         return $this->priceGross;
-    }
-
-    /**
-     * @param float|null $priceGross
-     *
-     * @return static
-     */
-    public function setPriceGross(?float $priceGross): static
-    {
-        $this->priceGross = $priceGross;
-
-        return $this;
     }
 
     /**
@@ -927,35 +825,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float|null $unpaidAmount
-     *
-     * @return static
-     */
-    public function setUnpaidAmount(?float $unpaidAmount): static
-    {
-        $this->unpaidAmount = $unpaidAmount;
-
-        return $this;
-    }
-
-    /**
      * @return Item[]
      */
     public function getItems(): array
     {
         return $this->items;
-    }
-
-    /**
-     * @param Item[] $items
-     *
-     * @return static
-     */
-    public function setItems(array $items): static
-    {
-        $this->items = $items;
-
-        return $this;
     }
 
     /**
@@ -967,35 +841,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param bool $paid
-     *
-     * @return static
-     */
-    public function setPaid(bool $paid): static
-    {
-        $this->paid = $paid;
-
-        return $this;
-    }
-
-    /**
      * @return bool
      */
     public function hasInvoice(): bool
     {
         return $this->invoice;
-    }
-
-    /**
-     * @param bool $invoice
-     *
-     * @return static
-     */
-    public function setInvoice(bool $invoice): static
-    {
-        $this->invoice = $invoice;
-
-        return $this;
     }
 
     /**
@@ -1007,35 +857,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string[]|null $courierServiceNames
-     *
-     * @return static
-     */
-    public function setCourierServiceNames(?array $courierServiceNames): static
-    {
-        $this->courierServiceNames = $courierServiceNames;
-
-        return $this;
-    }
-
-    /**
      * @return string|null
      */
     public function getTrackingUri(): ?string
     {
         return $this->trackingUri;
-    }
-
-    /**
-     * @param string|null $trackingUri
-     *
-     * @return static
-     */
-    public function setTrackingUri(?string $trackingUri): static
-    {
-        $this->trackingUri = $trackingUri;
-
-        return $this;
     }
 
     /**
@@ -1047,35 +873,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param \DateTimeInterface|null $deliveredDate
-     *
-     * @return static
-     */
-    public function setDeliveredDate(?\DateTimeInterface $deliveredDate): static
-    {
-        $this->deliveredDate = $deliveredDate;
-
-        return $this;
-    }
-
-    /**
      * @return string|null
      */
     public function getCourierName(): ?string
     {
         return $this->courierName;
-    }
-
-    /**
-     * @param string|null $courierName
-     *
-     * @return static
-     */
-    public function setCourierName(?string $courierName): static
-    {
-        $this->courierName = $courierName;
-
-        return $this;
     }
 
     /**
@@ -1087,35 +889,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float|null $rebateNet
-     *
-     * @return static
-     */
-    public function setRebateNet(?float $rebateNet): static
-    {
-        $this->rebateNet = $rebateNet;
-
-        return $this;
-    }
-
-    /**
      * @return float|null
      */
     public function getRebateGross(): ?float
     {
         return $this->rebateGross;
-    }
-
-    /**
-     * @param float|null $rebateGross
-     *
-     * @return static
-     */
-    public function setRebateGross(?float $rebateGross): static
-    {
-        $this->rebateGross = $rebateGross;
-
-        return $this;
     }
 
     /**
@@ -1127,35 +905,11 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param float|null $vatRate
-     *
-     * @return static
-     */
-    public function setVatRate(?float $vatRate): static
-    {
-        $this->vatRate = $vatRate;
-
-        return $this;
-    }
-
-    /**
      * @return string[]|null
      */
     public function getLabel(): ?array
     {
         return $this->label;
-    }
-
-    /**
-     * @param string[]|null $label
-     *
-     * @return static
-     */
-    public function setLabel(?array $label): static
-    {
-        $this->label = $label;
-
-        return $this;
     }
 
     /**
@@ -1167,18 +921,6 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param string|null $shipmentCode
-     *
-     * @return static
-     */
-    public function setShipmentCode(?string $shipmentCode): static
-    {
-        $this->shipmentCode = $shipmentCode;
-
-        return $this;
-    }
-
-    /**
      * @return IndividualPricing|null
      */
     public function getIndividualPricing(): ?IndividualPricing
@@ -1187,34 +929,10 @@ class Order implements MessageInterface
     }
 
     /**
-     * @param IndividualPricing|null $individualPricing
-     *
-     * @return static
-     */
-    public function setIndividualPricing(?IndividualPricing $individualPricing): static
-    {
-        $this->individualPricing = $individualPricing;
-
-        return $this;
-    }
-
-    /**
      * @return File[]|null
      */
     public function getFiles(): ?array
     {
         return $this->files;
-    }
-
-    /**
-     * @param File[]|null $files
-     *
-     * @return static
-     */
-    public function setFiles(?array $files): static
-    {
-        $this->files = $files;
-
-        return $this;
     }
 }

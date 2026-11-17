@@ -11,6 +11,8 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Request\Common\TwoFactorFieldsInterface;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -95,6 +97,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
         #[Validate\Iban]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $bankAccountNumber = null,
 
         /**
@@ -102,6 +105,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $company = null,
 
         /**
@@ -109,6 +113,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $person = null,
 
         /**
@@ -116,6 +121,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $street = null,
 
         /**
@@ -124,6 +130,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\Postcode]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $postcode = null,
 
         /**
@@ -131,6 +138,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
+        #[PersonalData]
         public ?string $city = null,
 
         /**
@@ -138,6 +146,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_SECURITY_PIN)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $securityPin = null,
 
         /**
@@ -145,6 +154,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $twoFactorToken = null,
 
         /**
@@ -159,6 +169,7 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
          */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
+        #[Sensitive]
         public ?string $twoFactorCode = null,
     ) {}
 }

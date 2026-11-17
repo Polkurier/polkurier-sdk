@@ -248,8 +248,9 @@ final class WooLogger extends AbstractLogger
 }
 ```
 
-`$context` is not logged. The request and response in it are prepared like the message, but the
-exceptions in it can hold the full request, API token included.
+`$context` is not logged. The request and response in it are prepared like the message, and an
+exception in it is reduced to its class name until `logSensitiveData` and `logPersonalData` are
+both on, when it can hold the full request, API token included.
 
 Placing the shipment
 --------------------

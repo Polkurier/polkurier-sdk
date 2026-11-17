@@ -12,11 +12,11 @@ use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\ClassMembers;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\IgnoredWhen;
 use Polkurier\Webservice\Validator\Rule\MessageRuleInterface;
-use Polkurier\Webservice\Validator\Rule\Valid;
 use Polkurier\Webservice\Validator\Rule\ValidatedBy;
 use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
@@ -206,7 +206,7 @@ class AttributeValidator implements ValidatorInterface
      */
     protected function collectNested(mixed $value, string $field, ViolationPool $violations): void
     {
-        if (\is_object($value)) {
+        if (self::walksInto($value)) {
             $nested = new ViolationPool();
             $this->collect($value, $nested);
             $violations->mergeUnder($field, $nested);
@@ -219,13 +219,29 @@ class AttributeValidator implements ValidatorInterface
         }
 
         foreach ($value as $index => $item) {
-            if (!\is_object($item)) {
+            if (!self::walksInto($item)) {
                 continue;
             }
             $nested = new ViolationPool();
             $this->collect($item, $nested);
             $violations->mergeUnder(\sprintf('%s[%s]', $field, (string)$index), $nested);
         }
+    }
+
+    /**
+     * Whether a value is an object whose own fields can carry rules.
+     *
+     * An enum is one of a fixed set, so it is valid by having been built at all, and a date is a
+     * point in time with no fields to describe. Neither declares a rule, and walking them would
+     * read a foreign class's properties.
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    protected static function walksInto(mixed $value): bool
+    {
+        return \is_object($value) && !$value instanceof \UnitEnum && !$value instanceof \DateTimeInterface;
     }
 
     /**
@@ -302,9 +318,11 @@ class AttributeValidator implements ValidatorInterface
                 foreach ($property->getAttributes(Each::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
                     $each[$name][] = $attribute->newInstance()->rule();
                 }
-                if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== []
-                    && !\in_array($name, $nested, true)
-                ) {
+                // Everything the SDK sends is descended into; the value decides whether there is
+                // anything to check, see {@see self::collectNested()}. A field the API returns and
+                // never takes holds what the SDK read rather than what it is about to write, so
+                // validating it would report a fault no payload can carry.
+                if ($property->getAttributes(ResponseOnly::class) === [] && !\in_array($name, $nested, true)) {
                     $nested[] = $name;
                 }
             }

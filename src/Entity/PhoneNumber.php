@@ -10,6 +10,7 @@ namespace Polkurier\Webservice\Entity;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
+use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -50,6 +51,7 @@ class PhoneNumber implements MessageInterface, ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
+        #[PersonalData]
         private string $number = '',
 
         /**
@@ -84,18 +86,6 @@ class PhoneNumber implements MessageInterface, ParsedResponseInterface
     public function getId(): string
     {
         return $this->id;
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return static
-     */
-    public function setId(string $id): static
-    {
-        $this->id = $id;
-
-        return $this;
     }
 
     /**
