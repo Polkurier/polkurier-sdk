@@ -17,7 +17,7 @@ use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 /**
@@ -51,6 +51,11 @@ class OrderReader implements OrderReaderInterface
      *
      * The hash is an HMAC-SHA256 of the event's other fields, form-encoded, keyed with the secret.
      *
+     * Polkurier builds the body with `http_build_query()` and appends `hash` last, so the hashed
+     * string is the body up to `&hash=`. Decoding the fields and encoding them again reproduces
+     * it: PHP's own encoding is what both sides use, and the event's top-level names carry
+     * nothing `parse_str()` would rewrite.
+     *
      * @param string $body the request body, as it came
      * @param string $secret the secret the Polkurier panel gives for the webhook
      *
@@ -75,6 +80,8 @@ class OrderReader implements OrderReaderInterface
      *
      * @return OrderEventMessage
      * @throws InvalidArgumentException when the body isn't an order event
+     * @throws \ArgumentCountError when the class the payload maps onto cannot be built from any
+     *         payload, which is a defect in that class rather than in what arrived
      */
     public function read(string $body): OrderEventMessage
     {
@@ -104,7 +111,13 @@ class OrderReader implements OrderReaderInterface
                     ResponseDriftCollector::CONTEXT_KEY => $drift,
                 ],
             );
-        } catch (ExceptionInterface $e) {
+        } catch (\ArgumentCountError $e) {
+            // The event class cannot be built from form fields at all, which is a defect in that
+            // class rather than in what was posted.
+            throw $e;
+        } catch (SerializerException | \TypeError $e) {
+            // A constructor refusing what the denormalizer built raises a TypeError, which is
+            // outside the SDK's hierarchy just as the serializer's own exceptions are.
             throw new InvalidArgumentException(
                 'The order in the Polkurier order event could not be read: ' . $e->getMessage(),
                 0,
@@ -134,8 +147,11 @@ class OrderReader implements OrderReaderInterface
     }
 
     /**
-     * Decodes a form-encoded body the way PHP fills `$_POST`, nested names included, without its
-     * `max_input_vars` limit.
+     * Decodes a form-encoded body into nested arrays, as PHP does for `$_POST` but without its
+     * `max_input_vars` limit, which an order with many items exceeds.
+     *
+     * A key is kept as sent. PHP rewrites `.` and a space in a top-level name to `_`; an order
+     * event carries no such name, and rewriting one would hide it from the field it belongs to.
      *
      * @param string $body
      *
