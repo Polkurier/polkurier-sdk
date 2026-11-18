@@ -36,17 +36,11 @@ final readonly class ChangeTransportMethodMessage implements MessageInterface
      * @param string $method id of the channel to switch to, from the token's available methods
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Validate\NotBlank]
         #[Sensitive]
         public string $token,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_METHOD)]
         #[Validate\NotBlank]
         public string $method,

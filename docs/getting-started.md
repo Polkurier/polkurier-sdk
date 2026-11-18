@@ -50,7 +50,7 @@ $client = new PolkurierWebservice(new Config(
     platformVersion: '1.0.0',
 ));
 
-foreach ($client->courier()->availableCarriers() as $carrier) {
+foreach ($client->courier()->getAvailableCarriers() as $carrier) {
     printf("%s — %s\n", $carrier->serviceCode, $carrier->name);
 }
 ```

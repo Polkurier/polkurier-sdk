@@ -26,7 +26,15 @@ final readonly class ReadResponse
      * @param list<ResponseDrift> $drift empty when the body was as expected
      */
     public function __construct(
+        /**
+         * @var ResponseMessage|ErrorMessage the payload of a successful call, or the error of a
+         *         rejected one
+         */
         public ResponseMessage|ErrorMessage $envelope,
+
+        /**
+         * @var list<ResponseDrift> empty when the body was as expected
+         */
         public array $drift = [],
     ) {}
 }

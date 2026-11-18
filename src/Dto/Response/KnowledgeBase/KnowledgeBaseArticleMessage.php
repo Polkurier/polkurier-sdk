@@ -41,21 +41,12 @@ final readonly class KnowledgeBaseArticleMessage implements MessageInterface, Pa
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
         public string $title = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content = '',
 
@@ -65,9 +56,6 @@ final readonly class KnowledgeBaseArticleMessage implements MessageInterface, Pa
         #[Serializer\SerializedName(self::FIELD_FILES)]
         public array $files = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

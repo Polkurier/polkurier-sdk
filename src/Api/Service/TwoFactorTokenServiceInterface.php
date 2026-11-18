@@ -61,7 +61,7 @@ interface TwoFactorTokenServiceInterface
      * At most 10 active tokens per account; the next fails with TWO_FACTOR_MAX_TOKENS_EXCEEDED.
      *
      * The response has the token id (pass it when verifying), the expiry time, and the delivery
-     * channels available to this customer. twoFactorTokenChangeTransportMethod() picks from those
+     * channels available to this customer. changeTransportMethod() picks from those
      * channels.
      *
      * Endpoint: `two_factor_token_register`
@@ -121,7 +121,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenRegister(RegisterMessage $registerMessage): TwoFactorToken;
+    public function register(RegisterMessage $registerMessage): TwoFactorToken;
 
     /**
      * Sends the code again for a token already registered.
@@ -167,7 +167,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenResend(ResendMessage $resendMessage): TwoFactorToken;
+    public function resend(ResendMessage $resendMessage): TwoFactorToken;
 
     /**
      * Checks the code the customer entered.
@@ -217,7 +217,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenVerify(VerifyMessage $verifyMessage): ValidityMessage;
+    public function verify(VerifyMessage $verifyMessage): ValidityMessage;
 
     /**
      * Switches a pending confirmation to a different delivery channel.
@@ -263,7 +263,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenChangeTransportMethod(
+    public function changeTransportMethod(
         ChangeTransportMethodMessage $changeTransportMethodMessage
     ): TwoFactorToken;
 }

@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Invoice;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
@@ -45,15 +44,9 @@ final readonly class InvoiceMessage implements MessageInterface
      * @param \DateTimeInterface|null $paymentDeadline due date, always null for a correction
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         public string $number = '',
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
         public float $value = 0.0,
 
@@ -68,7 +61,6 @@ final readonly class InvoiceMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
-        #[OmitWhenEmpty]
         public ?\DateTimeInterface $date = null,
 
         /**
@@ -76,7 +68,6 @@ final readonly class InvoiceMessage implements MessageInterface
          */
         #[Serializer\SerializedName(self::FIELD_PAYMENT_DEADLINE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
-        #[OmitWhenEmpty]
         public ?\DateTimeInterface $paymentDeadline = null,
     ) {}
 }

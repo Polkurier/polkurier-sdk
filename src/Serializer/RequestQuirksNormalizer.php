@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -76,6 +78,7 @@ class RequestQuirksNormalizer implements NormalizerInterface, DenormalizerInterf
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -113,6 +116,9 @@ class RequestQuirksNormalizer implements NormalizerInterface, DenormalizerInterf
      * @param array<string, mixed> $context
      *
      * @return mixed
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {

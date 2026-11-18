@@ -10,7 +10,6 @@ namespace Polkurier\Webservice\Dto\Response;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -40,16 +39,11 @@ final readonly class ErrorMessage implements MessageInterface
      * @param string|null $nonce
      */
     public function __construct(
-        /**
-         * @var ResponseStatusEnum
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public ResponseStatusEnum $status,
 
         /**
          * The API's message.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_RESPONSE)]
         public string $response,
@@ -58,14 +52,12 @@ final readonly class ErrorMessage implements MessageInterface
          * @var int|null null when the error doesn't carry one. Either code can be missing
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
-        #[OmitWhenEmpty]
         public ?int $statusCode = null,
 
         /**
          * @var string|null null when the error doesn't carry one. Either code can be missing
          */
         #[Serializer\SerializedName(self::FIELD_ERROR_CODE)]
-        #[OmitWhenEmpty]
         public ?string $errorCode = null,
 
         /**
@@ -78,7 +70,6 @@ final readonly class ErrorMessage implements MessageInterface
          * @var array<string, string[]>|null
          */
         #[Serializer\SerializedName(self::FIELD_VALIDATION_ERRORS)]
-        #[OmitWhenEmpty]
         public ?array $validationErrors = null,
 
         /**
@@ -87,7 +78,6 @@ final readonly class ErrorMessage implements MessageInterface
          * @var string|null null for any other error
          */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
-        #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $nonce = null,
     ) {}

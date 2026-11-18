@@ -130,7 +130,7 @@ interface OrdersServiceInterface
      *
      * @param CreateOrderMessage $createOrderMessage
      * @param string|null $courier a service code from
-     *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::availableCarriers()} to
+     *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::getAvailableCarriers()} to
      *        price the order for that carrier only, null for every carrier
      *
      * @return ValuationMessage[] one quote per carrier, or the one carrier's quote, see

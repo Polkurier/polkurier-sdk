@@ -44,9 +44,6 @@ final readonly class CalculateMoneyBoxPayoutFeeMessage implements MessageInterfa
         #[Validate\Each(Validate\OrderNumber::class)]
         public array $orders = [],
 
-        /**
-         * @var MoneyBoxPayoutTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
         #[OmitWhenEmpty]
         public ?MoneyBoxPayoutTypeEnum $payoutType = null,

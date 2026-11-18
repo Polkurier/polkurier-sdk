@@ -73,7 +73,7 @@ final class EveryServiceMethodTest extends TestCase
         $arguments = \array_map(self::argument(...), $reflection->getParameters());
         $reflection->invokeArgs($service, $arguments);
 
-        self::assertSame(1, $client->requestCount());
+        self::assertSame(1, $client->countRequests());
     }
 
     private static function argument(\ReflectionParameter $parameter): mixed

@@ -14,6 +14,7 @@ use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A registered two-factor confirmation, and how long it stays valid.
@@ -52,9 +53,6 @@ final readonly class TwoFactorToken implements MessageInterface, ParsedResponseI
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[Sensitive]
         public string $id,
@@ -67,34 +65,25 @@ final readonly class TwoFactorToken implements MessageInterface, ParsedResponseI
         #[PersonalData]
         public string $phoneNumber,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_OPERATION_TITLE)]
         public string $operationTitle,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_OPERATION_NUMBER)]
         public int $operationNumber,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_OPERATION_DATE)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $operationDate,
 
         /**
          * @var \DateTimeInterface|null null if it hasn't been sent
          */
         #[Serializer\SerializedName(self::FIELD_SENT_AT)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $sentAt,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXPIRES_AT)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $expiresAt,
 
         /**
@@ -108,16 +97,13 @@ final readonly class TwoFactorToken implements MessageInterface, ParsedResponseI
 
         /**
          * The ways the code can be sent, the current one included. Pass one's id to
-         * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()}.
+         * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::changeTransportMethod()}.
          *
          * @var TransportMethodMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE_METHODS)]
         public array $availableMethods = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

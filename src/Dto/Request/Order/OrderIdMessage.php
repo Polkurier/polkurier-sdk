@@ -28,9 +28,6 @@ abstract readonly class OrderIdMessage implements MessageInterface
      * @param string $orderNo
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\NotBlank]
         #[Validate\OrderNumber]

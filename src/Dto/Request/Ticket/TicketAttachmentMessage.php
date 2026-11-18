@@ -48,9 +48,6 @@ final readonly class TicketAttachmentMessage implements MessageInterface
      * @param string $type media type, e.g. `image/png`
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[Validate\NotBlank]
         public string $name,
@@ -62,9 +59,6 @@ final readonly class TicketAttachmentMessage implements MessageInterface
         #[Validate\NotBlank]
         public string $file,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[Validate\NotBlank]
         public string $type,
@@ -79,7 +73,7 @@ final readonly class TicketAttachmentMessage implements MessageInterface
      *
      * @return self
      */
-    public static function fromContents(string $name, string $contents, string $type): self
+    public static function makeFromContents(string $name, string $contents, string $type): self
     {
         return new self($name, \base64_encode($contents), $type);
     }

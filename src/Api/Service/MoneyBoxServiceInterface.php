@@ -30,7 +30,7 @@ use Polkurier\Webservice\Exception\WebserviceException;
  * withdraw now, and already committed to a payout.
  *
  * The money box can be switched off per account. When it is, every method here fails with
- * forbidden. The usual order is getConfig() to see how the account is set up, calculatePayoutFee()
+ * forbidden. The usual order is getMoneyBoxConfig() to see how the account is set up, calculatePayoutFee()
  * for a quote, then createPayout().
  *
  * createPayout() moves money and is not idempotent. Read its notes before you add a retry.
@@ -86,9 +86,10 @@ interface MoneyBoxServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getConfig(): MoneyBoxConfigMessage;
+    public function getMoneyBoxConfig(): MoneyBoxConfigMessage;
 
     /**
      * Quotes what a payout would cost, without requesting one.
@@ -164,13 +165,13 @@ interface MoneyBoxServiceInterface
      * account or payout lock.
      *
      * The payout type, ACCOUNT by default, decides the destination fields. Nothing is filled in
-     * from getConfig():
+     * from getMoneyBoxConfig():
      *
      * - bank transfer: an account number from the saved bank accounts, otherwise FORBIDDEN;
      * - postal money order: the postal address.
      *
      * Without a fee payment type, the fee is deducted from the money box, or added to an invoice
-     * where INVOICE is the only type getConfig() offers.
+     * where INVOICE is the only type getMoneyBoxConfig() offers.
      *
      * Only a postal money order to an address other than the saved default needs a confirmation,
      * one of:

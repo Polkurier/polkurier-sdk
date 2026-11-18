@@ -34,7 +34,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
             self::markTestSkipped('Sends a code; set POLKURIER_API_SEND_CODES=1 to run it.');
         }
 
-        $token = $this->sdk->twoFactorToken()->twoFactorTokenRegister(
+        $token = $this->sdk->twoFactorToken()->register(
             new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeDefaultPhoneNumber),
         );
 
@@ -46,7 +46,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     #[Depends('testATokenIsRegistered')]
     public function testTheCodeIsSentAgain(TwoFactorToken $token): void
     {
-        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new ResendMessage(token: $token->id));
+        $resent = $this->sdk->twoFactorToken()->resend(new ResendMessage(token: $token->id));
 
         self::assertSame($token->id, $resent->id);
     }
@@ -62,7 +62,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
             self::markTestSkipped('The account has one channel only.');
         }
 
-        $switched = $this->sdk->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+        $switched = $this->sdk->twoFactorToken()->changeTransportMethod(
             new ChangeTransportMethodMessage(token: $token->id, method: $other[0]->id),
         );
 
@@ -71,7 +71,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
 
     public function testAWrongCodeForAnUnknownTokenIsInvalid(): void
     {
-        $validity = $this->sdk->twoFactorToken()->twoFactorTokenVerify(
+        $validity = $this->sdk->twoFactorToken()->verify(
             new VerifyMessage(token: self::UNKNOWN_TOKEN, code: '123456'),
         );
 
@@ -81,7 +81,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     public function testResendingNeedsAToken(): void
     {
         self::assertApiError(
-            fn() => self::client(validatePayloads: false)->twoFactorToken()->twoFactorTokenResend(
+            fn() => self::client(validatePayloads: false)->twoFactorToken()->resend(
                 new ResendMessage(token: ''),
             ),
             'PARAMS_IS_EMPTY',
@@ -91,7 +91,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     public function testChangingTheChannelNeedsAMethod(): void
     {
         self::assertApiError(
-            fn() => self::client(validatePayloads: false)->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+            fn() => self::client(validatePayloads: false)->twoFactorToken()->changeTransportMethod(
                 new ChangeTransportMethodMessage(token: self::UNKNOWN_TOKEN, method: ''),
             ),
             'PARAMS_IS_EMPTY',

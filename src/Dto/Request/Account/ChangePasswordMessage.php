@@ -33,17 +33,11 @@ final readonly class ChangePasswordMessage implements MessageInterface
      * @param string $previousPassword the current password
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PASSWORD)]
         #[Validate\NotBlank]
         #[Sensitive]
         public string $password,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PREVIOUS_PASSWORD)]
         #[Validate\NotBlank]
         #[Sensitive]

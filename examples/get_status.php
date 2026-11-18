@@ -24,7 +24,7 @@ try {
         new GetStatusMessage(orderNo: $orderNumber, tracking: true)
     );
 
-    \printf("%s: %s (%s)\n", $orderNumber, $status->status, $status->statusCode);
+    \printf("%s: %s (%s)\n", $orderNumber, $status->status, $status->statusCode->value ?? '');
 
     foreach ($status->tracking as $event) {
         \printf(

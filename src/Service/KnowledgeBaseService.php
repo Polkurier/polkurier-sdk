@@ -31,6 +31,7 @@ class KnowledgeBaseService extends AbstractService implements KnowledgeBaseServi
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getIndex(): array

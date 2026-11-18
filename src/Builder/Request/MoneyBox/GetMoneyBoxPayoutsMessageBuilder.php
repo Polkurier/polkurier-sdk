@@ -23,7 +23,7 @@ class GetMoneyBoxPayoutsMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function payoutNumber(?string $payoutNumber): static
+    public function setPayoutNumber(?string $payoutNumber): static
     {
         return $this->set('payoutNumber', $payoutNumber);
     }
@@ -33,7 +33,7 @@ class GetMoneyBoxPayoutsMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function searchQuery(?string $searchQuery): static
+    public function setSearchQuery(?string $searchQuery): static
     {
         return $this->set('searchQuery', $searchQuery);
     }
@@ -43,7 +43,7 @@ class GetMoneyBoxPayoutsMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pageSize(?int $pageSize): static
+    public function setPageSize(?int $pageSize): static
     {
         return $this->set('pageSize', $pageSize);
     }
@@ -53,7 +53,7 @@ class GetMoneyBoxPayoutsMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function page(?int $page): static
+    public function setPage(?int $page): static
     {
         return $this->set('page', $page);
     }

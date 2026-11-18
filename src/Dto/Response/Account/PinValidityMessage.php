@@ -15,9 +15,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Whether a submitted security PIN was correct.
  *
- * A wrong PIN throws no exception: the flag is false, as it is for an account without a security
- * PIN.
- *
  * @api
  */
 final readonly class PinValidityMessage implements MessageInterface, ParsedResponseInterface
@@ -35,15 +32,9 @@ final readonly class PinValidityMessage implements MessageInterface, ParsedRespo
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_VALID)]
         public bool $valid = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

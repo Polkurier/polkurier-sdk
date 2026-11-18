@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\Cod;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Test\Support\SourceClasses;
@@ -53,14 +54,16 @@ final class EntityTest extends TestCase
     }
 
     /**
-     * Every field the constructor takes can be changed and read back.
+     * Every field the SDK sends can be changed and read back, and a field marked
+     * {@see ResponseOnly} can only be read: the serializer drops it from the payload, so a setter
+     * for it would change the object and nothing that leaves the SDK.
      *
      * @param class-string $class
      *
      * @return void
      */
     #[DataProvider('entityClasses')]
-    public function testEverySetterChangesWhatItsGetterReturns(string $class): void
+    public function testEveryFieldCanBeReadAndOnlyASentFieldCanBeChanged(string $class): void
     {
         $sample = Sample::of($class);
         $reflection = new \ReflectionClass($class);
@@ -71,19 +74,34 @@ final class EntityTest extends TestCase
             if ($name === 'rawResponse') {
                 continue;
             }
-            self::assertTrue($reflection->hasMethod($setter), $class . '::$' . $name . ' has no setter');
             $getter = \array_values(\array_filter(
                 ['get' . \ucfirst($name), 'is' . \ucfirst($name), 'has' . \ucfirst($name)],
                 static fn(string $method): bool => $reflection->hasMethod($method),
             ))[0] ?? null;
-            self::assertNotNull($getter, $class . '::$' . $name . ' has a setter but no getter');
+            self::assertNotNull($getter, $class . '::$' . $name . ' has no getter');
 
+            if ($parameter->getAttributes(ResponseOnly::class) !== []) {
+                self::assertFalse(
+                    $reflection->hasMethod($setter) && $reflection->getMethod($setter)->isPublic(),
+                    $class . '::$' . $name . ' is response-only, so ' . $setter . ' must not be public',
+                );
+                ++$checked;
+                continue;
+            }
+
+            self::assertTrue($reflection->hasMethod($setter), $class . '::$' . $name . ' has no setter');
             $value = $sample->{$getter}();
             $other = self::aDifferentValue($value);
             self::assertSame($sample, $sample->{$setter}($other), $setter . ' returns the entity');
             // A value the getter did not already hold, so a setter that assigns nothing fails
-            // here instead of returning what it was handed.
-            self::assertEquals($other, $sample->{$getter}(), $setter);
+            // here instead of returning what it was handed. An object is compared by identity:
+            // two instances of the same record carry the same fields, so equality would hold
+            // whether the setter stored the one it was handed or kept the one it had.
+            if (\is_object($other)) {
+                self::assertSame($other, $sample->{$getter}(), $setter);
+            } else {
+                self::assertEquals($other, $sample->{$getter}(), $setter);
+            }
             ++$checked;
         }
         self::assertGreaterThan(0, $checked);
@@ -92,8 +110,8 @@ final class EntityTest extends TestCase
     /**
      * A value of the same type that the sample does not already hold.
      *
-     * For a type with no second value to reach for, such as an object the test cannot build, the
-     * value itself comes back and the assertion falls back to a round trip.
+     * A record comes back as a second instance of its own class, which the assertion tells apart
+     * from the one the sample holds by identity.
      *
      * @param mixed $value
      *
@@ -115,6 +133,10 @@ final class EntityTest extends TestCase
             }
 
             return $value;
+        }
+
+        if (\is_object($value)) {
+            return Sample::of($value::class);
         }
 
         return match (true) {

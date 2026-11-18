@@ -18,12 +18,12 @@ For these cases the larger payloads have builders under [`Polkurier\Webservice\B
 ```php
 use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 
-$search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
+$search = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT']);
 
 if ($query !== null) {
-    $search->searchQuery($query);
+    $search->setSearchQuery($query);
 } else {
-    $search->limit(50)->page($page);
+    $search->setLimit(50)->setPage($page);
 }
 
 $points = $client->courier()->findCourierPoints($search->build());
@@ -33,7 +33,7 @@ How builders behave
 -------------------
 
 **Setters have the same types as the constructor.** For example
-[`PackBuilder::length(int $length)`](../src/Builder/Entity/PackBuilder.php), not a generic [`AbstractBuilder::set(string, mixed)`](../src/Builder/AbstractBuilder.php).
+[`PackBuilder::setLength(int $length)`](../src/Builder/Entity/PackBuilder.php), not a generic [`AbstractBuilder::set(string, mixed)`](../src/Builder/AbstractBuilder.php).
 Static analysis catches a wrong type the same way it would on the constructor.
 
 **Fields you never set aren't passed to the constructor.** The builder stores values by name and
@@ -64,7 +64,7 @@ Every payload with four or more fields has a builder, named after the class it b
 [`Builder\Request\Order\GetOrdersMessageBuilder`](../src/Builder/Request/Order/GetOrdersMessageBuilder.php) builds [`Dto\Request\Order\GetOrdersMessage`](../src/Dto/Request/Order/GetOrdersMessage.php).
 
 A message that wraps a record takes the record as one value, so its builder has one setter for it:
-[`SaveBankAccountMessageBuilder::bankAccount()`](../src/Builder/Request/BankAccount/SaveBankAccountMessageBuilder.php) takes a [`BankAccount`](../src/Entity/BankAccount.php). The two other wrappers,
+[`SaveBankAccountMessageBuilder::setBankAccount()`](../src/Builder/Request/BankAccount/SaveBankAccountMessageBuilder.php) takes a [`BankAccount`](../src/Entity/BankAccount.php). The two other wrappers,
 [`CreateOrderMessage`](../src/Dto/Request/Order/CreateOrderMessage.php) and [`SavePhoneNumberMessage`](../src/Dto/Request/Account/SavePhoneNumberMessage.php), have no builder: [`OrderBuilder`](../src/Builder/Entity/OrderBuilder.php) and
 [`PhoneNumberBuilder`](../src/Builder/Entity/PhoneNumberBuilder.php) build the record, and the wrapper's own fields go to its constructor.
 
@@ -81,27 +81,27 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 
 $pack = PackItemBuilder::create()
-    ->length(30)->width(20)->height(15)
-    ->weight(2.5)
-    ->type(PackTypeEnum::Standard)
+    ->setLength(30)->setWidth(20)->setHeight(15)
+    ->setWeight(2.5)
+    ->setType(PackTypeEnum::Standard)
     ->build();
 
 $sender = AddressBuilder::create()
-    ->person('Jan Kowalski')
-    ->street('Długa')
-    ->houseNumber('12')
-    ->city('Poznań')
-    ->postcode('61-001')
-    ->email('jan.kowalski@example.com')
-    ->phone('500600700')
+    ->setPerson('Jan Kowalski')
+    ->setStreet('Długa')
+    ->setHouseNumber('12')
+    ->setCity('Poznań')
+    ->setPostcode('61-001')
+    ->setEmail('jan.kowalski@example.com')
+    ->setPhone('500600700')
     ->build();
 
 $order = OrderBuilder::create()
-    ->courier('UPS')
-    ->shipmentType(ShipmentTypeEnum::Box)
-    ->packs([$pack])
-    ->sender($sender)
-    ->recipient($recipient)
+    ->setCourier('UPS')
+    ->setShipmentType(ShipmentTypeEnum::Box)
+    ->setPacks([$pack])
+    ->setSender($sender)
+    ->setRecipient($recipient)
     ->build();
 ```
 
@@ -116,11 +116,11 @@ A builder keeps its values after [`build()`](../src/Builder/), so you can build 
 
 ```php
 $base = GetOrdersMessageBuilder::create()
-    ->dateFrom(new DateTimeImmutable('-30 days'))
-    ->pageSize(100);
+    ->setDateFrom(new DateTimeImmutable('-30 days'))
+    ->setPageSize(100);
 
-$firstPage  = $base->page(1)->build();
-$secondPage = $base->page(2)->build();
+$firstPage  = $base->setPage(1)->build();
+$secondPage = $base->setPage(2)->build();
 ```
 
 This changes `$base`: setters return the same instance, not a copy.

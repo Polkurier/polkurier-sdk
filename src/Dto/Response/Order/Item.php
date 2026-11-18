@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Order\OrderItemTypeEnum;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -45,33 +44,18 @@ final readonly class Item implements MessageInterface
      * @param string|null $serviceId
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         public int $amount,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE)]
         public float $price,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_VALUE_NET)]
         public float $valueNet,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_VALUE_GROSS)]
         public float $valueGross,
 
@@ -86,11 +70,8 @@ final readonly class Item implements MessageInterface
          *
          * Null on carriage and discount lines, and also on service lines not tied to a specific
          * service. To tell the kinds apart, use {@see self::$type}.
-         *
-         * @var string|null
          */
         #[Serializer\SerializedName(self::FIELD_SERVICE_ID)]
-        #[OmitWhenEmpty]
         public ?string $serviceId = null,
     ) {}
 }

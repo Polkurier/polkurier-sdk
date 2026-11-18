@@ -29,9 +29,6 @@ final readonly class ChangeDefaultCourierMessage implements MessageInterface
      * @param string $courier carrier code, or an empty string to clear the default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         public string $courier,
     ) {}

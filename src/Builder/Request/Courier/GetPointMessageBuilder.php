@@ -26,7 +26,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function couriers(array $couriers): static
+    public function setCouriers(array $couriers): static
     {
         return $this->set('couriers', $couriers);
     }
@@ -36,7 +36,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function id(?string $id): static
+    public function setId(?string $id): static
     {
         return $this->set('id', $id);
     }
@@ -46,7 +46,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function searchQuery(?string $searchQuery): static
+    public function setSearchQuery(?string $searchQuery): static
     {
         return $this->set('searchQuery', $searchQuery);
     }
@@ -56,7 +56,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function functions(?array $functions): static
+    public function setFunctions(?array $functions): static
     {
         return $this->set('functions', $functions);
     }
@@ -66,7 +66,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function limit(?int $limit): static
+    public function setLimit(?int $limit): static
     {
         return $this->set('limit', $limit);
     }
@@ -76,7 +76,7 @@ class GetPointMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function page(?int $page): static
+    public function setPage(?int $page): static
     {
         return $this->set('page', $page);
     }

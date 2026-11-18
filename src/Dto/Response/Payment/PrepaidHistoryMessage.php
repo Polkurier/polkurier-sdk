@@ -13,18 +13,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of prepaid balance movements.
  *
- * Paged like the invoice list, and also without `totalpages`.
- *
  * @api
  */
 final readonly class PrepaidHistoryMessage extends PagedListMessage
 {
-    /**+@#
-     * JSON parameter keys
-     */
-    public const string FIELD_RESULT = 'result';
-    /**-@#*/
-
     /**
      * @param int $totalRows movements across all pages
      * @param int $currentPage 1-based index of this page

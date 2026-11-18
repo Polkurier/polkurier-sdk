@@ -171,8 +171,8 @@ function fieldErrors(\Throwable $e): array
 ### The code enums
 
 [`Enum\Http\ApiErrorCodeEnum`](../src/Enum/Http/ApiErrorCodeEnum.php) holds the 44 conditions the API is known to report. Each case's
-value is the `error_code` string, [`ApiErrorCodeEnum::statusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) gives the numeric `status_code`,
-and [`ApiErrorCodeEnum::fromStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. A few status codes stand for more
+value is the `error_code` string, [`ApiErrorCodeEnum::getStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) gives the numeric `status_code`,
+and [`ApiErrorCodeEnum::findByStatusCode()`](../src/Enum/Http/ApiErrorCodeEnum.php) maps a number back. A few status codes stand for more
 than one condition (the two-factor 506006, for one), and those map back to null, so the
 `error_code` is the more precise of the two. Compared against the enum:
 
@@ -181,7 +181,7 @@ use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
 
 $error = $e->getErrorMessage();
 if ($error->errorCode === ApiErrorCodeEnum::TokenNotActive->value) { … }
-if ($error->statusCode === ApiErrorCodeEnum::TokenNotActive->statusCode()) { … }
+if ($error->statusCode === ApiErrorCodeEnum::TokenNotActive->getStatusCode()) { … }
 ```
 
 You compare against `->value` because the properties are plain strings and ints, not enums, just
@@ -287,9 +287,9 @@ as the API token, personal data and file contents are left out unless you turn t
 
 If you log the exception yourself, note that [`WebserviceException::getRequest()`](../src/Exception/WebserviceException.php) returns a request
 whose body contains the API token. [`WebserviceException::getErrorMessage()`](../src/Exception/WebserviceException.php) has the error without the request.
-For the payload, [`SensitiveDataRedactor::message()`](../src/Log/SensitiveDataRedactor.php) gives a copy with the secrets hidden, and
-[`PersonalDataRedactor::message()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Both together hide both.
-[`FieldRedactor::message()`](../src/Log/FieldRedactor.php) reads the marks off the classes the body
+For the payload, [`SensitiveDataRedactor::redactMessage()`](../src/Log/SensitiveDataRedactor.php) gives a copy with the secrets hidden, and
+[`PersonalDataRedactor::redactMessage()`](../src/Log/PersonalDataRedactor.php) one with the personal data hidden. Both together hide both.
+[`FieldRedactor::redactMessage()`](../src/Log/FieldRedactor.php) reads the marks off the classes the body
 holds, so its second argument names the class under each key of the request envelope:
 [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) under `authorization`, and
 under `data` the payload you passed to the service method.
@@ -301,8 +301,8 @@ use Polkurier\Webservice\Log\SensitiveDataRedactor;
 
 $classes = ['authorization' => AuthorizationMessage::class, 'data' => $message::class];
 
-$request = (new PersonalDataRedactor())->message(
-    (new SensitiveDataRedactor())->message($e->getRequest(), $classes),
+$request = (new PersonalDataRedactor())->redactMessage(
+    (new SensitiveDataRedactor())->redactMessage($e->getRequest(), $classes),
     $classes,
 );
 ```

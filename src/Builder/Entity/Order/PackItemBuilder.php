@@ -23,7 +23,7 @@ class PackItemBuilder extends PackBuilder
      *
      * @return static
      */
-    public function amount(int $amount): static
+    public function setAmount(int $amount): static
     {
         return $this->set('amount', $amount);
     }

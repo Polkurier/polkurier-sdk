@@ -12,8 +12,8 @@ use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 /**
  * Every API method this SDK can call, as the `apimethod` field of a request.
  *
- * Grouped by service, so each block matches one interface under
- * {@see \Polkurier\Webservice\Api\Service}.
+ * Grouped by service, so each block matches one interface of the `Polkurier\Webservice\Api\Service`
+ * namespace, such as {@see \Polkurier\Webservice\Api\Service\OrdersServiceInterface}.
  *
  * The value is what is sent, and a case name does not always spell it: two carry a `_v2` suffix
  * the name leaves out.

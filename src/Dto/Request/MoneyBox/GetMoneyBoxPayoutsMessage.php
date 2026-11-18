@@ -33,16 +33,10 @@ final readonly class GetMoneyBoxPayoutsMessage extends PagedMessage
      * @param int|null $page 1-based page index
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_NUMBER)]
         #[OmitWhenEmpty]
         public ?string $payoutNumber = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]
         public ?string $searchQuery = null,

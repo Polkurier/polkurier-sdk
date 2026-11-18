@@ -13,12 +13,10 @@ use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Property;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormFieldMessage;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormOptionMessage;
-use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
 use Polkurier\Webservice\Dto\Response\Order\TrackingEventMessage;
 use Polkurier\Webservice\Dto\Response\TwoFactorToken;
 use Polkurier\Webservice\Entity\Order;
-use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
@@ -57,7 +55,7 @@ final class ResponseQuirksTest extends TestCase
 
         self::assertInstanceOf(OrderListMessage::class, $page);
         self::assertSame([0, 0, 0, 0], [$page->totalRows, $page->currentPage, $page->pageSize, $page->totalPages]);
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
     }
 
     public function testATrackingEventWithoutLocationOrDescriptionReadsAsEmpty(): void
@@ -68,7 +66,7 @@ final class ResponseQuirksTest extends TestCase
 
         self::assertInstanceOf(TrackingEventMessage::class, $event);
         self::assertSame(['', ''], [$event->location, $event->description]);
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
     }
 
     public function testAnOptionWithoutADefaultReadsAsOff(): void
@@ -77,7 +75,7 @@ final class ResponseQuirksTest extends TestCase
 
         self::assertInstanceOf(Property::class, $property);
         self::assertFalse($property->default);
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
     }
 
     public function testADropDownReadsItsChoicesOrTheirSource(): void
@@ -93,26 +91,7 @@ final class ResponseQuirksTest extends TestCase
         self::assertInstanceOf(ContactFormFieldMessage::class, $sourced);
         self::assertSame([], $sourced->options);
         self::assertSame('@COURIERS', $sourced->optionsSource);
-        self::assertSame([], $this->drift->all());
-    }
-
-    public function testAPointKeepsTheFunctionsTheSdkKnowsEachOnceAndReportsTheRest(): void
-    {
-        $point = $this->read(CourierPoint::class, [
-            'functions' => ['send', 'CARRIER_ONLY', 'send', 'collect'],
-        ] + Sample::wire(CourierPoint::class));
-
-        self::assertInstanceOf(CourierPoint::class, $point);
-        self::assertSame([PointFunctionEnum::Send, PointFunctionEnum::Collect], $point->functions);
-        self::assertEquals(
-            [new ResponseDrift(
-                ResponseDriftTypeEnum::UnknownEnumValue,
-                'functions[1]',
-                'CARRIER_ONLY',
-                PointFunctionEnum::class,
-            )],
-            $this->drift->all(),
-        );
+        self::assertSame([], $this->drift->getDrift());
     }
 
     public function testTransportMethodsKeyedByMethodReadAsAList(): void
@@ -173,7 +152,7 @@ final class ResponseQuirksTest extends TestCase
             $reported
                 ? [new ResponseDrift(ResponseDriftTypeEnum::CastValue, 'courierservice', $services, 'string[]')]
                 : [],
-            $this->drift->all(),
+            $this->drift->getDrift(),
         );
     }
 
@@ -190,7 +169,7 @@ final class ResponseQuirksTest extends TestCase
 
         self::assertInstanceOf($subclass, $order);
         self::assertSame(['Pobranie (COD)'], $order->getCourierServiceNames());
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
     }
 
     /**
@@ -208,6 +187,31 @@ final class ResponseQuirksTest extends TestCase
             Order::class,
             'json',
             [ResponseDriftCollector::CONTEXT_KEY => $this->drift],
+        );
+    }
+
+    /**
+     * The SDK fills `options_source` itself, so a response carrying one has sent something the SDK
+     * is about to replace. The value is recorded before it goes.
+     *
+     * @return void
+     */
+    public function testAChoicesReferenceRecordsAnOptionsSourceTheApiSent(): void
+    {
+        $field = $this->read(ContactFormFieldMessage::class, [
+            'name' => 'carrier',
+            'options' => 'carriers',
+            'options_source' => 'What the API sent',
+        ]);
+
+        self::assertSame('carriers', $field->optionsSource);
+        self::assertEquals(
+            [new ResponseDrift(
+                ResponseDriftTypeEnum::UnknownField,
+                'options_source',
+                'What the API sent',
+            )],
+            $this->drift->getDrift(),
         );
     }
 

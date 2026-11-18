@@ -50,9 +50,6 @@ final readonly class MultiPickupResultMessage implements MessageInterface, Parse
         #[Serializer\SerializedName(self::FIELD_FAILED)]
         public array $failed = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

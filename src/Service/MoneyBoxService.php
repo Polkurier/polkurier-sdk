@@ -35,9 +35,10 @@ class MoneyBoxService extends AbstractService implements MoneyBoxServiceInterfac
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getConfig(): MoneyBoxConfigMessage
+    public function getMoneyBoxConfig(): MoneyBoxConfigMessage
     {
         return $this->requestObject(ApiMethodEnum::GetMoneyBoxConfig, MoneyBoxConfigMessage::class);
     }

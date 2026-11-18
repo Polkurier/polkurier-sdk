@@ -24,7 +24,7 @@ try {
         new GetPaymentInfoMessage(transactionId: $transactionId)
     );
 
-    \printf("Transaction %s is %s\n", $info->transactionId, $info->state);
+    \printf("Transaction %s is %s\n", $info->transactionId, $info->state->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

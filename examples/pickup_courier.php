@@ -28,7 +28,7 @@ try {
         pickupDate: $day,
     ));
 
-    if (!$pickup->pickupDate) {
+    if (!$pickup->available) {
         \printf("The carrier cannot collect on %s.\n", $day->format('Y-m-d'));
         exit(1);
     }

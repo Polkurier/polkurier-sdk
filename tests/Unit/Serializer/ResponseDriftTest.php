@@ -13,21 +13,33 @@ use Polkurier\Webservice\Dto\Response\Carrier;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
 use Polkurier\Webservice\Dto\Response\Courier\TimeIntervalMessage;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Polkurier\Webservice\Dto\Response\Util\HeartbeatMessage;
+use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
 use Polkurier\Webservice\Entity\Address;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
+use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
+use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
+use Polkurier\Webservice\Serializer\EnumListDenormalizer;
 use Polkurier\Webservice\Serializer\LenientDateDenormalizer;
 use Polkurier\Webservice\Serializer\LenientEnumDenormalizer;
 use Polkurier\Webservice\Serializer\LenientListDenormalizer;
 use Polkurier\Webservice\Serializer\LenientObjectDenormalizer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerConfig;
+use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\StrictResponseSerializer;
 use Polkurier\Webservice\Test\Support\Responses;
+use Polkurier\Webservice\Test\Support\Sample;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
 /**
  * A response that differs from what this SDK version expects still reads, and each difference is
@@ -37,6 +49,7 @@ use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
 #[CoversClass(LenientDateDenormalizer::class)]
 #[CoversClass(LenientListDenormalizer::class)]
 #[CoversClass(LenientEnumDenormalizer::class)]
+#[CoversClass(EnumListDenormalizer::class)]
 #[CoversClass(StrictResponseSerializer::class)]
 final class ResponseDriftTest extends TestCase
 {
@@ -153,6 +166,39 @@ final class ResponseDriftTest extends TestCase
         self::assertSame([['CAST_VALUE', '[0].type', 12, AddressTypeEnum::class]], self::drift($wrapper));
     }
 
+    public function testAnEnumListKeepsEachValueOnceAndRecordsTheUnknownOnes(): void
+    {
+        $wrapper = Responses::readWrapped(
+            CourierPoint::class,
+            ['functions' => ['send', 'CARRIER_ONLY', 'send', 'collect']] + Sample::wire(CourierPoint::class),
+        );
+
+        $point = $wrapper->getEnvelope()->response;
+        self::assertInstanceOf(CourierPoint::class, $point);
+        self::assertSame([PointFunctionEnum::Send, PointFunctionEnum::Collect], $point->functions);
+        self::assertSame(
+            [['UNKNOWN_ENUM_VALUE', 'functions[1]', 'CARRIER_ONLY', PointFunctionEnum::class]],
+            self::drift($wrapper),
+        );
+    }
+
+    public function testEveryEnumTheSdkDeclaresIsBackedByStrings(): void
+    {
+        $backing = [];
+        foreach (SourceClasses::under('Enum') as $name => $class) {
+            if (\enum_exists($class)) {
+                $backing[$name] = (new \ReflectionEnum($class))->getBackingType()?->getName();
+            }
+        }
+
+        self::assertNotSame([], $backing);
+        self::assertSame(
+            \array_fill_keys(\array_keys($backing), 'string'),
+            $backing,
+            'Lenient reading converts an enum value to the string the enum is backed by.',
+        );
+    }
+
     public function testAValueOfNoneOfAUnionsTypesReadsAsNull(): void
     {
         $wrapper = Responses::readWrapped(ContactFormValueMessage::class, ['name' => 'phone', 'value' => ['x']]);
@@ -180,6 +226,39 @@ final class ResponseDriftTest extends TestCase
             ['CAST_VALUE', 'validationErrors[name]', 'Pole wymagane', 'array'],
             ['CAST_VALUE', 'validationErrors[phone][1]', 5, 'string'],
         ], self::drift($wrapper));
+    }
+
+    public function testAMissingFieldWithoutAnEmptyValueIsRecordedBeforeTheReadFails(): void
+    {
+        $drift = new ResponseDriftCollector();
+
+        try {
+            self::readLeniently([OrderEventMessage::FIELD_TYPE => 'UPDATED'], OrderEventMessage::class, $drift);
+            self::fail('An order event without its order was read.');
+        } catch (SerializerException) {
+        }
+
+        self::assertSame([['MISSING_FIELD', 'order', null, Order::class]], self::entries($drift->getDrift()));
+    }
+
+    public function testAValueOfAnotherTypeIsRecordedAsItArrivedWhereTheFieldHasNoEmptyValue(): void
+    {
+        $drift = new ResponseDriftCollector();
+
+        try {
+            self::readLeniently(
+                [ErrorMessage::FIELD_STATUS => true, ErrorMessage::FIELD_RESPONSE => 'Brak'],
+                ErrorMessage::class,
+                $drift,
+            );
+            self::fail('An error envelope with a boolean status was read.');
+        } catch (\TypeError) {
+        }
+
+        self::assertNotSame([], $drift->getDrift());
+        foreach (self::entries($drift->getDrift()) as $entry) {
+            self::assertSame(['CAST_VALUE', 'status', true, ResponseStatusEnum::class], $entry);
+        }
     }
 
     public function testAnObjectWithNoneOfItsFieldsFails(): void
@@ -334,20 +413,51 @@ final class ResponseDriftTest extends TestCase
     }
 
     /**
+     * A payload read on its own, without the envelope the response factory checks first.
+     *
+     * @param array<string, mixed> $payload
+     * @param class-string $class
+     * @param ResponseDriftCollector $drift
+     *
+     * @return mixed
+     * @throws SerializerException when the payload doesn't map
+     * @throws \TypeError when a constructor refuses what the denormalizer built
+     */
+    private static function readLeniently(array $payload, string $class, ResponseDriftCollector $drift): mixed
+    {
+        return (new SerializerProvider())->getSerializer()->denormalize(
+            $payload,
+            $class,
+            JsonEncoder::FORMAT,
+            [ResponseDriftCollector::CONTEXT_KEY => $drift],
+        );
+    }
+
+    /**
      * @param ResponseWrapper $wrapper
      *
      * @return list<array{string, string, mixed, string|null}>
      */
     private static function drift(ResponseWrapper $wrapper): array
     {
+        return self::entries($wrapper->getDrift());
+    }
+
+    /**
+     * @param list<ResponseDrift> $drift
+     *
+     * @return list<array{string, string, mixed, string|null}>
+     */
+    private static function entries(array $drift): array
+    {
         return \array_map(
-            static fn(ResponseDrift $drift): array => [
-                $drift->type->value,
-                $drift->path,
-                $drift->value,
-                $drift->expected,
+            static fn(ResponseDrift $entry): array => [
+                $entry->type->value,
+                $entry->path,
+                $entry->value,
+                $entry->expected,
             ],
-            $wrapper->getDrift(),
+            $drift,
         );
     }
 }

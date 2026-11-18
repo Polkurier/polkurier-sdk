@@ -36,10 +36,10 @@ over several steps, or one with many conditional fields:
 ```php
 use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 
-$search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
+$search = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT']);
 
 if ($query !== null) {
-    $search->searchQuery($query);
+    $search->setSearchQuery($query);
 }
 
 $points = $client->courier()->findCourierPoints($search->build());
@@ -117,7 +117,7 @@ Apart from a `bool` for calls that only acknowledge, responses come in four shap
 | Shape | Example | What you get |
 |-------|---------|--------------|
 | One object | [`OrdersServiceInterface::createOrder()`](../src/Api/Service/OrdersServiceInterface.php) | [`CreatedOrderMessage`](../src/Dto/Response/Order/CreatedOrderMessage.php) |
-| A list | [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `Carrier[]`, possibly empty |
+| A list | [`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `Carrier[]`, possibly empty |
 | A map of strings | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | `array<string, string>` |
 | A page | [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php) wrapping `Order[]` |
 
@@ -256,18 +256,24 @@ area:
 | [`Order\OrderItemTypeEnum`](../src/Enum/Order/OrderItemTypeEnum.php) | Line item classification |
 | [`Account\PayerAddressTypeEnum`](../src/Enum/Account/PayerAddressTypeEnum.php) | Billing, correspondence or contact |
 | [`Account\PayerUserTypeEnum`](../src/Enum/Account/PayerUserTypeEnum.php), [`RegulationsTypeEnum`](../src/Enum/Account/RegulationsTypeEnum.php) | Account and terms |
+| [`Account\AccountPaymentTypeEnum`](../src/Enum/Account/AccountPaymentTypeEnum.php) | Whether the account is billed on an invoice or pays from prepaid |
+| [`Account\AccountVerificationTypeEnum`](../src/Enum/Account/AccountVerificationTypeEnum.php), [`AccountVerificationStatusEnum`](../src/Enum/Account/AccountVerificationStatusEnum.php) | How an account is being verified, and how far it has got |
 | [`Address\AddressTypeEnum`](../src/Enum/Address/AddressTypeEnum.php) | Address book entry kind |
 | [`Courier\PointFunctionEnum`](../src/Enum/Courier/PointFunctionEnum.php), [`PointRequirementEnum`](../src/Enum/Courier/PointRequirementEnum.php) | What a pickup point can do |
 | [`Courier\CourierMessageTypeEnum`](../src/Enum/Courier/CourierMessageTypeEnum.php), [`CourierMessageSeverityEnum`](../src/Enum/Courier/CourierMessageSeverityEnum.php) | Notice board |
 | [`Courier\AdditionalFieldTypeEnum`](../src/Enum/Courier/AdditionalFieldTypeEnum.php) | Carrier-specific extra fields |
 | [`Payment\PaymentModeEnum`](../src/Enum/Payment/PaymentModeEnum.php) | What a payment settles |
+| [`Payment\PaymentStateEnum`](../src/Enum/Payment/PaymentStateEnum.php) | How far a payment has got |
 | [`MoneyBox\MoneyBoxPayoutTypeEnum`](../src/Enum/MoneyBox/MoneyBoxPayoutTypeEnum.php), [`MoneyBoxFeePaymentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeePaymentTypeEnum.php) | Payouts |
+| [`MoneyBox\MoneyBoxFeeComponentTypeEnum`](../src/Enum/MoneyBox/MoneyBoxFeeComponentTypeEnum.php) | What one part of a payout's fee is charged for |
 | [`Invoice\InvoiceTypeEnum`](../src/Enum/Invoice/InvoiceTypeEnum.php) | Invoice kind |
 | [`Invoice\InvoiceSummaryFormatEnum`](../src/Enum/Invoice/InvoiceSummaryFormatEnum.php) | PDF or CSV, for an invoice's itemised summary |
 | [`Ticket\TicketStatusEnum`](../src/Enum/Ticket/TicketStatusEnum.php), [`TicketAuthorEnum`](../src/Enum/Ticket/TicketAuthorEnum.php), [`TicketOriginEnum`](../src/Enum/Ticket/TicketOriginEnum.php), [`TicketTimelineItemTypeEnum`](../src/Enum/Ticket/TicketTimelineItemTypeEnum.php) | Support |
 | [`Contact\ContactFormFieldTypeEnum`](../src/Enum/Contact/ContactFormFieldTypeEnum.php), [`ContactFormSeverityEnum`](../src/Enum/Contact/ContactFormSeverityEnum.php) | Contact form fields |
 | [`Webhook\OrderEventTypeEnum`](../src/Enum/Webhook/OrderEventTypeEnum.php) | What a webhook event says happened to an order |
 | [`KnowledgeBase\KnowledgeBaseEntryTypeEnum`](../src/Enum/KnowledgeBase/KnowledgeBaseEntryTypeEnum.php) | Category or article |
+| [`Coupon\CouponTypeEnum`](../src/Enum/Coupon/CouponTypeEnum.php) | What a coupon takes off the price |
+| [`Coupon\CouponUsageTypeEnum`](../src/Enum/Coupon/CouponUsageTypeEnum.php) | Whether a coupon code is usable once in total or once per customer |
 | [`TwoFactorToken\TwoFactorNamespaceEnum`](../src/Enum/TwoFactorToken/TwoFactorNamespaceEnum.php) | Which operation a code authorises |
 | [`TwoFactorToken\TwoFactorTransportTypeEnum`](../src/Enum/TwoFactorToken/TwoFactorTransportTypeEnum.php) | How a code reaches the customer |
 
@@ -303,16 +309,16 @@ the [API method index](api-methods.md)), [`ApiErrorCodeEnum`](../src/Enum/Http/A
 ### Enums on responses, strings on some fields
 
 When the set of values is closed and known, the property is typed as the enum and the serializer
-maps it in both directions. When it isn't (a carrier code, an order status string), the property
-is a string and the enum lists the known values next to it:
+maps it in both directions. When it isn't — a carrier code, a carrier's own tracking status — the
+property is a string, because the SDK cannot list what it does not know:
 
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 
-$order->getStatusCode() === OrderStatusCodeEnum::Delivered->value
+$order->getStatusCode() === OrderStatusCodeEnum::Delivered
 ```
 
-On a string field, a new value just doesn't match any enum case. On an enum field, it reads as
+On a string field, a new value arrives as itself. On an enum field, it reads as
 `null`, as described above. Either way the response still maps, and your code decides what to do
 with a value it doesn't recognise.
 

@@ -45,23 +45,14 @@ final readonly class MultiPickupRequestMessage implements MessageInterface
      * @param string[] $orders order numbers, not waybill numbers. At least one is required
      */
     public function __construct(
-        /**
-         * @var \DateTimeInterface
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         public \DateTimeInterface $pickupDate,
 
-        /**
-         * @var \DateTimeInterface
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
         public \DateTimeInterface $pickupTimeFrom,
 
-        /**
-         * @var \DateTimeInterface
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
         public \DateTimeInterface $pickupTimeTo,

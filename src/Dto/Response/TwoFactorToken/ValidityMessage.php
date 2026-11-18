@@ -32,15 +32,9 @@ final readonly class ValidityMessage implements MessageInterface, ParsedResponse
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_VALID)]
         public bool $valid = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

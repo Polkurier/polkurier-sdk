@@ -15,7 +15,6 @@ use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Pickup;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\PointsMap;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Property;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\ShipmentType;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -85,7 +84,6 @@ final readonly class AdditionalData implements MessageInterface
          * @var PointsMap|null null if the carrier's entry leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_POINTS_MAP)]
-        #[OmitWhenEmpty]
         public ?PointsMap $pointsMap = null,
 
         /**

@@ -80,117 +80,60 @@ final readonly class CourierPoint implements MessageInterface, ParsedResponseInt
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public string $type = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PROVIDER)]
         public string $provider = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         public string $city = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ZIP)]
         public string $zip = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         public string $street = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description = '',
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_LATITUDE)]
         public float $latitude = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_LONGITUDE)]
         public float $longitude = 0.0,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COD)]
         public bool $cod = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
         public bool $available = false,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public string $status = '',
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_SEND)]
         public bool $send = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COLLECT)]
         public bool $collect = false,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_OPENING_HOURS)]
         public string $openingHours = '',
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_VISIBLE)]
         public bool $visible = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_APP)]
         public bool $requireApp = false,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_APP_MESSAGE)]
         public string $requireAppMessage = '',
 
@@ -202,16 +145,11 @@ final readonly class CourierPoint implements MessageInterface, ParsedResponseInt
         #[Serializer\SerializedName(self::FIELD_FUNCTIONS)]
         public array $functions = [],
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUNTRY_ISO)]
         public string $countryIso = '',
 
         /**
          * Postcode, city and street on one line, ready to display.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ADDRESS)]
         public string $address = '',
@@ -221,15 +159,10 @@ final readonly class CourierPoint implements MessageInterface, ParsedResponseInt
          *
          * This is not the API carrier code. For the value the order methods accept, use
          * {@see self::$provider}.
-         *
-         * @var int
          */
         #[Serializer\SerializedName(self::FIELD_COURIER_ID)]
         public int $courierId = 0,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

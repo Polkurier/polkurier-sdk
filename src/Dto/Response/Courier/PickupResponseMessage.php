@@ -31,17 +31,14 @@ final readonly class PickupResponseMessage implements MessageInterface, ParsedRe
     /**-@#*/
 
     /**
-     * @param bool $pickupDate whether the carrier can collect on the requested date
-     * @param TimeIntervalMessage[] $time pickup windows, empty for couriers that do not
-     *                                             report them
+     * @param bool $available whether the carrier can collect on the requested date
+     * @param TimeIntervalMessage[] $time pickup windows, empty for couriers that do not report
+     *        them
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
-        public bool $pickupDate = false,
+        public bool $available = false,
 
         /**
          * @var TimeIntervalMessage[]
@@ -49,9 +46,6 @@ final readonly class PickupResponseMessage implements MessageInterface, ParsedRe
         #[Serializer\SerializedName(self::FIELD_TIME)]
         public array $time = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

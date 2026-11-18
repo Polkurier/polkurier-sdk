@@ -29,12 +29,38 @@ final class ApiCodeEnumTest extends TestCase
 
     public function testClassifiesEveryAuthorizationStatusCode(): void
     {
-        foreach ([4, 5, 6, 7, 8, 21] as $status) {
+        foreach (self::rejectingCases() as $case) {
             self::assertTrue(
-                AuthorizationException::isAuthorizationErrorStatus($status),
-                \sprintf('Status %d should be an authorization error.', $status)
+                AuthorizationException::isAuthorizationErrorStatus($case->getStatusCode()),
+                \sprintf('Status %d should be an authorization error.', $case->getStatusCode())
             );
         }
+    }
+
+    /**
+     * {@see ApiErrorCodeEnum::rejectsCredentials()} decides which codes mean the credentials were
+     * refused; {@see AuthorizationException::ERROR_CODES} repeats them for a caller that wants
+     * strings. A case added to one and not the other would stop being reported as an
+     * authorization failure.
+     *
+     * @return void
+     */
+    public function testTheListedErrorCodesAreTheOnesTheEnumRejectsCredentialsFor(): void
+    {
+        $fromEnum = \array_map(static fn(ApiErrorCodeEnum $case): string => $case->value, self::rejectingCases());
+
+        self::assertEqualsCanonicalizing($fromEnum, AuthorizationException::ERROR_CODES);
+    }
+
+    /**
+     * @return list<ApiErrorCodeEnum>
+     */
+    private static function rejectingCases(): array
+    {
+        return \array_values(\array_filter(
+            ApiErrorCodeEnum::cases(),
+            static fn(ApiErrorCodeEnum $case): bool => $case->rejectsCredentials(),
+        ));
     }
 
     public function testDoesNotClassifyUnrelatedStatusCodesAsAuthorizationErrors(): void
@@ -49,16 +75,16 @@ final class ApiCodeEnumTest extends TestCase
 
     public function testEveryCaseMapsBackFromItsStatusCodeUnlessTheCodeIsShared(): void
     {
-        $codes = \array_map(static fn(ApiErrorCodeEnum $c): int => $c->statusCode(), ApiErrorCodeEnum::cases());
+        $codes = \array_map(static fn(ApiErrorCodeEnum $c): int => $c->getStatusCode(), ApiErrorCodeEnum::cases());
         $counts = \array_count_values($codes);
 
         foreach (ApiErrorCodeEnum::cases() as $case) {
-            $expected = $counts[$case->statusCode()] === 1 ? $case : null;
-            self::assertSame($expected, ApiErrorCodeEnum::fromStatusCode($case->statusCode()));
+            $expected = $counts[$case->getStatusCode()] === 1 ? $case : null;
+            self::assertSame($expected, ApiErrorCodeEnum::findByStatusCode($case->getStatusCode()));
         }
-        self::assertSame(15, ApiErrorCodeEnum::ParamsIsEmpty->statusCode());
-        self::assertSame(ApiErrorCodeEnum::TwoFactorCodeRequired, ApiErrorCodeEnum::fromStatusCode(506001));
-        self::assertNull(ApiErrorCodeEnum::fromStatusCode(506006));
-        self::assertNull(ApiErrorCodeEnum::fromStatusCode(999));
+        self::assertSame(15, ApiErrorCodeEnum::ParamsIsEmpty->getStatusCode());
+        self::assertSame(ApiErrorCodeEnum::TwoFactorCodeRequired, ApiErrorCodeEnum::findByStatusCode(506001));
+        self::assertNull(ApiErrorCodeEnum::findByStatusCode(506006));
+        self::assertNull(ApiErrorCodeEnum::findByStatusCode(999));
     }
 }

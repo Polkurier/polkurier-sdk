@@ -18,7 +18,7 @@ use phpDocumentor\Reflection\Types\Object_;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
-use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\ClassMemberReader;
 use Polkurier\Webservice\Serializer\WireNameReader;
 
 /**
@@ -83,13 +83,13 @@ final class FieldMarkReader
      *
      * A field the class writes with no mark has an empty entry, which is what tells it apart from
      * a key the class does not write at all. That difference decides whether
-     * {@see self::readMarksOfForeignKeysOf()} applies.
+     * {@see self::readMarksOfForeignKeys()} applies.
      *
      * @param string $class
      *
      * @return array<string, list<class-string>>
      */
-    public static function readMarksOf(string $class): array
+    public static function readMarks(string $class): array
     {
         if (!isset(self::$marks[$class])) {
             self::read($class);
@@ -108,7 +108,7 @@ final class FieldMarkReader
      *
      * @return array<string, class-string>
      */
-    public static function readClassesOf(string $class): array
+    public static function readClasses(string $class): array
     {
         if (!isset(self::$classes[$class])) {
             self::read($class);
@@ -128,7 +128,7 @@ final class FieldMarkReader
      *
      * @return list<class-string> empty when the class writes no such map, or leaves it unmarked
      */
-    public static function readMarksOfForeignKeysOf(string $class): array
+    public static function readMarksOfForeignKeys(string $class): array
     {
         if (!isset(self::$foreign[$class])) {
             self::read($class);
@@ -156,8 +156,8 @@ final class FieldMarkReader
         $classes = [];
         $inlined = [];
         $foreign = [];
-        foreach (ClassMembers::readAll($class) as $member) {
-            if (WireNameReader::readDeclared($member) === null && !ClassMembers::writesAField($member)) {
+        foreach (ClassMemberReader::readAll($class) as $member) {
+            if (WireNameReader::readDeclared($member) === null && !ClassMemberReader::writesAField($member)) {
                 continue;
             }
             if ($member->getAttributes(InlineFields::class) !== []) {
@@ -186,8 +186,8 @@ final class FieldMarkReader
 
         // A key the enclosing class writes itself keeps its own entry, as it does on the wire.
         foreach ($inlined as $held) {
-            $marks += self::readMarksOf($held);
-            $classes += self::readClassesOf($held);
+            $marks += self::readMarks($held);
+            $classes += self::readClasses($held);
         }
 
         self::$marks[$class] = $marks;
@@ -232,7 +232,7 @@ final class FieldMarkReader
             }
         }
 
-        return self::readElementClassOf($member);
+        return self::readElementClass($member);
     }
 
     /**
@@ -244,7 +244,7 @@ final class FieldMarkReader
      *
      * @return class-string|null
      */
-    private static function readElementClassOf(\ReflectionProperty|\ReflectionMethod $member): ?string
+    private static function readElementClass(\ReflectionProperty|\ReflectionMethod $member): ?string
     {
         $block = $member->getDocComment();
         $tag = $member instanceof \ReflectionMethod ? 'return' : 'var';
@@ -255,7 +255,7 @@ final class FieldMarkReader
         try {
             $type = (new TypeResolver())->resolve(
                 $matched[1],
-                self::readContextOf($member->getDeclaringClass()),
+                self::readContext($member->getDeclaringClass()),
             );
         } catch (\InvalidArgumentException | \RuntimeException) {
             // A type the resolver cannot read says nothing about the field, and a body is logged
@@ -307,7 +307,7 @@ final class FieldMarkReader
      *
      * @return Context
      */
-    private static function readContextOf(\ReflectionClass $class): Context
+    private static function readContext(\ReflectionClass $class): Context
     {
         return self::$contexts[$class->getName()] ??= (new ContextFactory())->createFromReflector($class);
     }

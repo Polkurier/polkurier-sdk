@@ -14,6 +14,8 @@ use Polkurier\Webservice\Dto\Response\PagedListMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
 use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
 use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -47,24 +49,24 @@ class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAw
      * @param array<string, mixed> $context
      *
      * @return mixed
+     *
+     * @throws InvalidArgumentException when the type is not a page
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        $page = [
-            PagedListMessage::FIELD_TOTAL_ROWS => 1,
-            PagedListMessage::FIELD_CURRENT_PAGE => 1,
-            PagedListMessage::FIELD_PAGE_SIZE => 1,
-            \constant($type . '::FIELD_RESULT') => [$data],
-        ];
-        // Only lists that read a page count get one, so a strict serializer doesn't refuse it,
-        // and it is keyed by the name that class declares rather than a copy of it.
-        $totalPages = $type . '::FIELD_TOTAL_PAGES';
-        if (\defined($totalPages)) {
-            $key = \constant($totalPages);
-            if (\is_string($key)) {
-                $page[$key] = 1;
-            }
+        if (!\is_subclass_of($type, PagedListMessage::class)) {
+            throw new InvalidArgumentException(\sprintf(
+                '%s is not a page, so the key its rows arrive under is unknown.',
+                $type,
+            ));
         }
+
+        // Every paging number of a one-row page is 1, and only the lists that read a page count
+        // get one, so a strict serializer is not handed a key its class does not take.
+        $page = \array_fill_keys($type::readPagingFields(), 1);
+        $page[$type::FIELD_RESULT] = [$data];
 
         return $this->denormalizer->denormalize($page, $type, $format, $context);
     }
@@ -87,7 +89,8 @@ class SingleRowPageDenormalizer implements DenormalizerInterface, DenormalizerAw
 
         return $recordKey !== null
             && \is_array($data)
-            && !\array_key_exists(\constant($type . '::FIELD_RESULT'), $data)
+            && \is_subclass_of($type, PagedListMessage::class)
+            && !\array_key_exists($type::FIELD_RESULT, $data)
             && \array_key_exists($recordKey, $data);
     }
 

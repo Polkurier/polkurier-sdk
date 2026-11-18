@@ -195,7 +195,9 @@ use Psr\Http\Client\ClientInterface;
 
 final readonly class MyClientFactory implements ClientFactoryInterface
 {
-    public function __construct(private ClientInterface $client) {}
+    public function __construct(
+        private ClientInterface $client,
+    ) {}
 
     public function create(): ClientInterface
     {

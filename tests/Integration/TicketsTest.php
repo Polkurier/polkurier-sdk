@@ -122,6 +122,6 @@ final class TicketsTest extends IntegrationTestCase
      */
     private static function attachment(): TicketAttachmentMessage
     {
-        return TicketAttachmentMessage::fromContents('note.txt', "Example attachment\n", 'text/plain');
+        return TicketAttachmentMessage::makeFromContents('note.txt', "Example attachment\n", 'text/plain');
     }
 }

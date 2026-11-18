@@ -28,9 +28,6 @@ final readonly class SearchKnowledgeBaseMessage implements MessageInterface
      * @param string $query the phrase to search for
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_QUERY)]
         #[Validate\NotBlank]
         public string $query,

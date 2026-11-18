@@ -43,23 +43,14 @@ final readonly class SavePhoneNumberMessage implements MessageInterface, TwoFact
      * @param string|null $twoFactorCode required when the number becomes the default
      */
     public function __construct(
-        /**
-         * @var PhoneNumber
-         */
         #[InlineFields]
         public PhoneNumber $phoneNumber,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $twoFactorToken = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
         #[Sensitive]

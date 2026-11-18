@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -70,6 +72,7 @@ class SentFieldsNormalizer implements NormalizerInterface, DenormalizerInterface
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -113,6 +116,9 @@ class SentFieldsNormalizer implements NormalizerInterface, DenormalizerInterface
      * @param array<string, mixed> $context
      *
      * @return mixed
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
@@ -165,17 +171,17 @@ class SentFieldsNormalizer implements NormalizerInterface, DenormalizerInterface
 
         $fromSdk = false;
         foreach ([$class, ...\array_values(\class_parents($class) ?: [])] as $ancestor) {
-            $fromSdk = $fromSdk || static::ownedBySdk($ancestor);
+            $fromSdk = $fromSdk || static::isOwnedBySdk($ancestor);
         }
         if (!$fromSdk) {
             return static::$declared[$class] = null;
         }
 
         $fields = [];
-        foreach (ClassMembers::readAll($class) as $member) {
+        foreach (ClassMemberReader::readAll($class) as $member) {
             if (WireNameReader::readDeclared($member) === null
-                && (!static::ownedBySdk($member->getDeclaringClass()->getName())
-                    || !ClassMembers::writesAField($member))
+                && (!static::isOwnedBySdk($member->getDeclaringClass()->getName())
+                    || !ClassMemberReader::writesAField($member))
             ) {
                 continue;
             }
@@ -195,7 +201,7 @@ class SentFieldsNormalizer implements NormalizerInterface, DenormalizerInterface
      *
      * @return bool
      */
-    protected static function ownedBySdk(string $class): bool
+    protected static function isOwnedBySdk(string $class): bool
     {
         return \str_starts_with($class, 'Polkurier\\Webservice\\') && !\str_contains($class, '@anonymous');
     }

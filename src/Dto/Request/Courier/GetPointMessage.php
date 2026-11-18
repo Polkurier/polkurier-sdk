@@ -55,16 +55,10 @@ final readonly class GetPointMessage implements MessageInterface
         #[Validate\Each(Validate\OfType::class, 'string')]
         public array $couriers,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         public ?string $id = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]
         public ?string $searchQuery = null,
@@ -77,20 +71,14 @@ final readonly class GetPointMessage implements MessageInterface
         #[Validate\Each(Validate\OfType::class, PointFunctionEnum::class)]
         public ?array $functions = null,
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_LIMIT)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
+        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         public ?int $limit = null,
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
+        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         public ?int $page = null,
     ) {}
 }

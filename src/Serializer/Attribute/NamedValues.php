@@ -23,7 +23,14 @@ final readonly class NamedValues
      * @param string $value the wire name of a pair's value
      */
     public function __construct(
+        /**
+         * @var string the wire name of a pair's name
+         */
         public string $name,
+
+        /**
+         * @var string the wire name of a pair's value
+         */
         public string $value,
     ) {}
 }

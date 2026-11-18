@@ -17,9 +17,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Creates a support ticket.
  *
- * Takes a topic id from {@see
- * \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()}; an unknown one
- * files the ticket under a general subject.
+ * Takes a topic id from
+ * {@see \Polkurier\Webservice\Api\Service\TicketsServiceInterface::getContactTopics()}; an unknown
+ * one files the ticket under a general subject.
  *
  * Attachments are sent inline as base64, see
  * {@see \Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage} for what the API accepts.
@@ -50,29 +50,17 @@ final readonly class CreateTicketMessage implements MessageInterface
      *        `get_system_info` reports
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TOPIC_ID)]
         #[Validate\NotBlank]
         public string $topicId,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[PersonalData]
         public string $name = '',
 
-        /**
-         * @var TicketOriginEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
         #[OmitWhenEmpty]
         public ?TicketOriginEnum $origin = null,

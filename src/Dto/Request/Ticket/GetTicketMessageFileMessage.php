@@ -32,16 +32,10 @@ final readonly class GetTicketMessageFileMessage implements MessageInterface
      * @param string $filename the filename as the timeline reports it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_MESSAGE_ID)]
         #[Validate\NotBlank]
         public string $messageId,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         #[Validate\NotBlank]
         public string $filename,

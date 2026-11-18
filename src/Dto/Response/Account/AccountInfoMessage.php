@@ -9,11 +9,11 @@ namespace Polkurier\Webservice\Dto\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\Account\AccountPaymentTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\NamedValues;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -97,7 +97,7 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
      * @param bool $hasPhoneNumber
      * @param bool $requireAccountVerification hard-coded false by the API
      * @param bool $requireAgreementVerification the account has to complete identity verification
-     * @param string $paymentType how the account settles: INVOICE or PREPAID
+     * @param AccountPaymentTypeEnum|null $paymentType how the account settles
      * @param float $moneyBoxBalance total held in the money box, in PLN
      * @param float $moneyBoxPayoutAvailableBalance the part that can be withdrawn now
      * @param float $moneyBoxToPayoutBalance the part already committed to a pending payout
@@ -125,182 +125,103 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public int $id = 0,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DISPLAY_NAME)]
         #[PersonalData]
         public string $displayName = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
         #[PersonalData]
         public string $email = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DEFAULT_COURIER)]
         public string $defaultCourier = '',
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_ACTIVE)]
         public bool $active = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ACCEPTED)]
         public bool $regulationsAccepted = false,
 
         /**
          * Revised terms are waiting to be accepted. True in one response per version of the terms: the
          * call that reports it marks the notice as shown, and later calls answer false, accepted or not.
-         *
-         * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_NEW_REGULATIONS)]
         public bool $newRegulations = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PRICES_LIST_ACCEPTED)]
         public bool $pricesListAccepted = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COURIERS_REGULATIONS_ACCEPTED)]
         public bool $couriersRegulationsAccepted = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_ELECTRONIC_INVOICE_ACCEPTED)]
         public bool $electronicInvoiceAccepted = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_EMAIL_VERIFIED)]
         public bool $emailVerified = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PAYER_DATA_COMPLETE)]
         public bool $payerDataComplete = false,
 
         /**
-         * @var bool
          * @deprecated The API hard-codes this to true; it says nothing about the account.
          */
         #[Serializer\SerializedName(self::FIELD_VERIFIED)]
         public bool $verified = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DELETE_REQUESTED)]
         public bool $deleteRequested = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_HAS_PHONE_NUMBER)]
         public bool $hasPhoneNumber = false,
 
         /**
-         * @var bool
          * @deprecated The API hard-codes this to false; it says nothing about the account.
          */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_ACCOUNT_VERIFICATION)]
         public bool $requireAccountVerification = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_AGREEMENT_VERIFICATION)]
         public bool $requireAgreementVerification = false,
 
         /**
-         * @var string
+         * @var AccountPaymentTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_PAYMENT_TYPE)]
-        public string $paymentType = '',
+        public ?AccountPaymentTypeEnum $paymentType = null,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_BALANCE)]
         public float $moneyBoxBalance = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_PAYOUT_AVAILABLE_BALANCE)]
         public float $moneyBoxPayoutAvailableBalance = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_MONEY_BOX_TO_PAYOUT_BALANCE)]
         public float $moneyBoxToPayoutBalance = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_PREPAID_BALANCE)]
         public float $prepaidBalance = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE_BALANCE)]
         public float $invoiceBalance = 0.0,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE_PAYMENT_ACCOUNT_NUMBER)]
-        #[OmitWhenEmpty]
         #[PersonalData]
         public ?string $invoicePaymentAccountNumber = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE_LIMIT)]
-        #[OmitWhenEmpty]
         public ?float $invoiceLimit = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE_LIMIT_USED)]
-        #[OmitWhenEmpty]
         public ?float $invoiceLimitUsed = null,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE_REBATE)]
         public float $invoiceRebate = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_BONUSES_SAVINGS)]
         public float $bonusesSavings = 0.0,
 
@@ -358,9 +279,6 @@ final readonly class AccountInfoMessage implements MessageInterface, ParsedRespo
         #[Serializer\SerializedName(self::FIELD_DEFAULT_KURIER48_SENDER_POINT)]
         public ?string $defaultKurier48SenderPoint = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

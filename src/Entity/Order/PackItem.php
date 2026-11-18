@@ -49,22 +49,13 @@ class PackItem extends Pack
         float $weight,
         ?PackTypeEnum $type = PackTypeEnum::Standard,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         #[Validate\Positive]
         private int $amount = 1,
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_NET)]
         #[ResponseOnly]
         private ?float $priceNet = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
         #[ResponseOnly]
         private ?float $priceGross = null,

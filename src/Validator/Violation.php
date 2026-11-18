@@ -28,19 +28,10 @@ final readonly class Violation
      * @param array<string, scalar> $parameters the values the message spells out, by name
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public string $path,
 
-        /**
-         * @var ValidationErrorCodeEnum
-         */
         public ValidationErrorCodeEnum $code,
 
-        /**
-         * @var string
-         */
         public string $message,
 
         /**

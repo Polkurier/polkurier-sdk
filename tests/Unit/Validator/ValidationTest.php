@@ -35,6 +35,7 @@ use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Test\Support\Arguments;
+use Polkurier\Webservice\Validator\AttributeValidator;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 use Polkurier\Webservice\Validator\Rule\Iban;
 use Polkurier\Webservice\Validator\ValidatorRegistry;
@@ -83,6 +84,27 @@ final class ValidationTest extends TestCase
             // The English is still there, and still says the same thing it says in the array form.
             self::assertContains($violation->message, $e->getFieldErrors('pagesize'));
         }
+    }
+
+    /**
+     * A page size above the endpoint's limit is reported against that limit alone. The lower bound
+     * belongs to the property, which declares and reports it itself, so naming it here would write
+     * one decision in 2 places.
+     *
+     * @return void
+     */
+    public function testAPageSizeAboveTheEndpointsLimitReportsTheMaximumAlone(): void
+    {
+        $violations = $this->violationsOf(new GetOrdersMessage(pageSize: GetOrdersMessage::MAX_PAGE_SIZE + 1));
+
+        self::assertCount(1, $violations);
+        self::assertSame('pagesize', $violations[0]->path);
+        self::assertSame(ValidationErrorCodeEnum::OutOfRange, $violations[0]->code);
+        self::assertSame(
+            \sprintf('must be at most %d', GetOrdersMessage::MAX_PAGE_SIZE),
+            $violations[0]->message,
+        );
+        self::assertSame(['maximum' => GetOrdersMessage::MAX_PAGE_SIZE], $violations[0]->parameters);
     }
 
     /**
@@ -251,8 +273,8 @@ final class ValidationTest extends TestCase
         $pool = new ViolationPool();
         $pool->add('sender.postcode', 'is wrong in a way only this message knows');
 
-        self::assertSame(ValidationErrorCodeEnum::Other, $pool->all()[0]->code);
-        self::assertSame([], $pool->all()[0]->parameters);
+        self::assertSame(ValidationErrorCodeEnum::Other, $pool->getViolations()[0]->code);
+        self::assertSame([], $pool->getViolations()[0]->parameters);
     }
 
     /**
@@ -267,7 +289,7 @@ final class ValidationTest extends TestCase
             'a ticket reply carrying only a file' => [new CreateTicketMessageMessage(
                 ticketId: 't1',
                 content: '',
-                files: [TicketAttachmentMessage::fromContents('a.txt', 'x', 'text/plain')],
+                files: [TicketAttachmentMessage::makeFromContents('a.txt', 'x', 'text/plain')],
             )],
             'an order with no cash on delivery' => [self::order(cod: null)],
             'cash on delivery zeroed, which the API ignores' => [self::order(cod: new Cod(amount: 0.0))],
@@ -489,6 +511,29 @@ final class ValidationTest extends TestCase
             ],
             'a postcode that is not one' => [new FindCityMessage('nope'), 'postcode'],
         ];
+    }
+
+    /**
+     * The only fault a class rule reports that no value rule can: one field read against another.
+     * The code is what a caller branches on, so it is pinned here rather than only the field.
+     *
+     * @return void
+     */
+    public function testAnInvertedDateRangeIsReportedAsOutOfOrder(): void
+    {
+        $pool = new ViolationPool();
+        (new AttributeValidator())->collect(
+            new GetOrdersMessage(
+                dateFrom: new \DateTimeImmutable('2026-09-01'),
+                dateTo: new \DateTimeImmutable('2026-01-01'),
+            ),
+            $pool,
+        );
+
+        $violations = $pool->getViolations();
+        self::assertCount(1, $violations);
+        self::assertSame(ValidationErrorCodeEnum::OutOfOrder, $violations[0]->code);
+        self::assertSame('date_from', $violations[0]->path);
     }
 
     /**

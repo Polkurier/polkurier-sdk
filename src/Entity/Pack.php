@@ -40,37 +40,22 @@ abstract class Pack implements MessageInterface
      * @param PackTypeEnum|null $type the shape the carrier prices it as
      */
     public function __construct(
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_LENGTH)]
         #[Validate\Positive]
         private int $length,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_WIDTH)]
         #[Validate\Positive]
         private int $width,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_HEIGHT)]
         #[Validate\Positive]
         private int $height,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_WEIGHT)]
         #[Validate\Positive]
         private float $weight,
 
-        /**
-         * @var PackTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[Validate\NotBlank]
         private ?PackTypeEnum $type = PackTypeEnum::Standard,

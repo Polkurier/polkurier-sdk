@@ -52,9 +52,6 @@ class ViolationPool
     /**
      * Takes a failure another pool already located, keeping the code it was recorded with.
      *
-     * A validator that reports by throwing hands its findings on this way, so passing them from
-     * one pool to the next does not reduce them to their English.
-     *
      * @param Violation $violation
      *
      * @return void
@@ -62,6 +59,35 @@ class ViolationPool
     public function take(Violation $violation): void
     {
         $this->violations[] = $violation;
+    }
+
+    /**
+     * Takes everything a validator that reports by throwing found.
+     *
+     * The violations are taken as they were recorded, so each keeps the code it names its fault
+     * with. An exception carrying none of them is a report built elsewhere, and its English is
+     * read back under the fallback code.
+     *
+     * @param ValidationException $exception
+     *
+     * @return void
+     */
+    public function takeFrom(ValidationException $exception): void
+    {
+        $violations = $exception->getViolations();
+        if ($violations !== []) {
+            foreach ($violations as $violation) {
+                $this->take($violation);
+            }
+
+            return;
+        }
+
+        foreach ($exception->getValidationErrors() as $field => $messages) {
+            foreach ($messages as $message) {
+                $this->add($field, $message);
+            }
+        }
     }
 
     /**
@@ -130,7 +156,7 @@ class ViolationPool
      *
      * @return list<Violation>
      */
-    public function all(): array
+    public function getViolations(): array
     {
         return $this->violations;
     }
@@ -140,7 +166,7 @@ class ViolationPool
      *
      * @return array<string, string[]>
      */
-    public function toArray(): array
+    public function getErrorsByField(): array
     {
         $errors = [];
         foreach ($this->violations as $violation) {
@@ -163,7 +189,7 @@ class ViolationPool
      */
     public function mergeUnder(string $prefix, self $other): static
     {
-        foreach ($other->all() as $violation) {
+        foreach ($other->getViolations() as $violation) {
             $this->violations[] = new Violation(
                 \sprintf('%s.%s', $prefix, $violation->path),
                 $violation->code,
@@ -182,7 +208,7 @@ class ViolationPool
     public function throwIfAny(): void
     {
         if (!$this->isEmpty()) {
-            throw new ValidationException($this->toArray(), violations: $this->violations);
+            throw new ValidationException($this->getErrorsByField(), violations: $this->violations);
         }
     }
 }

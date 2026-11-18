@@ -48,9 +48,6 @@ final readonly class InvoiceSummaryListMessage implements MessageInterface, Pars
         #[Base64]
         public string $file = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         public string $filename = '',
 
@@ -60,9 +57,6 @@ final readonly class InvoiceSummaryListMessage implements MessageInterface, Pars
         #[Serializer\SerializedName(self::FIELD_FILE_TYPE)]
         public string $fileType = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

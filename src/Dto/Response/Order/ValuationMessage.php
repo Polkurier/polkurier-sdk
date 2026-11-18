@@ -61,15 +61,9 @@ final readonly class ValuationMessage implements MessageInterface
      *        markup, empty otherwise
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SERVICE_CODE)]
         public string $serviceCode = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SERVICE_NAME)]
         public string $serviceName = '',
 

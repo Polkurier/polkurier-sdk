@@ -52,7 +52,7 @@ class Cod implements MessageInterface
 
     /**
      * @param float $amount amount to collect, in PLN. Zero means no collection, and the other
-     *                       fields are then not needed
+     *        fields are then not needed
      * @param string $bankAccount destination account, required when the return type is a bank
      *        account. Polish accounts only
      * @param CodTypeEnum|null $type how quickly the collected money is settled
@@ -61,39 +61,24 @@ class Cod implements MessageInterface
      * @param ReturnDetails[] $returnDetails one entry per movement of the money
      */
     public function __construct(
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         #[Validate\NonNegative]
         private float $amount,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT)]
-        #[Validate\Iban(foreign: false)]
         #[OmitWhenEmpty]
+        #[Validate\Iban(foreign: false)]
         #[PersonalData]
         private string $bankAccount = '',
 
-        /**
-         * @var CodTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[Validate\NotBlank]
         private ?CodTypeEnum $type = CodTypeEnum::Standard,
 
-        /**
-         * @var CodReturnTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_RETURN_TYPE)]
         #[Validate\NotBlank]
         private ?CodReturnTypeEnum $returnType = CodReturnTypeEnum::BankAccount,
 
-        /**
-         * @var CodStatusEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         #[ResponseOnly]
         private ?CodStatusEnum $status = null,

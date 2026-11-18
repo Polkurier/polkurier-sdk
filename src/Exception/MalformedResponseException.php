@@ -56,7 +56,7 @@ class MalformedResponseException extends Exception
      *
      * @return self
      */
-    public static function unreadableBody(ResponseInterface $response, InvalidArgumentException $cause): self
+    public static function makeForUnreadableBody(ResponseInterface $response, InvalidArgumentException $cause): self
     {
         return new self(
             \sprintf('Polkurier API response (HTTP %d): %s', $response->getStatusCode(), $cause->getMessage()),
@@ -78,7 +78,7 @@ class MalformedResponseException extends Exception
      *
      * @return self
      */
-    public static function unexpectedPayload(
+    public static function makeForUnexpectedPayload(
         ResponseInterface $response,
         string $apiMethod,
         string $expected,

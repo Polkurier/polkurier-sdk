@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * An attachment on a ticket message.
@@ -37,29 +37,17 @@ final readonly class TicketFileMessage implements MessageInterface
      * @param \DateTimeInterface|null $dateCreated when it was attached
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public string $type = '',
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
         public int $size = 0,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $dateCreated = null,
     ) {}
 }

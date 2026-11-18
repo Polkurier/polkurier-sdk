@@ -32,6 +32,7 @@ class SystemService extends AbstractService implements SystemServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getSystemInfo(): SystemInfoMessage

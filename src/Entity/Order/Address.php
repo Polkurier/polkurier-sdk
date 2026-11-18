@@ -84,114 +84,69 @@ class Address implements MessageInterface
      * @param CourierPoint|null $point
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[PersonalData]
         private string $person,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[PersonalData]
         private string $street,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[PersonalData]
         private string $city,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[PersonalData]
         private string $postcode,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
         #[OmitWhenEmpty]
         #[Validate\Email]
         #[PersonalData]
         private ?string $email = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PHONE)]
         #[OmitWhenEmpty]
         #[Validate\PhoneNumber]
         #[PersonalData]
         private ?string $phone = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
         #[PersonalData]
         private ?string $company = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
         #[OmitWhenEmpty]
         #[PersonalData]
         private ?string $houseNumber = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
         #[OmitWhenEmpty]
         #[PersonalData]
         private ?string $flatNumber = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
         private string $country = self::DEFAULT_COUNTRY,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_POINT_ID)]
         #[OmitWhenEmpty]
         private ?string $pointId = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_MACHINE_NAME)]
         #[ResponseOnly]
         private ?string $machineName = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PROVINCE)]
         #[ResponseOnly]
         private ?string $province = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_STREET_NAME)]
         #[ResponseOnly]
         #[PersonalData]
         private ?string $streetName = null,
 
-        /**
-         * @var CourierPoint|null
-         */
         #[Serializer\SerializedName(self::FIELD_POINT)]
         #[ResponseOnly]
         private ?CourierPoint $point = null,

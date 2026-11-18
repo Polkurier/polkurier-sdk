@@ -33,16 +33,10 @@ final readonly class SetTicketStatusMessage implements MessageInterface
      * @param TicketStatusEnum $status only CLOSED is accepted
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
         public string $ticketId,
 
-        /**
-         * @var TicketStatusEnum
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public TicketStatusEnum $status = TicketStatusEnum::Closed,
     ) {}

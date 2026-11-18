@@ -37,33 +37,18 @@ final readonly class KnowledgeBaseFileMessage implements MessageInterface
      * @param string $url public download link
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public string $type = '',
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
         public int $size = 0,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_URL)]
         public string $url = '',
     ) {}

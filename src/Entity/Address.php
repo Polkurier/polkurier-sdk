@@ -86,11 +86,11 @@ class Address implements MessageInterface, ParsedResponseInterface
      * @param string $name the label the entry is listed under
      * @param string $person contact person at the address
      * @param string $street street, without the house number
-     * @param string|null $houseNumber
+     * @param string $houseNumber
      * @param string $postcode
      * @param string $city
      * @param string|null $email
-     * @param string|null $phone
+     * @param string $phone
      * @param string|null $id the entry to update, or null to create a new one
      * @param AddressTypeEnum|null $type the role the entry is filed under
      * @param string|null $company
@@ -106,150 +106,90 @@ class Address implements MessageInterface, ParsedResponseInterface
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[Validate\NotBlank]
         private string $name,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[Validate\NotBlank]
         #[PersonalData]
         private string $person,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[Validate\NotBlank]
         #[PersonalData]
         private string $street,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_HOUSE_NUMBER)]
         #[Validate\NotBlank]
         #[PersonalData]
-        private ?string $houseNumber,
+        private string $houseNumber,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\NotBlank]
         #[PersonalData]
         private string $postcode,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[Validate\NotBlank]
         #[PersonalData]
         private string $city,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EMAIL)]
         #[OmitWhenEmpty]
         #[Validate\Email]
         #[PersonalData]
         private ?string $email,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PHONE)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
         #[PersonalData]
-        private ?string $phone,
+        private string $phone,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         private ?string $id = null,
 
-        /**
-         * @var AddressTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         #[Validate\NotBlank]
         private ?AddressTypeEnum $type = self::DEFAULT_TYPE,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
         #[PersonalData]
         private ?string $company = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_FLAT_NUMBER)]
         #[OmitWhenEmpty]
         #[PersonalData]
         private ?string $flatNumber = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PROVINCE)]
         #[OmitWhenEmpty]
         private ?string $province = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
         private string $country = self::DEFAULT_COUNTRY,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_POINT_ID)]
         #[OmitWhenEmpty]
         private ?string $pointId = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS)]
         private bool $coverAddress = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_SHARED)]
         #[ResponseOnly]
         private bool $shared = false,
 
-        /**
-         * @var CourierPoint|null
-         */
         #[Serializer\SerializedName(self::FIELD_POINT)]
         #[ResponseOnly]
         private ?CourierPoint $point = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}
@@ -375,19 +315,19 @@ class Address implements MessageInterface, ParsedResponseInterface
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getHouseNumber(): ?string
+    public function getHouseNumber(): string
     {
         return $this->houseNumber;
     }
 
     /**
-     * @param string|null $houseNumber
+     * @param string $houseNumber
      *
      * @return static
      */
-    public function setHouseNumber(?string $houseNumber): static
+    public function setHouseNumber(string $houseNumber): static
     {
         $this->houseNumber = $houseNumber;
 
@@ -515,19 +455,19 @@ class Address implements MessageInterface, ParsedResponseInterface
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getPhone(): ?string
+    public function getPhone(): string
     {
         return $this->phone;
     }
 
     /**
-     * @param string|null $phone
+     * @param string $phone
      *
      * @return static
      */
-    public function setPhone(?string $phone): static
+    public function setPhone(string $phone): static
     {
         $this->phone = $phone;
 

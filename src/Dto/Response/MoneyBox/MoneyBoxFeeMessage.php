@@ -47,33 +47,18 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE)]
         public float $fee = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_NET)]
         public float $feeNet = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_VAT_RATE)]
         public float $feeVatRate = 0.0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_FREE_PAYOUTS_LEFT)]
         public int $freePayoutsLeft = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_FREE_PAYOUTS_TOTAL)]
         public int $freePayoutsTotal = 0,
 
@@ -83,9 +68,6 @@ final readonly class MoneyBoxFeeMessage implements MessageInterface, ParsedRespo
         #[Serializer\SerializedName(self::FIELD_FEES)]
         public array $fees = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

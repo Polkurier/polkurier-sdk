@@ -87,7 +87,7 @@ readonly class RequestFactory implements RequestFactoryInterface
             uri: static::ENDPOINT,
             headers: [
                 'Content-Type' => static::CONTENT_TYPE,
-                'User-Agent' => $this->userAgent($config),
+                'User-Agent' => $this->buildUserAgent($config),
             ],
             body: $body,
         );
@@ -100,7 +100,7 @@ readonly class RequestFactory implements RequestFactoryInterface
      *
      * @return string
      */
-    protected function userAgent(ConfigInterface $config): string
+    protected function buildUserAgent(ConfigInterface $config): string
     {
         return \sprintf(
             '%s/%s %s',

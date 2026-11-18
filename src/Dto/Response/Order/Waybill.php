@@ -32,15 +32,9 @@ final readonly class Waybill implements MessageInterface
      * @param bool $default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         public string $number,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         public bool $default = false,
     ) {}

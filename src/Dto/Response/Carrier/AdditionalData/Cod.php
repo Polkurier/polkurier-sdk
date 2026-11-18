@@ -31,21 +31,12 @@ final readonly class Cod implements MessageInterface
      * @param bool $requireInsurance
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
         public bool $available,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_INSURANCE)]
         public bool $requireInsurance,
     ) {}

@@ -38,9 +38,6 @@ final readonly class KnowledgeBaseLinkMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
         public string $title = '',
     ) {}

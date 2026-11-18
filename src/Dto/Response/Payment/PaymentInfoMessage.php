@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Dto\Response\Payment;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\Payment\PaymentStateEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -38,25 +38,19 @@ final readonly class PaymentInfoMessage implements MessageInterface, ParsedRespo
 
     /**
      * @param string $transactionId
-     * @param string $state NEW, REGISTERED, PENDING or DONE
+     * @param PaymentStateEnum|null $state how far the payment has got
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
         public string $transactionId = '',
 
         /**
-         * @var string
+         * @var PaymentStateEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATE)]
-        public string $state = '',
+        public ?PaymentStateEnum $state = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

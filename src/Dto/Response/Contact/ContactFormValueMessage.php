@@ -33,9 +33,6 @@ final readonly class ContactFormValueMessage implements MessageInterface
      * @param string|int|float|bool|null $value a list or other compound value as its JSON
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
 

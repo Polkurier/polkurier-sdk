@@ -349,35 +349,35 @@ final class OrderMapper
     public function toMessage(WC_Order $order): CreateOrderMessage
     {
         $recipient = AddressBuilder::create()
-            ->person(trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name()))
-            ->street($order->get_shipping_address_1())
-            ->houseNumber($order->get_shipping_address_2() ?: '1')
-            ->city($order->get_shipping_city())
-            ->postcode($order->get_shipping_postcode())
-            ->phone($order->get_billing_phone())
-            ->email($order->get_billing_email());
+            ->setPerson(trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name()))
+            ->setStreet($order->get_shipping_address_1())
+            ->setHouseNumber($order->get_shipping_address_2() ?: '1')
+            ->setCity($order->get_shipping_city())
+            ->setPostcode($order->get_shipping_postcode())
+            ->setPhone($order->get_billing_phone())
+            ->setEmail($order->get_billing_email());
 
         if ($order->get_shipping_company()) {
-            $recipient->company($order->get_shipping_company());
+            $recipient->setCompany($order->get_shipping_company());
         }
 
         if ($pointId = $order->get_meta('_polkurier_point_id')) {
-            $recipient->pointId($pointId);
+            $recipient->setPointId($pointId);
         }
 
         $pack = PackItemBuilder::create()
-            ->length(30)->width(20)->height(15)
-            ->weight($this->weightKg($order))
-            ->type(PackTypeEnum::Standard)
+            ->setLength(30)->setWidth(20)->setHeight(15)
+            ->setWeight($this->weightKg($order))
+            ->setType(PackTypeEnum::Standard)
             ->build();
 
         return new CreateOrderMessage(order: OrderBuilder::create()
-            ->courier((string)$order->get_meta('_polkurier_carrier'))
-            ->shipmentType(ShipmentTypeEnum::Box)
-            ->packs([$pack])
-            ->sender((new WarehouseAddress())->build())
-            ->recipient($recipient->build())
-            ->description('#' . $order->get_order_number())
+            ->setCourier((string)$order->get_meta('_polkurier_carrier'))
+            ->setShipmentType(ShipmentTypeEnum::Box)
+            ->setPacks([$pack])
+            ->setSender((new WarehouseAddress())->build())
+            ->setRecipient($recipient->build())
+            ->setDescription('#' . $order->get_order_number())
             ->build());
     }
 

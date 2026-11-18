@@ -32,9 +32,6 @@ final readonly class DeleteBankAccountMessage extends IdMessage
     public function __construct(
         string $id,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ACCESS_PIN)]
         #[OmitWhenEmpty]
         #[Sensitive]

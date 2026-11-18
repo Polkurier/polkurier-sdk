@@ -53,9 +53,9 @@ final class AbsentValueTest extends TestCase
 
     public function testARealDateStillParses(): void
     {
-        $order = self::order(['delivered_date' => '2026-09-24']);
+        $order = self::order(['delivered_date' => '2026-09-24T14:30:00+02:00']);
 
-        self::assertSame('2026-09-24', $order->getDeliveredDate()?->format('Y-m-d'));
+        self::assertSame('2026-09-24T14:30:00+02:00', $order->getDeliveredDate()?->format(\DateTimeInterface::ATOM));
     }
 
     /**
@@ -64,7 +64,7 @@ final class AbsentValueTest extends TestCase
     public function testAnUnconfirmedOfferHasNoConfirmationDate(): void
     {
         $pricing = (new SerializerProvider())->getSerializer()->denormalize([
-            'offer_sent_date' => '2026-09-01 10:00:00',
+            'offer_sent_date' => '2026-09-01T10:00:00+02:00',
             'offer_valid_date' => '',
             'customer_confirmed_date' => null,
         ], IndividualPricing::class, 'json');

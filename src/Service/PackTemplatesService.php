@@ -29,6 +29,7 @@ class PackTemplatesService extends AbstractService implements PackTemplatesServi
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getPackTemplates(): array

@@ -33,9 +33,6 @@ abstract readonly class TokenMessage implements MessageInterface
      * @param string $token
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Validate\NotBlank]
         #[Sensitive]

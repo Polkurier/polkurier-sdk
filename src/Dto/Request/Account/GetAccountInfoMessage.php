@@ -29,9 +29,6 @@ final readonly class GetAccountInfoMessage implements MessageInterface
      *        application's settings for this account are included
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]
         public ?string $externalApplicationId = null,

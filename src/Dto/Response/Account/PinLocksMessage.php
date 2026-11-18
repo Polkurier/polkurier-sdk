@@ -34,21 +34,12 @@ final readonly class PinLocksMessage implements MessageInterface
      * @param bool $codMoneyBox money box settings and payouts are locked
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PIN_SETTINGS)]
         public bool $pinSettings = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNTS_EDIT)]
         public bool $bankAccountsEdit = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COD_MONEY_BOX)]
         public bool $codMoneyBox = false,
     ) {}

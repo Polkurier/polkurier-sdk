@@ -33,16 +33,10 @@ final readonly class FindCityMessage implements MessageInterface
      * @param string $country ISO country code. Any country other than PL gives an empty list
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[Validate\NotBlank]
         public string $postcode,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
         public string $country = self::DEFAULT_COUNTRY,
     ) {}

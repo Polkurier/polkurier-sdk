@@ -29,15 +29,9 @@ final readonly class AdditionalFieldOption implements MessageInterface
      * @param string $label what to show
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_VALUE)]
         public string $value,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
         public string $label,
     ) {}

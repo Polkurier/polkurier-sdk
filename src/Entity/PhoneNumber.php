@@ -45,37 +45,22 @@ class PhoneNumber implements MessageInterface, ParsedResponseInterface
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
         #[PersonalData]
         private string $number = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         private string $name = '',
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[ResponseOnly]
         private string $id = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

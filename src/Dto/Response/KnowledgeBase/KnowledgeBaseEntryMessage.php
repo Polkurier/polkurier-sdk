@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Dto\Response\KnowledgeBase;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\KnowledgeBase\KnowledgeBaseEntryTypeEnum;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -45,28 +44,15 @@ final readonly class KnowledgeBaseEntryMessage implements MessageInterface
      * @param string $url public web address of the entry
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PARENT_ID)]
-        #[OmitWhenEmpty]
         public ?string $parentId = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SLUG)]
         public string $slug = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
         public string $title = '',
 
@@ -76,9 +62,6 @@ final readonly class KnowledgeBaseEntryMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public ?KnowledgeBaseEntryTypeEnum $type = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_URL)]
         public string $url = '',
     ) {}

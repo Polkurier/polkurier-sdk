@@ -43,9 +43,6 @@ final readonly class GetDocumentMessage implements MessageInterface
         #[Validate\NotEmptyList]
         public array $orderNo,
 
-        /**
-         * @var LabelFileFormatEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_FILE_FORMAT)]
         #[OmitWhenEmpty]
         public ?LabelFileFormatEnum $fileFormat = null,

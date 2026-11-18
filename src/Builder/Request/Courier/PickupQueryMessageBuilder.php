@@ -24,7 +24,7 @@ abstract class PickupQueryMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courier(string $courier): static
+    public function setCourier(string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -34,7 +34,7 @@ abstract class PickupQueryMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function shipFrom(string $shipFrom): static
+    public function setShipFrom(string $shipFrom): static
     {
         return $this->set('shipFrom', $shipFrom);
     }
@@ -44,7 +44,7 @@ abstract class PickupQueryMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function shipTo(?string $shipTo): static
+    public function setShipTo(?string $shipTo): static
     {
         return $this->set('shipTo', $shipTo);
     }
@@ -54,7 +54,7 @@ abstract class PickupQueryMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function parcel(?ShipmentTypeEnum $parcel): static
+    public function setParcel(?ShipmentTypeEnum $parcel): static
     {
         return $this->set('parcel', $parcel);
     }

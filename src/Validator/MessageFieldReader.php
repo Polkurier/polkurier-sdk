@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Validator;
 
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
-use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\ClassMemberReader;
 use Polkurier\Webservice\Serializer\WireNameReader;
 
 /**
@@ -20,14 +20,17 @@ use Polkurier\Webservice\Serializer\WireNameReader;
  * so a renamed field stays in step with its rules. The fields of an object marked
  * {@see InlineFields} are sent at the enclosing level, so they are read as the message's own.
  *
- * Reflection runs once per class and is then reused.
+ * Reflection runs once per class and is then reused. The cache is keyed by the message class
+ * alone, so resolving a property, its getter, its wire name and the record inlining it is this
+ * class's own and private: a subclass changes what {@see self::readValue()} and
+ * {@see self::readField()} do with them, not how they are found.
  *
  * An inlined record is read through another instance of this class, built from the class of the
  * object holding it, so a subclass reads an inlined record with itself.
  *
  * @phpstan-consistent-constructor
  */
-class MessageFields
+class MessageFieldReader
 {
     /**
      * Property name to wire field name, per message class.
@@ -61,9 +64,6 @@ class MessageFields
      * @param object $message
      */
     public function __construct(
-        /**
-         * @var object
-         */
         protected readonly object $message,
     ) {}
 
@@ -78,14 +78,14 @@ class MessageFields
      * @return mixed
      * @throws InvalidArgumentException
      */
-    public function value(string $property): mixed
+    public function readValue(string $property): mixed
     {
         $inlined = $this->resolveInlinedHolder($property);
         if ($inlined !== null) {
-            return $inlined->value($property);
+            return $inlined->readValue($property);
         }
 
-        $reflectionProperty = static::findProperty($this->message::class, $property);
+        $reflectionProperty = self::findProperty($this->message::class, $property);
 
         // A property that was never set has no value to check, whichever way it would be read.
         if ($reflectionProperty !== null && !$reflectionProperty->isInitialized($this->message)) {
@@ -93,7 +93,7 @@ class MessageFields
         }
 
         // What a getter returns is what is sent, so that is what the rules check.
-        $getter = static::findGetter($this->message::class, $property);
+        $getter = self::findGetter($this->message::class, $property);
         if ($getter !== null) {
             return $getter->invoke($this->message);
         }
@@ -116,11 +116,84 @@ class MessageFields
      * @return string
      * @throws InvalidArgumentException
      */
-    public function field(string $property): string
+    public function readField(string $property): string
     {
-        return $this->resolveInlinedHolder($property)?->field($property)
-            ?? static::fieldNamesFor($this->message::class)[$property]
+        return $this->resolveInlinedHolder($property)?->readField($property)
+            ?? self::readFieldNames($this->message::class)[$property]
             ?? $property;
+    }
+
+    /**
+     * Whether a class declares a property, or inlines a record that declares it.
+     *
+     * A name that resolves here is a name {@see self::readValue()} reads a value for, so a rule
+     * naming a property can be told from a rule naming nothing before either is run.
+     *
+     * @param class-string $class
+     * @param string $property
+     *
+     * @return bool
+     * @throws InvalidArgumentException when the class does not exist
+     */
+    public static function providesProperty(string $class, string $property): bool
+    {
+        $pending = [$class];
+        $seen = [];
+
+        while ($pending !== []) {
+            $current = \array_pop($pending);
+            // Records that inline each other would otherwise be walked without end.
+            if (isset($seen[$current])) {
+                continue;
+            }
+            $seen[$current] = true;
+
+            if (self::findProperty($current, $property) !== null) {
+                return true;
+            }
+
+            foreach (self::findInlinedProperties($current) as $inlined) {
+                $pending = [...$pending, ...self::readDeclaredClasses($inlined)];
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The classes a property's declared type admits, interfaces among them.
+     *
+     * A type that is not one of them, a map of values the payload carries flat among them, has no
+     * declarations to read.
+     *
+     * @param \ReflectionProperty $property
+     *
+     * @return list<class-string>
+     */
+    private static function readDeclaredClasses(\ReflectionProperty $property): array
+    {
+        $type = $property->getType();
+        $parts = match (true) {
+            $type instanceof \ReflectionUnionType, $type instanceof \ReflectionIntersectionType => $type->getTypes(),
+            $type !== null => [$type],
+            default => [],
+        };
+
+        $classes = [];
+        foreach ($parts as $part) {
+            // A part of a union or an intersection is named, or is itself an intersection, whose
+            // written form `A&B` names no class.
+            if (!$part instanceof \ReflectionNamedType) {
+                continue;
+            }
+
+            $name = $part->getName();
+            if (\class_exists($name) || \interface_exists($name)) {
+                $classes[] = $name;
+            }
+        }
+
+        return $classes;
     }
 
     /**
@@ -133,16 +206,16 @@ class MessageFields
      */
     protected function resolveInlinedHolder(string $property): ?self
     {
-        if (static::findProperty($this->message::class, $property) !== null) {
+        if (self::findProperty($this->message::class, $property) !== null) {
             return null;
         }
 
-        foreach (static::findInlinedProperties($this->message::class) as $inlined) {
+        foreach (self::findInlinedProperties($this->message::class) as $inlined) {
             if (!$inlined->isInitialized($this->message)) {
                 continue;
             }
             $object = $inlined->getValue($this->message);
-            if (\is_object($object) && static::findProperty($object::class, $property) !== null) {
+            if (\is_object($object) && self::findProperty($object::class, $property) !== null) {
                 return new static($object);
             }
         }
@@ -160,14 +233,14 @@ class MessageFields
      *
      * @return list<\ReflectionProperty>
      */
-    protected static function findInlinedProperties(string $class): array
+    private static function findInlinedProperties(string $class): array
     {
         if (isset(self::$inlined[$class])) {
             return self::$inlined[$class];
         }
 
         $found = [];
-        foreach (ClassMembers::readMarkedWith($class, InlineFields::class) as $member) {
+        foreach (ClassMemberReader::readMarkedWith($class, InlineFields::class) as $member) {
             if ($member instanceof \ReflectionProperty) {
                 $found[] = $member;
             }
@@ -177,20 +250,12 @@ class MessageFields
     }
 
     /**
-     * @return object
-     */
-    public function message(): object
-    {
-        return $this->message;
-    }
-
-    /**
      * @param class-string $class
      *
      * @return array<string, string>
      * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function fieldNamesFor(string $class): array
+    private static function readFieldNames(string $class): array
     {
         if (isset(self::$fieldNames[$class])) {
             return self::$fieldNames[$class];
@@ -224,7 +289,7 @@ class MessageFields
      * @return \ReflectionMethod|null
      * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function findGetter(string $class, string $property): ?\ReflectionMethod
+    private static function findGetter(string $class, string $property): ?\ReflectionMethod
     {
         if (\array_key_exists($property, self::$getters[$class] ?? [])) {
             return self::$getters[$class][$property];
@@ -256,7 +321,7 @@ class MessageFields
      * @return \ReflectionProperty|null
      * @throws InvalidArgumentException when the class does not exist
      */
-    protected static function findProperty(string $class, string $property): ?\ReflectionProperty
+    private static function findProperty(string $class, string $property): ?\ReflectionProperty
     {
         if (\array_key_exists($property, self::$properties[$class] ?? [])) {
             return self::$properties[$class][$property];

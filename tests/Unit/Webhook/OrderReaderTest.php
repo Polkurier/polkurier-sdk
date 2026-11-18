@@ -68,6 +68,27 @@ final class OrderReaderTest extends TestCase
         self::assertNull($event->type);
     }
 
+    /**
+     * The hash is recomputed by joining the fields with `&`, which is what Polkurier sends. PHP
+     * would otherwise use `arg_separator.output`, which an installation can set to something else
+     * and which would then make every genuine event look forged.
+     *
+     * @return void
+     */
+    public function testAnEventStaysAuthenticWhateverTheQuerySeparatorSettingIs(): void
+    {
+        $body = self::body(['type' => 'UPDATED', 'data' => self::order()]);
+        $reader = new OrderReader();
+        $separator = \ini_get('arg_separator.output');
+
+        try {
+            \ini_set('arg_separator.output', '&amp;');
+            self::assertTrue($reader->isAuthentic($body, self::SECRET));
+        } finally {
+            \ini_set('arg_separator.output', $separator === false ? '&' : $separator);
+        }
+    }
+
     public function testOnlyTheWebhookSecretMakesAnEventAuthentic(): void
     {
         $reader = new OrderReader();

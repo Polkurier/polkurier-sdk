@@ -13,8 +13,8 @@ use Polkurier\Webservice\Enum\Ticket\TicketAuthorEnum;
 use Polkurier\Webservice\Enum\Ticket\TicketTimelineItemTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * One entry on a ticket's timeline.
@@ -57,9 +57,6 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
@@ -73,7 +70,7 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
          * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_DATE)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $date = null,
 
         /**
@@ -82,24 +79,15 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
         #[Serializer\SerializedName(self::FIELD_ORIGIN)]
         public ?TicketAuthorEnum $origin = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_AUTHOR_NAME)]
         #[PersonalData]
         public string $authorName = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content = '',
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE_READ)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $dateRead = null,
 
         /**
@@ -108,9 +96,6 @@ final readonly class TicketTimelineItemMessage implements MessageInterface, Pars
         #[Serializer\SerializedName(self::FIELD_FILES)]
         public array $files = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

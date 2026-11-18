@@ -27,14 +27,8 @@ final readonly class RuleFailure
      *        integration wording it differently
      */
     public function __construct(
-        /**
-         * @var ValidationErrorCodeEnum
-         */
         public ValidationErrorCodeEnum $code,
 
-        /**
-         * @var string
-         */
         public string $message,
 
         /**

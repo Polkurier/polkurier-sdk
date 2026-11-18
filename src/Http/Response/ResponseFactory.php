@@ -26,7 +26,12 @@ readonly class ResponseFactory implements ResponseFactoryInterface
      *        own, not {@see \Polkurier\Webservice\Api\SerializerInterface}: what it applies is
      *        part of what the SDK promises, so it is not a seam
      */
-    public function __construct(protected MessageSerializer $serializer) {}
+    public function __construct(
+        /**
+         * @var MessageSerializer
+         */
+        protected MessageSerializer $serializer,
+    ) {}
 
     /**
      * The response as the SDK reads it: the envelope, and how the body differed from what the SDK
@@ -48,9 +53,17 @@ readonly class ResponseFactory implements ResponseFactoryInterface
         }
 
         try {
-            $read = $this->serializer->readResponse($body->getContents(), $responseFormat);
+            $contents = $body->getContents();
+            // Left where it was found, so an application that reads the body itself through
+            // {@see \Polkurier\Webservice\PolkurierWebservice::getLastHttpResponse()} is not
+            // handed an empty string by a stream this method moved to the end.
+            if ($body->isSeekable()) {
+                $body->rewind();
+            }
+
+            $read = $this->serializer->readResponse($contents, $responseFormat);
         } catch (InvalidArgumentException $e) {
-            throw MalformedResponseException::unreadableBody($httpResponse, $e);
+            throw MalformedResponseException::makeForUnreadableBody($httpResponse, $e);
         }
 
         return new ResponseWrapper($httpResponse, $read->envelope, $read->drift);

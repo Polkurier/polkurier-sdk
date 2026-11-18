@@ -74,10 +74,12 @@ class LogSanitizer
      * @param ApiMethodInterface $apiMethod
      * @param array<string, class-string> $classes the class the value under each top-level key of
      *        the body holds, see {@see FieldRedactor::redact()}
+     * @param class-string|null $whenNoneApply the class the whole body holds when it carries none
+     *        of those keys
      *
      * @return string
      */
-    public function body(
+    public function sanitizeBody(
         MessageInterface $message,
         ConfigInterface $config,
         ApiMethodInterface $apiMethod,
@@ -98,7 +100,13 @@ class LogSanitizer
 
         $prepared = $this->prepared[$message] ?? [];
         if (!isset($prepared[$key])) {
-            $prepared[$key] = $this->prepare((string)$message->getBody(), $config, $apiMethod, $classes, $whenNoneApply);
+            $prepared[$key] = $this->prepare(
+                (string)$message->getBody(),
+                $config,
+                $apiMethod,
+                $classes,
+                $whenNoneApply,
+            );
             $this->prepared[$message] = $prepared;
         }
 
@@ -119,16 +127,15 @@ class LogSanitizer
      *
      * @return T
      */
-    public function message(
+    public function sanitizeMessage(
         MessageInterface $message,
         ConfigInterface $config,
         ApiMethodInterface $apiMethod,
         array $classes,
         ?string $whenNoneApply = null,
     ): MessageInterface {
-        /** @var T */
         return $message->withBody(
-            Utils::streamFor($this->body($message, $config, $apiMethod, $classes, $whenNoneApply)),
+            Utils::streamFor($this->sanitizeBody($message, $config, $apiMethod, $classes, $whenNoneApply)),
         );
     }
 
@@ -152,6 +159,8 @@ class LogSanitizer
      * @param ConfigInterface $config
      * @param ApiMethodInterface $apiMethod
      * @param array<string, class-string> $classes
+     * @param class-string|null $whenNoneApply the class the whole body holds when it carries none
+     *        of those keys
      *
      * @return string
      */

@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
@@ -42,33 +42,29 @@ final readonly class OrderStatusMessage implements MessageInterface, ParsedRespo
 
     /**
      * @param string $status
-     * @param string $statusCode
+     * @param OrderStatusCodeEnum|null $statusCode
      * @param \DateTimeInterface|null $statusDate
      * @param \DateTimeInterface|null $deliveredDate date only, with no time component
      * @param string $url public track-and-trace URL, empty while the order has no waybill
      * @param TrackingEventMessage[] $tracking scan history, empty unless asked for, or when the
-     *                                         carrier has not reported anything yet
+     *        carrier has not reported anything yet
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public string $status = '',
 
         /**
-         * @var string
+         * @var OrderStatusCodeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
-        public string $statusCode = '',
+        public ?OrderStatusCodeEnum $statusCode = null,
 
         /**
          * @var \DateTimeInterface|null null if the response leaves it out, as it does while the order has no waybill
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d H:i'])]
-        #[OmitWhenEmpty]
         public ?\DateTimeInterface $statusDate = null,
 
         /**
@@ -76,12 +72,8 @@ final readonly class OrderStatusMessage implements MessageInterface, ParsedRespo
          */
         #[Serializer\SerializedName(self::FIELD_DELIVERED_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
-        #[OmitWhenEmpty]
         public ?\DateTimeInterface $deliveredDate = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_URL)]
         public string $url = '',
 
@@ -91,9 +83,6 @@ final readonly class OrderStatusMessage implements MessageInterface, ParsedRespo
         #[Serializer\SerializedName(self::FIELD_TRACKING)]
         public array $tracking = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

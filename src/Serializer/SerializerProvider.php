@@ -47,8 +47,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Building the serializer is slow, so share one instance across the factories.
  * {@see \Polkurier\Webservice\PolkurierWebservice} does this. Metadata caching, JSON flags, the
  * timezone for dates and whether a response that differs is an error are set through
- * {@see SerializerConfig}. Everything else is fixed by
- * the API.
+ * {@see SerializerConfig}. Everything else is fixed by the API.
  */
 readonly class SerializerProvider
 {
@@ -62,7 +61,7 @@ readonly class SerializerProvider
      */
     public function __construct(SerializerConfigInterface $config = new SerializerConfig())
     {
-        $metadata = static::metadataFactory($config);
+        $metadata = static::buildMetadataFactory($config);
         $strict = $config->strictResponses();
 
         $extractor = new PropertyInfoExtractor(
@@ -104,7 +103,11 @@ readonly class SerializerProvider
                     // keys aren't known here.
                     new InlineFieldsNormalizer(new OmitEmptyNormalizer(new SentFieldsNormalizer(
                         new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
-                            new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+                            new LenientObjectDenormalizer(
+                                new SentObjectNormalizer($objectNormalizer),
+                                $metadata,
+                                $extractor,
+                            ),
                         )),
                     ))),
                 ),
@@ -127,7 +130,7 @@ readonly class SerializerProvider
      *
      * @return ClassMetadataFactoryInterface
      */
-    protected static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
+    protected static function buildMetadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
         $cache = $config->getMetadataCache();

@@ -32,9 +32,6 @@ final readonly class VerifyMessage extends TokenMessage
     public function __construct(
         string $token,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CODE)]
         #[Validate\NotBlank]
         #[Sensitive]

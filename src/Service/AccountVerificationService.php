@@ -50,6 +50,7 @@ class AccountVerificationService extends AbstractService implements AccountVerif
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getInfo(): ?AccountVerificationMessage

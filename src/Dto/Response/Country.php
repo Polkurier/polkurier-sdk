@@ -37,21 +37,13 @@ final readonly class Country implements MessageInterface
     public function __construct(
         /**
          * ISO country code.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_UE)]
         public bool $ue = false,
 

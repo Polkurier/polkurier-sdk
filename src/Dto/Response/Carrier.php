@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Dto\Response;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -38,21 +37,12 @@ final readonly class Carrier implements MessageInterface
      * @param AdditionalData|null $additionalData
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SERVICE_CODE)]
         public string $serviceCode,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_FOREIGN_SHIPMENTS)]
         public bool $foreignShipments,
 
@@ -60,7 +50,6 @@ final readonly class Carrier implements MessageInterface
          * @var AdditionalData|null null unless the listing asked for the additional data
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_DATA)]
-        #[OmitWhenEmpty]
         public ?AdditionalData $additionalData = null,
     ) {}
 }

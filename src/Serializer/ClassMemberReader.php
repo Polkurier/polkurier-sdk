@@ -15,8 +15,14 @@ namespace Polkurier\Webservice\Serializer;
  * on every request, and a class does not change while the process runs, so each is walked once
  * and kept.
  */
-final class ClassMembers
+final class ClassMemberReader
 {
+    /**
+     * The prefixes the object normalizer reads a method as a getter by, matched only where an
+     * uppercase letter follows, so a word that starts with one is left whole.
+     */
+    private const ACCESSOR_PREFIX = '/^(get|is|has|can)(?=[A-Z])/';
+
     /**
      * The members each class declares, read once.
      *
@@ -93,6 +99,26 @@ final class ClassMembers
     public static function writesAField(\ReflectionProperty|\ReflectionMethod $member): bool
     {
         return !$member instanceof \ReflectionMethod
-            || \preg_match('/^(get|is|has|can)[A-Z]/', $member->getName()) === 1;
+            || \preg_match(self::ACCESSOR_PREFIX, $member->getName()) === 1;
+    }
+
+    /**
+     * The name the object normalizer knows a member by: a property's own name, an accessor's name
+     * without its prefix.
+     *
+     * This is the name an attribute list is matched against, and the name a wire name is derived
+     * from where no serializer name is declared.
+     *
+     * @param \ReflectionProperty|\ReflectionMethod $member
+     *
+     * @return string
+     */
+    public static function readName(\ReflectionProperty|\ReflectionMethod $member): string
+    {
+        if (!$member instanceof \ReflectionMethod) {
+            return $member->getName();
+        }
+
+        return \lcfirst((string)\preg_replace(self::ACCESSOR_PREFIX, '', $member->getName()));
     }
 }

@@ -63,9 +63,8 @@ class Each
     /**
      * @return ValueValidatorInterface
      */
-    public function rule(): ValueValidatorInterface
+    public function makeRule(): ValueValidatorInterface
     {
-        /** @var ValueValidatorInterface */
         return new ($this->rule)(...$this->arguments);
     }
 }

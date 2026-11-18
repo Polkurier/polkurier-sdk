@@ -13,19 +13,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of the invoice list.
  *
- * Paged like the order list, but with no `totalpages` field. Work out the last page from the total
- * and the page size.
- *
  * @api
  */
 final readonly class InvoiceListMessage extends PagedListMessage
 {
-    /**+@#
-     * JSON parameter keys
-     */
-    public const string FIELD_RESULT = 'result';
-    /**-@#*/
-
     /**
      * @param int $totalRows invoices matching the filter, across all pages
      * @param int $currentPage 1-based index of this page

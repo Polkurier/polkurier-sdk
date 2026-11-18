@@ -17,9 +17,6 @@ use Polkurier\Webservice\Validator\RuleFailure;
  * The check is loose. The address is used for delivery notifications, so it only catches values
  * that are clearly not an address, like a name, a phone number or a value with a space in it. A
  * stricter check would reject working addresses and block the order.
- *
- * Empty values pass. Use {@see \Polkurier\Webservice\Validator\Rule\NotBlank} to make the field
- * required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class Email implements ValueValidatorInterface

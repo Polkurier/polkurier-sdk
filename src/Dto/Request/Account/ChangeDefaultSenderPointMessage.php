@@ -35,16 +35,10 @@ final readonly class ChangeDefaultSenderPointMessage implements MessageInterface
      * @param string $point point id, or an empty string to clear the default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
         public string $courier,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POINT)]
         public string $point = '',
     ) {}

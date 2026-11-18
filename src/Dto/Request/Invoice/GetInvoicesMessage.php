@@ -30,9 +30,6 @@ final readonly class GetInvoicesMessage extends PagedMessage
      * @param int|null $page 1-based page index
      */
     public function __construct(
-        /**
-         * @var InvoiceTypeEnum
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public InvoiceTypeEnum $type,
 

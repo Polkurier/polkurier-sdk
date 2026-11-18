@@ -25,6 +25,12 @@ class ResponseDriftCollector
     public const string CONTEXT_KEY = 'polkurier_response_drift';
 
     /**
+     * Where the serializer records the path of the value it is reading. It exposes no constant
+     * for the name, so it is written here once.
+     */
+    public const string PATH_KEY = 'deserialization_path';
+
+    /**
      * @var list<ResponseDrift>
      */
     private array $drift = [];
@@ -57,7 +63,7 @@ class ResponseDriftCollector
      *
      * @return string
      */
-    public static function at(string $path, string $field): string
+    public static function joinPath(string $path, string $field): string
     {
         return $path === '' ? $field : $path . '.' . $field;
     }
@@ -65,7 +71,7 @@ class ResponseDriftCollector
     /**
      * @return list<ResponseDrift>
      */
-    public function all(): array
+    public function getDrift(): array
     {
         return $this->drift;
     }
@@ -77,7 +83,7 @@ class ResponseDriftCollector
      *
      * @return self|null
      */
-    public static function fromContext(array $context): ?self
+    public static function findInContext(array $context): ?self
     {
         $collector = $context[self::CONTEXT_KEY] ?? null;
 

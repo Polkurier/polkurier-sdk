@@ -12,8 +12,8 @@ use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Enum\Ticket\TicketStatusEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A support ticket.
@@ -66,21 +66,12 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         public string $number = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SUBJECT)]
         public string $subject = '',
 
@@ -90,15 +81,9 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public ?TicketStatusEnum $status = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_HAS_EMPLOYEE_RESPONSES)]
         public bool $hasEmployeeResponses = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_READ)]
         public bool $read = false,
 
@@ -106,12 +91,9 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
          * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $dateCreated = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_EMPLOYEE_NAME)]
         #[PersonalData]
         public string $employeeName = '',
@@ -156,9 +138,6 @@ final readonly class TicketMessage implements MessageInterface, ParsedResponseIn
         #[Serializer\SerializedName(self::FIELD_RESPONSE_TEMPLATE)]
         public ?TicketResponseTemplateMessage $responseTemplate = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

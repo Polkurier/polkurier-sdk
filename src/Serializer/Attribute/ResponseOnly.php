@@ -12,7 +12,7 @@ use Attribute;
 /**
  * The API returns this field but doesn't take it, so it is left out of what the SDK sends.
  *
- * Applied by {@see \Polkurier\Webservice\Serializer\OmitEmptyNormalizer}.
+ * Applied by {@see \Polkurier\Webservice\Serializer\SentObjectNormalizer}.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD)]
 final class ResponseOnly

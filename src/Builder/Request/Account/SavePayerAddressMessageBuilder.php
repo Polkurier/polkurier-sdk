@@ -28,7 +28,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function addressType(PayerAddressTypeEnum $addressType): static
+    public function setAddressType(PayerAddressTypeEnum $addressType): static
     {
         return $this->set('addressType', $addressType);
     }
@@ -38,7 +38,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function userType(?PayerUserTypeEnum $userType): static
+    public function setUserType(?PayerUserTypeEnum $userType): static
     {
         return $this->set('userType', $userType);
     }
@@ -48,7 +48,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function sameAsPayer(bool $sameAsPayer): static
+    public function setSameAsPayer(bool $sameAsPayer): static
     {
         return $this->set('sameAsPayer', $sameAsPayer);
     }
@@ -58,7 +58,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function name(string $name): static
+    public function setName(string $name): static
     {
         return $this->set('name', $name);
     }
@@ -68,7 +68,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function street(string $street): static
+    public function setStreet(string $street): static
     {
         return $this->set('street', $street);
     }
@@ -78,7 +78,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function buildingNumber(string $buildingNumber): static
+    public function setBuildingNumber(string $buildingNumber): static
     {
         return $this->set('buildingNumber', $buildingNumber);
     }
@@ -88,7 +88,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function postCode(string $postCode): static
+    public function setPostCode(string $postCode): static
     {
         return $this->set('postCode', $postCode);
     }
@@ -98,7 +98,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function city(string $city): static
+    public function setCity(string $city): static
     {
         return $this->set('city', $city);
     }
@@ -108,7 +108,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function country(string $country): static
+    public function setCountry(string $country): static
     {
         return $this->set('country', $country);
     }
@@ -118,7 +118,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function nipPrefix(string $nipPrefix): static
+    public function setNipPrefix(string $nipPrefix): static
     {
         return $this->set('nipPrefix', $nipPrefix);
     }
@@ -128,7 +128,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function nip(string $nip): static
+    public function setNip(string $nip): static
     {
         return $this->set('nip', $nip);
     }
@@ -138,7 +138,7 @@ class SavePayerAddressMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function regon(string $regon): static
+    public function setRegon(string $regon): static
     {
         return $this->set('regon', $regon);
     }

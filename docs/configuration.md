@@ -130,8 +130,8 @@ logged, the SDK prepares each body:
 
 - **Secrets** are hidden: the API token, which is in every authenticated request, passwords, PINs,
   two-factor codes and tokens, access tokens, and a contact form's `nonce`. Each such field carries
-  [`#[Sensitive]`](../src/Log/Attribute/Sensitive.php). A key named `pin` or ending in `_pin` is
-  hidden as well, whatever class it came from.
+  [`#[Sensitive]`](../src/Log/Attribute/Sensitive.php). The mark is the whole rule: nothing is
+  hidden for what its key is called, so a body the SDK has no class for is logged as it arrived.
 - **Personal data** is hidden: names, street addresses, email addresses, phone numbers, tax and
   company registration numbers, and bank account numbers. Each such field carries
   [`#[PersonalData]`](../src/Log/Attribute/PersonalData.php).

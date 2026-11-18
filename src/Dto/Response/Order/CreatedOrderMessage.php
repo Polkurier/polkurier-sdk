@@ -10,7 +10,6 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -54,17 +53,10 @@ final readonly class CreatedOrderMessage implements MessageInterface, ParsedResp
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ORDER_NUMBER)]
         public string $orderNumber = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_CONSIGN_ID)]
-        #[OmitWhenEmpty]
         public ?string $consignId = null,
 
         /**
@@ -73,47 +65,24 @@ final readonly class CreatedOrderMessage implements MessageInterface, ParsedResp
         #[Serializer\SerializedName(self::FIELD_LABEL)]
         public array $label = [],
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_NET)]
         public float $priceNet = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
         public float $priceGross = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_UNPAID_AMOUNT)]
         public float $unpaidAmount = 0.0,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PAID)]
         public bool $paid = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TRACKING_URI)]
-        #[OmitWhenEmpty]
         public ?string $trackingUri = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_CODE)]
-        #[OmitWhenEmpty]
         public ?string $shipmentCode = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

@@ -140,7 +140,7 @@ final class LogSanitizerTest extends TestCase
         bool $logPersonalData = false,
         array $classes = [],
     ): string {
-        return (new LogSanitizer())->body(
+        return (new LogSanitizer())->sanitizeBody(
             new Response(502, [], $body),
             new Config(
                 authorization: new AuthorizationMessage(token: 'test-token', login: '20534'),

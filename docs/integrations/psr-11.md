@@ -137,7 +137,9 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final readonly class TrackAction
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 
     public function __invoke(
         ServerRequestInterface $request,
@@ -169,7 +171,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final readonly class PolkurierErrorMiddleware implements MiddlewareInterface
 {
-    public function __construct(private ResponseFactoryInterface $responses) {}
+    public function __construct(
+        private ResponseFactoryInterface $responses,
+    ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -276,8 +280,8 @@ $client = new PolkurierWebservice(
 call, so that exceptions can report the response that came back. In a shared-nothing process that's
 harmless. With real concurrency, coroutines that share a client overwrite it for each other.
 
-**Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFields`](../../src/Validator/MessageFields.php),
-[`ClassMembers`](../../src/Serializer/ClassMembers.php), [`WireNameReader`](../../src/Serializer/WireNameReader.php), [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php), and, in the serializer chain,
+**Static caches last for the whole process.** [`AttributeValidator`](../../src/Validator/AttributeValidator.php), [`MessageFieldReader`](../../src/Validator/MessageFieldReader.php),
+[`ClassMemberReader`](../../src/Serializer/ClassMemberReader.php), [`WireNameReader`](../../src/Serializer/WireNameReader.php), [`AbstractBuilder`](../../src/Builder/AbstractBuilder.php), and, in the serializer chain,
 [`InlineFieldsNormalizer`](../../src/Serializer/InlineFieldsNormalizer.php), [`OmitEmptyNormalizer`](../../src/Serializer/OmitEmptyNormalizer.php), [`SentFieldsNormalizer`](../../src/Serializer/SentFieldsNormalizer.php), [`WireFormatDenormalizer`](../../src/Serializer/WireFormatDenormalizer.php) and
 [`LenientObjectDenormalizer`](../../src/Serializer/LenientObjectDenormalizer.php) each keep a static reflection cache keyed by class name. Once filled, they stay
 filled for every client in the process, and no setting empties them: the configured

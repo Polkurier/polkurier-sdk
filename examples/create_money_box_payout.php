@@ -25,7 +25,7 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $config = polkurier()->moneyBox()->getConfig();
+    $config = polkurier()->moneyBox()->getMoneyBoxConfig();
 
     $payout = polkurier()->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
         payoutType: MoneyBoxPayoutTypeEnum::Account,
@@ -34,7 +34,7 @@ try {
     ));
 
     \printf("Payout %s for %.2f PLN is %s\n",
-        $payout->number, $payout->amount, $payout->status);
+        $payout->number, $payout->amount, $payout->status->value ?? 'unknown');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

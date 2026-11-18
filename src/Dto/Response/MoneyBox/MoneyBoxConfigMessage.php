@@ -74,51 +74,30 @@ final readonly class MoneyBoxConfigMessage implements MessageInterface, ParsedRe
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENTS_TYPES_AVAILABLE)]
         public array $feePaymentsTypesAvailable = [],
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
         #[PersonalData]
         public string $bankAccountNumber = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[PersonalData]
         public string $company = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[PersonalData]
         public string $person = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[PersonalData]
         public string $street = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[PersonalData]
         public string $postcode = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[PersonalData]
         public string $city = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

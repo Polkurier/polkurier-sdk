@@ -26,7 +26,7 @@ class PickupBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupDate(?\DateTimeInterface $pickupDate): static
+    public function setPickupDate(?\DateTimeInterface $pickupDate): static
     {
         return $this->set('pickupDate', $pickupDate);
     }
@@ -36,7 +36,7 @@ class PickupBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupTimeFrom(?\DateTimeInterface $pickupTimeFrom): static
+    public function setPickupTimeFrom(?\DateTimeInterface $pickupTimeFrom): static
     {
         return $this->set('pickupTimeFrom', $pickupTimeFrom);
     }
@@ -46,7 +46,7 @@ class PickupBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupTimeTo(?\DateTimeInterface $pickupTimeTo): static
+    public function setPickupTimeTo(?\DateTimeInterface $pickupTimeTo): static
     {
         return $this->set('pickupTimeTo', $pickupTimeTo);
     }
@@ -56,7 +56,7 @@ class PickupBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function noCourierOrder(bool $noCourierOrder): static
+    public function setNoCourierOrder(bool $noCourierOrder): static
     {
         return $this->set('noCourierOrder', $noCourierOrder);
     }
@@ -66,7 +66,7 @@ class PickupBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function multiPickup(bool $multiPickup): static
+    public function setMultiPickup(bool $multiPickup): static
     {
         return $this->set('multiPickup', $multiPickup);
     }

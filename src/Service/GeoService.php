@@ -46,6 +46,7 @@ class GeoService extends AbstractService implements GeoServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getMapToken(): TokenMessage

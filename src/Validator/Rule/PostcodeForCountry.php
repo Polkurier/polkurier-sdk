@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
@@ -38,32 +38,23 @@ class PostcodeForCountry implements MessageRuleInterface
      *        check nothing
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $postcode,
 
-        /**
-         * @var string
-         */
         public readonly string $country,
 
-        /**
-         * @var string|null
-         */
         public readonly ?string $whenEmpty = null,
     ) {}
 
     /**
-     * @param MessageFields $fields
+     * @param MessageFieldReader $fields
      * @param ViolationPool $violations
      *
      * @return void
      * @throws InvalidArgumentException
      */
-    public function validate(MessageFields $fields, ViolationPool $violations): void
+    public function validate(MessageFieldReader $fields, ViolationPool $violations): void
     {
-        $country = $fields->value($this->country);
+        $country = $fields->readValue($this->country);
 
         if (!\is_string($country) || $country === '') {
             $country = $this->whenEmpty;
@@ -73,9 +64,17 @@ class PostcodeForCountry implements MessageRuleInterface
         }
 
         $violations->check(
-            $fields->field($this->postcode),
-            $fields->value($this->postcode),
+            $fields->readField($this->postcode),
+            $fields->readValue($this->postcode),
             new Postcode($country),
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function listProperties(): array
+    {
+        return [$this->postcode, $this->country];
     }
 }

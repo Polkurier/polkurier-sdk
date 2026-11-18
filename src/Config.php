@@ -37,7 +37,7 @@ readonly class Config implements ConfigInterface
      * @param int $apiTimeout
      * @param bool $sandbox
      * @param bool $loggingEnabled
-     * @param array $methodsToLog
+     * @param ApiMethodInterface[] $methodsToLog
      * @param bool $validatePayloads
      * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by
      *        default, and while it is off every field
@@ -226,7 +226,7 @@ readonly class Config implements ConfigInterface
     /**
      * @return bool
      */
-    public function validatePayloads(): bool
+    public function isPayloadValidationEnabled(): bool
     {
         return $this->validatePayloads;
     }

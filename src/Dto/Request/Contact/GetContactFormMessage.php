@@ -28,9 +28,6 @@ final readonly class GetContactFormMessage implements MessageInterface
      * @param string $category the id of a topic from getContactTopics() that has a form
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CATEGORY)]
         #[Validate\NotBlank]
         public string $category,

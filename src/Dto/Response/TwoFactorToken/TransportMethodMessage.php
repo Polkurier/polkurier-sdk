@@ -16,7 +16,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * authenticator app.
  *
  * Pass the id to
- * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()}
+ * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::changeTransportMethod()}
  * to switch a pending confirmation to this method.
  *
  * @api
@@ -41,9 +41,6 @@ final readonly class TransportMethodMessage implements MessageInterface
      * @param string $typeName the method's display name, in Polish
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id,
 
@@ -51,8 +48,6 @@ final readonly class TransportMethodMessage implements MessageInterface
          * Where the code goes, e.g. a phone number or email address with part of it masked with `***`,
          * or the customer's label for an authenticator app. Show this to tell the customer where to
          * look.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
@@ -72,8 +67,6 @@ final readonly class TransportMethodMessage implements MessageInterface
         /**
          * The method's display name, in Polish. For labels in your own language, switch on
          * {@see self::$type} instead.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_TYPE_NAME)]
         public string $typeName = '',

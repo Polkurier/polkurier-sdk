@@ -36,16 +36,10 @@ final readonly class TokenMessage implements MessageInterface, ParsedResponseInt
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TOKEN)]
         #[Sensitive]
         public string $token = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

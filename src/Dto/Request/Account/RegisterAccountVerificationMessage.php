@@ -32,12 +32,9 @@ final readonly class RegisterAccountVerificationMessage implements MessageInterf
      * @param string|null $orderNo the order prompting verification, if any
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
-        #[Validate\OrderNumber]
         #[OmitWhenEmpty]
+        #[Validate\OrderNumber]
         public ?string $orderNo = null,
     ) {}
 }

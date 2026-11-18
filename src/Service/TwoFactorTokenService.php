@@ -38,7 +38,7 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenRegister(RegisterMessage $registerMessage): TwoFactorToken
+    public function register(RegisterMessage $registerMessage): TwoFactorToken
     {
         return $this->requestObject(
             ApiMethodEnum::TwoFactorTokenRegister,
@@ -58,7 +58,7 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenResend(ResendMessage $resendMessage): TwoFactorToken
+    public function resend(ResendMessage $resendMessage): TwoFactorToken
     {
         return $this->requestObject(
             ApiMethodEnum::TwoFactorTokenResend,
@@ -78,7 +78,7 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenVerify(VerifyMessage $verifyMessage): ValidityMessage
+    public function verify(VerifyMessage $verifyMessage): ValidityMessage
     {
         return $this->requestObject(
             ApiMethodEnum::TwoFactorTokenVerify,
@@ -98,7 +98,7 @@ class TwoFactorTokenService extends AbstractService implements TwoFactorTokenSer
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenChangeTransportMethod(
+    public function changeTransportMethod(
         ChangeTransportMethodMessage $changeTransportMethodMessage
     ): TwoFactorToken {
         return $this->requestObject(

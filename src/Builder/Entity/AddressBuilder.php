@@ -26,7 +26,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function name(string $name): static
+    public function setName(string $name): static
     {
         return $this->set('name', $name);
     }
@@ -36,7 +36,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function person(string $person): static
+    public function setPerson(string $person): static
     {
         return $this->set('person', $person);
     }
@@ -46,7 +46,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function street(string $street): static
+    public function setStreet(string $street): static
     {
         return $this->set('street', $street);
     }
@@ -56,7 +56,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function houseNumber(string $houseNumber): static
+    public function setHouseNumber(string $houseNumber): static
     {
         return $this->set('houseNumber', $houseNumber);
     }
@@ -66,7 +66,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function postcode(string $postcode): static
+    public function setPostcode(string $postcode): static
     {
         return $this->set('postcode', $postcode);
     }
@@ -76,7 +76,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function city(string $city): static
+    public function setCity(string $city): static
     {
         return $this->set('city', $city);
     }
@@ -86,7 +86,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function email(string $email): static
+    public function setEmail(string $email): static
     {
         return $this->set('email', $email);
     }
@@ -96,7 +96,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function phone(string $phone): static
+    public function setPhone(string $phone): static
     {
         return $this->set('phone', $phone);
     }
@@ -106,7 +106,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function id(?string $id): static
+    public function setId(?string $id): static
     {
         return $this->set('id', $id);
     }
@@ -116,7 +116,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function type(AddressTypeEnum $type): static
+    public function setType(AddressTypeEnum $type): static
     {
         return $this->set('type', $type);
     }
@@ -126,7 +126,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function company(?string $company): static
+    public function setCompany(?string $company): static
     {
         return $this->set('company', $company);
     }
@@ -136,7 +136,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function flatNumber(?string $flatNumber): static
+    public function setFlatNumber(?string $flatNumber): static
     {
         return $this->set('flatNumber', $flatNumber);
     }
@@ -146,7 +146,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function province(?string $province): static
+    public function setProvince(?string $province): static
     {
         return $this->set('province', $province);
     }
@@ -156,7 +156,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function country(string $country): static
+    public function setCountry(string $country): static
     {
         return $this->set('country', $country);
     }
@@ -166,7 +166,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pointId(?string $pointId): static
+    public function setPointId(?string $pointId): static
     {
         return $this->set('pointId', $pointId);
     }
@@ -176,7 +176,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function default(bool $default): static
+    public function setDefault(bool $default): static
     {
         return $this->set('default', $default);
     }
@@ -186,7 +186,7 @@ class AddressBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function coverAddress(bool $coverAddress): static
+    public function setCoverAddress(bool $coverAddress): static
     {
         return $this->set('coverAddress', $coverAddress);
     }

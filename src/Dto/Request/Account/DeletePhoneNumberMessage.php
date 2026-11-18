@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Dto\Request\Account;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Common\IdMessage;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -22,12 +22,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-final readonly class DeletePhoneNumberMessage implements MessageInterface
+final readonly class DeletePhoneNumberMessage extends IdMessage
 {
     /**+@#
      * JSON parameter keys
      */
-    public const string FIELD_ID = 'id';
     public const string FIELD_NUMBER = 'number';
     /**-@#*/
 
@@ -36,20 +35,14 @@ final readonly class DeletePhoneNumberMessage implements MessageInterface
      * @param string $number the phone number, checked for format only
      */
     public function __construct(
-        /**
-         * @var string
-         */
-        #[Serializer\SerializedName(self::FIELD_ID)]
-        #[Validate\NotBlank]
-        public string $id,
+        string $id,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\PhoneNumber]
         #[PersonalData]
         public string $number,
-    ) {}
+    ) {
+        parent::__construct($id);
+    }
 }

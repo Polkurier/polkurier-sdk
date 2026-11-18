@@ -38,9 +38,6 @@ final readonly class PickupMessage extends PickupQueryMessage
         ?string $shipTo = null,
         ?ShipmentTypeEnum $parcel = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]

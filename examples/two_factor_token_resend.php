@@ -25,7 +25,7 @@ if (!hasFlag('--confirm')) {
 $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 
 try {
-    $resent = polkurier()->twoFactorToken()->twoFactorTokenResend(new ResendMessage(token: $token));
+    $resent = polkurier()->twoFactorToken()->resend(new ResendMessage(token: $token));
 
     \printf("Code re-sent to %s\n", $resent->transportMethod->name ?? '(unknown)');
 } catch (Exception $e) {

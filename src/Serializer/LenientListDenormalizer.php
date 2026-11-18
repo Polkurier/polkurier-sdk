@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
@@ -48,13 +50,16 @@ class LenientListDenormalizer implements DenormalizerInterface, DenormalizerAwar
      * @param array<string, mixed> $context
      *
      * @return mixed
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        $drift = ResponseDriftCollector::fromContext($context);
+        $drift = ResponseDriftCollector::findInContext($context);
         $class = \substr($type, 0, -2);
         if ($drift !== null && \is_array($data) && \class_exists($class)) {
-            $path = $context['deserialization_path'] ?? null;
+            $path = $context[ResponseDriftCollector::PATH_KEY] ?? null;
             $path = \is_string($path) ? $path : '';
             $items = [];
             foreach ($data as $key => $item) {

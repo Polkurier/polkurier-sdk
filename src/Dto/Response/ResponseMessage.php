@@ -30,17 +30,12 @@ final readonly class ResponseMessage implements MessageInterface
      * @param mixed $response
      */
     public function __construct(
-        /**
-         * @var ResponseStatusEnum
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public ResponseStatusEnum $status,
 
         /**
          * The payload, in the shape the service method asks for, e.g. an object, a list, or a
          * boolean for methods that only acknowledge.
-         *
-         * @var mixed
          */
         #[Serializer\SerializedName(self::FIELD_RESPONSE)]
         public mixed $response,

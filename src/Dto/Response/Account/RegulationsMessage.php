@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Dto\Response\Account;
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A legal document: the terms of service or the privacy policy.
@@ -45,34 +45,19 @@ final readonly class RegulationsMessage implements MessageInterface, ParsedRespo
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
         public string $title = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content = '',
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $date = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

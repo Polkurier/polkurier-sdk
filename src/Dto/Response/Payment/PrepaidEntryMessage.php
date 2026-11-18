@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Payment;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * One movement on the prepaid balance.
@@ -35,22 +35,13 @@ final readonly class PrepaidEntryMessage implements MessageInterface
      *        positive amount, "Pobranie środków z konta" otherwise, sometimes followed by a note
      */
     public function __construct(
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $date = null,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         public float $amount = 0.0,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description = '',
     ) {}

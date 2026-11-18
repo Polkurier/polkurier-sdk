@@ -26,7 +26,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function orderNo(?string $orderNo): static
+    public function setOrderNo(?string $orderNo): static
     {
         return $this->set('orderNo', $orderNo);
     }
@@ -36,7 +36,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function status(?OrderStatusCodeEnum $status): static
+    public function setStatus(?OrderStatusCodeEnum $status): static
     {
         return $this->set('status', $status);
     }
@@ -46,7 +46,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courier(?string $courier): static
+    public function setCourier(?string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -56,7 +56,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function codMin(?float $codMin): static
+    public function setCodMin(?float $codMin): static
     {
         return $this->set('codMin', $codMin);
     }
@@ -66,7 +66,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function codMax(?float $codMax): static
+    public function setCodMax(?float $codMax): static
     {
         return $this->set('codMax', $codMax);
     }
@@ -76,7 +76,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function dateFrom(?\DateTimeInterface $dateFrom): static
+    public function setDateFrom(?\DateTimeInterface $dateFrom): static
     {
         return $this->set('dateFrom', $dateFrom);
     }
@@ -86,7 +86,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function dateTo(?\DateTimeInterface $dateTo): static
+    public function setDateTo(?\DateTimeInterface $dateTo): static
     {
         return $this->set('dateTo', $dateTo);
     }
@@ -96,7 +96,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function searchPhrase(?string $searchPhrase): static
+    public function setSearchPhrase(?string $searchPhrase): static
     {
         return $this->set('searchPhrase', $searchPhrase);
     }
@@ -106,7 +106,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pageSize(?int $pageSize): static
+    public function setPageSize(?int $pageSize): static
     {
         return $this->set('pageSize', $pageSize);
     }
@@ -116,7 +116,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function page(?int $page): static
+    public function setPage(?int $page): static
     {
         return $this->set('page', $page);
     }
@@ -128,7 +128,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function externalApplicationId(?string $externalApplicationId): static
+    public function setExternalApplicationId(?string $externalApplicationId): static
     {
         return $this->set('externalApplicationId', $externalApplicationId);
     }
@@ -141,7 +141,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function externalOrderId(?string $externalOrderId): static
+    public function setExternalOrderId(?string $externalOrderId): static
     {
         return $this->set('externalOrderId', $externalOrderId);
     }
@@ -151,7 +151,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function packs(?bool $packs): static
+    public function setPacks(?bool $packs): static
     {
         return $this->set('packs', $packs);
     }
@@ -161,7 +161,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function items(?bool $items): static
+    public function setItems(?bool $items): static
     {
         return $this->set('items', $items);
     }
@@ -171,7 +171,7 @@ class GetOrdersMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function files(?bool $files): static
+    public function setFiles(?bool $files): static
     {
         return $this->set('files', $files);
     }

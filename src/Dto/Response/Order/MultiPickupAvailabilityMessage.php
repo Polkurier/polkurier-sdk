@@ -33,15 +33,9 @@ final readonly class MultiPickupAvailabilityMessage implements MessageInterface,
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
         public bool $available = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

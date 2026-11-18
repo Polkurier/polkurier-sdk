@@ -27,7 +27,7 @@ use Polkurier\Webservice\Exception\WebserviceException;
 /**
  * Carriers, pickups, pickup points and supported countries.
  *
- * Start with availableCarriers(). The order methods expect the carrier codes it returns.
+ * Start with getAvailableCarriers(). The order methods expect the carrier codes it returns.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:
@@ -98,7 +98,7 @@ interface CourierServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function availableCarriers(
+    public function getAvailableCarriers(
         ?AvailableCarriersMessage $availableCarriersMessage = null
     ): array;
 
@@ -347,6 +347,7 @@ interface CourierServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getSupportedCountries(): array;

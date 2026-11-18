@@ -29,15 +29,9 @@ final readonly class Province implements MessageInterface
      * @param string $name
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
     ) {}

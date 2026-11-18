@@ -36,32 +36,20 @@ abstract readonly class PickupQueryMessage implements MessageInterface
      * @param ShipmentTypeEnum|null $parcel
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
         public string $courier,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_SHIP_FROM)]
         #[Validate\NotBlank]
         #[Validate\Postcode]
         public string $shipFrom,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIP_TO)]
-        #[Validate\Postcode]
         #[OmitWhenEmpty]
+        #[Validate\Postcode]
         public ?string $shipTo = null,
 
-        /**
-         * @var ShipmentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_PARCEL)]
         #[OmitWhenEmpty]
         public ?ShipmentTypeEnum $parcel = null,

@@ -13,8 +13,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of payout requests.
  *
- * This envelope includes `totalpages`, unlike the invoice and prepaid listings.
- *
  * @api
  */
 final readonly class MoneyBoxPayoutListMessage extends PagedListMessage
@@ -23,7 +21,6 @@ final readonly class MoneyBoxPayoutListMessage extends PagedListMessage
      * JSON parameter keys
      */
     public const string FIELD_TOTAL_PAGES = 'totalpages';
-    public const string FIELD_RESULT = 'result';
     /**-@#*/
 
     /**

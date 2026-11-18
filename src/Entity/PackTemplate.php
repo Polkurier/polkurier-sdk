@@ -13,7 +13,6 @@ use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
@@ -63,9 +62,6 @@ class PackTemplate extends Pack implements ParsedResponseInterface
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[Validate\NotBlank]
         private string $name,
@@ -75,45 +71,27 @@ class PackTemplate extends Pack implements ParsedResponseInterface
         int $height,
         float $weight,
 
-        /**
-         * @var ShipmentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
         #[Validate\NotBlank]
         private ?ShipmentTypeEnum $shipmentType = ShipmentTypeEnum::Box,
 
         ?PackTypeEnum $type = PackTypeEnum::Standard,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         private ?string $id = null,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_COD)]
         #[Validate\NonNegative]
         private float $cod = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_INSURANCE)]
         #[Validate\NonNegative]
         private float $insurance = 0.0,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         private string $description = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
         private ?string $courier = null,
@@ -124,9 +102,6 @@ class PackTemplate extends Pack implements ParsedResponseInterface
         #[Serializer\SerializedName(self::FIELD_SERVICES)]
         #[Validate\Each(Validate\OfType::class, AdditionalServiceEnum::class)]
         private array $services = [],
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {

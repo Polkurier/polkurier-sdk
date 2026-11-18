@@ -22,7 +22,6 @@ final readonly class OrderListMessage extends PagedListMessage
      * JSON parameter keys
      */
     public const string FIELD_TOTAL_PAGES = 'totalpages';
-    public const string FIELD_RESULT = 'result';
     /**-@#*/
 
     /**

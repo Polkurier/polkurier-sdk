@@ -23,7 +23,7 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function category(string $category): static
+    public function setCategory(string $category): static
     {
         return $this->set('category', $category);
     }
@@ -33,7 +33,7 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function formId(string $formId): static
+    public function setFormId(string $formId): static
     {
         return $this->set('formId', $formId);
     }
@@ -43,7 +43,7 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function nonce(string $nonce): static
+    public function setNonce(string $nonce): static
     {
         return $this->set('nonce', $nonce);
     }
@@ -54,7 +54,7 @@ class SaveContactFormMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function fields(array $fields): static
+    public function setFields(array $fields): static
     {
         return $this->set('fields', $fields);
     }

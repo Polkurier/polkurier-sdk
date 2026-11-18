@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\System;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
@@ -46,23 +45,14 @@ final readonly class ValidateCouponMessage implements MessageInterface
      * @param PackItem[] $packs
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUPON_CODE)]
         #[Validate\NotBlank]
         public string $couponCode,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
         public ?string $courier = null,
 
-        /**
-         * @var ShipmentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
         #[OmitWhenEmpty]
         public ?ShipmentTypeEnum $shipmentType = null,

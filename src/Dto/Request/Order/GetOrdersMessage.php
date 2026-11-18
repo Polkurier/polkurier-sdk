@@ -74,60 +74,36 @@ final readonly class GetOrdersMessage extends PagedMessage
      * @param bool|null $files include each order's attached files
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[OmitWhenEmpty]
         public ?string $orderNo = null,
 
-        /**
-         * @var OrderStatusCodeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         #[OmitWhenEmpty]
         public ?OrderStatusCodeEnum $status = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
         public ?string $courier = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_COD_MIN)]
         #[OmitWhenEmpty]
         public ?float $codMin = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_COD_MAX)]
         #[OmitWhenEmpty]
         public ?float $codMax = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
         public ?\DateTimeInterface $dateFrom = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
         public ?\DateTimeInterface $dateTo = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SEARCH_PHRASE)]
         #[OmitWhenEmpty]
         public ?string $searchPhrase = null,
@@ -136,37 +112,22 @@ final readonly class GetOrdersMessage extends PagedMessage
 
         ?int $page = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]
         public ?string $externalApplicationId = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_ID)]
         #[OmitWhenEmpty]
         public ?string $externalOrderId = null,
 
-        /**
-         * @var bool|null
-         */
         #[Serializer\SerializedName(self::FIELD_PACKS)]
         #[OmitWhenEmpty]
         public ?bool $packs = null,
 
-        /**
-         * @var bool|null
-         */
         #[Serializer\SerializedName(self::FIELD_ITEMS)]
         #[OmitWhenEmpty]
         public ?bool $items = null,
 
-        /**
-         * @var bool|null
-         */
         #[Serializer\SerializedName(self::FIELD_FILES)]
         #[OmitWhenEmpty]
         public ?bool $files = null,

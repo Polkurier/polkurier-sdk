@@ -9,10 +9,15 @@ namespace Polkurier\Webservice\Dto\Response\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentStatusEnum;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutRequestTypeEnum;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutStatusEnum;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A payout request and its progress.
@@ -21,7 +26,9 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  * anything withheld as compensation against debts.
  *
  * Check the cancellable flag before offering a cancel action. It turns false once any part of the
- * payout is on its way or paid, and once its fee is paid other than on an invoice.
+ * payout is on its way or paid, and once its fee is paid other than on an invoice. Cancelling
+ * removes the payout, so a cancelled one is absent from the list rather than listed as cancelled,
+ * and the call succeeding is what says it worked.
  *
  * @api
  */
@@ -59,8 +66,8 @@ final readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedRe
     /**
      * @param string $number payout reference, used when cancelling
      * @param \DateTimeInterface|null $date when the payout was requested
-     * @param string $requestType whether it was requested manually or automatically
-     * @param string $payoutType how it is being delivered
+     * @param MoneyBoxPayoutRequestTypeEnum|null $requestType what asked for the payout
+     * @param MoneyBoxPayoutTypeEnum|null $payoutType how it is being delivered
      * @param string|null $bankAccountNumber empty or null for a postal payout
      * @param string $company
      * @param string $person
@@ -70,9 +77,9 @@ final readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedRe
      * @param float $fee gross handling fee in PLN
      * @param float $feeNet net handling fee in PLN
      * @param float $feeVatRate
-     * @param string $feePaymentType how the fee is being settled
-     * @param string $feePaymentStatus whether the fee has been paid
-     * @param string $status PENDING while part of the amount is still to be paid out, PAID once none is
+     * @param MoneyBoxFeePaymentTypeEnum|null $feePaymentType how the fee is being settled
+     * @param MoneyBoxFeePaymentStatusEnum|null $feePaymentStatus how far the handling fee has got
+     * @param MoneyBoxPayoutStatusEnum|null $status worked out from what is left to pay, not stored
      * @param float $amount total requested, in PLN
      * @param float $toPayAmount still to be paid out
      * @param float $paidAmount already paid out
@@ -82,148 +89,94 @@ final readonly class MoneyBoxPayoutMessage implements MessageInterface, ParsedRe
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         public string $number = '',
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $date = null,
 
         /**
-         * @var string
+         * @var MoneyBoxPayoutRequestTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_REQUEST_TYPE)]
-        public string $requestType = '',
+        public ?MoneyBoxPayoutRequestTypeEnum $requestType = null,
 
         /**
-         * @var string
+         * @var MoneyBoxPayoutTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
-        public string $payoutType = '',
+        public ?MoneyBoxPayoutTypeEnum $payoutType = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
         #[PersonalData]
         public ?string $bankAccountNumber = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[PersonalData]
         public string $company = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[PersonalData]
         public string $person = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[PersonalData]
         public string $street = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
         #[PersonalData]
         public string $postcode = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[PersonalData]
         public string $city = '',
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE)]
         public float $fee = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_NET)]
         public float $feeNet = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_VAT_RATE)]
         public float $feeVatRate = 0.0,
 
         /**
-         * @var string
+         * @var MoneyBoxFeePaymentTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT_TYPE)]
-        public string $feePaymentType = '',
+        public ?MoneyBoxFeePaymentTypeEnum $feePaymentType = null,
 
         /**
-         * @var string
+         * @var MoneyBoxFeePaymentStatusEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT_STATUS)]
-        public string $feePaymentStatus = '',
+        public ?MoneyBoxFeePaymentStatusEnum $feePaymentStatus = null,
 
         /**
-         * @var string PENDING or PAID
+         * @var MoneyBoxPayoutStatusEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        public string $status = '',
+        public ?MoneyBoxPayoutStatusEnum $status = null,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
         public float $amount = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_TO_PAY_AMOUNT)]
         public float $toPayAmount = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_PAID_AMOUNT)]
         public float $paidAmount = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_COMPENSATION_AMOUNT)]
         public float $compensationAmount = 0.0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_ITEMS_COUNT)]
         public int $itemsCount = 0,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_CANCELLABLE)]
         public bool $cancellable = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

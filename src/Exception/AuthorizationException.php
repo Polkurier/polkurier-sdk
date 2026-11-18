@@ -44,7 +44,7 @@ class AuthorizationException extends WebserviceException
      */
     public static function isAuthorizationErrorStatus(int $status): bool
     {
-        return ApiErrorCodeEnum::fromStatusCode($status)?->rejectsCredentials() === true;
+        return ApiErrorCodeEnum::findByStatusCode($status)?->rejectsCredentials() === true;
     }
 
     /**

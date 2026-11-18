@@ -15,8 +15,6 @@ use Polkurier\Webservice\Validator\RuleFailure;
  * A whole number within bounds.
  *
  * Mostly used for paging, to keep a page size within the documented maximum.
- *
- * Null passes. Use {@see \Polkurier\Webservice\Validator\Rule\NotBlank} to make the field required.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class IntegerRange implements ValueValidatorInterface
@@ -26,14 +24,8 @@ class IntegerRange implements ValueValidatorInterface
      * @param int $max
      */
     public function __construct(
-        /**
-         * @var int
-         */
         public readonly int $min,
 
-        /**
-         * @var int
-         */
         public readonly int $max,
     ) {}
 

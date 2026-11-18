@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-readonly class AuthorizationMessage extends TokenMessage
+final readonly class AuthorizationMessage extends TokenMessage
 {
     /**+@#
      * JSON parameter keys
@@ -36,20 +36,9 @@ readonly class AuthorizationMessage extends TokenMessage
     public function __construct(
         string $token,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_LOGIN)]
-        private string $login,
+        public string $login,
     ) {
         parent::__construct($token);
-    }
-
-    /**
-     * @return string
-     */
-    public function getLogin(): string
-    {
-        return $this->login;
     }
 }

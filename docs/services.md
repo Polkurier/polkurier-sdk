@@ -32,9 +32,9 @@ Reading a method signature
 Method signatures follow three patterns:
 
 ```php
-availableCarriers(?AvailableCarriersMessage $message = null): array   // all filters optional
-createOrder(CreateOrderMessage $message): CreatedOrderMessage         // payload required
-getBankAccounts(): array                                             // no parameters at all
+getAvailableCarriers(?AvailableCarriersMessage $message = null): array   // all filters optional
+createOrder(CreateOrderMessage $message): CreatedOrderMessage            // payload required
+getBankAccounts(): array                                                 // no parameters at all
 ```
 
 A method that returns a [`CreatedOrderMessage`](../src/Dto/Response/Order/CreatedOrderMessage.php) either returns one or throws. It never returns null
@@ -51,7 +51,7 @@ An order from start to finish
 -----------------------------
 
 ```
-courier()->availableCarriers()        which carriers, and what each one supports
+courier()->getAvailableCarriers()     which carriers, and what each one supports
         │
 orders()->orderValuation()            the price, before committing to it
         │
@@ -72,19 +72,19 @@ Choosing a carrier
 
 | Method | What it does |
 |--------|--------------|
-| [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Lists the carriers this account may ship with |
+| [`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Lists the carriers this account may ship with |
 | [`SystemServiceInterface::getCouriersMessages()`](../src/Api/Service/SystemServiceInterface.php) | Current carrier notices: delays, suspensions and general information |
 | [`CourierServiceInterface::getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | Every country the service supports, with its regions |
 | [`CourierServiceInterface::getCountries()`](../src/Api/Service/CourierServiceInterface.php) | The countries one international carrier delivers to |
 
-[`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) lists the carriers. A [`Carrier`](../src/Dto/Response/Carrier.php)'s `serviceCode` is what
+[`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) lists the carriers. A [`Carrier`](../src/Dto/Response/Carrier.php)'s `serviceCode` is what
 [`Order::setCourier()`](../src/Entity/Order.php) takes. With `additionalData: true`, the response also lists what each
 carrier supports: shipment types, cash on delivery and insurance, whether it needs a pickup date,
 which additional services it offers, and which pickup points it uses. The SDK doesn't check an order
 against this data.
 
 ```php
-$carriers = $client->courier()->availableCarriers(
+$carriers = $client->courier()->getAvailableCarriers(
     new AvailableCarriersMessage(additionalData: true),
 );
 ```
@@ -219,13 +219,14 @@ files, and an unknown number is an error.
 It is the lighter call, suited to tracking. [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) suits reconciliation.
 To hear about changes without asking, see [Webhooks](webhooks.md).
 
-Both include a status code. [`Order::getStatusCode()`](../src/Entity/Order.php) returns a plain string, and
-[`Enum\Order\OrderStatusCodeEnum`](../src/Enum/Order/OrderStatusCodeEnum.php) holds the known values:
+Both include a status code. [`Order::getStatusCode()`](../src/Entity/Order.php) returns an
+[`Enum\Order\OrderStatusCodeEnum`](../src/Enum/Order/OrderStatusCodeEnum.php) case, or null for a value the SDK
+doesn't know:
 
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 
-if ($order->getStatusCode() === OrderStatusCodeEnum::Delivered->value) { … }
+if ($order->getStatusCode() === OrderStatusCodeEnum::Delivered) { … }
 ```
 
 Labels and other documents
@@ -386,7 +387,7 @@ Invoices, payments and payouts
 | [`PaymentsServiceInterface::registerPayment()`](../src/Api/Service/PaymentsServiceInterface.php) | Registers an online payment and returns the token needed to complete it |
 | [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/PaymentsServiceInterface.php) | The current state of a registered payment |
 | [`PaymentsServiceInterface::getPrepaidHistory()`](../src/Api/Service/PaymentsServiceInterface.php) | Movements on the prepaid balance, one page at a time |
-| [`MoneyBoxServiceInterface::getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | The account's payout settings |
+| [`MoneyBoxServiceInterface::getMoneyBoxConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | The account's payout settings |
 | [`MoneyBoxServiceInterface::calculatePayoutFee()`](../src/Api/Service/MoneyBoxServiceInterface.php) | What a payout would cost, without requesting one |
 | [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | Requests a payout of collected cash on delivery |
 | [`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | Cancels a payout while it is still cancellable |
@@ -406,7 +407,7 @@ payments; [`PaymentsServiceInterface::getPaymentInfo()`](../src/Api/Service/Paym
 Cash collected on delivery is held on the account until it is paid out:
 
 ```
-moneyBox()->getConfig()             the payout settings
+moneyBox()->getMoneyBoxConfig()     the payout settings
         │
 moneyBox()->calculatePayoutFee()    what it would cost, nothing requested yet
         │
@@ -431,20 +432,20 @@ Two-factor confirmation
 
 | Method | What it does |
 |--------|--------------|
-| [`TwoFactorTokenServiceInterface::twoFactorTokenRegister()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Starts a confirmation and sends a code to the customer |
-| [`TwoFactorTokenServiceInterface::twoFactorTokenResend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Sends the code again on the same channel |
-| [`TwoFactorTokenServiceInterface::twoFactorTokenVerify()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Checks the code the customer entered |
-| [`TwoFactorTokenServiceInterface::twoFactorTokenChangeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Switches a pending confirmation to another channel |
+| [`TwoFactorTokenServiceInterface::register()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Starts a confirmation and sends a code to the customer |
+| [`TwoFactorTokenServiceInterface::resend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Sends the code again on the same channel |
+| [`TwoFactorTokenServiceInterface::verify()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Checks the code the customer entered |
+| [`TwoFactorTokenServiceInterface::changeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | Switches a pending confirmation to another channel |
 
 ```
-twoFactorTokenRegister(operation)        a code goes to the customer
+register(operation)                      a code goes to the customer
         │
         ├── the code didn't arrive?
-        │     ├── twoFactorTokenResend()                     again, on the same channel
-        │     └── twoFactorTokenChangeTransportMethod()      on another channel
+        │     ├── resend()                                   again, on the same channel
+        │     └── changeTransportMethod()                    on another channel
         │
 the customer enters the code
-        ├── twoFactorTokenVerify(token, code)                only checks it
+        ├── verify(token, code)                              only checks it
         └── the operation itself, with token and code        e.g. moneyBox()->createPayout()
 ```
 

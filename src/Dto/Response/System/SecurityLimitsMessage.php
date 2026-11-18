@@ -33,30 +33,18 @@ final readonly class SecurityLimitsMessage implements MessageInterface
      * @param int $userPinMaxLength longest allowed security PIN
      * @param int $twoFactorCodeLength exact length of a two-factor code
      * @param int $twoFactorResendThrottle seconds that must pass before a code may be resent.
-     *                                     Asking sooner is refused with TWO_FACTOR_ALREADY_SENT
+     *        Asking sooner is refused with TWO_FACTOR_ALREADY_SENT
      */
     public function __construct(
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_USER_PIN_MIN_LENGTH)]
         public int $userPinMinLength = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_USER_PIN_MAX_LENGTH)]
         public int $userPinMaxLength = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE_LENGTH)]
         public int $twoFactorCodeLength = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_RESEND_THROTTLE)]
         public int $twoFactorResendThrottle = 0,
     ) {}

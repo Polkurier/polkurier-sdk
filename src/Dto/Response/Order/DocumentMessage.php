@@ -36,16 +36,11 @@ final readonly class DocumentMessage implements MessageInterface, ParsedResponse
     public function __construct(
         /**
          * The document's bytes, decoded from the base64 the API sends.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
         #[Base64]
         public string $file = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

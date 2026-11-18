@@ -43,16 +43,10 @@ final readonly class GetTicketsMessage extends PagedMessage
      * @param int|null $page 1-based page index
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         public ?string $id = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SEARCH_QUERY)]
         #[OmitWhenEmpty]
         public ?string $searchQuery = null,

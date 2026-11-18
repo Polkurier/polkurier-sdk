@@ -20,7 +20,7 @@ final class MoneyBoxTest extends IntegrationTestCase
 {
     public function testTheConfigReads(): void
     {
-        $this->assertReads(fn() => $this->sdk->moneyBox()->getConfig());
+        $this->assertReads(fn() => $this->sdk->moneyBox()->getMoneyBoxConfig());
     }
 
     public function testThePayoutFeeIsQuoted(): void

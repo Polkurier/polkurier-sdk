@@ -45,38 +45,23 @@ class BankAccount implements MessageInterface, ParsedResponseInterface
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[Validate\NotBlank]
         private string $name,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         #[Validate\Iban(foreign: false)]
         #[PersonalData]
         private string $number,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[OmitWhenEmpty]
         private ?string $id = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DEFAULT)]
         private bool $default = false,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

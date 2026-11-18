@@ -65,23 +65,11 @@ class ValidatorRegistry implements ValidatorInterface
     {
         $violations = new ViolationPool();
 
-        foreach ($this->validatorsFor($data) as $validator) {
+        foreach ($this->readValidators($data) as $validator) {
             try {
                 $validator->validate($data);
             } catch (ValidationException $e) {
-                // Keep the code each violation was recorded with. Rebuilding them from the
-                // English report would reduce every one of them to the fallback.
-                foreach ($e->getViolations() as $violation) {
-                    $violations->take($violation);
-                }
-                if ($e->getViolations() !== []) {
-                    continue;
-                }
-                foreach ($e->getValidationErrors() as $field => $messages) {
-                    foreach ($messages as $singleMessage) {
-                        $violations->add($field, $singleMessage);
-                    }
-                }
+                $violations->takeFrom($e);
             }
         }
 
@@ -93,7 +81,7 @@ class ValidatorRegistry implements ValidatorInterface
      *
      * @return ValidatorInterface[]
      */
-    protected function validatorsFor(MessageInterface $data): array
+    protected function readValidators(MessageInterface $data): array
     {
         $applicable = [];
 

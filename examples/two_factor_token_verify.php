@@ -22,7 +22,7 @@ $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 $code = arguments()[1] ?? '000000';
 
 try {
-    $validity = polkurier()->twoFactorToken()->twoFactorTokenVerify(
+    $validity = polkurier()->twoFactorToken()->verify(
         new VerifyMessage(token: $token, code: $code)
     );
 

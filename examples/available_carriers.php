@@ -20,7 +20,7 @@ require __DIR__ . '/bootstrap.php';
 
 try {
     $carriers = polkurier()->courier()
-        ->availableCarriers(new AvailableCarriersMessage(additionalData: true));
+        ->getAvailableCarriers(new AvailableCarriersMessage(additionalData: true));
 
     foreach ($carriers as $carrier) {
         \printf(

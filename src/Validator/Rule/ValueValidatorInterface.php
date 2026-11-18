@@ -15,6 +15,10 @@ namespace Polkurier\Webservice\Validator\Rule;
  * was required. So the same postcode rule works for a sender, a recipient, a payer address and a
  * city lookup.
  *
+ * A value that was never filled in passes every rule: null, and the empty string where the rule
+ * reads text. {@see NotBlank} is what makes a field required, so rejecting the unfilled value here
+ * would make every optional field of that kind mandatory. A rule that departs from this says so.
+ *
  * It returns what it found, as {@see \Polkurier\Webservice\Validator\RuleFailure}, and the
  * caller decides which field that belongs to.
  * {@see \Polkurier\Webservice\Validator\ViolationPool::check()} handles the usual case.

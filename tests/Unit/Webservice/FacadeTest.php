@@ -129,12 +129,12 @@ final class FacadeTest extends TestCase
         $sdk->courier()->findCourierPoints($message);
 
         self::assertStringContainsString('Pozna\u0144', $written);
-        $request = $this->client->lastRequest();
+        $request = $this->client->getLastRequest();
         self::assertInstanceOf(RequestInterface::class, $request);
         self::assertStringContainsString($written, (string)$request->getBody());
         self::assertSame(
             \json_decode($written, true),
-            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null,
         );
     }
 
@@ -184,7 +184,7 @@ final class FacadeTest extends TestCase
                     // The stub payload is not this endpoint's shape; the request still went out.
                 }
 
-                $apiMethod = $this->client->lastPayload()[RequestMessage::FIELD_API_METHOD] ?? null;
+                $apiMethod = $this->client->readLastPayload()[RequestMessage::FIELD_API_METHOD] ?? null;
                 self::assertIsString(
                     $apiMethod,
                     \sprintf('%s()->%s() sent no apimethod', $accessor, $method->getName())

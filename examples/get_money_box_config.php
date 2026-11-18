@@ -18,7 +18,7 @@ use Polkurier\Webservice\Exception\Exception;
 require __DIR__ . '/bootstrap.php';
 
 try {
-    $config = polkurier()->moneyBox()->getConfig();
+    $config = polkurier()->moneyBox()->getMoneyBoxConfig();
 
     \printf("Payout type: %s\n", $config->payoutType->value ?? 'unknown');
     \printf("Fee paid as: %s\n", $config->feePayment->value ?? 'unknown');

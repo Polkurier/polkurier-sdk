@@ -23,13 +23,13 @@ final class CourierTest extends IntegrationTestCase
 {
     public function testCarriersRead(): void
     {
-        self::assertNotEmpty($this->sdk->courier()->availableCarriers());
+        self::assertNotEmpty($this->sdk->courier()->getAvailableCarriers());
     }
 
     public function testCarriersReadWithTheirAdditionalData(): void
     {
         self::assertNotEmpty(
-            $this->sdk->courier()->availableCarriers(new AvailableCarriersMessage(additionalData: true)),
+            $this->sdk->courier()->getAvailableCarriers(new AvailableCarriersMessage(additionalData: true)),
         );
     }
 

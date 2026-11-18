@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Builder\Request\System;
 
 use Polkurier\Webservice\Builder\AbstractBuilder;
 use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
@@ -30,7 +29,7 @@ class ValidateCouponMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function couponCode(string $couponCode): static
+    public function setCouponCode(string $couponCode): static
     {
         return $this->set('couponCode', $couponCode);
     }
@@ -40,7 +39,7 @@ class ValidateCouponMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courier(?string $courier): static
+    public function setCourier(?string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -50,7 +49,7 @@ class ValidateCouponMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function shipmentType(?ShipmentTypeEnum $shipmentType): static
+    public function setShipmentType(?ShipmentTypeEnum $shipmentType): static
     {
         return $this->set('shipmentType', $shipmentType);
     }
@@ -60,7 +59,7 @@ class ValidateCouponMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function packs(array $packs): static
+    public function setPacks(array $packs): static
     {
         return $this->set('packs', $packs);
     }

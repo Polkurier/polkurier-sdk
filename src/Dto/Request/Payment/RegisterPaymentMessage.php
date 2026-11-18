@@ -57,34 +57,28 @@ final readonly class RegisterPaymentMessage implements MessageInterface
      * @param string[] $orderNumbers numbers of the orders to pay for, for {@see PaymentModeEnum::Orders}
      */
     public function __construct(
-        /**
-         * @var PaymentModeEnum
-         */
         #[Serializer\SerializedName(self::FIELD_MODE)]
         public PaymentModeEnum $mode,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_AMOUNT)]
-        #[Validate\NonNegative]
         #[OmitWhenEmpty]
+        #[Validate\NonNegative]
         public ?float $amount = null,
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_INVOICES)]
-        #[Validate\Each(Validate\NotBlank::class)]
         #[OmitWhenEmpty]
+        #[Validate\Each(Validate\NotBlank::class)]
         public array $invoiceNumbers = [],
 
         /**
          * @var string[]
          */
         #[Serializer\SerializedName(self::FIELD_ORDERS)]
-        #[Validate\Each(Validate\OrderNumber::class)]
         #[OmitWhenEmpty]
+        #[Validate\Each(Validate\OrderNumber::class)]
         public array $orderNumbers = [],
     ) {}
 }

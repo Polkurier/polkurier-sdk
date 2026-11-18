@@ -27,9 +27,6 @@ final readonly class CityMessage implements MessageInterface
      * @param string $name
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
     ) {}

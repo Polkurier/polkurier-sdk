@@ -36,7 +36,7 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
 
     /**
      * @param float $verificationTransferAmountPln amount, in PLN, of the token transfer used to
-     *                                           verify a bank account
+     *        verify a bank account
      * @param int $regulationsAcceptancePeriod days a customer has to accept revised terms before
      *        {@see \Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage::$regulationsAccepted}
      *        turns false
@@ -47,15 +47,9 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_TRANSFER_AMOUNT_PLN)]
         public float $verificationTransferAmountPln = 0.0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ACCEPTANCE_PERIOD)]
         public int $regulationsAcceptancePeriod = 0,
 
@@ -85,9 +79,6 @@ final readonly class SystemInfoMessage implements MessageInterface, ParsedRespon
         #[Serializer\SerializedName(self::FIELD_FEATURES)]
         public array $features = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

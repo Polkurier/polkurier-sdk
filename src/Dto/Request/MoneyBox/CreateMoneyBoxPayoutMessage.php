@@ -20,8 +20,8 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * Requests a payout from the money box balance.
  *
- * Moves money and is not idempotent. After a timeout, check {@see
- * \Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface::getPayouts()} before retrying.
+ * Moves money and is not idempotent. After a timeout, check
+ * {@see \Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface::getPayouts()} before retrying.
  *
  * The payout type, ACCOUNT by default, decides the destination: a saved bank account's number, or a
  * postal address. Nothing is filled in from `get_money_box_config`.
@@ -34,7 +34,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, TwoFactorFieldsInterface
 {
-
     /**+@#
      * JSON parameter keys
      */
@@ -77,96 +76,60 @@ final readonly class CreateMoneyBoxPayoutMessage implements MessageInterface, Tw
         #[Validate\Each(Validate\OrderNumber::class)]
         public array $orders = [],
 
-        /**
-         * @var MoneyBoxPayoutTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_TYPE)]
         #[OmitWhenEmpty]
         public ?MoneyBoxPayoutTypeEnum $payoutType = null,
 
-        /**
-         * @var MoneyBoxFeePaymentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_PAYMENT_TYPE)]
         #[OmitWhenEmpty]
         public ?MoneyBoxFeePaymentTypeEnum $feePaymentType = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_BANK_ACCOUNT_NUMBER)]
-        #[Validate\Iban]
         #[OmitWhenEmpty]
+        #[Validate\Iban]
         #[PersonalData]
         public ?string $bankAccountNumber = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COMPANY)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public ?string $company = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PERSON)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public ?string $person = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public ?string $street = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_POSTCODE)]
-        #[Validate\Postcode]
         #[OmitWhenEmpty]
+        #[Validate\Postcode]
         #[PersonalData]
         public ?string $postcode = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public ?string $city = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SECURITY_PIN)]
         #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $securityPin = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $twoFactorToken = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_FORM_ID)]
         #[OmitWhenEmpty]
         public ?string $twoFactorFormId = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
         #[Sensitive]

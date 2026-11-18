@@ -34,15 +34,9 @@ final readonly class CreateOrderMessage implements MessageInterface
      * @param string|null $couponCode
      */
     public function __construct(
-        /**
-         * @var Order
-         */
         #[InlineFields]
         public Order $order,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COUPON_CODE)]
         #[OmitWhenEmpty]
         public ?string $couponCode = null,

@@ -29,7 +29,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function orders(array $orders): static
+    public function setOrders(array $orders): static
     {
         return $this->set('orders', $orders);
     }
@@ -39,7 +39,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function payoutType(?MoneyBoxPayoutTypeEnum $payoutType): static
+    public function setPayoutType(?MoneyBoxPayoutTypeEnum $payoutType): static
     {
         return $this->set('payoutType', $payoutType);
     }
@@ -49,7 +49,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function feePaymentType(?MoneyBoxFeePaymentTypeEnum $feePaymentType): static
+    public function setFeePaymentType(?MoneyBoxFeePaymentTypeEnum $feePaymentType): static
     {
         return $this->set('feePaymentType', $feePaymentType);
     }
@@ -59,7 +59,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function bankAccountNumber(?string $bankAccountNumber): static
+    public function setBankAccountNumber(?string $bankAccountNumber): static
     {
         return $this->set('bankAccountNumber', $bankAccountNumber);
     }
@@ -69,7 +69,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function company(?string $company): static
+    public function setCompany(?string $company): static
     {
         return $this->set('company', $company);
     }
@@ -79,7 +79,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function person(?string $person): static
+    public function setPerson(?string $person): static
     {
         return $this->set('person', $person);
     }
@@ -89,7 +89,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function street(?string $street): static
+    public function setStreet(?string $street): static
     {
         return $this->set('street', $street);
     }
@@ -99,7 +99,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function postcode(?string $postcode): static
+    public function setPostcode(?string $postcode): static
     {
         return $this->set('postcode', $postcode);
     }
@@ -109,7 +109,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function city(?string $city): static
+    public function setCity(?string $city): static
     {
         return $this->set('city', $city);
     }
@@ -119,7 +119,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function securityPin(?string $securityPin): static
+    public function setSecurityPin(?string $securityPin): static
     {
         return $this->set('securityPin', $securityPin);
     }
@@ -129,7 +129,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function twoFactorToken(?string $twoFactorToken): static
+    public function setTwoFactorToken(?string $twoFactorToken): static
     {
         return $this->set('twoFactorToken', $twoFactorToken);
     }
@@ -139,7 +139,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function twoFactorFormId(?string $twoFactorFormId): static
+    public function setTwoFactorFormId(?string $twoFactorFormId): static
     {
         return $this->set('twoFactorFormId', $twoFactorFormId);
     }
@@ -149,7 +149,7 @@ class CreateMoneyBoxPayoutMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function twoFactorCode(?string $twoFactorCode): static
+    public function setTwoFactorCode(?string $twoFactorCode): static
     {
         return $this->set('twoFactorCode', $twoFactorCode);
     }

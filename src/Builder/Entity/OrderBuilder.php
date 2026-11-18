@@ -32,7 +32,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courier(string $courier): static
+    public function setCourier(string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -42,7 +42,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function shipmentType(ShipmentTypeEnum $shipmentType): static
+    public function setShipmentType(ShipmentTypeEnum $shipmentType): static
     {
         return $this->set('shipmentType', $shipmentType);
     }
@@ -52,7 +52,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function packs(array $packs): static
+    public function setPacks(array $packs): static
     {
         return $this->set('packs', $packs);
     }
@@ -62,7 +62,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function sender(Address $sender): static
+    public function setSender(Address $sender): static
     {
         return $this->set('sender', $sender);
     }
@@ -72,7 +72,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function recipient(Address $recipient): static
+    public function setRecipient(Address $recipient): static
     {
         return $this->set('recipient', $recipient);
     }
@@ -82,7 +82,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function cod(?Cod $cod): static
+    public function setCod(?Cod $cod): static
     {
         return $this->set('cod', $cod);
     }
@@ -92,7 +92,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function insurance(?float $insurance): static
+    public function setInsurance(?float $insurance): static
     {
         return $this->set('insurance', $insurance);
     }
@@ -102,7 +102,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function coverAddress(?Address $coverAddress): static
+    public function setCoverAddress(?Address $coverAddress): static
     {
         return $this->set('coverAddress', $coverAddress);
     }
@@ -112,7 +112,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickup(?Pickup $pickup): static
+    public function setPickup(?Pickup $pickup): static
     {
         return $this->set('pickup', $pickup);
     }
@@ -122,7 +122,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courierService(array $courierService): static
+    public function setCourierService(array $courierService): static
     {
         return $this->set('courierService', $courierService);
     }
@@ -132,7 +132,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function additionalFields(array $additionalFields): static
+    public function setAdditionalFields(array $additionalFields): static
     {
         return $this->set('additionalFields', $additionalFields);
     }
@@ -142,7 +142,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function description(?string $description): static
+    public function setDescription(?string $description): static
     {
         return $this->set('description', $description);
     }
@@ -155,7 +155,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function externalApplicationId(?string $externalApplicationId): static
+    public function setExternalApplicationId(?string $externalApplicationId): static
     {
         return $this->set('externalApplicationId', $externalApplicationId);
     }
@@ -167,7 +167,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function externalOrderId(?string $externalOrderId): static
+    public function setExternalOrderId(?string $externalOrderId): static
     {
         return $this->set('externalOrderId', $externalOrderId);
     }
@@ -179,7 +179,7 @@ class OrderBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function externalOrderNumber(?string $externalOrderNumber): static
+    public function setExternalOrderNumber(?string $externalOrderNumber): static
     {
         return $this->set('externalOrderNumber', $externalOrderNumber);
     }

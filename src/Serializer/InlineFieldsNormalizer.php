@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -78,6 +80,7 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -91,7 +94,7 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
         }
 
         $inlined = [];
-        foreach (\array_keys(static::inlinedMembersOf($data::class)) as $field) {
+        foreach (\array_keys(static::readInlinedMembers($data::class)) as $field) {
             $entries = $normalized[$field] ?? [];
             unset($normalized[$field]);
             if (\is_array($entries)) {
@@ -121,6 +124,9 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return mixed
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
@@ -168,7 +174,7 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
      */
     protected static function nestInlined(array $data, string $type): array
     {
-        $inlined = static::inlinedMembersOf($type);
+        $inlined = static::readInlinedMembers($type);
         if ($inlined === []) {
             return $data;
         }
@@ -180,7 +186,7 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
                 continue;
             }
             $unclaimed = \array_diff(\array_keys($data), $enclosing);
-            $taken = $class === null ? $unclaimed : \array_intersect($unclaimed, static::writtenNamesOf($class));
+            $taken = $class === null ? $unclaimed : \array_intersect($unclaimed, static::readWrittenNames($class));
             if ($taken === []) {
                 continue;
             }
@@ -206,13 +212,13 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
      *
      * @return string[]
      */
-    protected static function writtenNamesOf(string $class): array
+    protected static function readWrittenNames(string $class): array
     {
         if (isset(static::$written[$class])) {
             return static::$written[$class];
         }
 
-        $inlined = static::inlinedMembersOf($class);
+        $inlined = static::readInlinedMembers($class);
         if ($inlined === []) {
             return static::$written[$class] = WireNameReader::readNames($class);
         }
@@ -225,7 +231,7 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
 
         foreach ($inlined as $nested) {
             if ($nested !== null) {
-                $names = [...$names, ...static::writtenNamesOf($nested)];
+                $names = [...$names, ...static::readWrittenNames($nested)];
             }
         }
 
@@ -239,14 +245,14 @@ class InlineFieldsNormalizer implements NormalizerInterface, DenormalizerInterfa
      *
      * @return array<string, class-string|null>
      */
-    protected static function inlinedMembersOf(string $type): array
+    protected static function readInlinedMembers(string $type): array
     {
         if (isset(static::$inlined[$type])) {
             return static::$inlined[$type];
         }
 
         $members = [];
-        foreach (ClassMembers::readMarkedWith($type, InlineFields::class) as $member) {
+        foreach (ClassMemberReader::readMarkedWith($type, InlineFields::class) as $member) {
             $wire = WireNameReader::read($member);
             // The most derived declaration comes first and is the one that holds the value.
             if (\array_key_exists($wire, $members)) {

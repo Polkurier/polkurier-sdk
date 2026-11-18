@@ -9,7 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Serializer\SentFieldsNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Attribute\SerializedName;
@@ -112,6 +114,27 @@ final class SentFieldsTest extends TestCase
 
         self::assertArrayHasKey('flatnumber', $sent);
         self::assertSame('9', $sent['flatnumber']);
+    }
+
+    /**
+     * An order writes its services as a computed flag map under `courierservice`, the same key the
+     * response-only names property reads them back under. A response-only field is taken out of
+     * the payload by its wire name, so the two sharing one name would take the map with them and
+     * an order would quietly go out with no services on it.
+     *
+     * @return void
+     */
+    public function testAnOrderSendsTheServicesItWasGiven(): void
+    {
+        $payload = self::payloadOf(new Order(
+            courier: 'INPOST',
+            courierService: [AdditionalServiceEnum::CoverSenderAddress],
+        ));
+
+        self::assertSame(
+            [AdditionalServiceEnum::CoverSenderAddress->value => true],
+            $payload[Order::FIELD_COURIER_SERVICE] ?? null,
+        );
     }
 
     /**

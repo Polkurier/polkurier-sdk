@@ -34,14 +34,13 @@ use Polkurier\Webservice\Validator\ViolationPool;
 class RegisterPaymentMessageValidator extends AbstractMessageValidator
 {
     /**
-     * @param MessageInterface $data
+     * @param RegisterPaymentMessage $data
      * @param ViolationPool $violations
      *
      * @return void
      */
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
-        /** @var RegisterPaymentMessage $data */
         if ($data->mode !== PaymentModeEnum::Prepaid) {
             return;
         }

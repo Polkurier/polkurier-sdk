@@ -16,10 +16,15 @@ use Polkurier\Webservice\Dto\Response\Contact\ContactFormResultDataMessage;
 use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
 use Polkurier\Webservice\Dto\Response\Order\DocumentMessage;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\Base64;
+use Polkurier\Webservice\Serializer\Attribute\Base64DataUrl;
+use Polkurier\Webservice\Serializer\Attribute\NamedValues;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Serializer\ResponseDriftCollector;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Serializer\WireFormatDenormalizer;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Symfony\Component\Serializer\Attribute\SerializedName;
 
@@ -34,6 +39,31 @@ final class WireFormatTest extends TestCase
     protected function setUp(): void
     {
         $this->drift = new ResponseDriftCollector();
+    }
+
+    /**
+     * The three formats say how the API answers, and writing passes through undecoded, so a field
+     * the SDK sends must not declare one: it would go out as the property holds it.
+     *
+     * @return void
+     */
+    public function testNothingTheSdkSendsDeclaresAWireFormat(): void
+    {
+        $declared = [];
+        foreach (MessageClasses::requests() as $class) {
+            foreach ((new \ReflectionClass($class))->getProperties() as $property) {
+                if ($property->getAttributes(ResponseOnly::class) !== []) {
+                    continue;
+                }
+                foreach ([Base64::class, Base64DataUrl::class, NamedValues::class] as $format) {
+                    if ($property->getAttributes($format) !== []) {
+                        $declared[] = $class . '::$' . $property->getName() . ' declares ' . $format;
+                    }
+                }
+            }
+        }
+
+        self::assertSame([], $declared);
     }
 
     public function testValuesKeyedByNameReadAsPairsWithCompoundValuesAsJson(): void
@@ -66,7 +96,7 @@ final class WireFormatTest extends TestCase
 
         self::assertInstanceOf(DocumentMessage::class, $document);
         self::assertSame("%PDF-1.4\n", $document->file);
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
     }
 
     public function testAFileThatIsNoBase64ReadsAsEmptyAndIsReported(): void
@@ -75,9 +105,9 @@ final class WireFormatTest extends TestCase
 
         self::assertInstanceOf(DocumentMessage::class, $document);
         self::assertSame('', $document->file);
-        self::assertCount(1, $this->drift->all());
-        self::assertSame(ResponseDriftTypeEnum::CastValue, $this->drift->all()[0]->type);
-        self::assertSame('file', $this->drift->all()[0]->path);
+        self::assertCount(1, $this->drift->getDrift());
+        self::assertSame(ResponseDriftTypeEnum::CastValue, $this->drift->getDrift()[0]->type);
+        self::assertSame('file', $this->drift->getDrift()[0]->path);
     }
 
     public function testAContactFormDocumentReadsFromItsDataUrl(): void
@@ -94,7 +124,7 @@ final class WireFormatTest extends TestCase
         self::assertNull($none->file);
         self::assertInstanceOf(ContactFormResultDataMessage::class, $plain);
         self::assertSame('', $plain->file);
-        self::assertCount(1, $this->drift->all());
+        self::assertCount(1, $this->drift->getDrift());
     }
 
     /**
@@ -117,7 +147,29 @@ final class WireFormatTest extends TestCase
 
         self::assertInstanceOf($class, $read);
         self::assertSame("%PDF-1.4\n", $read->file);
-        self::assertSame([], $this->drift->all());
+        self::assertSame([], $this->drift->getDrift());
+    }
+
+    /**
+     * The formats exclude each other: read as plain base64, a `data:` URL yields its prefix as
+     * bytes. A property declaring two says which one the API sends no better than none.
+     *
+     * @return void
+     */
+    public function testAPropertyDeclaringTwoFormatsIsRefusedAtTheFirstRead(): void
+    {
+        $class = (new class('') {
+            public function __construct(
+                #[Base64]
+                #[Base64DataUrl]
+                public string $file,
+            ) {}
+        })::class;
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($class . '::$file');
+
+        $this->read($class, ['file' => 'data:application/pdf;base64,aGVsbG8K']);
     }
 
     /**

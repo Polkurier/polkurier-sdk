@@ -48,21 +48,12 @@ final readonly class InvoiceDocumentMessage implements MessageInterface, ParsedR
         #[Base64]
         public string $file = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         public string $filename = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FILETYPE)]
         public string $filetype = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

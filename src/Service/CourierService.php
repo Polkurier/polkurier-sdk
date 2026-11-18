@@ -42,7 +42,7 @@ class CourierService extends AbstractService implements CourierServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function availableCarriers(
+    public function getAvailableCarriers(
         ?AvailableCarriersMessage $availableCarriersMessage = null
     ): array {
         return $this->requestList(
@@ -115,6 +115,7 @@ class CourierService extends AbstractService implements CourierServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getSupportedCountries(): array

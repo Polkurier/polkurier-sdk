@@ -32,9 +32,6 @@ final readonly class AcceptRegulationsMessage implements MessageInterface
      * @param string $regulationsId UUID of the terms version being accepted
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_REGULATIONS_ID)]
         #[Validate\NotBlank]
         public string $regulationsId,

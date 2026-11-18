@@ -9,9 +9,10 @@ namespace Polkurier\Webservice\Dto\Response\Account;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\Account\AccountVerificationStatusEnum;
+use Polkurier\Webservice\Enum\Account\AccountVerificationTypeEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -38,43 +39,31 @@ final readonly class AccountVerificationMessage implements MessageInterface, Par
 
     /**
      * @param string $verificationId
-     * @param string $type how the account is being verified: "online" (an online payment) or
-     *        "bank_transfer"
-     * @param string $status where the attempt has got to: NEW, PAYMENT_PLACED, PAYMENT_RECEIVED,
-     *        INCONCLUSIVE, VERIFIED or CANCELLED
+     * @param AccountVerificationTypeEnum|null $type how the account is being verified
+     * @param AccountVerificationStatusEnum|null $status where the attempt has got to
      * @param string|null $accessToken returned only when registering, null when reading back
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_VERIFICATION_ID)]
         public string $verificationId = '',
 
         /**
-         * @var string
+         * @var AccountVerificationTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        public string $type = '',
+        public ?AccountVerificationTypeEnum $type = null,
 
         /**
-         * @var string
+         * @var AccountVerificationStatusEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
-        public string $status = '',
+        public ?AccountVerificationStatusEnum $status = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
-        #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $accessToken = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

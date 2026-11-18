@@ -83,33 +83,33 @@ final class RecordingClient implements ClientInterface, ClientFactoryInterface
      *
      * @return RequestInterface|null
      */
-    public function lastRequest(): ?RequestInterface
+    public function getLastRequest(): ?RequestInterface
     {
         return $this->requests[\count($this->requests) - 1] ?? null;
     }
 
     /**
-     * The decoded request body of the most recent call.
+     * The decoded request body of the most recent call. Empty before the first call, and for a
+     * body that is not a JSON object or array.
      *
-     * @return array<string, mixed>
+     * @return array<array-key, mixed>
      */
-    public function lastPayload(): array
+    public function readLastPayload(): array
     {
-        $request = $this->lastRequest();
+        $request = $this->getLastRequest();
         if ($request === null) {
             return [];
         }
-        /** @var array<string, mixed> $decoded */
-        $decoded = \json_decode((string)$request->getBody(), true) ?? [];
+        $decoded = \json_decode((string)$request->getBody(), true);
 
-        return $decoded;
+        return \is_array($decoded) ? $decoded : [];
     }
 
     /**
      * @return int
      * @phpstan-impure
      */
-    public function requestCount(): int
+    public function countRequests(): int
     {
         return \count($this->requests);
     }

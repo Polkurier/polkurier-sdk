@@ -190,7 +190,9 @@ use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 
@@ -254,7 +256,9 @@ final class PlaceShipment implements ShouldQueue
     public int $tries = 3;
     public array $backoff = [10, 60, 300];
 
-    public function __construct(private readonly Order $order) {}
+    public function __construct(
+        private readonly Order $order,
+    ) {}
 
     public function handle(OrdersServiceInterface $orders, ShipmentMapper $mapper): void
     {
@@ -332,7 +336,9 @@ Bind [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) to a
 
 ```php
 $provider = static fn($app) => new class($app) implements ConfigProviderInterface {
-    public function __construct(private readonly \Illuminate\Contracts\Foundation\Application $app) {}
+    public function __construct(
+        private readonly \Illuminate\Contracts\Foundation\Application $app,
+    ) {}
 
     public function getConfig(): ConfigInterface
     {

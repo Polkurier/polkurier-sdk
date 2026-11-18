@@ -24,7 +24,7 @@ class PickupMessageBuilder extends PickupQueryMessageBuilder
      *
      * @return static
      */
-    public function pickupDate(?\DateTimeInterface $pickupDate): static
+    public function setPickupDate(?\DateTimeInterface $pickupDate): static
     {
         return $this->set('pickupDate', $pickupDate);
     }

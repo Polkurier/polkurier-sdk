@@ -23,7 +23,7 @@ class MultiPickupRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupDate(\DateTimeInterface $pickupDate): static
+    public function setPickupDate(\DateTimeInterface $pickupDate): static
     {
         return $this->set('pickupDate', $pickupDate);
     }
@@ -33,7 +33,7 @@ class MultiPickupRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupTimeFrom(\DateTimeInterface $pickupTimeFrom): static
+    public function setPickupTimeFrom(\DateTimeInterface $pickupTimeFrom): static
     {
         return $this->set('pickupTimeFrom', $pickupTimeFrom);
     }
@@ -43,7 +43,7 @@ class MultiPickupRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function pickupTimeTo(\DateTimeInterface $pickupTimeTo): static
+    public function setPickupTimeTo(\DateTimeInterface $pickupTimeTo): static
     {
         return $this->set('pickupTimeTo', $pickupTimeTo);
     }
@@ -53,7 +53,7 @@ class MultiPickupRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function orders(array $orders): static
+    public function setOrders(array $orders): static
     {
         return $this->set('orders', $orders);
     }

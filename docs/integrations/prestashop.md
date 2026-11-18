@@ -265,7 +265,9 @@ use Polkurier\Webservice\Exception\WebserviceException;
 
 final class ShipmentDispatcher
 {
-    public function __construct(private readonly OrderMapper $mapper) {}
+    public function __construct(
+        private readonly OrderMapper $mapper,
+    ) {}
 
     /** @return array{0: bool, 1: string} success, and what to show the merchant */
     public function dispatch(Order $order): array
@@ -327,16 +329,16 @@ $address = new Address((int)$order->id_address_delivery);
 $customer = new Customer((int)$order->id_customer);
 
 $recipient = AddressBuilder::create()
-    ->person(trim($address->firstname . ' ' . $address->lastname))
-    ->street($address->address1)
-    ->houseNumber($address->address2 ?: '1')
-    ->city($address->city)
-    ->postcode($address->postcode)
-    ->phone($address->phone_mobile ?: $address->phone)
-    ->email($customer->email);
+    ->setPerson(trim($address->firstname . ' ' . $address->lastname))
+    ->setStreet($address->address1)
+    ->setHouseNumber($address->address2 ?: '1')
+    ->setCity($address->city)
+    ->setPostcode($address->postcode)
+    ->setPhone($address->phone_mobile ?: $address->phone)
+    ->setEmail($customer->email);
 
 if ($address->company) {
-    $recipient->company($address->company);
+    $recipient->setCompany($address->company);
 }
 ```
 
@@ -371,7 +373,7 @@ Pickup point selection
   an autocomplete field.
 
 Either way, the selected point ID is stored against the cart and set on the order address with
-[`AddressBuilder::pointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
+[`AddressBuilder::setPointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
 
 Without a search query, [`CourierServiceInterface::findCourierPoints()`](../../src/Api/Service/CourierServiceInterface.php) returns every point of a carrier,
 tens of thousands for InPost, so such a list is cached instead of fetched on every page load.

@@ -37,13 +37,13 @@ final class ConfigProviderTest extends TestCase
 
         $sdk->addresses()->getAddresses();
         self::assertSame('11111', self::login($client));
-        self::assertStringStartsWith('shop-a/', $client->lastRequest()?->getHeaderLine('User-Agent') ?? '');
+        self::assertStringStartsWith('shop-a/', $client->getLastRequest()?->getHeaderLine('User-Agent') ?? '');
 
         $provider->current = self::config('22222', 'shop-b');
 
         $sdk->addresses()->getAddresses();
         self::assertSame('22222', self::login($client));
-        self::assertStringStartsWith('shop-b/', $client->lastRequest()?->getHeaderLine('User-Agent') ?? '');
+        self::assertStringStartsWith('shop-b/', $client->getLastRequest()?->getHeaderLine('User-Agent') ?? '');
     }
 
     public function testPayloadValidationFollowsTheCurrentConfiguration(): void
@@ -62,7 +62,7 @@ final class ConfigProviderTest extends TestCase
         } catch (WebserviceException) {
             // Whatever the stub answers, the request went out.
         }
-        self::assertSame(1, $client->requestCount());
+        self::assertSame(1, $client->countRequests());
 
         $provider->current = self::config('11111', 'shop-a');
 
@@ -73,7 +73,7 @@ final class ConfigProviderTest extends TestCase
             $rejected = true;
         }
         self::assertTrue($rejected, 'Validation should have rejected the page size.');
-        self::assertSame(1, $client->requestCount(), 'Nothing should have been sent.');
+        self::assertSame(1, $client->countRequests(), 'Nothing should have been sent.');
     }
 
     private static function config(string $login, string $platform, bool $validatePayloads = true): ConfigInterface
@@ -88,7 +88,7 @@ final class ConfigProviderTest extends TestCase
 
     private static function login(RecordingClient $client): mixed
     {
-        $authorization = $client->lastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
+        $authorization = $client->readLastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
 
         return \is_array($authorization) ? ($authorization['login'] ?? null) : null;
     }

@@ -73,7 +73,7 @@ use Psr\Log\NullLogger;
  *     platformVersion: '1.0.0',
  * ));
  *
- * $carriers = $client->courier()->availableCarriers();   // Carrier[]
+ * $carriers = $client->courier()->getAvailableCarriers();   // Carrier[]
  * ```
  *
  * It wires up a serializer, request and response factories, an HTTP client factory, a validator
@@ -353,7 +353,6 @@ final class PolkurierWebservice
      */
     public function orderReader(): OrderReaderInterface
     {
-        /** @var OrderReaderInterface */
         return $this->services[OrderReader::class] ??= new OrderReader($this->serializerConfig);
     }
 
@@ -426,7 +425,6 @@ final class PolkurierWebservice
      */
     public function service(string $class): object
     {
-        /** @var T */
         return $this->services[$class] ??= new $class(
             $this->requestFactory,
             $this->responseFactory,

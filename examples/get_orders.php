@@ -34,7 +34,7 @@ try {
             \printf(
                 "%-16s %-12s %-28s %8.2f PLN\n",
                 $order->getNumber(),
-                $order->getStatusCode(),
+                $order->getStatusCode()->value ?? '',
                 $order->getCourierName() ?? $order->getCourier(),
                 $order->getPriceGross()
             );

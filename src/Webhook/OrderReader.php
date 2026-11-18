@@ -64,7 +64,12 @@ readonly class OrderReader implements OrderReaderInterface
         }
         unset($fields[OrderEventMessage::FIELD_HASH]);
 
-        return \hash_equals(\hash_hmac('sha256', \http_build_query($fields), $secret), \strtolower(\trim($hash)));
+        // The separator is given rather than left to `arg_separator.output`, which an installation
+        // can set to something else and which would then make every genuine event look forged.
+        return \hash_equals(
+            \hash_hmac('sha256', \http_build_query($fields, '', '&'), $secret),
+            \strtolower(\trim($hash)),
+        );
     }
 
     /**
@@ -122,7 +127,7 @@ readonly class OrderReader implements OrderReaderInterface
             throw new InvalidArgumentException('The body is not a Polkurier order event.');
         }
 
-        return new ReadEvent($message, $drift->all());
+        return new ReadEvent($message, $drift->getDrift());
     }
 
     /**
@@ -157,7 +162,7 @@ readonly class OrderReader implements OrderReaderInterface
                 $path = [\substr($name, 0, $open), ...$matches[1]];
             }
 
-            $fields = self::place($fields, $path, $value);
+            $fields = self::placeValue($fields, $path, $value);
         }
 
         return $fields;
@@ -170,7 +175,7 @@ readonly class OrderReader implements OrderReaderInterface
      *
      * @return array<array-key, mixed>
      */
-    private static function place(array $fields, array $path, string $value): array
+    private static function placeValue(array $fields, array $path, string $value): array
     {
         $key = \array_shift($path);
 
@@ -185,13 +190,13 @@ readonly class OrderReader implements OrderReaderInterface
         }
 
         if ($key === '') {
-            $fields[] = self::place([], $path, $value);
+            $fields[] = self::placeValue([], $path, $value);
 
             return $fields;
         }
 
         $inner = $fields[$key] ?? [];
-        $fields[$key] = self::place(\is_array($inner) ? $inner : [], $path, $value);
+        $fields[$key] = self::placeValue(\is_array($inner) ? $inner : [], $path, $value);
 
         return $fields;
     }

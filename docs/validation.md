@@ -27,7 +27,7 @@ top-up. All of these can be read from `available_carriers`, `get_account_info` a
 code can check them before sending:
 
 ```php
-$carriers = $client->courier()->availableCarriers(new AvailableCarriersMessage(additionalData: true));
+$carriers = $client->courier()->getAvailableCarriers(new AvailableCarriersMessage(additionalData: true));
 $limits   = $client->system()->getSystemInfo();
 $account  = $client->account()->getAccountInfo();
 ```
@@ -119,12 +119,11 @@ final readonly class GetOrdersMessage extends PagedMessage
 A property rule sits next to the field: [`Address::$phone`](../src/Entity/Address.php) carries `#[Validate\NotBlank]` and
 `#[Validate\PhoneNumber]`.
 
-[`AttributeValidator`](../src/Validator/AttributeValidator.php) reads six kinds of declaration:
+[`AttributeValidator`](../src/Validator/AttributeValidator.php) reads five kinds of declaration:
 
 | Declaration | Where | What it does |
 |-------------|-------|--------------|
 | A [`ValueValidatorInterface`](../src/Validator/Rule/ValueValidatorInterface.php) | property | Checks that one value's format |
-| `#[Valid]` | property | Descend into a nested object, or into each object in a list |
 | [`#[Each(RuleClass::class)]`](../src/Validator/Rule/Each.php) | property | Apply one rule to every entry of a list of plain values |
 | A [`MessageRuleInterface`](../src/Validator/Rule/MessageRuleInterface.php) | class | A rule about how two fields relate |
 | [`#[IgnoredWhen(...)]`](../src/Validator/Rule/IgnoredWhen.php) | class | Skip every rule, because the block does not apply |
@@ -136,8 +135,8 @@ message that extends it.
 A class rule can also name a field of a record the message inlines with
 [`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php), because those fields are sent at the message's own level:
 [`SavePhoneNumberMessage`](../src/Dto/Request/Account/SavePhoneNumberMessage.php) requires `twoFactorCode` when the [`PhoneNumber`](../src/Entity/PhoneNumber.php) it carries is
-the account's default. An inlined record marked `#[Valid]` is checked at the enclosing level too,
-so its own fields are reported under their plain wire names rather than under a prefix.
+the account's default. An inlined record is checked at the enclosing level too, so its own fields
+are reported under their plain wire names rather than under a prefix.
 
 ### Cross-field rules
 
@@ -182,11 +181,15 @@ registry only the check digits are verified, so an account the bank accepts isn'
 because the registry is behind. With `foreign: false` it accepts only accounts of its `country`; the
 cash-on-delivery account uses that, because the API takes only Polish accounts there.
 
-### Structural rules (on a property)
+### Nested values
 
-`#[Valid]` descends into a value. An object is checked in place, every entry of a list is checked,
-and reported fields include the path. It's a marker with no rules of its own. It isn't applied by
-default, since most nested values are never sent anywhere.
+Nothing declares that a nested value is checked. Every field the SDK sends is descended into, so an
+object is checked in place, every object in a list is checked, and the reported field includes the
+path. A field marked [`#[ResponseOnly]`](../src/Serializer/Attribute/ResponseOnly.php) is not: it holds what was read rather than what is
+about to be written, so a fault in it could not be fixed by changing the payload. Enums and dates
+are values rather than records and are left to the field's own rules.
+
+### Structural rules (on a property)
 
 [`#[Each(OrderNumber::class)]`](../src/Validator/Rule/Each.php) applies one rule to every entry of a list of *plain values* and
 reports errors against the index:
@@ -247,7 +250,7 @@ Changing the rules
 Three things here are part of the public contract and a release keeps them: `validatePayloads`,
 [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) with its one method, and [`ValidatorRegistry`](../src/Validator/ValidatorRegistry.php) with
 [`DefaultValidatorRegistryFactory`](../src/Validator/DefaultValidatorRegistryFactory.php). The machinery the SDK writes its own rules with —
-[`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`MessageFields`](../src/Validator/MessageFields.php), [`ViolationPool`](../src/Validator/ViolationPool.php) and the
+[`AbstractMessageValidator`](../src/Validator/AbstractMessageValidator.php), [`MessageFieldReader`](../src/Validator/MessageFieldReader.php), [`ViolationPool`](../src/Validator/ViolationPool.php) and the
 `Validate\*` attributes — is not, and a release may change any of it, see
 [Architecture: what a release can change](architecture.md#what-a-release-can-change). Extending it
 is supported in the sense that it works and is documented here; it ties your code to the SDK's
@@ -283,7 +286,7 @@ that implements [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.
 ```php
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /** @extends AbstractMessageValidator<Order> */
@@ -291,10 +294,10 @@ final class MyOrderPolicy extends AbstractMessageValidator
 {
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
-        $fields = new MessageFields($data);
+        $fields = new MessageFieldReader($data);
 
         if ($data->getDescription() === null) {
-            $violations->add($fields->field('description'), 'is required by our own policy');
+            $violations->add($fields->readField('description'), 'is required by our own policy');
         }
     }
 }
@@ -302,7 +305,7 @@ final class MyOrderPolicy extends AbstractMessageValidator
 
 [`ViolationPool`](../src/Validator/ViolationPool.php) has [`ViolationPool::add()`](../src/Validator/ViolationPool.php), [`ViolationPool::check()`](../src/Validator/ViolationPool.php) (run value validators against a value), [`ViolationPool::checkWhen()`](../src/Validator/ViolationPool.php) (run
 them only if a condition holds) and [`ViolationPool::mergeUnder()`](../src/Validator/ViolationPool.php) (add a nested report under a prefix).
-[`MessageFields::field()`](../src/Validator/MessageFields.php) gives the wire name, so field names match the SDK's.
+[`MessageFieldReader::readField()`](../src/Validator/MessageFieldReader.php) gives the wire name, so field names match the SDK's.
 
 ### 3. Attach a rule to your own message
 

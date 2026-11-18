@@ -31,8 +31,6 @@ class PhoneNumber implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Empty values pass. {@see \Polkurier\Webservice\Validator\Rule\NotBlank} handles required
-        // fields. Rejecting them here would make every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }

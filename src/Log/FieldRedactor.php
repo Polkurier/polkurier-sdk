@@ -43,7 +43,7 @@ abstract class FieldRedactor
      *
      * @return string
      */
-    public function body(MessageInterface $message, array $classes, ?string $whenNoneApply = null): string
+    public function redactBody(MessageInterface $message, array $classes, ?string $whenNoneApply = null): string
     {
         return $this->redactJson((string)$message->getBody(), $classes, $whenNoneApply);
     }
@@ -59,10 +59,12 @@ abstract class FieldRedactor
      *
      * @return T
      */
-    public function message(MessageInterface $message, array $classes, ?string $whenNoneApply = null): MessageInterface
-    {
-        /** @var T */
-        return $message->withBody(Utils::streamFor($this->body($message, $classes, $whenNoneApply)));
+    public function redactMessage(
+        MessageInterface $message,
+        array $classes,
+        ?string $whenNoneApply = null,
+    ): MessageInterface {
+        return $message->withBody(Utils::streamFor($this->redactBody($message, $classes, $whenNoneApply)));
     }
 
     /**
@@ -89,6 +91,8 @@ abstract class FieldRedactor
      *        of the payload and of the credentials are known to the caller that sent or asked for
      *        them, not to the envelope. A key named here is walked as that class, every other key
      *        with no class, which hides nothing below it
+     * @param class-string|null $whenNoneApply the class the whole body holds when it carries none
+     *        of those keys
      *
      * @return array<array-key, mixed>
      */
@@ -106,9 +110,9 @@ abstract class FieldRedactor
 
         return $this->walk(
             $data,
-            FieldMarkReader::readMarksOf($whenNoneApply),
-            $classes + FieldMarkReader::readClassesOf($whenNoneApply),
-            FieldMarkReader::readMarksOfForeignKeysOf($whenNoneApply),
+            FieldMarkReader::readMarks($whenNoneApply),
+            $classes + FieldMarkReader::readClasses($whenNoneApply),
+            FieldMarkReader::readMarksOfForeignKeys($whenNoneApply),
         );
     }
 
@@ -136,14 +140,28 @@ abstract class FieldRedactor
      */
     protected function walk(array $data, array $marks, array $classes, array $foreign = []): array
     {
+        // A JSON list holds the same class repeated, so its entries are read as the list is. The
+        // list is recognised by the shape of the whole level, not by one key's type: `json_decode`
+        // turns the key of `{"17": …}` into an integer, and a level whose keys a class declares is
+        // an object however those keys are spelled.
+        $list = \array_is_list($data);
+
         foreach ($data as $key => $value) {
-            if (!\is_string($key)) {
-                // A JSON list holds the same class repeated, so its entries are read as the list is.
+            if ($list) {
                 $data[$key] = \is_array($value) ? $this->walk($value, $marks, $classes, $foreign) : $value;
-            } elseif ($this->hides($key, $marks[$key] ?? $foreign) && $value !== null && $value !== '' && $value !== []) {
+
+                continue;
+            }
+
+            // Marks are keyed by wire name, which is always a string, so a key JSON spelled as a
+            // number is matched as the string it was written as.
+            $name = (string)$key;
+            if ($this->hides($name, $marks[$name] ?? $foreign)
+                && $value !== null && $value !== '' && $value !== []
+            ) {
                 $data[$key] = self::MASK;
             } elseif (\is_array($value)) {
-                $data[$key] = $this->descend($value, $classes[$key] ?? null);
+                $data[$key] = $this->descend($value, $classes[$name] ?? null);
             }
         }
 
@@ -165,9 +183,9 @@ abstract class FieldRedactor
             ? $this->walk($data, [], [])
             : $this->walk(
                 $data,
-                FieldMarkReader::readMarksOf($class),
-                FieldMarkReader::readClassesOf($class),
-                FieldMarkReader::readMarksOfForeignKeysOf($class),
+                FieldMarkReader::readMarks($class),
+                FieldMarkReader::readClasses($class),
+                FieldMarkReader::readMarksOfForeignKeys($class),
             );
     }
 }

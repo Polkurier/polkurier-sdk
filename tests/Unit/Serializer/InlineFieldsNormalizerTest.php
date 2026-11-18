@@ -64,7 +64,7 @@ final class ClaimedNames extends InlineFieldsNormalizer
      */
     public static function of(string $class): array
     {
-        return \array_values(static::writtenNamesOf($class));
+        return \array_values(static::readWrittenNames($class));
     }
 }
 

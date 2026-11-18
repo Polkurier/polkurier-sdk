@@ -11,7 +11,6 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
 use Polkurier\Webservice\Serializer\Attribute\NamedValues;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -85,9 +84,6 @@ final readonly class ContactFormFieldMessage implements MessageInterface
      * @param ContactFormValueMessage[] $props display properties
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
@@ -95,7 +91,6 @@ final readonly class ContactFormFieldMessage implements MessageInterface
          * @var ContactFormFieldTypeEnum|null null when the SDK doesn't know the type
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        #[OmitWhenEmpty]
         public ?ContactFormFieldTypeEnum $type = null,
 
         /**
@@ -116,49 +111,25 @@ final readonly class ContactFormFieldMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_LABEL)]
         public string $label = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_LABEL_AFTER)]
         public string $labelAfter = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PLACEHOLDER)]
         public string $placeholder = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PATTERN)]
         public string $pattern = '',
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_LENGTH)]
-        #[OmitWhenEmpty]
         public ?int $maxLength = null,
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_FILE_SIZE)]
-        #[OmitWhenEmpty]
         public ?int $maxFileSize = null,
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_IMAGE_FILE_SIZE)]
-        #[OmitWhenEmpty]
         public ?int $maxImageFileSize = null,
 
         /**
@@ -191,40 +162,21 @@ final readonly class ContactFormFieldMessage implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_OPTIONS_SOURCE)]
         public string $optionsSource = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONDITION)]
         public string $condition = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DISABLED)]
         public string $disabled = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_GROUP)]
         public string $group = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_GROUP_PARENT)]
         public string $groupParent = '',
 
-        /**
-         * @var ContactFormSeverityEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_SEVERITY)]
-        #[OmitWhenEmpty]
         public ?ContactFormSeverityEnum $severity = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_HREF)]
         public string $href = '',
 

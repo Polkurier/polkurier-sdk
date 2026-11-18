@@ -12,7 +12,7 @@ namespace Polkurier\Webservice\Dto\Request\Common;
  * two-factor confirmation.
  *
  * Get the token from
- * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::twoFactorTokenRegister()}.
+ * {@see \Polkurier\Webservice\Api\Service\TwoFactorTokenServiceInterface::register()}.
  *
  * An interface rather than a trait, so the names have an owner that anything can read: PHP refuses
  * to read a trait's constant except through a class that uses it, which would make one of these

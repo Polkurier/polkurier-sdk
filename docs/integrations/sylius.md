@@ -43,7 +43,9 @@ use Sylius\Component\Core\Model\ShippingMethodInterface;
 
 final readonly class GatewayConfigFactory
 {
-    public function __construct(private string $platformVersion) {}
+    public function __construct(
+        private string $platformVersion,
+    ) {}
 
     public function forMethod(ShippingMethodInterface $method): ConfigInterface
     {
@@ -137,7 +139,9 @@ use Sylius\Component\Shipping\Model\ShipmentInterface;
 
 final readonly class CachedPolkurierCalculator implements CalculatorInterface
 {
-    public function __construct(private QuoteCache $quotes) {}
+    public function __construct(
+        private QuoteCache $quotes,
+    ) {}
 
     public function calculate(ShipmentInterface $subject, array $configuration): int
     {
@@ -191,7 +195,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ShipmentExporter
 {
-    public function __construct(private MessageBusInterface $bus) {}
+    public function __construct(
+        private MessageBusInterface $bus,
+    ) {}
 
     public function export(ShipmentInterface $shipment): void
     {
@@ -279,7 +285,9 @@ use Sylius\Component\Core\Model\ShipmentInterface;
 
 final readonly class ShipmentMapper
 {
-    public function __construct(private WarehouseAddressFactory $warehouse) {}
+    public function __construct(
+        private WarehouseAddressFactory $warehouse,
+    ) {}
 
     public function toMessage(ShipmentInterface $shipment): CreateOrderMessage
     {
@@ -287,25 +295,25 @@ final readonly class ShipmentMapper
         $address = $order->getShippingAddress();
 
         $recipient = AddressBuilder::create()
-            ->person(trim($address->getFirstName() . ' ' . $address->getLastName()))
-            ->street($address->getStreet())
-            ->houseNumber('1')     // Sylius has no separate house number; see below.
-            ->city($address->getCity())
-            ->postcode($address->getPostcode())
-            ->phone((string)$address->getPhoneNumber())
-            ->email((string)$order->getCustomer()?->getEmail());
+            ->setPerson(trim($address->getFirstName() . ' ' . $address->getLastName()))
+            ->setStreet($address->getStreet())
+            ->setHouseNumber('1')     // Sylius has no separate house number; see below.
+            ->setCity($address->getCity())
+            ->setPostcode($address->getPostcode())
+            ->setPhone((string)$address->getPhoneNumber())
+            ->setEmail((string)$order->getCustomer()?->getEmail());
 
         if ($address->getCompany()) {
-            $recipient->company($address->getCompany());
+            $recipient->setCompany($address->getCompany());
         }
 
         return new CreateOrderMessage(order: OrderBuilder::create()
-            ->courier($this->carrierCodeFor($shipment))
-            ->shipmentType(ShipmentTypeEnum::Box)
-            ->packs([$this->pack($shipment)])
-            ->sender($this->warehouse->forChannel($order->getChannel()))
-            ->recipient($recipient->build())
-            ->description($order->getNumber())
+            ->setCourier($this->carrierCodeFor($shipment))
+            ->setShipmentType(ShipmentTypeEnum::Box)
+            ->setPacks([$this->pack($shipment)])
+            ->setSender($this->warehouse->forChannel($order->getChannel()))
+            ->setRecipient($recipient->build())
+            ->setDescription($order->getNumber())
             ->build());
     }
 
@@ -318,9 +326,9 @@ final readonly class ShipmentMapper
         }
 
         return PackItemBuilder::create()
-            ->length(30)->width(20)->height(15)
-            ->weight(max($weight, 0.1))     // The API requires a positive weight.
-            ->type(PackTypeEnum::Standard)
+            ->setLength(30)->setWidth(20)->setHeight(15)
+            ->setWeight(max($weight, 0.1))     // The API requires a positive weight.
+            ->setType(PackTypeEnum::Standard)
             ->build();
     }
 }
@@ -352,7 +360,7 @@ $builder->add('pickupPoint', ChoiceType::class, [
 ```
 
 The selected ID is saved on the shipment (in a custom field or a small related entity), and the
-mapper passes it to [`AddressBuilder::pointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
+mapper passes it to [`AddressBuilder::setPointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
 
 See [Recipes: caching](../recipes.md#caching-what-does-not-change).
 

@@ -244,7 +244,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final readonly class TrackHandler implements RequestHandlerInterface
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -340,8 +342,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class PingCommand extends Command
 {
-    public function __construct(private readonly UtilsServiceInterface $utils)
-    {
+    public function __construct(
+        private readonly UtilsServiceInterface $utils,
+    ) {
         parent::__construct('polkurier:ping');
     }
 

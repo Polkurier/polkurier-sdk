@@ -124,7 +124,7 @@ final class SerializationTest extends TestCase
                     category: 'wspolpraca',
                     formId: 'f-1',
                     nonce: 'n-1',
-                    fields: ['files' => [TicketAttachmentMessage::fromContents('a.txt', "hello\n", 'text/plain')]],
+                    fields: ['files' => [TicketAttachmentMessage::makeFromContents('a.txt', "hello\n", 'text/plain')]],
                 ),
                 [
                     'category' => 'wspolpraca',
@@ -196,7 +196,7 @@ final class SerializationTest extends TestCase
                 new CreateTicketMessage(
                     topicId: '5',
                     content: 'Hi',
-                    files: [TicketAttachmentMessage::fromContents('notatka.txt', "hello\n", 'text/plain')],
+                    files: [TicketAttachmentMessage::makeFromContents('notatka.txt', "hello\n", 'text/plain')],
                 ),
                 [
                     'topic_id' => '5',

@@ -30,9 +30,6 @@ final readonly class GetInvoiceDocumentMessage implements MessageInterface
      * @param string $number the invoice or correction number
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         public string $number,

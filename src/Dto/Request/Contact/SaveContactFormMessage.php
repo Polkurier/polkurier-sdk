@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Request\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
+use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
@@ -43,23 +43,14 @@ final readonly class SaveContactFormMessage implements MessageInterface
      *        the answers, keyed by the form's field names; a files field takes a list of attachments
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CATEGORY)]
         #[Validate\NotBlank]
         public string $category,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FORM_ID)]
         #[Validate\NotBlank]
         public string $formId,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
         #[Validate\NotBlank]
         #[Sensitive]

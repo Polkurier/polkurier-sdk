@@ -28,9 +28,6 @@ final readonly class TicketIdMessage implements MessageInterface
      * @param string $ticketId the ticket UUID
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
         public string $ticketId,

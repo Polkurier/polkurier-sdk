@@ -27,7 +27,7 @@ try {
         new RegisterAccountVerificationMessage()
     );
 
-    \printf("Verification %s: %s\n", $verification->verificationId, $verification->status);
+    \printf("Verification %s: %s\n", $verification->verificationId, $verification->status->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

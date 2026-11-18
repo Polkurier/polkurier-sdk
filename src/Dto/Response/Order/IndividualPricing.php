@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * An individually negotiated quote and its acceptance state.
@@ -40,23 +41,23 @@ final readonly class IndividualPricing implements MessageInterface
          * @var \DateTimeInterface|null null if the offer hasn't been sent yet
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_SENT_DATE)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $offerSentDate,
 
         /**
          * @var \DateTimeInterface|null null if the response leaves it out
          */
         #[Serializer\SerializedName(self::FIELD_OFFER_VALID_DATE)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $offerValidDate = null,
 
         /**
          * @var \DateTimeInterface|null null until the customer confirms the offer
          */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_CONFIRMED_DATE)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $customerConfirmedDate = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CUSTOMER_REMARKS)]
         public string $customerRemarks = '',
     ) {}

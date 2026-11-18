@@ -27,7 +27,7 @@ class SaveBankAccountMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function bankAccount(BankAccount $bankAccount): static
+    public function setBankAccount(BankAccount $bankAccount): static
     {
         return $this->set('bankAccount', $bankAccount);
     }
@@ -37,7 +37,7 @@ class SaveBankAccountMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function twoFactorToken(?string $twoFactorToken): static
+    public function setTwoFactorToken(?string $twoFactorToken): static
     {
         return $this->set('twoFactorToken', $twoFactorToken);
     }
@@ -47,7 +47,7 @@ class SaveBankAccountMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function twoFactorCode(?string $twoFactorCode): static
+    public function setTwoFactorCode(?string $twoFactorCode): static
     {
         return $this->set('twoFactorCode', $twoFactorCode);
     }
@@ -57,7 +57,7 @@ class SaveBankAccountMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function accessPin(?string $accessPin): static
+    public function setAccessPin(?string $accessPin): static
     {
         return $this->set('accessPin', $accessPin);
     }

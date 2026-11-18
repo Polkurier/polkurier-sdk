@@ -57,14 +57,8 @@ class Iban implements ValueValidatorInterface
      * @param bool $foreign whether an account of another country passes
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $country = 'PL',
 
-        /**
-         * @var bool
-         */
         public readonly bool $foreign = true,
     ) {}
 
@@ -75,8 +69,6 @@ class Iban implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Empty values pass. {@see \Polkurier\Webservice\Validator\Rule\NotBlank} handles required
-        // fields. Rejecting them here would make every optional field of this kind mandatory.
         if ($value === null || $value === '') {
             return [];
         }
@@ -85,7 +77,7 @@ class Iban implements ValueValidatorInterface
             return [new RuleFailure(ValidationErrorCodeEnum::NotABankAccount, 'must be a bank account number')];
         }
 
-        $normalised = \strtoupper((string)\preg_replace('/[\s-]/', '', $value));
+        $normalised = \strtoupper(\preg_replace('/[\s-]/', '', $value) ?? '');
 
         // Spaces and hyphens are the separators an account number is written with, so a value made
         // only of them is not an empty field, which is {@see NotBlank}'s fault to report. The
@@ -115,7 +107,9 @@ class Iban implements ValueValidatorInterface
             return [
                 new RuleFailure(
                     ValidationErrorCodeEnum::BankAccountWrongCountry,
-                    \sprintf('must be a %s account', $accepted),
+                    // The country code stands where an article would have to agree with it, so
+                    // the sentence is worded without one.
+                    \sprintf('must be an account number from %s', $accepted),
                     ['country' => $accepted],
                 ),
             ];
@@ -150,7 +144,7 @@ class Iban implements ValueValidatorInterface
      */
     protected static function checksumHolds(string $iban): bool
     {
-        return static::mod97(static::toDigits(\substr($iban, 4) . \substr($iban, 0, 4))) === 1;
+        return static::computeMod97(static::convertToDigits(\substr($iban, 4) . \substr($iban, 0, 4))) === 1;
     }
 
     /**
@@ -160,7 +154,7 @@ class Iban implements ValueValidatorInterface
      *
      * @return string
      */
-    protected static function toDigits(string $value): string
+    protected static function convertToDigits(string $value): string
     {
         $digits = '';
 
@@ -180,7 +174,7 @@ class Iban implements ValueValidatorInterface
      *
      * @return int
      */
-    protected static function mod97(string $digits): int
+    protected static function computeMod97(string $digits): int
     {
         $remainder = 0;
 

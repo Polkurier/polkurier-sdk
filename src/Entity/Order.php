@@ -17,12 +17,14 @@ use Polkurier\Webservice\Entity\Order\Cod;
 use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Entity\Order\Pickup;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
+use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
 use Polkurier\Webservice\Validator\Message\OrderValidator;
 use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * An order: placed with {@see \Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage}, read
@@ -86,11 +88,6 @@ class Order implements MessageInterface
     public const string FIELD_ITEMS = 'items';
     public const string FIELD_PAID = 'is_paid';
     public const string FIELD_INVOICE = 'has_invoice';
-    /**
-     * Not a wire field: the API answers with the service names under `courierservice`, the key
-     * their codes are sent under, and the SDK reads them into {@see self::$courierServiceNames}.
-     */
-    public const string FIELD_COURIER_SERVICE_NAMES = 'courierservice_names';
     public const string FIELD_TRACKING_URI = 'url';
     public const string FIELD_DELIVERED_DATE = 'delivered_date';
     public const string FIELD_COURIER_NAME = 'courier_name';
@@ -123,8 +120,8 @@ class Order implements MessageInterface
      * @param Pickup|null $pickup when the courier is due to collect, null when no collection has
      *        been arranged
      * @param AdditionalServiceEnum[] $courierService services to order, sent as the flag map the
-     *        API expects. Not read back, see $courierServiceNames
-     * @param array<string, scalar>|null $additionalFields carrier-specific extra fields, keyed by
+     *        API expects. Not read back, see {@see self::getCourierServiceNames()}
+     * @param array<string, scalar> $additionalFields carrier-specific extra fields, keyed by
      *        field name
      * @param string|null $description what the parcels hold. Required by `create_order`, not for
      *        pricing
@@ -134,7 +131,7 @@ class Order implements MessageInterface
      * @param string|null $externalOrderNumber your own order number, e.g. the one the customer sees
      * @param string|null $number
      * @param string|null $status
-     * @param string|null $statusCode
+     * @param OrderStatusCodeEnum|null $statusCode
      * @param \DateTimeInterface|null $date
      * @param \DateTimeInterface|null $statusDate null without a waybill or before its first status
      * @param Waybill[] $waybills
@@ -161,17 +158,12 @@ class Order implements MessageInterface
      * @param File[]|null $files documents attached to the order, see above
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
         private string $courier,
 
-        /**
-         * @var ShipmentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
+        #[OmitWhenEmpty]
         #[Validate\NotBlank]
         private ?ShipmentTypeEnum $shipmentType = null,
 
@@ -183,45 +175,29 @@ class Order implements MessageInterface
         #[Validate\Each(Validate\OfType::class, PackItem::class)]
         private array $packs = [],
 
-        /**
-         * @var Address|null
-         */
         #[Serializer\SerializedName(self::FIELD_SENDER)]
+        #[OmitWhenEmpty]
         #[Validate\NotBlank]
         private ?Address $sender = null,
 
-        /**
-         * @var Address|null
-         */
         #[Serializer\SerializedName(self::FIELD_RECIPIENT)]
+        #[OmitWhenEmpty]
         #[Validate\NotBlank]
         private ?Address $recipient = null,
 
-        /**
-         * @var Cod|null
-         */
         #[Serializer\SerializedName(self::FIELD_CASH_ON_DELIVERY)]
         #[OmitWhenEmpty]
         private ?Cod $cod = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_INSURANCE)]
         #[OmitWhenEmpty]
         #[Validate\NonNegative]
         private ?float $insurance = null,
 
-        /**
-         * @var Address|null
-         */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS)]
         #[OmitWhenEmpty]
         private ?Address $coverAddress = null,
 
-        /**
-         * @var Pickup|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP)]
         #[OmitWhenEmpty]
         private ?Pickup $pickup = null,
@@ -237,73 +213,51 @@ class Order implements MessageInterface
         private array $courierService = [],
 
         /**
-         * @var array<string, scalar>|null
+         * @var array<string, scalar>
          */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_FIELDS)]
         #[OmitWhenEmpty]
-        private ?array $additionalFields = [],
+        private array $additionalFields = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         #[OmitWhenEmpty]
         private ?string $description = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_APPLICATION_ID)]
         #[OmitWhenEmpty]
         private ?string $externalApplicationId = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_ID)]
         #[OmitWhenEmpty]
         private ?string $externalOrderId = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_EXTERNAL_ORDER_NUMBER)]
         #[OmitWhenEmpty]
         private ?string $externalOrderNumber = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[ResponseOnly]
         private ?string $number = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         #[ResponseOnly]
         private ?string $status = null,
 
         /**
-         * @var string|null
+         * @var OrderStatusCodeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
         #[ResponseOnly]
-        private ?string $statusCode = null,
+        private ?OrderStatusCodeEnum $statusCode = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE)]
         #[ResponseOnly]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         private ?\DateTimeInterface $date = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS_DATE)]
         #[ResponseOnly]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         private ?\DateTimeInterface $statusDate = null,
 
         /**
@@ -313,23 +267,14 @@ class Order implements MessageInterface
         #[ResponseOnly]
         private array $waybills = [],
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_NET)]
         #[ResponseOnly]
         private ?float $priceNet = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
         #[ResponseOnly]
         private ?float $priceGross = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_UNPAID_AMOUNT)]
         #[ResponseOnly]
         private ?float $unpaidAmount = null,
@@ -341,16 +286,10 @@ class Order implements MessageInterface
         #[ResponseOnly]
         private array $items = [],
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_PAID)]
         #[ResponseOnly]
         private bool $paid = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_INVOICE)]
         #[ResponseOnly]
         private bool $invoice = false,
@@ -358,48 +297,31 @@ class Order implements MessageInterface
         /**
          * @var string[]|null
          */
-        #[Serializer\SerializedName(self::FIELD_COURIER_SERVICE_NAMES)]
+        #[Serializer\SerializedName(self::FIELD_COURIER_SERVICE)]
         #[ResponseOnly]
         private ?array $courierServiceNames = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TRACKING_URI)]
         #[ResponseOnly]
         private ?string $trackingUri = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DELIVERED_DATE)]
         #[ResponseOnly]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         private ?\DateTimeInterface $deliveredDate = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER_NAME)]
         #[ResponseOnly]
         private ?string $courierName = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_REBATE_NET)]
         #[ResponseOnly]
         private ?float $rebateNet = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_REBATE_GROSS)]
         #[ResponseOnly]
         private ?float $rebateGross = null,
 
-        /**
-         * @var float|null
-         */
         #[Serializer\SerializedName(self::FIELD_VAT_RATE)]
         #[ResponseOnly]
         private ?float $vatRate = null,
@@ -411,16 +333,10 @@ class Order implements MessageInterface
         #[ResponseOnly]
         private ?array $label = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_CODE)]
         #[ResponseOnly]
         private ?string $shipmentCode = null,
 
-        /**
-         * @var IndividualPricing|null
-         */
         #[Serializer\SerializedName(self::FIELD_INDIVIDUAL_PRICING)]
         #[ResponseOnly]
         private ?IndividualPricing $individualPricing = null,
@@ -633,6 +549,9 @@ class Order implements MessageInterface
     }
 
     /**
+     * Empty for an order read from the API, which answers with the service names instead, under
+     * {@see self::getCourierServiceNames()}. Sending such an order back orders no service.
+     *
      * @return AdditionalServiceEnum[]
      */
     public function getCourierService(): array
@@ -653,19 +572,19 @@ class Order implements MessageInterface
     }
 
     /**
-     * @return array<string, scalar>|null
+     * @return array<string, scalar>
      */
-    public function getAdditionalFields(): ?array
+    public function getAdditionalFields(): array
     {
         return $this->additionalFields;
     }
 
     /**
-     * @param array<string, scalar>|null $additionalFields
+     * @param array<string, scalar> $additionalFields
      *
      * @return static
      */
-    public function setAdditionalFields(?array $additionalFields): static
+    public function setAdditionalFields(array $additionalFields): static
     {
         $this->additionalFields = $additionalFields;
 
@@ -769,9 +688,9 @@ class Order implements MessageInterface
     }
 
     /**
-     * @return string|null
+     * @return OrderStatusCodeEnum|null null for a value the SDK doesn't know
      */
-    public function getStatusCode(): ?string
+    public function getStatusCode(): ?OrderStatusCodeEnum
     {
         return $this->statusCode;
     }

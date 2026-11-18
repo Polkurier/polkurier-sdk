@@ -13,19 +13,10 @@ use Symfony\Component\Serializer\Attribute as Serializer;
 /**
  * One page of support tickets.
  *
- * Paged like the invoice list, without a `totalpages` field. The page size must be 1–250 (the SDK
- * checks this before sending) and defaults to 100, a wider range than the order list allows.
- *
  * @api
  */
 final readonly class TicketListMessage extends PagedListMessage
 {
-    /**+@#
-     * JSON parameter keys
-     */
-    public const string FIELD_RESULT = 'result';
-    /**-@#*/
-
     /**
      * @param int $totalRows
      * @param int $currentPage

@@ -108,9 +108,6 @@ final readonly class ContactFormMessage implements MessageInterface, ParsedRespo
         #[Serializer\SerializedName(self::FIELD_HREF)]
         public string $href = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

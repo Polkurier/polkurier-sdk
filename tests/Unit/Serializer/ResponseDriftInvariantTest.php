@@ -53,7 +53,9 @@ final class ResponseDriftInvariantTest extends TestCase
 
     /**
      * Every response class, except the order event, which has a test of its own, and the envelopes,
-     * which the response factory reads before any payload.
+     * which the response factory reads before any payload. They are also the only three response
+     * classes with a required field of an object or enum type, which lenient reading records and
+     * then fails on, having no empty value of that type to put there.
      *
      * @return array<string, array{class-string}>
      */

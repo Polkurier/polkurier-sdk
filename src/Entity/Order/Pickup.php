@@ -55,50 +55,32 @@ class Pickup implements MessageInterface
      * @param \DateTimeInterface|null $pickupTimeFrom start of the window, time part only
      * @param \DateTimeInterface|null $pickupTimeTo end of the window, time part only
      * @param bool $noCourierOrder true when the sender will hand the parcel over themselves and no
-     *                             collection should be booked
+     *        collection should be booked
      * @param bool $multiPickup place the order for a collective pickup, booked later for several
      *        orders at once with createMultiOrderPickup(). $noCourierOrder wins when both are set
      * @param string|null $pickupNumber the carrier's reference for the booked collection
      */
     public function __construct(
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_DATE)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
         #[OmitWhenEmpty]
         private ?\DateTimeInterface $pickupDate = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_FROM)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
         #[OmitWhenEmpty]
         private ?\DateTimeInterface $pickupTimeFrom = null,
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_TIME_TO)]
         #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => 'H:i'])]
         #[OmitWhenEmpty]
         private ?\DateTimeInterface $pickupTimeTo = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_NO_COURIER_ORDER)]
         private bool $noCourierOrder = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_MULTI_PICKUP)]
         private bool $multiPickup = false,
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PICKUP_NUMBER)]
         #[ResponseOnly]
         private ?string $pickupNumber = null,

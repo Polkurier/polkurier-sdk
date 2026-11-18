@@ -27,7 +27,7 @@ $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 $method = arguments()[1] ?? 'method-id-from-two_factor_token_register';
 
 try {
-    $changed = polkurier()->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+    $changed = polkurier()->twoFactorToken()->changeTransportMethod(
         new ChangeTransportMethodMessage(token: $token, method: $method)
     );
 

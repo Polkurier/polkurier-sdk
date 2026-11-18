@@ -31,9 +31,6 @@ final readonly class TicketResponseTemplateMessage implements MessageInterface
      * @param string[] $responses the answers a reply can give
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
         public string $message = '',
 

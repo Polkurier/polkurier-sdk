@@ -28,9 +28,6 @@ final readonly class GetCountriesMessage implements MessageInterface
      * @param string $couriers
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIERS)]
         #[Validate\NotBlank]
         public string $couriers,

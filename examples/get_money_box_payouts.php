@@ -27,7 +27,7 @@ try {
             "%-16s %10.2f PLN  %-14s %s\n",
             $payout->number,
             $payout->amount,
-            $payout->status,
+            $payout->status->value ?? '',
             $payout->cancellable ? '(cancellable)' : ''
         );
     }

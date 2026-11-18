@@ -9,9 +9,9 @@ namespace Polkurier\Webservice\Dto\Response\Payment;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Enum\Payment\PaymentStateEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -36,35 +36,24 @@ final readonly class RegisteredPaymentMessage implements MessageInterface, Parse
 
     /**
      * @param string $transactionId identifier to quote when checking status
-     * @param string $state NEW, REGISTERED, PENDING or DONE, as in
-     *        {@see \Polkurier\Webservice\Dto\Response\Payment\PaymentInfoMessage}
+     * @param PaymentStateEnum|null $state how far the payment has got
      * @param string|null $accessToken opens the payment page, together with the transaction id
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
         public string $transactionId = '',
 
         /**
-         * @var string
+         * @var PaymentStateEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATE)]
-        public string $state = '',
+        public ?PaymentStateEnum $state = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ACCESS_TOKEN)]
-        #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $accessToken = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

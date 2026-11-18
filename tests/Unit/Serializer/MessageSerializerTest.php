@@ -60,9 +60,13 @@ final class MessageSerializerTest extends TestCase
         $payload = \json_decode($this->serializer->encode(self::message()), true);
 
         self::assertIsArray($payload);
-        self::assertArrayNotHasKey('apimethod', $payload);
-        self::assertArrayNotHasKey('authorization', $payload);
-        // The order is inlined, so its fields sit beside the message's own.
+        // The whole key set, not a sample: the API rejects or misreads a key it does not know, so
+        // a key arriving that nothing put there is as much a defect as a key going missing. The
+        // inlined order contributes its own fields and its holder's key is gone.
+        self::assertSame(
+            ['coupon_code', 'courier', 'shipmenttype', 'packs', 'sender', 'recipient', 'cover_address'],
+            \array_keys($payload),
+        );
         self::assertSame('ABC', $payload['coupon_code']);
         self::assertSame('DPD', $payload['courier']);
         // The cover address keeps only what create_order reads there.

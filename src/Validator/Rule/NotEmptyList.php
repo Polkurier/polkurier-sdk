@@ -14,8 +14,7 @@ use Polkurier\Webservice\Validator\RuleFailure;
 /**
  * A list with at least one non-blank entry.
  *
- * Blank entries don't count, so a list of empty strings fails. Null passes, as in every other
- * value rule: {@see NotBlank} is what makes a field required.
+ * Blank entries don't count, so a list of empty strings fails.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 class NotEmptyList implements ValueValidatorInterface
@@ -27,8 +26,6 @@ class NotEmptyList implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Empty values pass. {@see \Polkurier\Webservice\Validator\Rule\NotBlank} handles required
-        // fields. Rejecting them here would make every optional field of this kind mandatory.
         if ($value === null) {
             return [];
         }

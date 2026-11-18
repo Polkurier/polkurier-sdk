@@ -33,16 +33,10 @@ final readonly class GetInvoiceSummaryListMessage implements MessageInterface
      * @param InvoiceSummaryFormatEnum $format PDF to read or print, CSV to import
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         #[Validate\NotBlank]
         public string $number,
 
-        /**
-         * @var InvoiceSummaryFormatEnum
-         */
         #[Serializer\SerializedName(self::FIELD_FORMAT)]
         public InvoiceSummaryFormatEnum $format = InvoiceSummaryFormatEnum::Pdf,
     ) {}

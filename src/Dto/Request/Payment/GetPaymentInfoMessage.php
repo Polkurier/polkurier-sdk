@@ -28,9 +28,6 @@ final readonly class GetPaymentInfoMessage implements MessageInterface
      * @param string $transactionId as returned when the payment was registered
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TRANSACTION_ID)]
         #[Validate\NotBlank]
         public string $transactionId,

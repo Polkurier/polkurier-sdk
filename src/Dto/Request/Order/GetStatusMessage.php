@@ -31,8 +31,6 @@ final readonly class GetStatusMessage extends OrderIdMessage
 
         /**
          * Off by default. Turning it on makes the call slower.
-         *
-         * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_TRACKING)]
         public bool $tracking = false,

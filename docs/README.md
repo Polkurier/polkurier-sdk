@@ -37,7 +37,7 @@ $client = new PolkurierWebservice(new Config(
     platformVersion: '1.0.0',
 ));
 
-$carriers = $client->courier()->availableCarriers();   // Carrier[]
+$carriers = $client->courier()->getAvailableCarriers();   // Carrier[]
 ```
 
 The client has one service per functional area and a method for each API endpoint. Methods

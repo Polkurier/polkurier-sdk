@@ -121,5 +121,5 @@ interface ConfigInterface
      *
      * @return bool
      */
-    public function validatePayloads(): bool;
+    public function isPayloadValidationEnabled(): bool;
 }

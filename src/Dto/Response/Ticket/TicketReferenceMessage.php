@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Ticket;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -33,17 +32,10 @@ final readonly class TicketReferenceMessage implements MessageInterface
      * @param string|null $waybillNumber set only on order references
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NUMBER)]
         public string $number = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_WAYBILL_NUMBER)]
-        #[OmitWhenEmpty]
         public ?string $waybillNumber = null,
     ) {}
 }

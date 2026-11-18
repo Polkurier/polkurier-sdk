@@ -20,12 +20,15 @@ Responses that differ from the SDK
 ----------------------------------
 
 A response the API changed after your SDK version was released still reads, so an application
-that hasn't updated the SDK keeps working:
+that hasn't updated the SDK keeps working. The exception is a field typed as an object or an enum
+that the response drops or sends as something else: there is no empty value to put there, so the
+read fails with the difference recorded.
 
 | The response has | The SDK reads |
 |------------------|---------------|
 | A field the SDK doesn't know | Nothing: the field is ignored |
 | A missing field without a default, or null in a field that can't be null | The field's default, or an empty value of its type: `''`, `0`, `0.0`, `false`, `[]` or null |
+| The same, where the field is an object or an enum | Nothing to fall back on: the difference is recorded and the read fails |
 | A string, number or boolean of another type | The value converted, e.g. `"12"` to `12` |
 | Any other value of another type | The field's default, or an empty value |
 | A list item of another type | The item converted, or left out of the list |

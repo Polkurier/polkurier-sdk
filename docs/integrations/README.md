@@ -64,7 +64,9 @@ and Sylius this takes very little extra setup.
 ```php
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 

@@ -140,14 +140,14 @@ readonly class MessageSerializer implements SerializerInterface
 
         if (!\is_array($responseData)) {
             throw new InvalidArgumentException(
-                \sprintf('Expected a JSON object from the Polkurier API, got body: "%s"', static::excerpt($body)),
+                \sprintf('Expected a JSON object from the Polkurier API, got body: "%s"', static::makeExcerpt($body)),
             );
         }
 
         $rawStatus = $responseData[ResponseMessage::FIELD_STATUS] ?? null;
         if (!\is_string($rawStatus)) {
             throw new InvalidArgumentException(
-                \sprintf('The response has no "status" field, body: "%s"', static::excerpt($body)),
+                \sprintf('The response has no "status" field, body: "%s"', static::makeExcerpt($body)),
             );
         }
 
@@ -169,7 +169,7 @@ readonly class MessageSerializer implements SerializerInterface
                     [ResponseDriftCollector::CONTEXT_KEY => $drift],
                 );
 
-                return new ReadResponse($error, $drift->all());
+                return new ReadResponse($error, $drift->getDrift());
             }
 
             $payload = $this->readPayload($responseData, $responseFormat, $drift, $body);
@@ -188,7 +188,7 @@ readonly class MessageSerializer implements SerializerInterface
             );
         }
 
-        return new ReadResponse(new ResponseMessage($status, $payload), $drift->all());
+        return new ReadResponse(new ResponseMessage($status, $payload), $drift->getDrift());
     }
 
     /**
@@ -202,6 +202,10 @@ readonly class MessageSerializer implements SerializerInterface
      *
      * @return mixed
      * @throws SerializerException when the payload doesn't map
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
+     * @throws \ArgumentCountError when the class the payload maps onto cannot be built from any
+     *         payload
      */
     protected function readPayload(
         array $responseData,
@@ -266,12 +270,14 @@ readonly class MessageSerializer implements SerializerInterface
      *
      * @return string
      */
-    protected static function excerpt(string $raw): string
+    protected static function makeExcerpt(string $raw): string
     {
         $trimmed = \trim($raw);
 
+        // Cut on a character, not a byte: half of a multi-byte character makes the message
+        // unencodable, and a log formatter then drops the record carrying it.
         return \strlen($trimmed) > static::EXCERPT_LENGTH
-            ? \substr($trimmed, 0, static::EXCERPT_LENGTH) . '…'
+            ? \mb_strcut($trimmed, 0, static::EXCERPT_LENGTH) . '…'
             : $trimmed;
     }
 }

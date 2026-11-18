@@ -25,7 +25,7 @@ use Polkurier\Webservice\Entity\BankAccount;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Log\SensitiveDataRedactor;
-use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\ClassMemberReader;
 use Polkurier\Webservice\Serializer\WireNameReader;
 use Polkurier\Webservice\Test\Support\SourceClasses;
 
@@ -127,7 +127,7 @@ final class SensitiveDataRedactorTest extends TestCase
     {
         $cases = [];
         foreach (SourceClasses::instantiableUnder() as $name => $class) {
-            foreach (ClassMembers::readMarkedWith($class, Sensitive::class) as $member) {
+            foreach (ClassMemberReader::readMarkedWith($class, Sensitive::class) as $member) {
                 $field = WireNameReader::read($member);
                 $cases[$name . ' ' . $field] = [$class, $field];
             }
@@ -162,25 +162,24 @@ final class SensitiveDataRedactorTest extends TestCase
     }
 
     /**
-     * A PIN reaches the API under no other name and nothing else is called one, so the key is
-     * hidden wherever it turns up, including under a key the walk has no class for. A key that
-     * merely starts with the word is not one.
+     * The mark on the field is the whole rule: no key is hidden for what it is called. A body the
+     * walk has no class for therefore goes into the log as it arrived, whatever its keys spell,
+     * which is what the same body read as the class that writes it changes.
      *
      * @return void
      */
-    public function testHidesAPinUnderAnyKeyThatNamesOneWhateverDeclaresIt(): void
+    public function testHidesWhatAClassMarksAndNothingForItsName(): void
     {
-        $body = (string)\json_encode([
-            'pin' => '1234',
-            'security_pin' => '5678',
-            'pin_locks' => ['PIN_SETTINGS' => true],
-        ]);
-
-        $redacted = \json_decode((new SensitiveDataRedactor())->redactJson($body, []), true);
+        $body = (string)\json_encode([ChangePinMessage::FIELD_PIN => '1234']);
+        $redactor = new SensitiveDataRedactor();
 
         self::assertSame(
-            ['pin' => '***', 'security_pin' => '***', 'pin_locks' => ['PIN_SETTINGS' => true]],
-            $redacted,
+            [ChangePinMessage::FIELD_PIN => '1234'],
+            \json_decode($redactor->redactJson($body, []), true),
+        );
+        self::assertSame(
+            [ChangePinMessage::FIELD_PIN => '***'],
+            \json_decode($redactor->redactJson($body, [], ChangePinMessage::class), true),
         );
     }
 
@@ -207,7 +206,7 @@ final class SensitiveDataRedactorTest extends TestCase
         $body = '{"authorization":{"login":"1","token":"t0k3n"}}';
         $request = new Request('POST', 'https://api.example.test', [], $body);
 
-        $copy = (new SensitiveDataRedactor())->message($request, [
+        $copy = (new SensitiveDataRedactor())->redactMessage($request, [
             RequestMessage::FIELD_AUTHORIZATION => AuthorizationMessage::class,
         ]);
 
@@ -221,7 +220,8 @@ final class SensitiveDataRedactorTest extends TestCase
      * belongs to the caller, not to the redactor.
      *
      * @param class-string $class
-     * @param array<string, mixed> $fields
+     * @param array<array-key, mixed> $fields the keys as PHP holds them: a wire name that spells a
+     *        number is an integer here, as it is after the body is decoded
      *
      * @return array<array-key, mixed>
      */

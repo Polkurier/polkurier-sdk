@@ -43,6 +43,6 @@ try {
     $event->type->value ?? 'unknown event',
     $event->order->getNumber(),
     $event->order->getStatus(),
-    $event->order->getStatusCode(),
+    $event->order->getStatusCode()->value ?? '',
 );
 

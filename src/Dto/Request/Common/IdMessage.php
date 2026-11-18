@@ -28,9 +28,6 @@ abstract readonly class IdMessage implements MessageInterface
      * @param string $id
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         #[Validate\NotBlank]
         public string $id,

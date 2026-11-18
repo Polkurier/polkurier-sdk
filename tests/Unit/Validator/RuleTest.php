@@ -16,6 +16,7 @@ use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
 use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
+use Polkurier\Webservice\Entity\Order\Address;
 use Polkurier\Webservice\Entity\Order\Cod;
 use Polkurier\Webservice\Enum\Order\CodReturnTypeEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
@@ -119,52 +120,78 @@ final class RuleTest extends TestCase
     }
 
     /**
-     * @return array<string, array{ValueValidatorInterface, mixed}>
+     * @return array<string, array{ValueValidatorInterface, mixed, ValidationErrorCodeEnum}>
      */
     public static function rejectedValues(): array
     {
         return [
-            'a postcode with no separator' => [new Postcode(), '61001'],
-            'a postcode of the wrong length' => [new Postcode(), '611-001'],
-            'a postcode that is words' => [new Postcode(), 'Poznań'],
-            'an order number with no separator' => [new OrderNumber(), '12345678'],
-            'an order number that is words' => [new OrderNumber(), 'nope'],
-            'an order number inside other text' => [new OrderNumber(), 'abc1-2xyz'],
-            'an email address without a domain' => [new Email(), 'jan@'],
-            'an email address with a space' => [new Email(), 'jan kowalski@example.com'],
-            'a number where a string is expected' => [new OfType('string'), 7],
-            'a string where an enum case is expected' => [new OfType(PackTypeEnum::class), 'ST'],
-            'an account number that is too short' => [new Iban(), '5810203958'],
-            'an account number with two digits transposed' => [new Iban(), '58102039580000920202228690'],
-            'an account number with one digit changed' => [new Iban(), '58102039580000920202228608'],
-            'an IBAN whose check digits do not hold' => [new Iban(), 'DE89370400440532013001'],
-            'a foreign IBAN under foreign: false' => [new Iban(foreign: false), 'DE89370400440532013000'],
-            'a phone number that is too short' => [new PhoneNumber(), '12'],
-            'zero, where it must be positive' => [new Positive(), 0],
-            'a negative number' => [new Positive(), -1],
-            'a negative number where zero is the floor' => [new NonNegative(), -0.01],
-            'a value above the range' => [new IntegerRange(1, 100), 101],
-            'a value below the range' => [new IntegerRange(1, 100), 0],
-            'an empty string' => [new NotBlank(), ''],
-            'whitespace only' => [new NotBlank(), "  \t "],
-            'null' => [new NotBlank(), null],
-            'an empty list' => [new NotEmptyList(), []],
-            'a list of blanks' => [new NotEmptyList(), ['', null]],
+            'a postcode with no separator' => [new Postcode(), '61001', ValidationErrorCodeEnum::NotAPostcode],
+            'a postcode of the wrong length' => [new Postcode(), '611-001', ValidationErrorCodeEnum::NotAPostcode],
+            'a postcode that is words' => [new Postcode(), 'Poznań', ValidationErrorCodeEnum::NotAPostcode],
+            'an order number with no separator' => [new OrderNumber(), '12345678', ValidationErrorCodeEnum::NotAnOrderNumber],
+            'an order number that is words' => [new OrderNumber(), 'nope', ValidationErrorCodeEnum::NotAnOrderNumber],
+            'an order number inside other text' => [new OrderNumber(), 'abc1-2xyz', ValidationErrorCodeEnum::NotAnOrderNumber],
+            'an email address without a domain' => [new Email(), 'jan@', ValidationErrorCodeEnum::NotAnEmail],
+            'an email address with a space' => [new Email(), 'jan kowalski@example.com', ValidationErrorCodeEnum::NotAnEmail],
+            'a number where a string is expected' => [new OfType('string'), 7, ValidationErrorCodeEnum::WrongType],
+            'a string where an enum case is expected' => [new OfType(PackTypeEnum::class), 'ST', ValidationErrorCodeEnum::WrongType],
+            'an account number that is too short' => [new Iban(), '5810203958', ValidationErrorCodeEnum::BankAccountWrongLength],
+            'an account number with two digits transposed' => [new Iban(), '58102039580000920202228690', ValidationErrorCodeEnum::BankAccountBadChecksum],
+            'an account number with one digit changed' => [new Iban(), '58102039580000920202228608', ValidationErrorCodeEnum::BankAccountBadChecksum],
+            'an IBAN whose check digits do not hold' => [new Iban(), 'DE89370400440532013001', ValidationErrorCodeEnum::BankAccountBadChecksum],
+            'a foreign IBAN under foreign: false' => [new Iban(foreign: false), 'DE89370400440532013000', ValidationErrorCodeEnum::BankAccountWrongCountry],
+            'a phone number that is too short' => [new PhoneNumber(), '12', ValidationErrorCodeEnum::PhoneNumberTooShort],
+            'zero, where it must be positive' => [new Positive(), 0, ValidationErrorCodeEnum::OutOfRange],
+            'a negative number' => [new Positive(), -1, ValidationErrorCodeEnum::OutOfRange],
+            'a negative number where zero is the floor' => [new NonNegative(), -0.01, ValidationErrorCodeEnum::OutOfRange],
+            'a value above the range' => [new IntegerRange(1, 100), 101, ValidationErrorCodeEnum::OutOfRange],
+            'a value below the range' => [new IntegerRange(1, 100), 0, ValidationErrorCodeEnum::OutOfRange],
+            'an empty string' => [new NotBlank(), '', ValidationErrorCodeEnum::Blank],
+            'whitespace only' => [new NotBlank(), "  \t ", ValidationErrorCodeEnum::Blank],
+            'null' => [new NotBlank(), null, ValidationErrorCodeEnum::Blank],
+            'an empty list' => [new NotEmptyList(), [], ValidationErrorCodeEnum::EmptyList],
+            'a list of blanks' => [new NotEmptyList(), ['', null], ValidationErrorCodeEnum::EmptyList],
+            'letters where a phone number belongs' => [
+                new PhoneNumber(), 'abcdefghi', ValidationErrorCodeEnum::NotAPhoneNumber,
+            ],
+            'a bank account with characters it cannot hold' => [
+                new Iban(), '58102039580000920202-2286!0', ValidationErrorCodeEnum::BankAccountBadCharacters,
+            ],
+            'a bank account written only with separators' => [
+                new Iban(), ' - - ', ValidationErrorCodeEnum::NotABankAccount,
+            ],
+            'a decimal where a whole number belongs' => [
+                new IntegerRange(1, 100), 1.5, ValidationErrorCodeEnum::NotAWholeNumber,
+            ],
+            'a string where a positive number belongs' => [
+                new Positive(), 'lots', ValidationErrorCodeEnum::NotANumber,
+            ],
+            'a list where one value belongs' => [
+                new NotEmptyList(), 'nope', ValidationErrorCodeEnum::NotAList,
+            ],
         ];
     }
 
     /**
+     * The code is the part a caller branches on, so each rejected value names the fault it reports
+     * rather than only proving that something was reported.
+     *
      * @param ValueValidatorInterface $validator
      * @param mixed $value
+     * @param ValidationErrorCodeEnum $code
      *
      * @return void
      */
     #[DataProvider('rejectedValues')]
-    public function testUnacceptableValueIsReported(ValueValidatorInterface $validator, mixed $value): void
-    {
+    public function testUnacceptableValueIsReported(
+        ValueValidatorInterface $validator,
+        mixed $value,
+        ValidationErrorCodeEnum $code,
+    ): void {
         $problems = $validator->validate($value);
 
         self::assertNotSame([], $problems);
+        self::assertSame($code, $problems[0]->code);
         foreach ($problems as $problem) {
             self::assertNotSame('', \trim($problem->message));
             // A rule that cannot say what is wrong beyond its own sentence belongs to a message,
@@ -300,6 +327,25 @@ final class RuleTest extends TestCase
             ['must be between 1 and 100'],
             self::messagesOf((new IntegerRange(1, 100))->validate(500)),
         );
+        self::assertSame(
+            ['must be an account number from PL'],
+            self::messagesOf((new Iban(foreign: false))->validate('DE89370400440532013000')),
+        );
+    }
+
+    /**
+     * The type name ends the sentence, and `int` and `Address` would take different articles, so
+     * the wording takes none.
+     *
+     * @return void
+     */
+    public function testATypeFailureIsWordedForEveryTypeNameItCanCarry(): void
+    {
+        self::assertSame(['must be of type int'], self::messagesOf((new OfType('int'))->validate(1.5)));
+        self::assertSame(
+            ['must be of type Address'],
+            self::messagesOf((new OfType(Address::class))->validate('Długa 12')),
+        );
     }
 
     /**
@@ -397,7 +443,10 @@ final class RuleTest extends TestCase
     }
 
     /**
-     * @param list<string> $failing
+     * @param MessageInterface $message
+     * @param list<string> $failing the wire paths the message's class rules should reject
+     *
+     * @return void
      */
     #[DataProvider('classRuleCases')]
     public function testClassRulesAndEach(MessageInterface $message, array $failing): void

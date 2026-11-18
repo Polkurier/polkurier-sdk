@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -43,34 +42,18 @@ final readonly class ContactTopicMessage implements MessageInterface
      * @param KnowledgeBaseLinkMessage[] $knowledgeBaseCategories help categories suggested for this topic
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ID)]
         public string $id = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_PARENT_ID)]
-        #[OmitWhenEmpty]
         public ?string $parentId = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TITLE)]
         public string $title = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content = '',
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_HAS_FORM)]
         public bool $hasForm = false,
 

@@ -73,6 +73,7 @@ interface BankAccountsServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getBankAccounts(): array;

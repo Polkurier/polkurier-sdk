@@ -32,15 +32,9 @@ final readonly class AuthConfirmationMessage implements MessageInterface, Parsed
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_AUTHORIZATION)]
         public bool $authorized,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

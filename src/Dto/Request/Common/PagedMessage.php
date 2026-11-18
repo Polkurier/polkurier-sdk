@@ -34,20 +34,14 @@ abstract readonly class PagedMessage implements MessageInterface
      * @param int|null $page 1-based page index
      */
     public function __construct(
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAGE_SIZE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
+        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         public ?int $pageSize = null,
 
-        /**
-         * @var int|null
-         */
         #[Serializer\SerializedName(self::FIELD_PAGE)]
-        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         #[OmitWhenEmpty]
+        #[Validate\IntegerRange(1, \PHP_INT_MAX)]
         public ?int $page = null,
     ) {}
 }

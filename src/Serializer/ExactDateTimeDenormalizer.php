@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -28,7 +29,14 @@ class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInte
      * @param \DateTimeZone|null $timezone the zone a date without an offset is read in
      */
     public function __construct(
+        /**
+         * @var DateTimeNormalizer
+         */
         protected readonly DateTimeNormalizer $inner = new DateTimeNormalizer(),
+
+        /**
+         * @var \DateTimeZone|null the zone a date without an offset is read in
+         */
         protected readonly ?\DateTimeZone $timezone = null,
     ) {}
 
@@ -38,6 +46,7 @@ class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInte
      * @param array<string, mixed> $context
      *
      * @return string
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(mixed $data, ?string $format = null, array $context = []): string
     {
@@ -63,6 +72,7 @@ class ExactDateTimeDenormalizer implements NormalizerInterface, DenormalizerInte
      * @param array<string, mixed> $context
      *
      * @return \DateTimeInterface
+     * @throws SerializerException when the date doesn't parse
      */
     public function denormalize(
         mixed $data,

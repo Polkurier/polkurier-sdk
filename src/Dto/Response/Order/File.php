@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A document attached to an order, as the order listing describes it.
@@ -67,7 +67,7 @@ final readonly class File implements MessageInterface
          * @var \DateTimeInterface|null null if the date is unknown
          */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $dateCreated = null,
     ) {}
 }

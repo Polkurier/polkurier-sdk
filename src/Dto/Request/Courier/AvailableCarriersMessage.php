@@ -34,16 +34,10 @@ final readonly class AvailableCarriersMessage implements MessageInterface
      * @param string|null $returnCarrier list only this carrier, by its service code
      */
     public function __construct(
-        /**
-         * @var bool|null
-         */
         #[Serializer\SerializedName(self::FIELD_ADDITIONAL_DATA)]
         #[OmitWhenEmpty]
         public ?bool $additionalData = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_RETURN_CARRIER)]
         #[OmitWhenEmpty]
         public ?string $returnCarrier = null,

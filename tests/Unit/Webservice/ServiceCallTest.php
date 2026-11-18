@@ -90,7 +90,7 @@ final class ServiceCallTest extends TestCase
                 $ok('{"time":"2026-09-23T09:10:13+02:00"}'),
             ],
             'available carriers' => [
-                static fn(PolkurierWebservice $s) => $s->courier()->availableCarriers(),
+                static fn(PolkurierWebservice $s) => $s->courier()->getAvailableCarriers(),
                 ApiMethodEnum::AvailableCarriers,
                 $ok('[]'),
             ],
@@ -276,9 +276,9 @@ final class ServiceCallTest extends TestCase
 
         $call($this->sdk);
 
-        self::assertSame(1, $this->client->requestCount());
+        self::assertSame(1, $this->client->countRequests());
 
-        $payload = $this->client->lastPayload();
+        $payload = $this->client->readLastPayload();
         self::assertSame($expectedMethod->value, $payload[RequestMessage::FIELD_API_METHOD] ?? null);
     }
 
@@ -291,7 +291,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        $authorization = $this->client->lastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
+        $authorization = $this->client->readLastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
 
         self::assertIsArray($authorization);
         self::assertSame('20534', $authorization['login'] ?? null);
@@ -307,7 +307,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->utils()->heartbeat();
 
-        self::assertArrayNotHasKey(RequestMessage::FIELD_AUTHORIZATION, $this->client->lastPayload());
+        self::assertArrayNotHasKey(RequestMessage::FIELD_AUTHORIZATION, $this->client->readLastPayload());
     }
 
     /**
@@ -320,7 +320,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        $request = $this->client->lastRequest();
+        $request = $this->client->getLastRequest();
         self::assertNotNull($request);
         $composer = \json_decode((string)\file_get_contents(__DIR__ . '/../../../composer.json'), true);
         self::assertSame(
@@ -338,7 +338,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        self::assertSame('application/json', $this->client->lastRequest()?->getHeaderLine('Content-Type'));
+        self::assertSame('application/json', $this->client->getLastRequest()?->getHeaderLine('Content-Type'));
     }
 
     /**
@@ -370,7 +370,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->account()->getRegulations();
 
-        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null;
+        $data = $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null;
         self::assertIsArray($data);
         self::assertSame(RegulationsTypeEnum::Regulations->value, $data[GetRegulationsMessage::FIELD_TYPE] ?? null);
     }
@@ -384,7 +384,7 @@ final class ServiceCallTest extends TestCase
 
         $pickup = $this->sdk->courier()->pickupCourier(new PickupMessage(courier: 'INPOST', shipFrom: '61-001'));
 
-        self::assertFalse($pickup->pickupDate);
+        self::assertFalse($pickup->available);
         self::assertSame([], $pickup->time);
     }
 
@@ -400,7 +400,7 @@ final class ServiceCallTest extends TestCase
 
         self::assertArrayNotHasKey(
             CalculateMoneyBoxPayoutFeeMessage::FIELD_ORDERS,
-            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? [],
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? [],
         );
     }
 
@@ -444,7 +444,7 @@ final class ServiceCallTest extends TestCase
 
         self::assertSame(
             [GetCouriersMessagesMessage::FIELD_COURIER => 'DPD'],
-            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null,
         );
     }
 
@@ -482,7 +482,7 @@ final class ServiceCallTest extends TestCase
 
         $quotes = $this->sdk->orders()->orderValuation(self::createOrderMessage(), 'DPD');
 
-        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA];
+        $data = $this->client->readLastPayload()[RequestMessage::FIELD_DATA];
         self::assertIsArray($data);
         self::assertSame('DPD', $data[OrderValuationMessage::FIELD_RETURN_VALUATIONS]);
         self::assertSame('UPS', $data[Order::FIELD_COURIER]);
@@ -518,7 +518,7 @@ final class ServiceCallTest extends TestCase
             self::assertNotSame([], $e->getFieldErrors('sender.postcode'));
             self::assertSame([], $e->getFieldErrors('order.sender.postcode'));
         }
-        self::assertSame(0, $this->client->requestCount());
+        self::assertSame(0, $this->client->countRequests());
     }
 
     private static function createOrderMessage(): CreateOrderMessage

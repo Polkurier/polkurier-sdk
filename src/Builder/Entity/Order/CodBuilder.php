@@ -27,7 +27,7 @@ class CodBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function amount(float $amount): static
+    public function setAmount(float $amount): static
     {
         return $this->set('amount', $amount);
     }
@@ -37,7 +37,7 @@ class CodBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function bankAccount(string $bankAccount): static
+    public function setBankAccount(string $bankAccount): static
     {
         return $this->set('bankAccount', $bankAccount);
     }
@@ -47,7 +47,7 @@ class CodBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function type(CodTypeEnum $type): static
+    public function setType(CodTypeEnum $type): static
     {
         return $this->set('type', $type);
     }
@@ -57,7 +57,7 @@ class CodBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function returnType(CodReturnTypeEnum $returnType): static
+    public function setReturnType(CodReturnTypeEnum $returnType): static
     {
         return $this->set('returnType', $returnType);
     }

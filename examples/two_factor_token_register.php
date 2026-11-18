@@ -25,7 +25,7 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $token = polkurier()->twoFactorToken()->twoFactorTokenRegister(
+    $token = polkurier()->twoFactorToken()->register(
         new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber)
     );
 

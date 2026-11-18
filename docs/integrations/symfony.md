@@ -143,7 +143,9 @@ use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
 
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 
     public function dispatch(CreateOrderMessage $message): CreatedOrderMessage
     {
@@ -274,7 +276,9 @@ namespace App\Shipping\Message;
 
 final readonly class PlaceShipment
 {
-    public function __construct(public int $orderId) {}
+    public function __construct(
+        public int $orderId,
+    ) {}
 }
 ```
 
@@ -381,7 +385,9 @@ use Polkurier\Webservice\Exception\Exception as PolkurierException;
 
 final readonly class PolkurierHealthCheck
 {
-    public function __construct(private UtilsServiceInterface $utils) {}
+    public function __construct(
+        private UtilsServiceInterface $utils,
+    ) {}
 
     public function __invoke(): bool
     {

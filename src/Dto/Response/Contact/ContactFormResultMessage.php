@@ -13,7 +13,6 @@ use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -59,41 +58,24 @@ final readonly class ContactFormResultMessage implements MessageInterface, Parse
          * @var ContactFormResultActionEnum|null null when absent or for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_ACTION)]
-        #[OmitWhenEmpty]
         public ?ContactFormResultActionEnum $action = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
-        #[OmitWhenEmpty]
         public string $message = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NONCE)]
-        #[OmitWhenEmpty]
         #[Sensitive]
         public string $nonce = '',
 
-        /**
-         * @var ContactFormResultDataMessage|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATA)]
-        #[OmitWhenEmpty]
         public ?ContactFormResultDataMessage $data = null,
 
         /**
          * @var ContactFormResultNoticeMessage[]
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGES)]
-        #[OmitWhenEmpty]
         public array $messages = [],
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

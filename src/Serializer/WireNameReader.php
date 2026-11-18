@@ -38,12 +38,7 @@ final class WireNameReader
             return $declared;
         }
 
-        $name = $member->getName();
-        if ($member instanceof \ReflectionMethod) {
-            $name = \lcfirst((string)\preg_replace('/^(get|is|has|can)(?=[A-Z])/', '', $name));
-        }
-
-        return $name;
+        return ClassMemberReader::readName($member);
     }
 
     /**
@@ -64,8 +59,8 @@ final class WireNameReader
         }
 
         $names = [];
-        foreach (ClassMembers::readAll($class) as $member) {
-            if (self::readDeclared($member) !== null || ClassMembers::writesAField($member)) {
+        foreach (ClassMemberReader::readAll($class) as $member) {
+            if (self::readDeclared($member) !== null || ClassMemberReader::writesAField($member)) {
                 $names[] = self::read($member);
             }
         }

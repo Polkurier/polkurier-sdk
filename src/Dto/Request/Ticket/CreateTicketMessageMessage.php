@@ -36,16 +36,10 @@ final readonly class CreateTicketMessageMessage implements MessageInterface
      * @param TicketAttachmentMessage[] $files attachments, up to 5
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TICKET_ID)]
         #[Validate\NotBlank]
         public string $ticketId,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content,
 

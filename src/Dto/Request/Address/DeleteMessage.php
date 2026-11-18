@@ -7,9 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Dto\Request\Address;
 
-use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Common\IdMessage;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -20,12 +19,11 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  *
  * @api
  */
-final readonly class DeleteMessage implements MessageInterface
+final readonly class DeleteMessage extends IdMessage
 {
     /**+@#
      * JSON parameter keys
      */
-    public const string FIELD_ID = 'id';
     public const string FIELD_TYPE = 'type';
     /**-@#*/
 
@@ -34,17 +32,11 @@ final readonly class DeleteMessage implements MessageInterface
      * @param AddressTypeEnum $type
      */
     public function __construct(
-        /**
-         * @var string
-         */
-        #[Serializer\SerializedName(self::FIELD_ID)]
-        #[Validate\NotBlank]
-        public string $id,
+        string $id,
 
-        /**
-         * @var AddressTypeEnum
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public AddressTypeEnum $type,
-    ) {}
+    ) {
+        parent::__construct($id);
+    }
 }

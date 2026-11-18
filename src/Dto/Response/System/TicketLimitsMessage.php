@@ -31,21 +31,12 @@ final readonly class TicketLimitsMessage implements MessageInterface
      * @param int $maxFilesCount most attachments allowed on one message
      */
     public function __construct(
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_FILE_SIZE)]
         public int $maxFileSize = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_IMAGE_SIZE)]
         public int $maxImageSize = 0,
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_MAX_FILES_COUNT)]
         public int $maxFilesCount = 0,
     ) {}

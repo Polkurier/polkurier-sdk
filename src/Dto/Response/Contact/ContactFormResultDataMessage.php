@@ -9,7 +9,6 @@ namespace Polkurier\Webservice\Dto\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Serializer\Attribute\Base64DataUrl;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -36,18 +35,10 @@ final readonly class ContactFormResultDataMessage implements MessageInterface
      * @param string|null $fileName the document's file name
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TICKET_NUMBER)]
-        #[OmitWhenEmpty]
         public ?string $ticketNumber = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRE_AUTH_CODE)]
-        #[OmitWhenEmpty]
         public bool $requireAuthCode = false,
 
         /**
@@ -56,15 +47,10 @@ final readonly class ContactFormResultDataMessage implements MessageInterface
          * @var string|null null without a document
          */
         #[Serializer\SerializedName(self::FIELD_FILE)]
-        #[OmitWhenEmpty]
         #[Base64DataUrl]
         public ?string $file = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_FILE_NAME)]
-        #[OmitWhenEmpty]
         public ?string $fileName = null,
     ) {}
 }

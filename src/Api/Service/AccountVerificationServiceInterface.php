@@ -133,6 +133,7 @@ interface AccountVerificationServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getInfo(): ?AccountVerificationMessage;

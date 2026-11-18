@@ -104,7 +104,7 @@ function attachments(array $paths): array
         }
         $type = \function_exists('mime_content_type') ? (string)\mime_content_type($path) : '';
 
-        return TicketAttachmentMessage::fromContents(\basename($path), $contents, $type);
+        return TicketAttachmentMessage::makeFromContents(\basename($path), $contents, $type);
     }, $paths);
 }
 

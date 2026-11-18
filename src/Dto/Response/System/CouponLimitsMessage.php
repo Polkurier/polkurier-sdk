@@ -27,9 +27,6 @@ final readonly class CouponLimitsMessage implements MessageInterface
      * @param int $minLength shortest accepted coupon code
      */
     public function __construct(
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_MIN_LENGTH)]
         public int $minLength = 0,
     ) {}

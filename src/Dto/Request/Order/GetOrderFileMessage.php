@@ -30,17 +30,11 @@ final readonly class GetOrderFileMessage implements MessageInterface
      * @param string $filename the filename, as the order listing reports it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_ORDER_NO)]
         #[Validate\NotBlank]
         #[Validate\OrderNumber]
         public string $orderNo,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_FILENAME)]
         #[Validate\NotBlank]
         public string $filename,

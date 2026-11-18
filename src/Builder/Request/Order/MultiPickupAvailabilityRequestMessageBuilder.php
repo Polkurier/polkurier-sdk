@@ -25,7 +25,7 @@ class MultiPickupAvailabilityRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function courier(string $courier): static
+    public function setCourier(string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -35,7 +35,7 @@ class MultiPickupAvailabilityRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function packs(array $packs): static
+    public function setPacks(array $packs): static
     {
         return $this->set('packs', $packs);
     }
@@ -45,7 +45,7 @@ class MultiPickupAvailabilityRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function senderPostCode(?string $senderPostCode): static
+    public function setSenderPostCode(?string $senderPostCode): static
     {
         return $this->set('senderPostCode', $senderPostCode);
     }
@@ -55,7 +55,7 @@ class MultiPickupAvailabilityRequestMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function shipmentType(?ShipmentTypeEnum $shipmentType): static
+    public function setShipmentType(?ShipmentTypeEnum $shipmentType): static
     {
         return $this->set('shipmentType', $shipmentType);
     }

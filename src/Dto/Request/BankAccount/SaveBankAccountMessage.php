@@ -13,7 +13,6 @@ use Polkurier\Webservice\Entity\BankAccount;
 use Polkurier\Webservice\Log\Attribute\Sensitive;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Validator\Rule as Validate;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -27,7 +26,6 @@ use Symfony\Component\Serializer\Attribute as Serializer;
  */
 final readonly class SaveBankAccountMessage implements MessageInterface, TwoFactorFieldsInterface
 {
-
     /**+@#
      * JSON parameter keys
      */
@@ -41,31 +39,19 @@ final readonly class SaveBankAccountMessage implements MessageInterface, TwoFact
      * @param string|null $accessPin required only while the bank-account PIN lock is engaged
      */
     public function __construct(
-        /**
-         * @var BankAccount
-         */
         #[InlineFields]
         public BankAccount $bankAccount,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_TOKEN)]
         #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $twoFactorToken = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_TWO_FACTOR_CODE)]
         #[OmitWhenEmpty]
         #[Sensitive]
         public ?string $twoFactorCode = null,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_ACCESS_PIN)]
         #[OmitWhenEmpty]
         #[Sensitive]

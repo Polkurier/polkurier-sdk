@@ -30,12 +30,12 @@ final class BuilderBehaviourTest extends TestCase
     public function testItBuildsWhatTheConstructorWouldHave(): void
     {
         $built = PackItemBuilder::create()
-            ->length(30)
-            ->width(20)
-            ->height(15)
-            ->weight(2.5)
-            ->type(PackTypeEnum::Standard)
-            ->amount(3)
+            ->setLength(30)
+            ->setWidth(20)
+            ->setHeight(15)
+            ->setWeight(2.5)
+            ->setType(PackTypeEnum::Standard)
+            ->setAmount(3)
             ->build();
 
         self::assertEquals(
@@ -51,7 +51,7 @@ final class BuilderBehaviourTest extends TestCase
      */
     public function testUntouchedFieldsKeepTheDefaultsTheMessageDeclares(): void
     {
-        $built = PackItemBuilder::create()->length(30)->width(20)->height(15)->weight(2.5)->build();
+        $built = PackItemBuilder::create()->setLength(30)->setWidth(20)->setHeight(15)->setWeight(2.5)->build();
 
         foreach ((new \ReflectionClass(PackItem::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
             if (!$parameter->isDefaultValueAvailable()) {
@@ -78,18 +78,18 @@ final class BuilderBehaviourTest extends TestCase
         // time. With named arguments each of these would have to reach a single call.
         $filters = self::filtersFromSomewhereElse();
 
-        $builder = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
+        $builder = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT']);
 
         if ($filters['searchQuery'] !== null) {
-            $builder->searchQuery($filters['searchQuery']);
+            $builder->setSearchQuery($filters['searchQuery']);
         }
 
         if ($filters['limit'] !== null) {
-            $builder->limit($filters['limit']);
+            $builder->setLimit($filters['limit']);
         }
 
         if ($filters['page'] !== null) {
-            $builder->page($filters['page']);
+            $builder->setPage($filters['page']);
         }
 
         $message = $builder->build();
@@ -115,7 +115,7 @@ final class BuilderBehaviourTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(GetPointMessage::class . ' cannot be built without couriers.');
 
-        GetPointMessageBuilder::create()->functions([PointFunctionEnum::Send])->build();
+        GetPointMessageBuilder::create()->setFunctions([PointFunctionEnum::Send])->build();
     }
 
     /**
@@ -124,9 +124,9 @@ final class BuilderBehaviourTest extends TestCase
     public function testTheLastValueGivenWins(): void
     {
         $message = GetPointMessageBuilder::create()
-            ->couriers(['INPOST_PACZKOMAT'])
-            ->limit(5)
-            ->limit(10)
+            ->setCouriers(['INPOST_PACZKOMAT'])
+            ->setLimit(5)
+            ->setLimit(10)
             ->build();
 
         self::assertSame(10, $message->limit);
@@ -134,7 +134,7 @@ final class BuilderBehaviourTest extends TestCase
 
     public function testResetForgetsEveryValue(): void
     {
-        $builder = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT'])->limit(5);
+        $builder = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT'])->setLimit(5);
 
         $this->expectException(InvalidArgumentException::class);
 
@@ -150,9 +150,9 @@ final class BuilderBehaviourTest extends TestCase
         self::assertInstanceOf(PickupQueryMessageBuilder::class, $builder);
 
         $message = $builder
-            ->courier('UPS')
-            ->shipFrom('61-001')
-            ->pickupDate(new \DateTimeImmutable('2026-10-01'))
+            ->setCourier('UPS')
+            ->setShipFrom('61-001')
+            ->setPickupDate(new \DateTimeImmutable('2026-10-01'))
             ->build();
 
         self::assertInstanceOf(PickupMessage::class, $message);
@@ -161,7 +161,7 @@ final class BuilderBehaviourTest extends TestCase
 
     /**
      * A container may hand out a subclass that declares its own parameterless constructor, as
-     * Magento's generated interceptors do. It still has the setters and builds the same message.
+     * generated proxies do. It still has the setters and builds the same message.
      */
     public function testASubclassWithItsOwnConstructorBuildsTheSameMessage(): void
     {
@@ -175,7 +175,7 @@ final class BuilderBehaviourTest extends TestCase
             }
         };
 
-        $built = $builder->length(30)->width(20)->height(15)->weight(2.5)->build();
+        $built = $builder->setLength(30)->setWidth(20)->setHeight(15)->setWeight(2.5)->build();
 
         self::assertTrue($builder->constructed);
         self::assertEquals(new PackItem(length: 30, width: 20, height: 15, weight: 2.5), $built);

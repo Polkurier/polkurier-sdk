@@ -33,15 +33,10 @@ final readonly class Property implements MessageInterface
     public function __construct(
         /**
          * Whether the carrier offers it.
-         *
-         * @var bool
          */
         #[Serializer\SerializedName(self::FIELD_AVAILABLE)]
         public bool $available,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description,
 

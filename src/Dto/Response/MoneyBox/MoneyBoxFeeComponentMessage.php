@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\MoneyBox;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeeComponentTypeEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 
 /**
@@ -29,7 +30,7 @@ final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $type machine-readable component code: PAYOUT_FEE or POSTAL_TRANSFER_FEE
+     * @param MoneyBoxFeeComponentTypeEnum|null $type what the component is charged for
      * @param string $name display name, in Polish
      * @param string $description explanation, in Polish, possibly empty
      * @param float $fee gross amount in PLN
@@ -38,38 +39,23 @@ final readonly class MoneyBoxFeeComponentMessage implements MessageInterface
      */
     public function __construct(
         /**
-         * @var string
+         * @var MoneyBoxFeeComponentTypeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
-        public string $type = '',
+        public ?MoneyBoxFeeComponentTypeEnum $type = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description = '',
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE)]
         public float $fee = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_FEE_NET)]
         public float $feeNet = 0.0,
 
-        /**
-         * @var float
-         */
         #[Serializer\SerializedName(self::FIELD_VAT_RATE)]
         public float $vatRate = 0.0,
     ) {}

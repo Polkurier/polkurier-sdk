@@ -41,21 +41,12 @@ final readonly class AdditionalField implements MessageInterface
      * @param AdditionalFieldOption[]|null $options the allowed values, null when any value goes
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_LABEL)]
         public string $label,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_DESCRIPTION)]
         public string $description,
 
@@ -65,15 +56,9 @@ final readonly class AdditionalField implements MessageInterface
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public ?AdditionalFieldTypeEnum $type,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_REQUIRED)]
         public bool $required,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_ENABLED)]
         public bool $enabled,
 

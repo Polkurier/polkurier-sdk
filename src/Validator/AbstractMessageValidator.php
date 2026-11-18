@@ -39,7 +39,6 @@ abstract class AbstractMessageValidator implements ValidatorInterface
     public function validate(MessageInterface $data): void
     {
         $violations = new ViolationPool();
-        /** @var T $data */
         $this->collect($data, $violations);
         $violations->throwIfAny();
     }

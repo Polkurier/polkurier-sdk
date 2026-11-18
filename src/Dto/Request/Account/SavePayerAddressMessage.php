@@ -73,90 +73,54 @@ final readonly class SavePayerAddressMessage implements MessageInterface
      *        prefix is "PL": 9 or 14 digits with a valid check digit
      */
     public function __construct(
-        /**
-         * @var PayerAddressTypeEnum
-         */
         #[Serializer\SerializedName(self::FIELD_ADDRESS_TYPE)]
         public PayerAddressTypeEnum $addressType,
 
-        /**
-         * @var PayerUserTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_USER_TYPE)]
         #[OmitWhenEmpty]
         public ?PayerUserTypeEnum $userType = null,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_SAME_AS_PAYER)]
         public bool $sameAsPayer = false,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STREET)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $street = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_BUILDING_NUMBER)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $buildingNumber = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_POST_CODE)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $postCode = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CITY)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $city = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COUNTRY)]
         #[OmitWhenEmpty]
         public string $country = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NIP_PREFIX)]
         #[OmitWhenEmpty]
         public string $nipPrefix = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NIP)]
         #[OmitWhenEmpty]
         #[PersonalData]
         public string $nip = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_REGON)]
         #[OmitWhenEmpty]
         #[PersonalData]

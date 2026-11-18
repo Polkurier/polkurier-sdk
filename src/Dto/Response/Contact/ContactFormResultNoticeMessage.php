@@ -9,9 +9,14 @@ namespace Polkurier\Webservice\Dto\Response\Contact;
 
 use Polkurier\Webservice\Api\MessageInterface;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A notice attached to a submitted contact form's result.
+ *
+ * The API has no path that attaches one, so `save_contact_form` answers without the key this
+ * message is read from. A field's own severity is
+ * {@see \Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum}, a different set.
  *
  * @api
  */
@@ -26,27 +31,19 @@ final readonly class ContactFormResultNoticeMessage implements MessageInterface
     /**-@#*/
 
     /**
-     * @param string $type `default`, `danger`, `warning`, `info` or `success`
+     * @param string $type the notice's kind
      * @param string $content
      * @param \DateTimeInterface|null $createdAt
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public string $type = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_CONTENT)]
         public string $content = '',
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_CREATED_AT)]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $createdAt = null,
     ) {}
 }

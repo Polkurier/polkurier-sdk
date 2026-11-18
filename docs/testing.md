@@ -21,8 +21,8 @@ use Polkurier\Webservice\Testing\RecordingClient;
 
 $http = new RecordingClient($body);   // the envelope to answer with (HTTP 200 unless told otherwise)
 $http->willAnswerWith($otherBody);    // change the answer between calls
-$http->lastPayload();                 // the decoded body of the most recent request
-$http->requestCount();                // how many requests it has seen
+$http->readLastPayload();                 // the decoded body of the most recent request
+$http->countRequests();                // how many requests it has seen
 ```
 
 It is also its own factory, so you can pass it straight to the client:
@@ -32,10 +32,10 @@ $http = new RecordingClient('{"status":"success","response":[{"servicecode":"UPS
 
 $client = new PolkurierWebservice(config: $config, clientFactory: $http);
 
-$carriers = $client->courier()->availableCarriers();
+$carriers = $client->courier()->getAvailableCarriers();
 
 self::assertSame('UPS', $carriers[0]->serviceCode);
-self::assertSame('available_carriers', $http->lastPayload()['apimethod']);
+self::assertSame('available_carriers', $http->readLastPayload()['apimethod']);
 ```
 
 A test sees both sides: whether **the response mapped correctly**, and whether **the request
@@ -85,7 +85,9 @@ tested with a mock of the interface, without constructing the SDK at all.
 ```php
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 
@@ -124,7 +126,7 @@ self::assertSame([], $read->drift);
 ```
 
 [`SerializerInterface::encode()`](../src/Api/SerializerInterface.php) writes the message alone, without the `apimethod` and
-`authorization` around it, which [`RecordingClient::lastPayload()`](../src/Testing/RecordingClient.php) shows instead. Asserting the
+`authorization` around it, which [`RecordingClient::readLastPayload()`](../src/Testing/RecordingClient.php) shows instead. Asserting the
 drift of a body recorded from the real API catches a response that has changed, the way
 `strictResponses` does, without failing the read.
 

@@ -45,17 +45,12 @@ final readonly class CourierMessage implements MessageInterface
      * @param int $priority rank of the notice, higher first; sent with messages only
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         public string $courier = '',
 
         /**
          * The notice as HTML, with tags such as `<p>`, `<strong>` and `<a>`. Sanitise it before you
          * display it, or strip the tags for plain text.
-         *
-         * @var string
          */
         #[Serializer\SerializedName(self::FIELD_MESSAGE)]
         public string $message = '',

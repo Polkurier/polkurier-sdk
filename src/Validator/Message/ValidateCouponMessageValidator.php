@@ -28,14 +28,13 @@ use Polkurier\Webservice\Validator\ViolationPool;
 class ValidateCouponMessageValidator extends AbstractMessageValidator
 {
     /**
-     * @param MessageInterface $data
+     * @param ValidateCouponMessage $data
      * @param ViolationPool $violations
      *
      * @return void
      */
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
-        /** @var ValidateCouponMessage $data */
         $supplied = [
             ValidateCouponMessage::FIELD_COURIER => $data->courier !== null,
             ValidateCouponMessage::FIELD_SHIPMENT_TYPE => $data->shipmentType !== null,

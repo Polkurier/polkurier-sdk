@@ -14,8 +14,6 @@ use Polkurier\Webservice\Validator\RuleFailure;
 /**
  * A value of the given type: `string`, `int`, `float` or `bool`, or a class, interface or enum.
  *
- * Null passes, as in every other value rule: {@see NotBlank} is what makes a field required.
- *
  * Mostly for list entries, whose type PHP can't declare:
  *
  * ```php
@@ -29,9 +27,6 @@ class OfType implements ValueValidatorInterface
      * @param string $type a scalar type name, or a class, interface or enum name
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $type,
     ) {}
 
@@ -42,8 +37,6 @@ class OfType implements ValueValidatorInterface
      */
     public function validate(mixed $value): array
     {
-        // Empty values pass. {@see \Polkurier\Webservice\Validator\Rule\NotBlank} handles required
-        // fields. Rejecting them here would make every optional field of this kind mandatory.
         if ($value === null) {
             return [];
         }
@@ -60,12 +53,15 @@ class OfType implements ValueValidatorInterface
             return [];
         }
 
-        $name = \str_contains($this->type, '\\') ? \substr((string)\strrchr($this->type, '\\'), 1) : $this->type;
+        $separator = \strrpos($this->type, '\\');
+        $name = $separator === false ? $this->type : \substr($this->type, $separator + 1);
 
         return [
             new RuleFailure(
                 ValidationErrorCodeEnum::WrongType,
-                \sprintf('must be a %s', $name),
+                // The type names the rule takes are `int`, `Address`, `PackItem` and the like, so
+                // an article in front of one would be right for some and wrong for the rest.
+                \sprintf('must be of type %s', $name),
                 ['type' => $name, 'declared' => $this->type],
             ),
         ];

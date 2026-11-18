@@ -28,9 +28,6 @@ final readonly class CancelMoneyBoxPayoutMessage implements MessageInterface
      * @param string $payoutNumber payout reference
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_PAYOUT_NUMBER)]
         #[Validate\NotBlank]
         public string $payoutNumber,

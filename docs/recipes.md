@@ -84,14 +84,14 @@ printf(
 The SDK cannot check these for you:
 
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
-  window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
+  window. Check what a carrier requires with [`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` is required to place an order, and the API cuts it to fit its length limit:
   [`Order::DESCRIPTION_MAX_LENGTH`](../src/Entity/Order.php) bytes, unless the account or the carrier has another.
 - `externalApplicationId` and `externalOrderId` are optional. They let you find the
   order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
   SDK refuses one without the other.
 - Not every carrier offers every additional service, and some services have prerequisites.
-  [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists the services each carrier offers. The ones it
+  [`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists the services each carrier offers. The ones it
   doesn't list, such as the recipient SMS notifications, are documented with their rules on
   [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
 
@@ -107,15 +107,15 @@ use Polkurier\Webservice\Builder\Entity\OrderBuilder;
 use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 
 $builder = OrderBuilder::create()
-    ->courier($carrierCode)
-    ->shipmentType(ShipmentTypeEnum::Box)
-    ->packs($packs)
-    ->sender($sender)
-    ->recipient($recipient)
-    ->description('Books');
+    ->setCourier($carrierCode)
+    ->setShipmentType(ShipmentTypeEnum::Box)
+    ->setPacks($packs)
+    ->setSender($sender)
+    ->setRecipient($recipient)
+    ->setDescription('Books');
 
 if ($cart->isInsured()) {
-    $builder->insurance($cart->declaredValue());
+    $builder->setInsurance($cart->declaredValue());
 }
 
 $created = $client->orders()->createOrder(new CreateOrderMessage(
@@ -136,12 +136,12 @@ There are 2 approaches.
 
 ### Let the customer choose
 
-[`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
+[`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
 
 ```php
 use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
 
-$carriers = $client->courier()->availableCarriers(
+$carriers = $client->courier()->getAvailableCarriers(
     new AvailableCarriersMessage(additionalData: true),
 );
 
@@ -171,11 +171,11 @@ use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 
 $quotes = $client->orders()->orderValuation(new CreateOrderMessage(
     order: OrderBuilder::create()
-        ->courier($anyCode)
-        ->shipmentType($type)
-        ->packs($packs)
-        ->sender($sender)
-        ->recipient($recipient)
+        ->setCourier($anyCode)
+        ->setShipmentType($type)
+        ->setPacks($packs)
+        ->setSender($sender)
+        ->setRecipient($recipient)
         ->build(),
 ));
 
@@ -199,7 +199,7 @@ use Polkurier\Webservice\Entity\Order\Cod;
 
 $order = OrderBuilder::create()
     // …
-    ->cod(new Cod(
+    ->setCod(new Cod(
         amount: 250.0,
         bankAccount: '34102010260000000000000001',
     ))
@@ -259,19 +259,19 @@ To send to the chosen point, set it on the recipient address:
 use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
 
 $recipient = AddressBuilder::create()
-    ->person('Anna Nowak')
-    ->street('')      // build() needs it, but a point recipient may leave it empty
-    ->city('Poznań')
-    ->postcode('61-001')
-    ->email('')       // likewise
-    ->phone('600700800')
-    ->pointId('POZ01A')
+    ->setPerson('Anna Nowak')
+    ->setStreet('')      // build() needs it, but a point recipient may leave it empty
+    ->setCity('Poznań')
+    ->setPostcode('61-001')
+    ->setEmail('')       // likewise
+    ->setPhone('600700800')
+    ->setPointId('POZ01A')
     ->build();
 ```
 
 For several carriers, a recipient collecting from a point needs no street address.
-[`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) accounts for this: an address with a point only needs the point and a phone
-number.
+[`OrderValidator`](../src/Validator/Message/OrderValidator.php) accounts for this: an address with a point only
+needs the point and a phone number.
 
 ---
 
@@ -279,7 +279,7 @@ Booking a collection
 --------------------
 
 For one shipment, book the collection with the order, through [`Order::setPickup()`](../src/Entity/Order.php).
-[`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
+[`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
 
 For several at once, if a collective pickup is available. Availability is decided per shipment,
 by its carrier and parcels, so check each one:
@@ -384,11 +384,11 @@ To compare against known states:
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 
-if ($status->statusCode === OrderStatusCodeEnum::Delivered->value) { … }
+if ($status->statusCode === OrderStatusCodeEnum::Delivered) { … }
 ```
 
-The status is a plain string, with an enum you can compare it to. If the API adds a new status,
-the comparison just does not match, and the response still maps.
+The status code is the enum case, or null for a value the SDK doesn't know. The response still
+maps, and the unknown value is recorded as drift.
 
 ---
 
@@ -455,7 +455,7 @@ function allOrders(PolkurierWebservice $client, GetOrdersMessageBuilder $filter)
     $page = 1;
 
     do {
-        $list = $client->orders()->getOrders($filter->page($page)->pageSize(100)->build());
+        $list = $client->orders()->getOrders($filter->setPage($page)->setPageSize(100)->build());
 
         yield from $list->result;
 
@@ -481,7 +481,7 @@ use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 
 // 1. Register against the operation the code will authorise.
-$token = $client->twoFactorToken()->twoFactorTokenRegister(
+$token = $client->twoFactorToken()->register(
     new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber),
 );
 
@@ -493,7 +493,7 @@ printf("Code sent to %s, valid until %s\n",
 // 2. The customer reads the code off their phone and gives it to you.
 
 // 3. Either verify it here …
-$validity = $client->twoFactorToken()->twoFactorTokenVerify(
+$validity = $client->twoFactorToken()->verify(
     new VerifyMessage(token: $token->id, code: $entered),
 );
 
@@ -507,13 +507,13 @@ lists:
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
 use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
 
-$client->twoFactorToken()->twoFactorTokenResend(new ResendMessage($token->id));
+$client->twoFactorToken()->resend(new ResendMessage($token->id));
 
 foreach ($token->availableMethods as $method) {   // TransportMethodMessage[]
     // Offer $method->name. Its type is a TwoFactorTransportTypeEnum for your own labels.
 }
 
-$token = $client->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+$token = $client->twoFactorToken()->changeTransportMethod(
     new ChangeTransportMethodMessage(token: $token->id, method: $chosen->id),
 );
 ```
@@ -534,7 +534,7 @@ use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 
-$config = $client->moneyBox()->getConfig();         // MoneyBoxConfigMessage, the saved destination
+$config = $client->moneyBox()->getMoneyBoxConfig();         // MoneyBoxConfigMessage, the saved destination
 $fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
 
 $payout = $client->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
@@ -544,7 +544,7 @@ $payout = $client->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
 ));
 
 printf("Payout %s for %.2f PLN is %s\n",
-    $payout->number, $payout->amount, $payout->status);
+    $payout->number, $payout->amount, $payout->status->value ?? '');
 ```
 
 > This moves real money, and there is no idempotency key. If [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) throws a
@@ -585,7 +585,7 @@ Several responses stay the same for hours or days and are slow to fetch:
 | [`KnowledgeBaseServiceInterface::getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Hours |
 | [`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | Days. Account-specific |
 | [`SystemServiceInterface::getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | Hours |
-| [`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Minutes to hours. Account-specific |
+| [`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Minutes to hours. Account-specific |
 
 You can cache around a single call, which is the simplest option:
 

@@ -11,13 +11,11 @@ use Polkurier\Webservice\Api\MessageInterface;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
 use Polkurier\Webservice\Http\Response\KeepsRawResponseTrait;
 use Polkurier\Webservice\Serializer\Attribute\Base64;
-use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 use Symfony\Component\Serializer\Attribute as Serializer;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 /**
  * A document attached to an order.
- *
- * The hash identifies the content and stays the same across downloads.
  *
  * @api
  */
@@ -40,41 +38,27 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
      * @param string $name filename
      * @param string $type media type
      * @param int $size size in bytes
-     * @param string $hash content hash, stable across downloads
-     * @param \DateTimeInterface|null $dateCreated when the document was attached, null if unknown
+     * @param string $hash the file's hash, empty when the API sends none
+     * @param \DateTimeInterface|null $dateCreated when the file was attached, null when the API
+     *        sends none
      * @param string $file the file's bytes
      * @param string|null $rawResponse the body of the response, as the API sent it
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TYPE)]
         public string $type = '',
 
-        /**
-         * @var int
-         */
         #[Serializer\SerializedName(self::FIELD_SIZE)]
         public int $size = 0,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_HASH)]
         public string $hash = '',
 
-        /**
-         * @var \DateTimeInterface|null
-         */
         #[Serializer\SerializedName(self::FIELD_DATE_CREATED)]
-        #[OmitWhenEmpty]
+        #[Serializer\Context([DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::ATOM])]
         public ?\DateTimeInterface $dateCreated = null,
 
         /**
@@ -86,9 +70,6 @@ final readonly class OrderFileMessage implements MessageInterface, ParsedRespons
         #[Base64]
         public string $file = '',
 
-        /**
-         * @var string|null
-         */
         #[Serializer\Ignore]
         private ?string $rawResponse = null,
     ) {}

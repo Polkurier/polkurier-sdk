@@ -32,9 +32,6 @@ final readonly class ExternalApplicationSettingMessage implements MessageInterfa
      * @param string|int|float|bool|null $value the setting's value
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_NAME)]
         public string $name,
 

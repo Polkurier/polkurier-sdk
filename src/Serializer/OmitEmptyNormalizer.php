@@ -7,8 +7,9 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
-use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
@@ -23,8 +24,6 @@ use Symfony\Component\Serializer\SerializerInterface;
  * It wraps the object normalizer. The wrapped normalizer builds the payload, and this one removes
  * the keys that shouldn't be there. Keys are matched by wire name, since that is what the wrapped
  * normalizer returns.
- *
- * It also leaves out the fields marked {@see ResponseOnly}, which the API sends but never reads.
  *
  * The list of fields is read once per class and cached, to avoid reflection on every request.
  */
@@ -67,6 +66,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -79,14 +79,10 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
             return $normalized;
         }
 
-        foreach (static::omittedFor($data::class) as $field) {
+        foreach (static::readOmittedFields($data::class) as $field) {
             if (\array_key_exists($field, $normalized) && static::isEmpty($normalized[$field])) {
                 unset($normalized[$field]);
             }
-        }
-
-        foreach (static::findFieldsMarkedWith($data::class, ResponseOnly::class) as $field) {
-            unset($normalized[$field]);
         }
 
         return $normalized;
@@ -111,6 +107,9 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      * @param array<string, mixed> $context
      *
      * @return mixed
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
@@ -161,7 +160,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
      *
      * @return string[]
      */
-    protected static function omittedFor(string $class): array
+    protected static function readOmittedFields(string $class): array
     {
         return static::findFieldsMarkedWith($class, OmitWhenEmpty::class);
     }
@@ -181,7 +180,7 @@ class OmitEmptyNormalizer implements NormalizerInterface, DenormalizerInterface,
         }
 
         $fields = [];
-        foreach (ClassMembers::readMarkedWith($class, $attributeClass) as $member) {
+        foreach (ClassMemberReader::readMarkedWith($class, $attributeClass) as $member) {
             $fields[] = WireNameReader::read($member);
         }
 

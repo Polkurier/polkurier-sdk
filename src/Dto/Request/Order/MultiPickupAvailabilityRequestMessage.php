@@ -42,9 +42,6 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
      * @param ShipmentTypeEnum|null $shipmentType
      */
     public function __construct(
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[Validate\NotBlank]
         public string $courier,
@@ -57,16 +54,10 @@ final readonly class MultiPickupAvailabilityRequestMessage implements MessageInt
         #[Validate\Each(Validate\OfType::class, PackItem::class)]
         public array $packs,
 
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_SENDER_POST_CODE)]
         #[OmitWhenEmpty]
         public ?string $senderPostCode = null,
 
-        /**
-         * @var ShipmentTypeEnum|null
-         */
         #[Serializer\SerializedName(self::FIELD_SHIPMENT_TYPE)]
         #[OmitWhenEmpty]
         public ?ShipmentTypeEnum $shipmentType = null,

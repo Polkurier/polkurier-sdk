@@ -27,7 +27,7 @@ class RegisterPaymentMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function mode(PaymentModeEnum $mode): static
+    public function setMode(PaymentModeEnum $mode): static
     {
         return $this->set('mode', $mode);
     }
@@ -37,7 +37,7 @@ class RegisterPaymentMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function amount(?float $amount): static
+    public function setAmount(?float $amount): static
     {
         return $this->set('amount', $amount);
     }
@@ -47,7 +47,7 @@ class RegisterPaymentMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function invoiceNumbers(array $invoiceNumbers): static
+    public function setInvoiceNumbers(array $invoiceNumbers): static
     {
         return $this->set('invoiceNumbers', $invoiceNumbers);
     }
@@ -57,7 +57,7 @@ class RegisterPaymentMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function orderNumbers(array $orderNumbers): static
+    public function setOrderNumbers(array $orderNumbers): static
     {
         return $this->set('orderNumbers', $orderNumbers);
     }

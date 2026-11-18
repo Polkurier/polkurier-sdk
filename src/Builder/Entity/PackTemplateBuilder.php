@@ -26,7 +26,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function name(string $name): static
+    public function setName(string $name): static
     {
         return $this->set('name', $name);
     }
@@ -36,7 +36,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function shipmentType(ShipmentTypeEnum $shipmentType): static
+    public function setShipmentType(ShipmentTypeEnum $shipmentType): static
     {
         return $this->set('shipmentType', $shipmentType);
     }
@@ -46,7 +46,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function id(?string $id): static
+    public function setId(?string $id): static
     {
         return $this->set('id', $id);
     }
@@ -56,7 +56,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function cod(float $cod): static
+    public function setCod(float $cod): static
     {
         return $this->set('cod', $cod);
     }
@@ -66,7 +66,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function insurance(float $insurance): static
+    public function setInsurance(float $insurance): static
     {
         return $this->set('insurance', $insurance);
     }
@@ -76,7 +76,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function description(string $description): static
+    public function setDescription(string $description): static
     {
         return $this->set('description', $description);
     }
@@ -86,7 +86,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function courier(?string $courier): static
+    public function setCourier(?string $courier): static
     {
         return $this->set('courier', $courier);
     }
@@ -96,7 +96,7 @@ class PackTemplateBuilder extends PackBuilder
      *
      * @return static
      */
-    public function services(array $services): static
+    public function setServices(array $services): static
     {
         return $this->set('services', $services);
     }

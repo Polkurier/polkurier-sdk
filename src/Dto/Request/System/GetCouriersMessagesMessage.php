@@ -28,9 +28,6 @@ final readonly class GetCouriersMessagesMessage implements MessageInterface
      * @param string|null $courier carrier code, e.g. `DPD`
      */
     public function __construct(
-        /**
-         * @var string|null
-         */
         #[Serializer\SerializedName(self::FIELD_COURIER)]
         #[OmitWhenEmpty]
         public ?string $courier = null,

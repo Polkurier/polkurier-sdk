@@ -28,9 +28,6 @@ final readonly class RegisterMessage implements MessageInterface
      * @param TwoFactorNamespaceEnum $namespace the operation the token will authorise
      */
     public function __construct(
-        /**
-         * @var TwoFactorNamespaceEnum
-         */
         #[Serializer\SerializedName(self::FIELD_NAMESPACE)]
         public TwoFactorNamespaceEnum $namespace,
     ) {}

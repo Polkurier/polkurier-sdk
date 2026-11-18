@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Validator\Rule;
 use Attribute;
 use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
@@ -34,57 +34,53 @@ class RequiredWhen implements MessageRuleInterface
      * @param string|null $reason the report's wording, in place of the default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $field,
 
-        /**
-         * @var string
-         */
         public readonly string $property,
 
-        /**
-         * @var mixed
-         */
         public readonly mixed $equals = true,
 
-        /**
-         * @var string|null
-         */
         public readonly ?string $reason = null,
     ) {}
 
     /**
-     * @param MessageFields $fields
+     * @param MessageFieldReader $fields
      * @param ViolationPool $violations
      *
      * @return void
      * @throws InvalidArgumentException
      */
-    public function validate(MessageFields $fields, ViolationPool $violations): void
+    public function validate(MessageFieldReader $fields, ViolationPool $violations): void
     {
-        if ($fields->value($this->property) !== $this->equals) {
+        if ($fields->readValue($this->property) !== $this->equals) {
             return;
         }
 
-        if ((new NotBlank())->validate($fields->value($this->field)) === []) {
+        if ((new NotBlank())->validate($fields->readValue($this->field)) === []) {
             return;
         }
 
-        $property = $fields->field($this->property);
-        $parameters = ['field' => $property, 'condition' => $this->condition()];
-        $value = $this->conditionValue();
+        $property = $fields->readField($this->property);
+        $parameters = ['field' => $property, 'condition' => $this->getCondition()];
+        $value = $this->getConditionValue();
         if ($value !== null) {
             $parameters['equals'] = $value;
         }
 
         $violations->add(
-            $fields->field($this->field),
-            $this->reason ?? $this->reason($property),
+            $fields->readField($this->field),
+            $this->reason ?? $this->buildReason($property),
             ValidationErrorCodeEnum::Blank,
             $parameters,
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function listProperties(): array
+    {
+        return [$this->field, $this->property];
     }
 
     /**
@@ -97,15 +93,15 @@ class RequiredWhen implements MessageRuleInterface
      *
      * @return string
      */
-    protected function reason(string $property): string
+    protected function buildReason(string $property): string
     {
-        return match ($this->condition()) {
+        return match ($this->getCondition()) {
             'set' => \sprintf('is required when %s is set', $property),
             'not_set' => \sprintf('is required when %s is not set', $property),
             'empty' => \sprintf('is required when %s is empty', $property),
-            default => $this->conditionValue() === null
+            default => $this->getConditionValue() === null
                 ? \sprintf('is required when %s has that value', $property)
-                : \sprintf('is required when %s is %s', $property, $this->conditionValue()),
+                : \sprintf('is required when %s is %s', $property, $this->getConditionValue()),
         };
     }
 
@@ -117,7 +113,7 @@ class RequiredWhen implements MessageRuleInterface
      *
      * @return string one of `set`, `not_set`, `empty` or `equals`
      */
-    protected function condition(): string
+    protected function getCondition(): string
     {
         return match (true) {
             $this->equals === true => 'set',
@@ -135,9 +131,9 @@ class RequiredWhen implements MessageRuleInterface
      *
      * @return scalar|null
      */
-    protected function conditionValue(): string|int|float|bool|null
+    protected function getConditionValue(): string|int|float|bool|null
     {
-        if ($this->condition() !== 'equals') {
+        if ($this->getCondition() !== 'equals') {
             return null;
         }
         if ($this->equals instanceof \BackedEnum) {

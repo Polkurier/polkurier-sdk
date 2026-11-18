@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Dto\Response\Order;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 use Symfony\Component\Serializer\Attribute as Serializer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
@@ -31,7 +32,7 @@ final readonly class TrackingEventMessage implements MessageInterface
 
     /**
      * @param \DateTimeInterface|null $statusDate
-     * @param string $statusCode Polkurier's status code, e.g. "WP"
+     * @param OrderStatusCodeEnum|null $statusCode the event's status code
      * @param string $status Polkurier's status label
      * @param string $trackingStatus the carrier's own status name
      * @param string $location where the scan happened, empty when the carrier doesn't say
@@ -46,20 +47,14 @@ final readonly class TrackingEventMessage implements MessageInterface
         public ?\DateTimeInterface $statusDate = null,
 
         /**
-         * @var string
+         * @var OrderStatusCodeEnum|null null for a value the SDK doesn't know
          */
         #[Serializer\SerializedName(self::FIELD_STATUS_CODE)]
-        public string $statusCode = '',
+        public ?OrderStatusCodeEnum $statusCode = null,
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_STATUS)]
         public string $status = '',
 
-        /**
-         * @var string
-         */
         #[Serializer\SerializedName(self::FIELD_TRACKING_STATUS)]
         public string $trackingStatus = '',
 

@@ -7,20 +7,23 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Reads a list of enum values, leaving out and recording the values the enum doesn't know, as
- * {@see LenientEnumDenormalizer::read()} does for one value.
+ * {@see LenientEnumDenormalizer::read()} does for one value. A value the list repeats is kept
+ * once, under the first key it arrived under, since a case says what it says however often it is
+ * sent.
  *
  * It only acts when the context holds a
  * {@see \Polkurier\Webservice\Serializer\ResponseDriftCollector}, and runs before the array
  * normalizer, so the list only holds enum cases. Without a collector it steps aside, and an unknown
  * value fails as usual.
  *
- * A list can also arrive as a JSON object with numeric keys, e.g. `{"1": "ROD"}`. When every key is
- * numeric, the keys are dropped and the result is a plain list. Otherwise the keys are kept.
+ * A list can also arrive as an object, e.g. `{"1": "ROD"}`. PHP reads a key that spells an integer
+ * as an integer, so when every key is an integer the keys are dropped and the result is a plain
+ * list. A key that spells a number any other way, e.g. `"01"`, stays a string, and the field holds
+ * a map under the keys as they arrived.
  */
 class EnumListDenormalizer implements DenormalizerInterface
 {
@@ -34,28 +37,28 @@ class EnumListDenormalizer implements DenormalizerInterface
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): array
     {
-        /** @var class-string<\BackedEnum> $enum */
         $enum = \substr($type, 0, -2);
-        /** @var array<array-key, mixed> $data */
-        $path = $context['deserialization_path'] ?? null;
-        $drift = ResponseDriftCollector::fromContext($context);
+        $path = $context[ResponseDriftCollector::PATH_KEY] ?? null;
+        $drift = ResponseDriftCollector::findInContext($context);
         $cases = [];
+        $seen = [];
         foreach ($data as $key => $value) {
             $case = LenientEnumDenormalizer::read(
                 $enum,
                 $value,
                 (\is_string($path) ? $path : '') . '[' . $key . ']',
                 $drift,
-                $format === CsvEncoder::FORMAT,
             );
-            if ($case !== null) {
-                $cases[$key] = $case;
+            if ($case === null || isset($seen[$case->value])) {
+                continue;
             }
+            $seen[$case->value] = true;
+            $cases[$key] = $case;
         }
 
-        $numericKeys = \array_filter(\array_keys($data), \is_int(...)) === \array_keys($data);
+        $integerKeys = \array_filter(\array_keys($data), \is_int(...)) === \array_keys($data);
 
-        return $numericKeys ? \array_values($cases) : $cases;
+        return $integerKeys ? \array_values($cases) : $cases;
     }
 
     /**
@@ -72,7 +75,7 @@ class EnumListDenormalizer implements DenormalizerInterface
         ?string $format = null,
         array $context = [],
     ): bool {
-        return ResponseDriftCollector::fromContext($context) !== null
+        return ResponseDriftCollector::findInContext($context) !== null
             && \is_array($data)
             && \str_ends_with($type, '[]')
             && \is_subclass_of(\substr($type, 0, -2), \BackedEnum::class);

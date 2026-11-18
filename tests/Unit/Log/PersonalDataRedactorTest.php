@@ -29,7 +29,7 @@ use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\Log\Attribute\PersonalData;
 use Polkurier\Webservice\Log\PersonalDataRedactor;
-use Polkurier\Webservice\Serializer\ClassMembers;
+use Polkurier\Webservice\Serializer\ClassMemberReader;
 use Polkurier\Webservice\Serializer\WireNameReader;
 use Polkurier\Webservice\Test\Support\SourceClasses;
 
@@ -111,7 +111,7 @@ final class PersonalDataRedactorTest extends TestCase
     {
         $cases = [];
         foreach (SourceClasses::instantiableUnder() as $name => $class) {
-            foreach (ClassMembers::readMarkedWith($class, PersonalData::class) as $member) {
+            foreach (ClassMemberReader::readMarkedWith($class, PersonalData::class) as $member) {
                 $field = WireNameReader::read($member);
                 $cases[$name . ' ' . $field] = [$class, $field];
             }
@@ -265,6 +265,33 @@ final class PersonalDataRedactorTest extends TestCase
      *
      * @param class-string $class
      * @param array<string, mixed> $fields
+     *
+     * @return array<array-key, mixed>
+     */
+    /**
+     * A contact form names its own fields, so a field name can be anything the form chooses,
+     * including something that spells a number. `json_decode` reads the key of `{"17": …}` as the
+     * integer 17, and a mark is keyed by the wire name as written, so a level whose keys a class
+     * declares is read as an object whatever its keys spell.
+     *
+     * @return void
+     */
+    public function testAFieldWhoseNameSpellsANumberIsStillMasked(): void
+    {
+        self::assertSame(
+            ['17' => PersonalDataRedactor::MASK, 'name' => PersonalDataRedactor::MASK],
+            self::redacted(SaveContactFormMessage::class, ['17' => 'Jan Kowalski', 'name' => 'Jan Kowalski']),
+        );
+    }
+
+    /**
+     * The fields as a logged body carries them: under one key, walked beside the class that wrote
+     * them. A class map names the keys of the level below the body's own, and which key that is
+     * belongs to the caller, not to the redactor.
+     *
+     * @param class-string $class
+     * @param array<array-key, mixed> $fields the keys as PHP holds them: a wire name that spells a
+     *        number is an integer here, as it is after the body is decoded
      *
      * @return array<array-key, mixed>
      */

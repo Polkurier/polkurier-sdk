@@ -23,7 +23,7 @@ class PhoneNumberBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function number(string $number): static
+    public function setNumber(string $number): static
     {
         return $this->set('number', $number);
     }
@@ -33,7 +33,7 @@ class PhoneNumberBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function name(string $name): static
+    public function setName(string $name): static
     {
         return $this->set('name', $name);
     }
@@ -43,7 +43,7 @@ class PhoneNumberBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function default(bool $default): static
+    public function setDefault(bool $default): static
     {
         return $this->set('default', $default);
     }

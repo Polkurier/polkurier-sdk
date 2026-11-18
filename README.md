@@ -34,7 +34,7 @@ $client = new PolkurierWebservice(new Config(
     platformVersion: '1.0.0',
 ));
 
-$carriers = $client->courier()->availableCarriers();   // Carrier[]
+$carriers = $client->courier()->getAvailableCarriers();   // Carrier[]
 ```
 
 The full documentation is in [`./docs`](docs/README.md). There are pages on
@@ -102,10 +102,10 @@ payloads each have a builder under `Polkurier\Webservice\Builder`:
 ```php
 use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 
-$search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
+$search = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT']);
 
 if ($query !== null) {
-    $search->searchQuery($query);
+    $search->setSearchQuery($query);
 }
 
 $points = $client->courier()->findCourierPoints($search->build());

@@ -26,7 +26,7 @@ abstract class PackBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function length(int $length): static
+    public function setLength(int $length): static
     {
         return $this->set('length', $length);
     }
@@ -36,7 +36,7 @@ abstract class PackBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function width(int $width): static
+    public function setWidth(int $width): static
     {
         return $this->set('width', $width);
     }
@@ -46,7 +46,7 @@ abstract class PackBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function height(int $height): static
+    public function setHeight(int $height): static
     {
         return $this->set('height', $height);
     }
@@ -56,7 +56,7 @@ abstract class PackBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function weight(float $weight): static
+    public function setWeight(float $weight): static
     {
         return $this->set('weight', $weight);
     }
@@ -66,7 +66,7 @@ abstract class PackBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function type(PackTypeEnum $type): static
+    public function setType(PackTypeEnum $type): static
     {
         return $this->set('type', $type);
     }

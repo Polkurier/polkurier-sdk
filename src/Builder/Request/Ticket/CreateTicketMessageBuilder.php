@@ -25,7 +25,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function topicId(string $topicId): static
+    public function setTopicId(string $topicId): static
     {
         return $this->set('topicId', $topicId);
     }
@@ -35,7 +35,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function content(string $content): static
+    public function setContent(string $content): static
     {
         return $this->set('content', $content);
     }
@@ -45,7 +45,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function name(string $name): static
+    public function setName(string $name): static
     {
         return $this->set('name', $name);
     }
@@ -55,7 +55,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function origin(?TicketOriginEnum $origin): static
+    public function setOrigin(?TicketOriginEnum $origin): static
     {
         return $this->set('origin', $origin);
     }
@@ -65,7 +65,7 @@ class CreateTicketMessageBuilder extends AbstractBuilder
      *
      * @return static
      */
-    public function files(array $files): static
+    public function setFiles(array $files): static
     {
         return $this->set('files', $files);
     }

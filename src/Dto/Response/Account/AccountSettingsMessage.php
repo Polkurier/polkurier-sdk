@@ -28,19 +28,13 @@ final readonly class AccountSettingsMessage implements MessageInterface
 
     /**
      * @param bool $deliveryPickupMyself the customer usually hands parcels over instead of
-     *                                   booking a collection
+     *        booking a collection
      * @param bool $coverAddressSenderChecked the alternative return address is normally enabled
      */
     public function __construct(
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_DELIVERY_PICKUP_MYSELF)]
         public bool $deliveryPickupMyself = false,
 
-        /**
-         * @var bool
-         */
         #[Serializer\SerializedName(self::FIELD_COVER_ADDRESS_SENDER_CHECKED)]
         public bool $coverAddressSenderChecked = false,
     ) {}
