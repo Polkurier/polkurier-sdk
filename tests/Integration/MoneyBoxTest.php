@@ -9,10 +9,10 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
-use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 
 #[Group('integration')]
 #[CoversNothing]
@@ -20,12 +20,12 @@ final class MoneyBoxTest extends IntegrationTestCase
 {
     public function testTheConfigReads(): void
     {
-        $this->assertReads(fn() => $this->sdk->moneyBox()->getConfig());
+        $this->assertReads(fn() => $this->sdk->moneyBox()->getMoneyBoxConfig());
     }
 
     public function testThePayoutFeeIsQuoted(): void
     {
-        self::assertGreaterThanOrEqual(0.0, $this->sdk->moneyBox()->calculatePayoutFee()->getFee());
+        self::assertGreaterThanOrEqual(0.0, $this->sdk->moneyBox()->calculatePayoutFee()->fee);
     }
 
     public function testPayoutsRead(): void

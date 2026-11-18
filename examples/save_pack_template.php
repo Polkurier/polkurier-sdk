@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,7 +24,7 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $template = polkurier()->packTemplates()->savePackTemplates(new SaveMessage(
+    $template = polkurier()->packTemplates()->savePackTemplates(new PackTemplate(
         name: 'Karton A',
         length: 30,
         width: 20,

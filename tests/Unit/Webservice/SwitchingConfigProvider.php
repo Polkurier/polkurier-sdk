@@ -15,7 +15,9 @@ use Polkurier\Webservice\Api\ConfigProviderInterface;
  */
 final class SwitchingConfigProvider implements ConfigProviderInterface
 {
-    public function __construct(public ConfigInterface $current) {}
+    public function __construct(
+        public ConfigInterface $current,
+    ) {}
 
     public function getConfig(): ConfigInterface
     {

@@ -10,14 +10,17 @@ namespace Polkurier\Webservice\Serializer;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 
 /**
- * One way a response differed from what this version of the SDK expects, and was read anyway.
+ * One way a response differed from what the SDK expects, and was read anyway.
+ *
+ * @api
  */
 readonly class ResponseDrift
 {
     /**
      * @param ResponseDriftTypeEnum $type
-     * @param string $path where in the response, by PHP property name, e.g. `[0].serviceCode`. An
-     *        unknown field keeps the API's name, e.g. `[0].brand_new`
+     * @param string $path where in the response, by PHP property name, e.g. `[0].serviceCode`. A
+     *        field the SDK doesn't know keeps the API's name, e.g. `[0].brand_new`, and so does one
+     *        a response fix reports, which runs before any property is matched
      * @param mixed $value the value as the API sent it, null for a missing field
      * @param string|null $expected the type the SDK expected: a PHP type, a class or an enum
      */
@@ -25,53 +28,21 @@ readonly class ResponseDrift
         /**
          * @var ResponseDriftTypeEnum
          */
-        private ResponseDriftTypeEnum $type,
+        public ResponseDriftTypeEnum $type,
 
         /**
          * @var string
          */
-        private string $path,
+        public string $path,
 
         /**
          * @var mixed
          */
-        private mixed $value = null,
+        public mixed $value = null,
 
         /**
          * @var string|null
          */
-        private ?string $expected = null,
+        public ?string $expected = null,
     ) {}
-
-    /**
-     * @return ResponseDriftTypeEnum
-     */
-    public function getType(): ResponseDriftTypeEnum
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getValue(): mixed
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return string|null null for an unknown field
-     */
-    public function getExpected(): ?string
-    {
-        return $this->expected;
-    }
 }

@@ -188,10 +188,9 @@ declare(strict_types=1);
 namespace YourVendor\WooPolkurier;
 
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Config;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\PolkurierWebservice;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Serializer\SerializerConfig;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Serializer\SerializerProvider;
 use YourVendor\WooPolkurier\Vendor\Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 final class Client
@@ -218,9 +217,9 @@ final class Client
                 sandbox: ($settings['sandbox'] ?? 'yes') === 'yes',
             ),
             logger: new WooLogger(),
-            serializerProvider: new SerializerProvider(new SerializerConfig(
+            serializerConfig: new SerializerConfig(
                 metadataCache: new PhpFilesAdapter('polkurier', 0, $upload['basedir'] . '/polkurier-cache'),
-            )),
+            ),
         );
     }
 }
@@ -240,15 +239,18 @@ use Psr\Log\AbstractLogger;
 
 final class WooLogger extends AbstractLogger
 {
-    public function log($level, \Stringable|string $message, array $context = []): void
+    // Untyped, because psr/log 1.x and 2.x declare the parameter without a type and a child
+    // may not narrow it.
+    public function log($level, $message, array $context = []): void
     {
         wc_get_logger()->log((string)$level, (string)$message, ['source' => 'polkurier']);
     }
 }
 ```
 
-`$context` is not logged. The request and response in it are prepared like the message, but the
-exceptions in it can hold the full request, API token included.
+`$context` is not logged. The request and response in it are prepared like the message, and an
+exception in it is reduced to its class name until `logSensitiveData` and `logPersonalData` are
+both on, when it can hold the full request, API token included.
 
 Placing the shipment
 --------------------
@@ -305,10 +307,10 @@ final class ShipmentDispatcher
             throw $e;
         }
 
-        $order->update_meta_data('_polkurier_number', $created->getOrderNumber());
+        $order->update_meta_data('_polkurier_number', $created->orderNumber);
         $order->add_order_note(sprintf(
             __('Polkurier shipment %s created.', 'woo-polkurier'),
-            $created->getOrderNumber(),
+            $created->orderNumber,
         ));
         $order->save();
     }
@@ -335,48 +337,48 @@ declare(strict_types=1);
 namespace YourVendor\WooPolkurier;
 
 use WC_Order;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Order\PackMessageBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\Order\PackItemBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use YourVendor\WooPolkurier\Vendor\Polkurier\Webservice\Request\Order\CreateOrderMessage;
 
 final class OrderMapper
 {
     public function toMessage(WC_Order $order): CreateOrderMessage
     {
-        $recipient = OrderAddressMessageBuilder::create()
-            ->person(trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name()))
-            ->street($order->get_shipping_address_1())
-            ->houseNumber($order->get_shipping_address_2() ?: '1')
-            ->city($order->get_shipping_city())
-            ->postcode($order->get_shipping_postcode())
-            ->phone($order->get_billing_phone())
-            ->email($order->get_billing_email());
+        $recipient = AddressBuilder::create()
+            ->setPerson(trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name()))
+            ->setStreet($order->get_shipping_address_1())
+            ->setHouseNumber($order->get_shipping_address_2() ?: '1')
+            ->setCity($order->get_shipping_city())
+            ->setPostcode($order->get_shipping_postcode())
+            ->setPhone($order->get_billing_phone())
+            ->setEmail($order->get_billing_email());
 
         if ($order->get_shipping_company()) {
-            $recipient->company($order->get_shipping_company());
+            $recipient->setCompany($order->get_shipping_company());
         }
 
         if ($pointId = $order->get_meta('_polkurier_point_id')) {
-            $recipient->pointId($pointId);
+            $recipient->setPointId($pointId);
         }
 
-        $pack = PackMessageBuilder::create()
-            ->length(30)->width(20)->height(15)
-            ->weight($this->weightKg($order))
-            ->type(PackTypeEnum::Standard)
+        $pack = PackItemBuilder::create()
+            ->setLength(30)->setWidth(20)->setHeight(15)
+            ->setWeight($this->weightKg($order))
+            ->setType(PackTypeEnum::Standard)
             ->build();
 
-        return CreateOrderMessageBuilder::create()
-            ->courier((string)$order->get_meta('_polkurier_carrier'))
-            ->shipmentType(ShipmentTypeEnum::Box)
-            ->packs([$pack])
-            ->sender((new WarehouseAddress())->build())
-            ->recipient($recipient->build())
-            ->description('#' . $order->get_order_number())
-            ->build();
+        return new CreateOrderMessage(order: OrderBuilder::create()
+            ->setCourier((string)$order->get_meta('_polkurier_carrier'))
+            ->setShipmentType(ShipmentTypeEnum::Box)
+            ->setPacks([$pack])
+            ->setSender((new WarehouseAddress())->build())
+            ->setRecipient($recipient->build())
+            ->setDescription('#' . $order->get_order_number())
+            ->build());
     }
 
     private function weightKg(WC_Order $order): float
@@ -496,7 +498,7 @@ add_filter('handle_bulk_actions-woocommerce_page_wc-orders', static function (
 
     header('Content-Type: application/pdf');
     header('Content-Disposition: attachment; filename="polkurier-labels.pdf"');
-    echo $document->getDecodedFile();
+    echo $document->file;
     exit;
 }, 10, 3);
 ```

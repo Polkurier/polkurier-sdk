@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * The type of an individual parcel within an order.
  *
  * Carriers differ in which types they accept and how they price them.
+ *
+ * @api
  */
 enum PackTypeEnum: string
 {

@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Account;
  *
  * Required on the payer address only, and not used on the other 2. A business has a tax
  * identification number.
+ *
+ * @api
  */
 enum PayerUserTypeEnum: string
 {

@@ -23,7 +23,7 @@ try {
         exit(0);
     }
 
-    \printf("%s: %s\n", $verification->getVerificationId(), $verification->getStatus());
+    \printf("%s: %s\n", $verification->verificationId, $verification->status->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

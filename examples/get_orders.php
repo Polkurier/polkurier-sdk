@@ -11,8 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+
 
 require __DIR__ . '/bootstrap.php';
 
@@ -29,11 +30,11 @@ try {
                 packs: true,
             ));
 
-        foreach ($list->getResult() as $order) {
+        foreach ($list->result as $order) {
             \printf(
                 "%-16s %-12s %-28s %8.2f PLN\n",
                 $order->getNumber(),
-                $order->getStatusCode(),
+                $order->getStatusCode()->value ?? '',
                 $order->getCourierName() ?? $order->getCourier(),
                 $order->getPriceGross()
             );
@@ -41,13 +42,14 @@ try {
 
         \printf(
             "-- page %d of %d (%d orders total)\n",
-            $list->getCurrentPage(),
-            $list->getTotalPages(),
-            $list->getTotalRows(),
+            $list->currentPage,
+            $list->totalPages,
+            $list->totalRows,
         );
         $page++;
-    } while ($page <= $list->getTotalPages());
+    } while ($page <= $list->totalPages);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);
 }
+

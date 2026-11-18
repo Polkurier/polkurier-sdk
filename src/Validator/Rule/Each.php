@@ -8,18 +8,17 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 
 /**
  * Applies a rule to every entry of a list.
  *
- * For lists of plain values, such as order numbers or waybill numbers, where each entry has its own
- * format. A list of objects takes {@see \Polkurier\Webservice\Validator\Rule\Valid} instead, so
- * each object applies its own rules.
+ * For lists of plain values, such as order numbers or waybill numbers, where each entry has its
+ * own format. A list of objects needs no rule here: every entry the SDK sends is walked and
+ * applies the rules it declares itself.
  *
  * Failures are reported with the index, e.g. `orderno[1]`. Arguments after the rule class go to
- * its constructor, e.g. `#[Each(OfType::class, PackMessage::class)]`.
+ * its constructor, e.g. `#[Each(OfType::class, PackItem::class)]`.
  *
  * ```php
  * #[NotEmptyList]
@@ -64,9 +63,8 @@ class Each
     /**
      * @return ValueValidatorInterface
      */
-    public function rule(): ValueValidatorInterface
+    public function makeRule(): ValueValidatorInterface
     {
-        /** @var ValueValidatorInterface */
         return new ($this->rule)(...$this->arguments);
     }
 }

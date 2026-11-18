@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Ticket\GetTicketMessageFileMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Ticket\GetTicketMessageFileMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -26,10 +26,10 @@ try {
         new GetTicketMessageFileMessage(messageId: $messageId, filename: $filename)
     );
 
-    $path = \sys_get_temp_dir() . '/' . $file->getName();
-    \file_put_contents($path, $file->getDecodedFile());
+    $path = \sys_get_temp_dir() . '/' . \basename($file->name);
+    \file_put_contents($path, $file->file);
 
-    \printf("Saved %s (%s, %d bytes)\n", $path, $file->getType(), $file->getSize());
+    \printf("Saved %s (%s, %d bytes)\n", $path, $file->type, $file->size);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

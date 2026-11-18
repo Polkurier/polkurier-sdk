@@ -7,7 +7,7 @@ Building the client
 | Route | Use when | Where |
 |-------|----------|-------|
 | [`new PolkurierWebservice(new Config(…))`](../src/PolkurierWebservice.php) | Scripts, cron, small applications | [Getting started](getting-started.md) |
-| Facade with substituted collaborators | You need your own HTTP client, serializer or validator | [Architecture](architecture.md#extension-points) |
+| Facade with substituted collaborators | Your own HTTP client, validator or serializer settings | [Architecture](architecture.md#extension-points) |
 | Facade with `services: [Foo::class => $bar]` | One service needs to behave differently | [Architecture](architecture.md#substituting-a-service) |
 | Wiring a service by hand, no facade | A container is doing the wiring | [Architecture](architecture.md#not-using-the-facade-at-all) |
 
@@ -38,7 +38,7 @@ Building a request payload
 | The constructor, named arguments | Every value is to hand | [Messages](messages.md#three-ways-to-build-one) |
 | A [builder](builders.md) | Fields are conditional, or assembled across steps |
 | `new Message(...$array)` | Input is already an associative array you have validated | [Messages](messages.md#three-ways-to-build-one) |
-| Subclassing a message | The API grew a field the SDK has not caught up with | [Messages](messages.md#extending-a-message) |
+| Subclassing an order, address or another stored record | The API grew a field the SDK has not caught up with | [Messages](messages.md#extending-a-message) |
 
 All 4 go through the same validation at the same point.
 
@@ -60,15 +60,15 @@ Reading orders back
 |-------|---------|
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) | One order's current state. Fast. |
 | [`OrdersServiceInterface::getStatus()`](../src/Api/Service/OrdersServiceInterface.php) with `tracking: true` | The same, plus the carrier's scan history. Slower. |
-| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Response/Order.php) objects. |
+| [`OrdersServiceInterface::getOrders()`](../src/Api/Service/OrdersServiceInterface.php) | Querying and reconciliation. Paged, filterable, full [`Order`](../src/Entity/Order.php) objects. |
 
 Paging
 ------
 
 | Route | Use when |
 |-------|----------|
-| `while ($page <= $list->getTotalPages())` | [`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
-| Stop when a page comes back short | [`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
+| `while ($page <= $list->totalPages)` | [`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php) |
+| Stop when a page comes back short | [`InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php) (no page count) |
 | A generator wrapping either | Application code that just wants to iterate |
 
 [Recipes](recipes.md#paging-through-a-list) shows both loops.
@@ -108,14 +108,10 @@ Invoices
 Documents in general
 --------------------
 
-Every document response ([`DocumentMessage`](../src/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Response/Order/OrderFileMessage.php),
-[`InvoiceDocumentMessage`](../src/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Response/Invoice/InvoiceSummaryListMessage.php) and
-[`TicketFileContentMessage`](../src/Response/Ticket/TicketFileContentMessage.php)) has the same two getters:
-
-| Route | Gives you |
-|-------|-----------|
-| [`DocumentMessage::getFile()`](../src/Response/Order/DocumentMessage.php) and the same on the others | Base64, as received, e.g. for a `data:` URI or to pass the file on |
-| [`DocumentMessage::getDecodedFile()`](../src/Response/DecodesFile.php) and the same on the others | The raw bytes, e.g. to write to disk or stream to a browser |
+Every document response ([`DocumentMessage`](../src/Dto/Response/Order/DocumentMessage.php), [`OrderFileMessage`](../src/Dto/Response/Order/OrderFileMessage.php),
+[`InvoiceDocumentMessage`](../src/Dto/Response/Invoice/InvoiceDocumentMessage.php), [`InvoiceSummaryListMessage`](../src/Dto/Response/Invoice/InvoiceSummaryListMessage.php) and
+[`TicketFileContentMessage`](../src/Dto/Response/Ticket/TicketFileContentMessage.php)) holds the file's bytes in `$file`, decoded from the base64 the API sends.
+For a `data:` URI or to pass the file on as base64, encode it again with `base64_encode()`.
 
 [`OrdersServiceInterface::getLabel()`](../src/Api/Service/OrdersServiceInterface.php) takes a **list** of order numbers and returns one PDF, so printing 50 labels takes one
 call.
@@ -126,7 +122,6 @@ Changing what gets validated
 | Route | Takes away |
 |-------|-----------|
 | `validatePayloads: false` | Everything |
-| Subclass [`AttributeValidator`](../src/Validator/AttributeValidator.php), filter [`AttributeValidator::rulesFor()`](../src/Validator/AttributeValidator.php) | One rule |
 | Register an extra validator on the registry | Nothing. Adds your own |
 | Declare rules on your own message subclass | Nothing. Adds your own |
 | Implement [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Everything the SDK had |
@@ -141,25 +136,29 @@ Reading a rejection
 | [`ValidationException::getValidationErrors()`](../src/Exception/ValidationException.php) | Everything, keyed by wire field name |
 | [`ValidationException::getFieldErrors($field)`](../src/Exception/ValidationException.php) | One field |
 | [`ValidationException::getMessage()`](../src/Exception/ValidationException.php) | All of it flattened into a sentence |
-| [`WebserviceException::getErrorMessage()->getValidationErrors()`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
-
-Because of the last row, you can display a local rejection and a server-side one with the same
-code.
+| [`WebserviceException::getErrorMessage()->validationErrors`](../src/Exception/WebserviceException.php) | The same shape, from the service side |
 
 Changing how requests are made
 ------------------------------
 
 | Route | Replaces |
 |-------|----------|
-| [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
-| [`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) | How the envelope is built |
-| [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) | How the envelope is read |
-| [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | The whole mapping stack |
-| [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Caching, JSON flags, timezone, strictness |
-| Subclassing a service | One method |
+| [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | The HTTP client (any PSR-18 client) |
+| [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php), or the [`SerializerConfig`](../src/Serializer/SerializerConfig.php) that implements it | Caching, JSON flags, timezone, strictness |
+| Subclassing a service | One method, at the risk of changes in any release |
 | `services: [...]` with your own implementation | One service entirely |
 
 See [Architecture: extension points](architecture.md#extension-points).
+
+The facade builds its serializer itself, from the [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php) it is given.
+The serializer is not on this list: it applies the quirks sending and reading depend on, so the
+SDK guarantees it instead of offering it as a seam
+([Serialization](serialization.md#configuring-the-serializer)). [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) hands
+it out as an [`Api\SerializerInterface`](../src/Api/SerializerInterface.php), to write a payload or read a stored body with
+([Serialization: using the serializer yourself](serialization.md#using-the-serializer-yourself)).
+[`RequestFactoryInterface`](../src/Http/Request/RequestFactoryInterface.php) and [`ResponseFactoryInterface`](../src/Http/Response/ResponseFactoryInterface.php) are arguments of the services, so you
+replace them where you wire a service by hand
+([Architecture: not using the facade at all](architecture.md#not-using-the-facade-at-all)), and a release may change them.
 
 Logging
 -------
@@ -178,8 +177,9 @@ Testing
 |------|----------|
 | Inject `Api\Service\*Interface` and mock it | Most unit tests |
 | `services: [Foo::class => $mock]` | Testing your flow through the facade |
-| Replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
+| Replace [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | [`AttributeValidator`](../src/Validator/AttributeValidator.php) on its own | Testing a payload, with no client at all |
+| [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) | Asserting what a call would write, or reading a recorded body |
 | The live API with `strictResponses: true` | Catching a response that has changed |
 
 [Testing](testing.md) covers each of these.

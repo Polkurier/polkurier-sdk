@@ -10,12 +10,12 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
 
 /**
  * Registering a token sends a code to the account's phone or e-mail, so those tests run only with
@@ -34,11 +34,11 @@ final class TwoFactorTokenTest extends IntegrationTestCase
             self::markTestSkipped('Sends a code; set POLKURIER_API_SEND_CODES=1 to run it.');
         }
 
-        $token = $this->sdk->twoFactorToken()->twoFactorTokenRegister(
+        $token = $this->sdk->twoFactorToken()->register(
             new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeDefaultPhoneNumber),
         );
 
-        self::assertNotSame('', $token->getId());
+        self::assertNotSame('', $token->id);
 
         return $token;
     }
@@ -46,43 +46,43 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     #[Depends('testATokenIsRegistered')]
     public function testTheCodeIsSentAgain(TwoFactorToken $token): void
     {
-        $resent = $this->sdk->twoFactorToken()->twoFactorTokenResend(new TokenMessage(token: $token->getId()));
+        $resent = $this->sdk->twoFactorToken()->resend(new ResendMessage(token: $token->id));
 
-        self::assertSame($token->getId(), $resent->getId());
+        self::assertSame($token->id, $resent->id);
     }
 
     #[Depends('testATokenIsRegistered')]
     public function testTheChannelIsSwitched(TwoFactorToken $token): void
     {
         $other = \array_values(\array_filter(
-            $token->getAvailableMethods(),
-            static fn($method): bool => $method->getId() !== $token->getTransportMethod()?->getId(),
+            $token->availableMethods,
+            static fn($method): bool => $method->id !== $token->transportMethod?->id,
         ));
         if ($other === []) {
             self::markTestSkipped('The account has one channel only.');
         }
 
-        $switched = $this->sdk->twoFactorToken()->twoFactorTokenChangeTransportMethod(
-            new ChangeTransportMethodMessage(token: $token->getId(), method: $other[0]->getId()),
+        $switched = $this->sdk->twoFactorToken()->changeTransportMethod(
+            new ChangeTransportMethodMessage(token: $token->id, method: $other[0]->id),
         );
 
-        self::assertSame($other[0]->getId(), $switched->getTransportMethod()?->getId());
+        self::assertSame($other[0]->id, $switched->transportMethod?->id);
     }
 
     public function testAWrongCodeForAnUnknownTokenIsInvalid(): void
     {
-        $validity = $this->sdk->twoFactorToken()->twoFactorTokenVerify(
+        $validity = $this->sdk->twoFactorToken()->verify(
             new VerifyMessage(token: self::UNKNOWN_TOKEN, code: '123456'),
         );
 
-        self::assertFalse($validity->isValid());
+        self::assertFalse($validity->valid);
     }
 
     public function testResendingNeedsAToken(): void
     {
         self::assertApiError(
-            fn() => self::client(validatePayloads: false)->twoFactorToken()->twoFactorTokenResend(
-                new TokenMessage(token: ''),
+            fn() => self::client(validatePayloads: false)->twoFactorToken()->resend(
+                new ResendMessage(token: ''),
             ),
             'PARAMS_IS_EMPTY',
         );
@@ -91,7 +91,7 @@ final class TwoFactorTokenTest extends IntegrationTestCase
     public function testChangingTheChannelNeedsAMethod(): void
     {
         self::assertApiError(
-            fn() => self::client(validatePayloads: false)->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+            fn() => self::client(validatePayloads: false)->twoFactorToken()->changeTransportMethod(
                 new ChangeTransportMethodMessage(token: self::UNKNOWN_TOKEN, method: ''),
             ),
             'PARAMS_IS_EMPTY',

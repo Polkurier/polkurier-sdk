@@ -12,10 +12,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -23,15 +23,16 @@ require __DIR__ . '/bootstrap.php';
 try {
     $availability = polkurier()->orders()->isMultiPickupAvailable(new MultiPickupAvailabilityRequestMessage(
         courier: arguments()[0] ?? 'DPD',
-        packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+        packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
         senderPostCode: '31-042',
         shipmentType: ShipmentTypeEnum::Box,
     ));
 
-    echo $availability->isAvailable()
+    echo $availability->available
         ? "This shipment can join a collective pickup.\n"
         : "A collective pickup is not available for this shipment.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);
 }
+

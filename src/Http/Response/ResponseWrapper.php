@@ -7,23 +7,25 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Response;
 
-
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\ResponseMessage;
 use Polkurier\Webservice\Serializer\ResponseDrift;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Pairs the parsed payload with the HTTP response it came from.
+ * Pairs the envelope read from a response, its status and payload, with the HTTP response it came
+ * from.
  */
 final readonly class ResponseWrapper
 {
     /**
      * @param ResponseInterface $httpResponse
-     * @param ResponseMessage $parsedResponse
+     * @param ResponseMessage|ErrorMessage $envelope
      * @param list<ResponseDrift> $drift how the payload differed from what the SDK expects
      */
     public function __construct(
         private ResponseInterface $httpResponse,
-        private ResponseMessage $parsedResponse,
+        private ResponseMessage|ErrorMessage $envelope,
         private array $drift = [],
     ) {}
 
@@ -44,10 +46,10 @@ final readonly class ResponseWrapper
     }
 
     /**
-     * @return ResponseMessage
+     * @return ResponseMessage|ErrorMessage
      */
-    public function getParsedResponse(): ResponseMessage
+    public function getEnvelope(): ResponseMessage|ErrorMessage
     {
-        return $this->parsedResponse;
+        return $this->envelope;
     }
 }

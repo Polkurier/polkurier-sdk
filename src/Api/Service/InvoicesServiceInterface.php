@@ -7,18 +7,18 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceDocumentMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceSummaryListMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 
 /**
  * Invoices issued to the account, and the documents behind them.
@@ -28,6 +28,8 @@ use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
  * throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface InvoicesServiceInterface
 {
@@ -87,7 +89,7 @@ interface InvoicesServiceInterface
      * @param GetInvoicesMessage $getInvoicesMessage
      *
      * @return InvoiceListMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Invoice\InvoiceListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -147,7 +149,7 @@ interface InvoicesServiceInterface
      * @param GetInvoiceDocumentMessage $getInvoiceDocumentMessage
      *
      * @return InvoiceDocumentMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Invoice\InvoiceDocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -202,7 +204,7 @@ interface InvoicesServiceInterface
      * @param GetInvoiceSummaryListMessage $getInvoiceSummaryListMessage
      *
      * @return InvoiceSummaryListMessage payload:
-     *         {@see \Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Invoice\InvoiceSummaryListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

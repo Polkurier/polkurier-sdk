@@ -47,22 +47,23 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\ServiceProvider;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\Config;
 use Polkurier\Webservice\ConfigProvider;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Polkurier\Webservice\Service\CourierService;
 use Polkurier\Webservice\Service\OrdersService;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
@@ -94,13 +95,28 @@ final class PolkurierServiceProvider extends ServiceProvider
             static fn($app) => new ConfigProvider($app->make(ConfigInterface::class)),
         );
 
-        // One serializer for the whole application. This is the expensive object.
-        $this->app->singleton(SerializerProviderInterface::class, static function ($app) {
-            return new SerializerProvider(new SerializerConfig(
+        // Shared by the facade and the services below: the pool it carries holds the mapping
+        // metadata, so the attributes are read once per pool.
+        $this->app->singleton(SerializerConfig::class, static function ($app) {
+            return new SerializerConfig(
                 metadataCache: new Psr16Adapter($app->make(CacheRepository::class)->store()),
                 strictResponses: $app->environment('testing'),
-            ));
+            );
         });
+
+        // The facade builds its own serializer; the factories wired below need this one. Bound
+        // by its class, the one piece of serialization the SDK has no interface for.
+        // Without this binding the container would build one with the default configuration.
+        $this->app->singleton(
+            SerializerProvider::class,
+            static fn($app) => new SerializerProvider($app->make(SerializerConfig::class)),
+        );
+
+        $this->app->singleton(
+            MessageSerializer::class,
+            static fn($app) => new MessageSerializer($app->make(SerializerProvider::class)),
+        );
+        $this->app->alias(MessageSerializer::class, SerializerInterface::class);
 
         $this->app->singleton(
             ClientFactoryInterface::class,
@@ -108,13 +124,13 @@ final class PolkurierServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(RequestFactoryInterface::class, static fn($app) => new RequestFactory(
-            $app->make(SerializerProviderInterface::class),
+            $app->make(MessageSerializer::class),
             $app->make(ConfigProviderInterface::class),
         ));
 
         $this->app->singleton(
             ResponseFactoryInterface::class,
-            static fn($app) => new ResponseFactory($app->make(SerializerProviderInterface::class)),
+            static fn($app) => new ResponseFactory($app->make(MessageSerializer::class)),
         );
 
         $this->app->singleton(
@@ -141,7 +157,7 @@ final class PolkurierServiceProvider extends ServiceProvider
         $this->app->singleton(PolkurierWebservice::class, static fn($app) => new PolkurierWebservice(
             config: $app->make(ConfigInterface::class),
             logger: $app->make(LoggerInterface::class),
-            serializerProvider: $app->make(SerializerProviderInterface::class),
+            serializerConfig: $app->make(SerializerConfig::class),
             configProvider: $app->make(ConfigProviderInterface::class),
             clientFactory: $app->make(ClientFactoryInterface::class),
         ));
@@ -174,7 +190,9 @@ use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
 
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 
@@ -238,7 +256,9 @@ final class PlaceShipment implements ShouldQueue
     public int $tries = 3;
     public array $backoff = [10, 60, 300];
 
-    public function __construct(private readonly Order $order) {}
+    public function __construct(
+        private readonly Order $order,
+    ) {}
 
     public function handle(OrdersServiceInterface $orders, ShipmentMapper $mapper): void
     {
@@ -260,7 +280,7 @@ final class PlaceShipment implements ShouldQueue
             return;
         }
 
-        $this->order->forceFill(['polkurier_number' => $created->getOrderNumber()])->save();
+        $this->order->forceFill(['polkurier_number' => $created->orderNumber])->save();
     }
 }
 ```
@@ -307,7 +327,7 @@ try {
 
 `$fieldMap` maps the API's wire names (`sender.postcode`) to your form's field names
 (`shipping.postal_code`). The same code works for a rejection from the API, because
-[`WebserviceException::getErrorMessage()->getValidationErrors()`](../../src/Exception/WebserviceException.php) returns the same shape.
+[`WebserviceException::getErrorMessage()->validationErrors`](../../src/Exception/WebserviceException.php) returns the same shape.
 
 Per-tenant credentials
 ----------------------
@@ -316,7 +336,9 @@ Bind [`ConfigProviderInterface`](../../src/Api/ConfigProviderInterface.php) to a
 
 ```php
 $provider = static fn($app) => new class($app) implements ConfigProviderInterface {
-    public function __construct(private readonly \Illuminate\Contracts\Foundation\Application $app) {}
+    public function __construct(
+        private readonly \Illuminate\Contracts\Foundation\Application $app,
+    ) {}
 
     public function getConfig(): ConfigInterface
     {
@@ -336,8 +358,9 @@ $this->app->singleton(ConfigProviderInterface::class, $provider);
 > **The provider is asked on every call.** The services can be singletons: each request reads the
 > configuration from [`ConfigProviderInterface::getConfig()`](../../src/Api/ConfigProviderInterface.php) again, so a provider that
 > looks up the current tenant each time keeps working, as long as it doesn't cache the first tenant
-> it sees. [`SerializerProviderInterface`](../../src/Serializer/SerializerProviderInterface.php) can be a singleton too, since it is stateless and expensive to
-> build. Under Octane, tenant-scoped state outlives the request unless something resets it.
+> it sees. [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) is a singleton too, so every client reads the mapping
+> metadata from the same pool. Under Octane, tenant-scoped state outlives the request unless
+> something resets it.
 
 Artisan commands
 ----------------
@@ -347,9 +370,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Polkurier\Webservice\Api\Service\UtilsServiceInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 final class PolkurierPing extends Command
 {
@@ -359,7 +382,7 @@ final class PolkurierPing extends Command
     public function handle(UtilsServiceInterface $utils): int
     {
         try {
-            $this->info('API time: ' . $utils->heartbeat()->getTime()?->format('c'));
+            $this->info('API time: ' . $utils->heartbeat()->time?->format('c'));
         } catch (ConnectionException $e) {
             $this->error('Unreachable: ' . $e->getMessage());
 
@@ -389,7 +412,7 @@ Testing
 Replace the transport in the container:
 
 ```php
-use Polkurier\Webservice\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 
 use Polkurier\Webservice\Testing\RecordingClient;
 

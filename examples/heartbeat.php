@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 use Polkurier\Webservice\Exception\ConnectionException;
 
+
 require __DIR__ . '/bootstrap.php';
 
 try {
-    dumpResponse(polkurier()->utils()->heartbeat());
+    $heartbeat = polkurier(credentialsNeeded: false)->utils()->heartbeat();
+
+    \printf("API clock: %s\n", $heartbeat->time?->format('Y-m-d H:i:s') ?? '(unknown)');
 } catch (ConnectionException $e) {
     \fwrite(STDERR, 'The API could not be reached: ' . $e->getMessage() . "\n");
     exit(1);
 }
+

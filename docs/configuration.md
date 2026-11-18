@@ -25,7 +25,7 @@ These can be combined. A provider returns a [`ConfigInterface`](../src/Api/Confi
 
 ```php
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 $config = new Config(
     authorization: new AuthorizationMessage(token: '…', login: '12345'),
@@ -38,14 +38,14 @@ Three arguments are required. The others have defaults.
 
 | Argument | Type | Default | Meaning |
 |----------|------|---------|---------|
-| `authorization` | [`AuthorizationMessage`](../src/Http/Request/AuthorizationMessage.php) | required | Customer id and API token |
+| `authorization` | [`AuthorizationMessage`](../src/Dto/Request/AuthorizationMessage.php) | required | Customer id and API token |
 | `platform` | `string` | required | Name identifying your integration |
 | `platformVersion` | `string` | required | Its version |
 | `apiUrl` | `?string` | `null` | Overrides the endpoint entirely |
 | `apiTimeout` | `int` | `30` | Request timeout, in seconds |
 | `sandbox` | `bool` | `false` | Targets the sandbox host |
 | `loggingEnabled` | `bool` | `true` | Enables error logging |
-| `methodsToLog` | [`ApiMethodInterface`](../src/Enum/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
+| `methodsToLog` | [`ApiMethodInterface`](../src/Api/Http/ApiMethodInterface.php)`[]` | `[]` | Methods whose full traffic is logged |
 | `validatePayloads` | `bool` | `true` | Check payloads before sending them |
 | `logSensitiveData` | `bool` | `false` | Log secrets as they are instead of hiding them |
 | `logPersonalData` | `bool` | `false` | Log personal data as it is instead of hiding it |
@@ -99,8 +99,9 @@ $client = new PolkurierWebservice($config, $logger);
 ```
 
 Error logging is controlled by `loggingEnabled`. It logs API errors and transport failures: the
-failed request, its body, and the response, if any. It also logs a warning for each enum value in
-a response that the SDK doesn't know (see [enums](messages.md#enums)). It is on by default, which has
+failed request, its body, and the response, if any. It also logs a warning for each way a response
+differed from what the SDK expects: an unknown field, a missing one, a value of another type, and
+an enum value the SDK doesn't know (see [enums](messages.md#enums)). It is on by default, which has
 no effect until you attach a logger.
 
 Extended logging also logs successful calls, with the full request and response. You turn it on
@@ -127,21 +128,49 @@ message.
 Requests and responses carry things that don't belong in a log by default. Before anything is
 logged, the SDK prepares each body:
 
-- **Secrets** are hidden: the API token, which is in every authenticated request, and passwords,
-  PINs, two-factor codes and access tokens. The fields are [`SensitiveDataRedactor::FIELDS`](../src/Log/SensitiveDataRedactor.php), and
-  any key named `pin` or ending in `_pin`.
+- **Secrets** are hidden: the API token, which is in every authenticated request, passwords, PINs,
+  two-factor codes and tokens, access tokens, and a contact form's `nonce`. Each such field carries
+  [`#[Sensitive]`](../src/Log/Attribute/Sensitive.php). The mark is the whole rule: nothing is
+  hidden for what its key is called, so a body the SDK has no class for is logged as it arrived.
 - **Personal data** is hidden: names, street addresses, email addresses, phone numbers, tax and
-  company registration numbers, and bank account numbers. The fields are
-  [`PersonalDataRedactor::FIELDS`](../src/Log/PersonalDataRedactor.php), plus a few generic keys that only hold personal data in some methods,
-  such as a bank account's `number` ([`PersonalDataRedactor::METHOD_FIELDS`](../src/Log/PersonalDataRedactor.php)).
+  company registration numbers, and bank account numbers. Each such field carries
+  [`#[PersonalData]`](../src/Log/Attribute/PersonalData.php).
 - **Files**, such as labels, protocols, invoices and attachments, are taken out. Each one is
   replaced with a note of its size, e.g. `[file left out of the log: 48213 bytes]`.
 
-Hidden values are replaced with `***`. The login is kept, since it identifies the account without
-giving access to it. In the context, `request` and `response` are copies prepared the same way.
+Hidden values are replaced with `***`. The marks sit on the property, so what a key means is
+decided by the class that declares it: `id` is the two-factor token on
+[`Dto\Response\TwoFactorToken`](../src/Dto/Response/TwoFactorToken.php) and an ordinary record id
+everywhere else, `number` is a bank account on [`Entity\BankAccount`](../src/Entity/BankAccount.php)
+and an order number elsewhere.
+
+**A field no class marks is logged**: the marks say what the SDK hides, not what it may show. A
+contact form's answers are named by the form definition, so there is no property to mark and they
+reach the log as they arrived. [`Entity\Order::$additionalFields`](../src/Entity/Order.php) is
+unmarked on purpose, so a carrier's additional fields are logged, keys and values. So is the login,
+which identifies the account without giving access to it.
+
+A field a subclass of yours adds ([Serialization](serialization.md#fields-a-subclass-of-yours-adds))
+is logged with the rest of the body. A mark on it is read where the SDK is told the payload is that
+class, which is the message you pass to a service method; a record nested inside one is read as the
+type the SDK declares, so a mark a subclass of [`Entity\Order`](../src/Entity/Order.php) or
+[`Entity\Order\Address`](../src/Entity/Order/Address.php) adds is not read.
+
+A body that is not an API envelope, such as a gateway's error page or a truncated reply, has no
+keys to hide anything by and is what a failed call is diagnosed from, so it goes in whole,
+shortened to [`LogSanitizer::EXCERPT_LENGTH`](../src/Log/LogSanitizer.php) characters.
+
+In the context, `request` and `response` are copies prepared the same way.
 `payload` and `parsed_response` are objects that can't be prepared, so they are left out unless
 both secrets and personal data may be logged. Their contents are in the request and response
-bodies either way.
+bodies either way. An exception under `exception` or `client_exception` is replaced by its class
+name under the same condition: it carries the response it was raised for, and its own message
+quotes the body it could not read, neither of which goes through the preparation.
+
+A drift warning falls under that condition too: the value that differed arrived under a field the
+SDK doesn't know, or under one whose type it didn't match, so it cannot be hidden key by key.
+Without both options the context leaves the value out and no message quotes it; with both, the
+context carries the value and the message quotes it when it is a string.
 
 Each of these can be turned off separately when you need it, e.g. to reproduce a call exactly:
 
@@ -168,7 +197,7 @@ use Polkurier\Webservice\Log\LoggedFileWriter;
 
 foreach (new DirectoryIterator($directory) as $file) {
     if ($file->isFile()
-        && preg_match(LoggedFileWriter::FILE_NAME_PATTERN, $file->getFilename())
+        && preg_match(LoggedFileWriter::FILE_NAME_PATTERN, $file->filename)
         && $file->getMTime() < strtotime('-7 days')
     ) {
         unlink($file->getPathname());
@@ -177,9 +206,9 @@ foreach (new DirectoryIterator($directory) as $file) {
 ```
 
 Such logs and files are as sensitive as what's in them. A label, for example, shows the recipient's
-name and address even with `logPersonalData` off. Exceptions in the context (`exception`,
-`client_exception`) are never altered, and some of them hold the full request or response, so a
-logger that serializes exceptions in depth can still record what was hidden.
+name and address even with `logPersonalData` off. With both options on, the context holds the
+exceptions themselves, and a logger that serializes an exception in depth records the request or
+response inside it.
 
 ### Payload validation
 
@@ -196,14 +225,13 @@ the SDK. A single rule can be dropped instead of all of them, see
 ```php
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
 
 $client = new PolkurierWebservice(
     config: $config,
-    serializerProvider: new SerializerProvider(new SerializerConfig(
+    serializerConfig: new SerializerConfig(
         metadataCache: $psr6Pool,
         timezone: new DateTimeZone('Europe/Warsaw'),
-    )),
+    ),
 );
 ```
 
@@ -213,6 +241,10 @@ $client = new PolkurierWebservice(
 | `jsonEncodeOptions` | `int` | see below | Flags for `json_encode` on the request body |
 | `timezone` | `?DateTimeZone` | `null` | The zone a date without an offset is read in |
 | `strictResponses` | `bool` | `false` | Whether a response that differs from the SDK is an error |
+
+The four are [`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php), which [`PolkurierWebservice`](../src/PolkurierWebservice.php), [`OrderReader`](../src/Webhook/OrderReader.php) and
+[`SerializerProvider`](../src/Serializer/SerializerProvider.php) take. Implement it to read them from a settings store or a parameter
+bag, as [`ConfigInterface`](../src/Api/ConfigInterface.php) is implemented for the API's own settings.
 
 ### metadataCache
 
@@ -333,20 +365,19 @@ Sharing a serializer across clients
 -----------------------------------
 
 ```php
-$serializer = new SerializerProvider(new SerializerConfig(metadataCache: $pool));
+$serializerConfig = new SerializerConfig(metadataCache: $pool);
 
 $clients = [];
 foreach ($tenants as $tenant) {
     $clients[$tenant->id] = new PolkurierWebservice(
         config: $tenant->polkurierConfig(),
-        serializerProvider: $serializer,
+        serializerConfig: $serializerConfig,
     );
 }
 ```
 
-[`SerializerProvider`](../src/Serializer/SerializerProvider.php) has no per-call state, so one instance can serve any number of clients. For
-a multi-tenant application, share one serializer, and use either a per-tenant provider or one
-client per tenant.
+Each client builds its own serializer from that configuration. The PSR-6 pool is what they share,
+so the mapping metadata is read once however many tenants there are.
 
 Full wiring reference
 ---------------------
@@ -357,11 +388,9 @@ All of [`PolkurierWebservice`](../src/PolkurierWebservice.php)'s collaborators a
 new PolkurierWebservice(
     config: $config,                       // ConfigInterface, required
     logger: $logger,                       // ?LoggerInterface, defaults to NullLogger
-    serializerProvider: $serializer,       // ?SerializerProviderInterface
+    serializerConfig: $serializerConfig,   // ?SerializerConfigInterface, reading and writing bodies
     configProvider: $provider,             // ?ConfigProviderInterface, overrides $config
     clientFactory: $clientFactory,         // ?ClientFactoryInterface, for your own PSR-18 client
-    requestFactory: $requestFactory,       // ?RequestFactoryInterface
-    responseFactory: $responseFactory,     // ?ResponseFactoryInterface
     validator: $validator,                 // ?ValidatorInterface
     services: [],                          // array<class-string, object>: ready-made services
 );

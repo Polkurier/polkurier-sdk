@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Contact;
 
 /**
  * What a contact form field is: an input to fill in, or an element shown on the form.
+ *
+ * @api
  */
 enum ContactFormFieldTypeEnum: string
 {

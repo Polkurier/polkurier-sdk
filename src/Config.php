@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice;
 
 use Polkurier\Webservice\Api\ConfigInterface;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 /**
  * How the SDK should talk to the API.
@@ -20,13 +20,14 @@ use Polkurier\Webservice\Http\Request\AuthorizationMessage;
  *
  * Endpoint: if apiUrl is set, it is used. Otherwise the sandbox flag picks the sandbox or the
  * production host.
+ *
+ * @api
  */
 readonly class Config implements ConfigInterface
 {
-    public const string SERIALIZATION_FORMAT = 'json';
     public const string API_URL = 'https://api.polkurier.pl';
     public const string SANDBOX_API_URL = 'https://api-sandbox.polkurier.pl';
-    public const string LOG_FILES_DIRECTORY = 'polkurier-sdk-log-files';
+    public const string LOG_FILES_DIRECTORY = 'polkurier-log-files';
 
     /**
      * @param AuthorizationMessage $authorization
@@ -36,9 +37,12 @@ readonly class Config implements ConfigInterface
      * @param int $apiTimeout
      * @param bool $sandbox
      * @param bool $loggingEnabled
-     * @param array $methodsToLog
+     * @param ApiMethodInterface[] $methodsToLog
      * @param bool $validatePayloads
-     * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by default
+     * @param bool $logSensitiveData log secrets as they are instead of hiding them. Off by
+     *        default, and while it is off every field
+     *        {@see \Polkurier\Webservice\Log\SensitiveDataRedactor} names is hidden wherever it
+     *        appears in a logged body
      * @param bool $logPersonalData log personal data as it is instead of hiding it. Off by default
      * @param bool $logFiles save files from requests and responses, and point to them from the log.
      *        Off by default
@@ -222,7 +226,7 @@ readonly class Config implements ConfigInterface
     /**
      * @return bool
      */
-    public function validatePayloads(): bool
+    public function isPayloadValidationEnabled(): bool
     {
         return $this->validatePayloads;
     }

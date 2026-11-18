@@ -12,6 +12,8 @@ use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 
 /**
  * A validator that accepts everything. Pass it to a service to turn its checks off.
+ *
+ * @api
  */
 class NullValidator implements ValidatorInterface
 {

@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Order;
 
 /**
  * Where collected cash-on-delivery funds are sent.
+ *
+ * @api
  */
 enum CodReturnTypeEnum: string
 {

@@ -10,6 +10,11 @@ namespace Polkurier\Webservice\Test\Unit\Builder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
+use Polkurier\Webservice\Test\Support\MessageClasses;
+use Polkurier\Webservice\Test\Support\Sample;
+use Polkurier\Webservice\Test\Support\SourceClasses;
 
 /**
  * The committed builders still match the messages they build.
@@ -33,28 +38,19 @@ final class BuilderDriftTest extends TestCase
      */
     public static function builders(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
         $pairs = [];
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Builder')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $builder */
-            $builder = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
+        foreach (SourceClasses::under('Builder') as $name => $builder) {
+            // A builder mirrors what it builds, e.g. Builder\Entity\Order\CodBuilder builds
+            // Entity\Order\Cod, and Builder\Request\Order\GetOrdersMessageBuilder builds
+            // Dto\Request\Order\GetOrdersMessage.
+            $relative = \substr($name, \strlen('Builder\\'), -\strlen('Builder'));
+            $candidates = \array_filter(
+                MessageClasses::requests(),
+                static fn(string $class): bool => \str_ends_with($class, '\\' . $relative),
             );
-
             /** @var class-string $message */
-            $message = \str_replace(
-                ['\\Builder\\', 'Builder'],
-                ['\\Request\\', ''],
-                $builder
-            );
+            $message = \reset($candidates) ?: 'Polkurier\\Webservice\\Dto\\Request\\' . $relative;
 
             $reflection = new \ReflectionClass($builder);
 
@@ -65,7 +61,7 @@ final class BuilderDriftTest extends TestCase
 
             // Several builders share a short name, e.g. Address\SaveMessageBuilder and
             // BankAccount\SaveMessageBuilder, so the data set is named by the namespace too.
-            $pairs[\str_replace('Polkurier\\Webservice\\Builder\\', '', $builder)] = [$builder, $message];
+            $pairs[\substr($name, \strlen('Builder\\'))] = [$builder, $message];
         }
 
         self::assertNotEmpty($pairs);
@@ -91,23 +87,40 @@ final class BuilderDriftTest extends TestCase
 
         foreach ($constructor->getParameters() as $parameter) {
             $name = $parameter->getName();
+            $setter = self::setterFor($name);
+
+            // A builder assembles what is sent, so it has no setter for a field only the API sends.
+            if ($parameter->getAttributes(ResponseOnly::class) !== [] || $name === 'rawResponse') {
+                self::assertFalse(
+                    $reflection->hasMethod($setter),
+                    \sprintf('%s::%s() sets a field the SDK never sends.', $builder, $setter),
+                );
+
+                continue;
+            }
 
             self::assertTrue(
-                $reflection->hasMethod($name),
+                $reflection->hasMethod($setter),
                 \sprintf(
-                    '%s has no setter for $%s, which the message now takes.',
+                    '%s has no %s() for $%s, which the message now takes.',
                     $builder,
+                    $setter,
                     $name,
                 ),
             );
 
-            self::assertSame(
-                \ltrim((string)$parameter->getType(), '\\'),
-                \ltrim((string)$reflection->getMethod($name)->getParameters()[0]->getType(), '\\'),
+            $declared = \ltrim((string)$parameter->getType(), '\\');
+            $taken = \ltrim((string)$reflection->getMethod($setter)->getParameters()[0]->getType(), '\\');
+
+            // A field a rule requires is nullable on the message, so that a response without it
+            // still reads. The builder may refuse null for it, but no other difference.
+            self::assertContains(
+                $taken,
+                [$declared, \ltrim($declared, '?')],
                 \sprintf(
                     '%s::%s() takes a different type than the message does',
                     $builder,
-                    $name,
+                    $setter,
                 ),
             );
         }
@@ -121,33 +134,24 @@ final class BuilderDriftTest extends TestCase
      */
     public function testEveryMessageBigEnoughHasABuilder(): void
     {
-        $root = \dirname(__DIR__, 3) . '/src';
         $missing = [];
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Request')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $message */
-            $message = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
-            if (!\class_exists($message)) {
-                continue;
-            }
-
+        foreach (MessageClasses::requests() as $name => $message) {
             $constructor = (new \ReflectionClass($message))->getConstructor();
 
-            if ($constructor === null || \count($constructor->getParameters()) < self::THRESHOLD) {
+            $sent = \array_filter(
+                $constructor?->getParameters() ?? [],
+                static fn(\ReflectionParameter $parameter): bool
+                    => $parameter->getAttributes(ResponseOnly::class) === []
+                    && $parameter->getName() !== 'rawResponse',
+            );
+
+            if (\count($sent) < self::THRESHOLD) {
                 continue;
             }
 
-            $builder = \str_replace('\\Request\\', '\\Builder\\', $message) . 'Builder';
+            $relative = \str_replace('Dto\\Request\\', 'Request\\', $name);
+            $builder = 'Polkurier\\Webservice\\Builder\\' . $relative . 'Builder';
 
             if (!\class_exists($builder)) {
                 $missing[] = $message;
@@ -159,6 +163,153 @@ final class BuilderDriftTest extends TestCase
             $missing,
             'these have grown past ' . self::THRESHOLD . ' fields and want a builder.',
         );
+    }
+
+    /**
+     * Each setter lands in its own field.
+     *
+     * The field name a builder passes is a string, so a setter can carry a name that is spelled
+     * right and belongs to another field: `setRecipient()` writing `sender` compiles, passes the
+     * name check above, and quietly sends the order to the wrong address. Every field that can
+     * hold one is given a value naming the field it was set through, so a value arriving anywhere
+     * else is visible.
+     *
+     * @param class-string $builder
+     * @param class-string $message
+     *
+     * @return void
+     */
+    #[DataProvider('builders')]
+    public function testEverySetterLandsInItsOwnField(string $builder, string $message): void
+    {
+        $constructor = (new \ReflectionClass($message))->getConstructor();
+        self::assertNotNull($constructor);
+
+        $built = new $builder();
+        $sample = Sample::of($message);
+        $expected = [];
+        foreach ($constructor->getParameters() as $parameter) {
+            $name = $parameter->getName();
+            $setter = 'set' . \ucfirst($name);
+            if (!\method_exists($built, $setter)) {
+                continue;
+            }
+
+            if (self::takesAString($parameter)) {
+                $expected[$name] = 'sentinel-' . $name;
+                $built->{$setter}($expected[$name]);
+
+                continue;
+            }
+
+            // Not a string, so it cannot carry a name of its own; it is set only where the
+            // message cannot be built without it.
+            if (!$parameter->isDefaultValueAvailable()) {
+                $built->{$setter}(self::readField($sample, $name));
+            }
+        }
+
+        if ($expected === []) {
+            self::markTestSkipped($builder . ' has no field that can carry a name of its own.');
+        }
+
+        $result = $built->build();
+        foreach ($expected as $name => $value) {
+            self::assertSame($value, self::readField($result, $name), $builder . ' put ' . $value . ' elsewhere');
+        }
+    }
+
+    /**
+     * Whether the field holds a plain string, which is what can carry a value naming it.
+     *
+     * @param \ReflectionParameter $parameter
+     *
+     * @return bool
+     */
+    private static function takesAString(\ReflectionParameter $parameter): bool
+    {
+        $type = $parameter->getType();
+
+        return $type instanceof \ReflectionNamedType && $type->getName() === 'string';
+    }
+
+    /**
+     * @param object $message
+     * @param string $name
+     *
+     * @return mixed
+     */
+    private static function readField(object $message, string $name): mixed
+    {
+        foreach (['get', 'is', 'has'] as $prefix) {
+            $accessor = $prefix . \ucfirst($name);
+            if (\method_exists($message, $accessor)) {
+                return $message->{$accessor}();
+            }
+        }
+
+        return (new \ReflectionProperty($message, $name))->getValue($message);
+    }
+
+    /**
+     * A builder names the constructor parameter it fills with a string, which nothing compiles.
+     *
+     * A name that matches nothing is spread into the constructor as an unknown named argument and
+     * raises a PHP `Error`, or, where the parameter it should have filled is required, makes
+     * {@see \Polkurier\Webservice\Builder\AbstractBuilder::make()} report that field missing
+     * although the caller set it. A setter whose own name is right hides either case, so the
+     * string is checked rather than the method name.
+     *
+     * @param class-string $builder
+     * @param class-string $message
+     *
+     * @return void
+     */
+    #[DataProvider('builders')]
+    public function testEveryFieldNameABuilderPassesNamesAParameter(string $builder, string $message): void
+    {
+        $constructor = (new \ReflectionClass($message))->getConstructor();
+        self::assertNotNull($constructor);
+
+        $parameters = \array_map(
+            static fn(\ReflectionParameter $p): string => $p->getName(),
+            $constructor->getParameters(),
+        );
+
+        // A builder can inherit its setters, e.g. GetPickupTimeMessageBuilder from
+        // PickupQueryMessageBuilder, so the whole chain down to the machinery is read.
+        $fields = [];
+        for ($class = new \ReflectionClass($builder); $class !== false; $class = $class->getParentClass()) {
+            if ($class->getName() === AbstractBuilder::class) {
+                break;
+            }
+            $file = $class->getFileName();
+            self::assertIsString($file);
+            \preg_match_all('/\$this->set\(\s*\'([^\']++)\'/', (string)\file_get_contents($file), $matches);
+            $fields = [...$fields, ...$matches[1]];
+        }
+
+        self::assertNotEmpty($fields, $builder . ' sets no field at all.');
+
+        foreach (\array_unique($fields) as $field) {
+            self::assertContains(
+                $field,
+                $parameters,
+                \sprintf('%s passes the field name %s, which %s does not take.', $builder, $field, $message),
+            );
+        }
+    }
+
+    /**
+     * The setter a builder names a constructor parameter with.
+     *
+     * @param string $parameter
+     *
+     * @return string
+     */
+    private static function setterFor(string $parameter): string
+    {
+        return 'set' . \ucfirst($parameter);
     }
 
     /**
@@ -193,7 +344,7 @@ final class BuilderDriftTest extends TestCase
             }
 
             self::assertContains(
-                $method->getName(),
+                \lcfirst((string)\preg_replace('/^set/', '', $method->getName())),
                 $parameters,
                 \sprintf(
                     '%s::%s() sets a field the message no longer takes.',

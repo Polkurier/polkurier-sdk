@@ -1620,7 +1620,7 @@
             "item": [
                 {
                     "name": "available_carriers",
-                    "description": "Lists the carriers this account may ship with. Pass an entry's `servicecode` as `courier` in the other methods. `$client->courier()->availableCarriers()`.",
+                    "description": "Lists the carriers this account may ship with. Pass an entry's `servicecode` as `courier` in the other methods. `$client->courier()->getAvailableCarriers()`.",
                     "item": [
                         {
                             "name": "Success: every carrier",
@@ -15853,7 +15853,7 @@
                                         ""
                                     ]
                                 },
-                                "description": "`external_application_settings` maps each setting name to its value; the SDK reads them with `AccountInfoMessage::getExternalApplicationSettings()`.\n\n*Manual request: skipped unless the `runManualRequests` variable is `true`. It needs data or codes you supply, or it changes things the collection can't put back. Its saved example response is illustrative.*"
+                                "description": "`external_application_settings` maps each setting name to its value; the SDK reads them into `AccountInfoMessage::$externalApplicationSettings`.\n\n*Manual request: skipped unless the `runManualRequests` variable is `true`. It needs data or codes you supply, or it changes things the collection can't put back. Its saved example response is illustrative.*"
                             },
                             "response": [
                                 {
@@ -20201,7 +20201,7 @@
             "item": [
                 {
                     "name": "two_factor_token_register",
-                    "description": "Starts a confirmation for one operation (`namespace`) and sends the customer a code. Only that operation accepts the token. `$client->twoFactorToken()->twoFactorTokenRegister()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
+                    "description": "Starts a confirmation for one operation (`namespace`) and sends the customer a code. Only that operation accepts the token. `$client->twoFactorToken()->register()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
                     "item": [
                         {
                             "name": "Success: token registered, code sent",
@@ -20392,7 +20392,7 @@
                 },
                 {
                     "name": "two_factor_token_resend",
-                    "description": "Sends the code again for a registered token. `$client->twoFactorToken()->twoFactorTokenResend()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
+                    "description": "Sends the code again for a registered token. `$client->twoFactorToken()->resend()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
                     "item": [
                         {
                             "name": "Success: code sent again",
@@ -20770,7 +20770,7 @@
                 },
                 {
                     "name": "two_factor_token_verify",
-                    "description": "Checks the code the customer entered. Verifying doesn't use up the token; the confirmed operation does. `$client->twoFactorToken()->twoFactorTokenVerify()`.",
+                    "description": "Checks the code the customer entered. Verifying doesn't use up the token; the confirmed operation does. `$client->twoFactorToken()->verify()`.",
                     "item": [
                         {
                             "name": "Success: correct code",
@@ -21135,7 +21135,7 @@
                 },
                 {
                     "name": "two_factor_token_change_transport_method",
-                    "description": "Switches a pending confirmation to another delivery channel from the token's `available_methods` and sends the code there at once. `$client->twoFactorToken()->twoFactorTokenChangeTransportMethod()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
+                    "description": "Switches a pending confirmation to another delivery channel from the token's `available_methods` and sends the code there at once. `$client->twoFactorToken()->changeTransportMethod()`.\n\n**Changes data.** Running this folder creates, changes or deletes records on the account.",
                     "item": [
                         {
                             "name": "Success: channel switched, code sent",

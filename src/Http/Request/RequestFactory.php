@@ -8,15 +8,13 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Http\Request;
 
 use GuzzleHttp\Psr7\Request;
-use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
-use Symfony\Component\Serializer\SerializerInterface;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Psr\Http\Message\RequestInterface;
 
 /**
@@ -35,21 +33,16 @@ readonly class RequestFactory implements RequestFactoryInterface
     protected const string SDK_PRODUCT = 'polkurier-sdk/2.0.0';
 
     /**
-     * @var SerializerInterface
-     */
-    protected SerializerInterface $serializer;
-
-    /**
-     * @param SerializerProviderInterface $serializerProvider
+     * @param MessageSerializer $serializer the one the whole SDK writes and reads with. The SDK's
+     *        own, not {@see \Polkurier\Webservice\Api\SerializerInterface}: what it applies is
+     *        part of what the SDK promises, so it is not a seam
      * @param ConfigProviderInterface $configProvider read on every create(), so each request
      *        carries the configuration of the current call
      */
     public function __construct(
-        SerializerProviderInterface $serializerProvider,
+        protected MessageSerializer $serializer,
         protected ConfigProviderInterface $configProvider,
-    ) {
-        $this->serializer = $serializerProvider->getSerializer();
-    }
+    ) {}
 
     /**
      * @param ApiMethodInterface $apiMethod
@@ -69,17 +62,21 @@ readonly class RequestFactory implements RequestFactoryInterface
         $config = $this->configProvider->getConfig();
         $requestMessage = new RequestMessage(
             $apiMethod,
-            $this->resolveAuthorization($authorization, $config),
+            static::resolveAuthorization($authorization, $config),
             $payload,
         );
 
         try {
-            $body = $this->serializer->serialize($requestMessage, Config::SERIALIZATION_FORMAT);
-        } catch (SerializerException $e) {
-            // A payload the serializer can't write is a caller error. Rethrow it as an SDK
-            // exception.
+            $body = $this->serializer->encode($requestMessage);
+        } catch (InvalidArgumentException $e) {
+            // Name the method whose payload could not be written, which the serializer can't know.
+            // The class it names is always the request envelope, so only its cause is carried on.
             throw new InvalidArgumentException(
-                \sprintf('The payload for %s could not be serialized: %s', $apiMethod->value, $e->getMessage()),
+                \sprintf(
+                    'The payload for %s could not be written: %s',
+                    $apiMethod->value,
+                    $e->getPrevious()?->getMessage() ?? $e->getMessage(),
+                ),
                 0,
                 $e,
             );
@@ -90,7 +87,7 @@ readonly class RequestFactory implements RequestFactoryInterface
             uri: static::ENDPOINT,
             headers: [
                 'Content-Type' => static::CONTENT_TYPE,
-                'User-Agent' => $this->userAgent($config),
+                'User-Agent' => $this->buildUserAgent($config),
             ],
             body: $body,
         );
@@ -103,7 +100,7 @@ readonly class RequestFactory implements RequestFactoryInterface
      *
      * @return string
      */
-    protected function userAgent(ConfigInterface $config): string
+    protected function buildUserAgent(ConfigInterface $config): string
     {
         return \sprintf(
             '%s/%s %s',
@@ -118,14 +115,15 @@ readonly class RequestFactory implements RequestFactoryInterface
      * {@see \Polkurier\Webservice\Http\Request\RequestMessage} accepts.
      *
      * `null` means "use the configured credentials" and `false` means "send none". The request
-     * message takes no bool, so `false` becomes null here.
+     * message takes no bool, so `false` becomes null here. Static, so a caller that validates the
+     * credentials before a call resolves them by the same rule rather than a copy of it.
      *
      * @param AuthorizationMessage|bool|null $authorization
      * @param ConfigInterface $config
      *
      * @return AuthorizationMessage|null
      */
-    protected function resolveAuthorization(
+    public static function resolveAuthorization(
         AuthorizationMessage|bool|null $authorization,
         ConfigInterface $config,
     ): ?AuthorizationMessage {

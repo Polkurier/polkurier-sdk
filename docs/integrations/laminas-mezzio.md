@@ -52,7 +52,7 @@ namespace App\Polkurier;
 
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Psr\Container\ContainerInterface;
 
 final class ConfigFactory
@@ -84,13 +84,12 @@ namespace App\Polkurier;
 
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 
 final class SerializerProviderFactory
 {
-    public function __invoke(ContainerInterface $container): SerializerProviderInterface
+    public function __invoke(ContainerInterface $container): SerializerProvider
     {
         return new SerializerProvider(new SerializerConfig(
             metadataCache: $container->has(CacheItemPoolInterface::class)
@@ -110,8 +109,8 @@ All the services take the same arguments, so one factory can build any of them:
 namespace App\Polkurier;
 
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Psr\Container\ContainerInterface;
@@ -175,33 +174,39 @@ use App\Polkurier\ServiceMap;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
 use Polkurier\Webservice\ConfigProvider;
 use Polkurier\Webservice\Http\ClientFactory;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Request\RequestFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Serializer\MessageSerializer;
+use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
 
 return [
     'dependencies' => [
         'factories' => [
-            ConfigInterface::class             => ConfigFactory::class,
-            SerializerProviderInterface::class => SerializerProviderFactory::class,
+            ConfigInterface::class    => ConfigFactory::class,
+            SerializerProvider::class => SerializerProviderFactory::class,
 
             ConfigProviderInterface::class => static fn($c) => new ConfigProvider($c->get(ConfigInterface::class)),
             ClientFactoryInterface::class  => static fn($c) => new ClientFactory(
                 $c->get(ConfigProviderInterface::class),
             ),
+            MessageSerializer::class => static fn($c) => new MessageSerializer(
+                $c->get(SerializerProvider::class),
+            ),
+            SerializerInterface::class => static fn($c) => $c->get(MessageSerializer::class),
             RequestFactoryInterface::class => static fn($c) => new RequestFactory(
-                $c->get(SerializerProviderInterface::class),
+                $c->get(MessageSerializer::class),
                 $c->get(ConfigProviderInterface::class),
             ),
             ResponseFactoryInterface::class => static fn($c) => new ResponseFactory(
-                $c->get(SerializerProviderInterface::class),
+                $c->get(MessageSerializer::class),
             ),
             ValidatorInterface::class => static fn() => DefaultValidatorRegistryFactory::create(),
         ]
@@ -214,6 +219,15 @@ return [
 ServiceManager passes the requested service name to the factory as the second argument. That's
 how a single factory class can build every service.
 
+This page wires the services directly, so the container also holds three collaborators the SDK
+does not promise: [`SerializerProvider`](../../src/Serializer/SerializerProvider.php), [`RequestFactoryInterface`](../../src/Http/Request/RequestFactoryInterface.php) and
+[`ResponseFactoryInterface`](../../src/Http/Response/ResponseFactoryInterface.php). A release may change them, see
+[Architecture: what a release can change](../architecture.md#what-a-release-can-change). The
+serializer provider is keyed by its class, the one piece of serialization the SDK has no interface
+for, and the serializer it builds is not replaceable
+([Serialization](../serialization.md#configuring-the-serializer)). Build [`PolkurierWebservice`](../../src/PolkurierWebservice.php) with an
+[`Api\SerializerConfigInterface`](../../src/Api/SerializerConfigInterface.php) instead to stay on the contract.
+
 Using it
 --------
 
@@ -223,14 +237,16 @@ A Mezzio handler:
 namespace App\Handler;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 final readonly class TrackHandler implements RequestHandlerInterface
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -238,7 +254,7 @@ final readonly class TrackHandler implements RequestHandlerInterface
             new GetStatusMessage(orderNo: $request->getAttribute('number')),
         );
 
-        return new JsonResponse(['status' => $status->getStatus()]);
+        return new JsonResponse(['status' => $status->status]);
     }
 }
 ```
@@ -274,9 +290,9 @@ final class PolkurierErrorMiddleware implements MiddlewareInterface
             $error = $e->getErrorMessage();
 
             return new JsonResponse([
-                'error'  => $error->getResponse(),
-                'code'   => $error->getErrorCode(),
-                'errors' => $error->getValidationErrors() ?? [],
+                'error'  => $error->response,
+                'code'   => $error->errorCode,
+                'errors' => $error->validationErrors ?? [],
             ], 502);
         } catch (ConnectionException) {
             return new JsonResponse(['error' => 'The carrier API did not answer.'], 504);
@@ -326,15 +342,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class PingCommand extends Command
 {
-    public function __construct(private readonly UtilsServiceInterface $utils)
-    {
+    public function __construct(
+        private readonly UtilsServiceInterface $utils,
+    ) {
         parent::__construct('polkurier:ping');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $output->writeln('API time: ' . $this->utils->heartbeat()->getTime()?->format('c'));
+            $output->writeln('API time: ' . $this->utils->heartbeat()->time?->format('c'));
 
             return self::SUCCESS;
         } catch (PolkurierException $e) {

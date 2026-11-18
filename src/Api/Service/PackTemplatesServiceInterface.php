@@ -7,15 +7,14 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
-use Polkurier\Webservice\Response\PackTemplate;
 
 /**
  * Saved parcel templates: reusable dimensions, weight and service selections.
@@ -33,6 +32,8 @@ use Polkurier\Webservice\Response\PackTemplate;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface PackTemplatesServiceInterface
 {
@@ -75,6 +76,7 @@ interface PackTemplatesServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getPackTemplates(): array;
@@ -126,7 +128,7 @@ interface PackTemplatesServiceInterface
      * The message names only the first failure. `validation_errors` has all of them, keyed by the
      * API's field names.
      *
-     * @param SaveMessage $saveMessage
+     * @param PackTemplate $packTemplate
      *
      * @return PackTemplate as stored
      * @throws AuthorizationException
@@ -136,7 +138,9 @@ interface PackTemplatesServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePackTemplates(SaveMessage $saveMessage): PackTemplate;
+    public function savePackTemplates(
+        PackTemplate $packTemplate,
+    ): PackTemplate;
 
     /**
      * Deletes a template.

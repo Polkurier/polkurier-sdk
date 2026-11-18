@@ -9,8 +9,8 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
-use Polkurier\Webservice\Request\Account\RegisterAccountVerificationMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Account\RegisterAccountVerificationMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 
 #[Group('integration')]
 #[CoversNothing]
@@ -19,7 +19,7 @@ final class AccountVerificationTest extends IntegrationTestCase
     public function testAVerificationIsStartedAndReadBack(): void
     {
         self::requireSandbox();
-        $orders = $this->sdk->orders()->getOrders(new GetOrdersMessage(pageSize: 1, page: 1))->getResult();
+        $orders = $this->sdk->orders()->getOrders(new GetOrdersMessage(pageSize: 1, page: 1))->result;
         if ($orders === []) {
             self::markTestSkipped('The account has no order to tie the verification to.');
         }

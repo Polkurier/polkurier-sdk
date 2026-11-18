@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Exception;
 
+use Polkurier\Webservice\Validator\Violation;
+
 /**
  * A payload was rejected before it was sent.
  *
@@ -16,15 +18,20 @@ namespace Polkurier\Webservice\Exception;
  * validation errors means the request was sent and refused.
  *
  * Field names are the API's wire names, not SDK property names, so they match the API's own
- * reports and the request that would have been sent.
+ * reports and the request that would have been sent. A field inside a nested record is named
+ * under its parent, `sender.postcode`; an entry of a list carries its index, `packs[1].weight`;
+ * and a record the payload inlines reports at the top level, so an order's fields in
+ * `create_order` have no prefix. The format is part of the contract: a release keeps it, so code
+ * that maps these keys to its own form fields goes on working.
  *
  * @api
  */
 class ValidationException extends InvalidArgumentException
 {
     /**
-     * @param array<string, string[]> $validationErrors failures keyed by wire field name
+     * @param array<string, string[]> $validationErrors failures keyed by wire field path
      * @param string $message
+     * @param list<Violation> $violations the same failures, each with its code and parameters
      */
     public function __construct(
         /**
@@ -32,12 +39,32 @@ class ValidationException extends InvalidArgumentException
          */
         private readonly array $validationErrors,
         string $message = '',
+
+        /**
+         * @var list<Violation>
+         */
+        private readonly array $violations = [],
     ) {
         parent::__construct($message !== '' ? $message : self::summarise($validationErrors));
     }
 
     /**
-     * All failures, keyed by wire field name.
+     * Every failure, each with the code to match on and the values its sentence spells out.
+     *
+     * The English in {@see self::getValidationErrors()} is worded to follow the field name and
+     * names values inside itself, so it cannot be matched on. These carry
+     * {@see Violation::$code}, which does not change, for an integration that words its own
+     * report. Empty when the exception was built from the English alone.
+     *
+     * @return list<Violation>
+     */
+    public function getViolations(): array
+    {
+        return $this->violations;
+    }
+
+    /**
+     * All failures, keyed by wire field path.
      *
      * @return array<string, string[]>
      */

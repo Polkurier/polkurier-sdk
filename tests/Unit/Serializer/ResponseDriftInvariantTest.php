@@ -11,16 +11,21 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\ResponseMessage;
+use Polkurier\Webservice\Dto\Response\Webhook\OrderEventMessage;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Webhook\OrderWebhookMessage;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Accessors;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Polkurier\Webservice\Webhook\OrderWebhookReader;
+use Polkurier\Webservice\Webhook\OrderReader;
 
 /**
  * Every response class reads whatever a field turns into, and strict reading rejects exactly what
@@ -47,40 +52,25 @@ final class ResponseDriftInvariantTest extends TestCase
     ];
 
     /**
-     * Every class under Response, except the order event, which has a test of its own.
+     * Every response class, except the order event, which has a test of its own, and the envelopes,
+     * which the response factory reads before any payload. They are also the only three response
+     * classes with a required field of an object or enum type, which lenient reading records and
+     * then fails on, having no empty value of that type to put there.
      *
      * @return array<string, array{class-string}>
      */
     public static function responseClasses(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
-        $classes = [];
+        $classes = \array_filter(
+            MessageClasses::responses(),
+            static fn(string $class): bool => !\in_array(
+                $class,
+                [OrderEventMessage::class, ResponseMessage::class, ErrorMessage::class],
+                true,
+            ),
+        );
 
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/Response')) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
-            if (!\class_exists($class) || (new \ReflectionClass($class))->isAbstract()
-                || $class === OrderWebhookMessage::class
-            ) {
-                continue;
-            }
-
-            $classes[\str_replace('Polkurier\\Webservice\\Response\\', '', $class)] = [$class];
-        }
-
-        self::assertNotEmpty($classes);
-
-        return $classes;
+        return \array_map(static fn(string $class): array => [$class], $classes);
     }
 
     /**
@@ -92,8 +82,10 @@ final class ResponseDriftInvariantTest extends TestCase
     public function testEveryChangedFieldReadsAndStrictReadingAgrees(string $class): void
     {
         $sample = Sample::wire($class);
-        $lenient = new ResponseFactory(new SerializerProvider());
-        $strict = new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true)));
+        $lenient = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
+        $strict = new ResponseFactory(
+            new MessageSerializer(new SerializerProvider(new SerializerConfig(strictResponses: true))),
+        );
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {
@@ -117,10 +109,10 @@ final class ResponseDriftInvariantTest extends TestCase
                     $this->expectStrictFailure($strict, $body, $class, $case);
                     continue;
                 }
-                self::assertReadable($wrapper->getParsedResponse()->getResponse());
+                Accessors::readAll($wrapper->getEnvelope()->response);
                 $reported = \array_filter(
                     $wrapper->getDrift(),
-                    static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,
+                    static fn($drift) => $drift->type !== ResponseDriftTypeEnum::UnknownEnumValue,
                 );
 
                 try {
@@ -141,7 +133,7 @@ final class ResponseDriftInvariantTest extends TestCase
     public function testEveryChangedOrderFieldInAnEventReadsAndStrictReadingAgrees(): void
     {
         $sample = Sample::wire(Order::class);
-        $strictProvider = new SerializerProvider(new SerializerConfig(strictResponses: true));
+        $strictConfig = new SerializerConfig(strictResponses: true);
 
         foreach (\array_keys($sample) as $field) {
             foreach (self::CHANGES as $change => $value) {
@@ -154,20 +146,21 @@ final class ResponseDriftInvariantTest extends TestCase
                 $body = \http_build_query(['type' => 'UPDATED', 'data' => $order]);
                 $case = \sprintf('An event with "%s" %s', $field, $change);
 
-                $reader = new OrderWebhookReader();
+                $reader = new OrderReader();
                 try {
-                    self::assertReadable($reader->read($body));
+                    $read = $reader->read($body);
+                    Accessors::readAll($read->event);
                 } catch (InvalidArgumentException $e) {
                     self::assertStringContainsString('None of the fields', $e->getMessage(), $case);
                     continue;
                 }
                 $reported = \array_filter(
-                    $reader->getLastDrift(),
-                    static fn($drift) => $drift->getType() !== ResponseDriftTypeEnum::UnknownEnumValue,
+                    $read->drift,
+                    static fn($drift) => $drift->type !== ResponseDriftTypeEnum::UnknownEnumValue,
                 );
 
                 try {
-                    (new OrderWebhookReader($strictProvider))->read($body);
+                    (new OrderReader($strictConfig))->read($body);
                     self::assertSame([], $reported, $case . ': strict reading accepted what lenient reading reported');
                 } catch (InvalidArgumentException $e) {
                     self::assertNotSame([], $reported, $case . ': strict reading failed: ' . $e->getMessage());
@@ -190,36 +183,6 @@ final class ResponseDriftInvariantTest extends TestCase
             $strict->create(new Response(200, [], $body), $class);
             self::fail($case . ': strict reading accepted what lenient reading refused');
         } catch (MalformedResponseException) {
-        }
-    }
-
-    /**
-     * Calls every getter, recursively, so a value of the wrong type raises an error here.
-     *
-     * @param mixed $value
-     * @param int $depth
-     *
-     * @return void
-     */
-    private static function assertReadable(mixed $value, int $depth = 0): void
-    {
-        if (\is_array($value) && $depth < 4) {
-            foreach ($value as $item) {
-                self::assertReadable($item, $depth + 1);
-            }
-
-            return;
-        }
-        if (!\is_object($value) || $value instanceof \DateTimeInterface || $value instanceof \UnitEnum || $depth >= 4) {
-            return;
-        }
-        foreach ((new \ReflectionClass($value))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->getNumberOfRequiredParameters() > 0
-                || !\preg_match('/^(get|is|has)/', $method->getName())
-            ) {
-                continue;
-            }
-            self::assertReadable($method->invoke($value), $depth + 1);
         }
     }
 }

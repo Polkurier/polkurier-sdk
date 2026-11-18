@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultSenderPointMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\ChangeDefaultSenderPointMessage;
 
 
 require __DIR__ . '/bootstrap.php';

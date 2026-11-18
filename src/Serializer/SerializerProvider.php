@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Api\SerializerConfigInterface;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -17,12 +18,12 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -40,16 +41,15 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Objects are built through their constructors, so you never get a half-built object that throws on
  * the first getter. A response that differs from what the SDK expects is filled in, see
  * {@see \Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum}, or with
- * {@see SerializerConfigInterface::strictResponses()} on, fails. Each date property declares its
+ * {@see SerializerConfig::strictResponses()} on, fails. Each date property declares its
  * own format, since the API uses several.
  *
  * Building the serializer is slow, so share one instance across the factories.
  * {@see \Polkurier\Webservice\PolkurierWebservice} does this. Metadata caching, JSON flags, the
  * timezone for dates and whether a response that differs is an error are set through
- * {@see \Polkurier\Webservice\Serializer\SerializerConfigInterface}. Everything else is fixed by
- * the API.
+ * {@see SerializerConfig}. Everything else is fixed by the API.
  */
-readonly class SerializerProvider implements SerializerProviderInterface
+readonly class SerializerProvider
 {
     /**
      * @var SerializerInterface&DenormalizerInterface
@@ -61,7 +61,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
      */
     public function __construct(SerializerConfigInterface $config = new SerializerConfig())
     {
-        $metadata = static::metadataFactory($config);
+        $metadata = static::buildMetadataFactory($config);
         $strict = $config->strictResponses();
 
         $extractor = new PropertyInfoExtractor(
@@ -80,11 +80,6 @@ readonly class SerializerProvider implements SerializerProviderInterface
             ],
         );
 
-        $dateTimeContext = [];
-        if ($config->getTimezone() !== null) {
-            $dateTimeContext[DateTimeNormalizer::TIMEZONE_KEY] = $config->getTimezone();
-        }
-
         $serializer = new Serializer(
             normalizers: [
                 // Must come before the object normalizer, which would read a single order as an
@@ -94,12 +89,28 @@ readonly class SerializerProvider implements SerializerProviderInterface
                 new LenientEnumDenormalizer(),
                 new BackedEnumNormalizer(),
                 // Must come before the date normalizer, so empty strings never reach it.
-                new AbsentDateNormalizer(),
-                new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
+                new AbsentDateDenormalizer(),
+                new LenientDateDenormalizer(
+                    new ExactDateTimeDenormalizer(new DateTimeNormalizer(), $config->getTimezone()),
+                ),
                 // Must come before the array normalizer, so unknown enum values never reach it.
                 new EnumListDenormalizer(),
                 new LenientListDenormalizer(new ArrayDenormalizer()),
-                new OmitEmptyNormalizer(new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor)),
+                new RequestQuirksNormalizer(
+                    // The inlining runs outside the two filters, so a field is dropped for being
+                    // empty or response-only before its entries would be moved up, and the entries
+                    // of a map-valued #[InlineFields] field reach the payload unfiltered: their
+                    // keys aren't known here.
+                    new InlineFieldsNormalizer(new OmitEmptyNormalizer(new SentFieldsNormalizer(
+                        new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+                            new LenientObjectDenormalizer(
+                                new SentObjectNormalizer($objectNormalizer),
+                                $metadata,
+                                $extractor,
+                            ),
+                        )),
+                    ))),
+                ),
             ],
             encoders: [
                 new JsonEncoder(
@@ -119,7 +130,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
      *
      * @return ClassMetadataFactoryInterface
      */
-    protected static function metadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
+    protected static function buildMetadataFactory(SerializerConfigInterface $config): ClassMetadataFactoryInterface
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
         $cache = $config->getMetadataCache();
@@ -128,7 +139,7 @@ readonly class SerializerProvider implements SerializerProviderInterface
     }
 
     /**
-     * {@inheritDoc}
+     * The serializer the SDK maps requests and responses with, built once and shared.
      *
      * @return SerializerInterface&DenormalizerInterface
      */

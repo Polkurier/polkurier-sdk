@@ -9,7 +9,7 @@ to replace is the HTTP client.
 
 ### 1. Substitute the transport
 
-If you replace [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php), everything above it runs as normal: request building,
+If you replace [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php), everything above it runs as normal: request building,
 serialization, envelope parsing, response mapping and exception handling. Only the network call is
 fake.
 
@@ -21,8 +21,8 @@ use Polkurier\Webservice\Testing\RecordingClient;
 
 $http = new RecordingClient($body);   // the envelope to answer with (HTTP 200 unless told otherwise)
 $http->willAnswerWith($otherBody);    // change the answer between calls
-$http->lastPayload();                 // the decoded body of the most recent request
-$http->requestCount();                // how many requests it has seen
+$http->readLastPayload();                 // the decoded body of the most recent request
+$http->countRequests();                // how many requests it has seen
 ```
 
 It is also its own factory, so you can pass it straight to the client:
@@ -32,10 +32,10 @@ $http = new RecordingClient('{"status":"success","response":[{"servicecode":"UPS
 
 $client = new PolkurierWebservice(config: $config, clientFactory: $http);
 
-$carriers = $client->courier()->availableCarriers();
+$carriers = $client->courier()->getAvailableCarriers();
 
-self::assertSame('UPS', $carriers[0]->getServiceCode());
-self::assertSame('available_carriers', $http->lastPayload()['apimethod']);
+self::assertSame('UPS', $carriers[0]->serviceCode);
+self::assertSame('available_carriers', $http->readLastPayload()['apimethod']);
 ```
 
 A test sees both sides: whether **the response mapped correctly**, and whether **the request
@@ -85,7 +85,9 @@ tested with a mock of the interface, without constructing the SDK at all.
 ```php
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 
@@ -107,10 +109,28 @@ try {
 }
 ```
 
-These tests are fast, and they catch mistakes that would otherwise each cost a round trip to the
-API.
+### 5. Assert a payload, or read a recorded body
 
-### 5. Test against the real API
+[`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) hands out what the client sends and reads with, so a test can
+write a payload or read a body without a transport at all:
+
+```php
+$serializer = $client->serializer();
+
+self::assertJsonStringEqualsJsonString($expected, $serializer->encode($createOrderMessage));
+
+$read = $serializer->readResponse($recordedBody, CreatedOrderMessage::class);
+
+self::assertSame('10001234', $read->envelope->response->orderNumber);
+self::assertSame([], $read->drift);
+```
+
+[`SerializerInterface::encode()`](../src/Api/SerializerInterface.php) writes the message alone, without the `apimethod` and
+`authorization` around it, which [`RecordingClient::readLastPayload()`](../src/Testing/RecordingClient.php) shows instead. Asserting the
+drift of a body recorded from the real API catches a response that has changed, the way
+`strictResponses` does, without failing the read.
+
+### 6. Test against the real API
 
 None of the above catches a mapping bug, because a fixture only contains what you expected. Only a
 real response shows which optional values are really optional, which nested objects can be absent
@@ -120,7 +140,10 @@ With a staging account, tests can run against the real API on a schedule, with
 `strictResponses` turned on:
 
 ```php
-new SerializerProvider(new SerializerConfig(strictResponses: true));
+$client = new PolkurierWebservice(
+    config: $config,
+    serializerConfig: new SerializerConfig(strictResponses: true),
+);
 ```
 
 A changed response then fails the build instead of being read with the change recorded.
@@ -129,9 +152,9 @@ A changed response then fails the build instead of being read with the change re
 
 | Seam | Replace | Use when |
 |------|---------|----------|
-| Transport | [`ClientFactoryInterface`](../src/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
+| Transport | [`ClientFactoryInterface`](../src/Api/Http/ClientFactoryInterface.php) | Testing that you talk to the API correctly |
 | Service | `services: [Foo::class => $mock]` | Testing your flow, not the SDK |
 | Interface | Inject `Api\Service\*Interface` | Most unit tests, if your design allows |
-| Serializer | [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) | Testing mapping changes of your own |
+| Serializer | [`SerializerConfig`](../src/Serializer/SerializerConfig.php) | Reading strictly, so a changed response fails the test |
 | Validator | [`ValidatorInterface`](../src/Api/Validation/ValidatorInterface.php) | Testing rules, or turning them off in a fixture |
 | Config | [`ConfigProviderInterface`](../src/Api/ConfigProviderInterface.php) | Testing per-tenant resolution |

@@ -35,14 +35,14 @@ services:
         autoconfigure: true
 
     # Credentials.
-    Polkurier\Webservice\Http\Request\AuthorizationMessage:
+    Polkurier\Webservice\Dto\Request\AuthorizationMessage:
         arguments:
             $token: '%env(POLKURIER_TOKEN)%'
             $login: '%env(POLKURIER_LOGIN)%'
 
     Polkurier\Webservice\Config:
         arguments:
-            $authorization: '@Polkurier\Webservice\Http\Request\AuthorizationMessage'
+            $authorization: '@Polkurier\Webservice\Dto\Request\AuthorizationMessage'
             $platform: '%polkurier.platform%'
             $platformVersion: '%polkurier.platform_version%'
             $sandbox: '%env(bool:POLKURIER_SANDBOX)%'
@@ -52,18 +52,25 @@ services:
     Polkurier\Webservice\ConfigProvider: ~
     Polkurier\Webservice\Api\ConfigProviderInterface: '@Polkurier\Webservice\ConfigProvider'
 
-    # One serializer, cached. This is the expensive object.
+    # Shared by the facade and the services below: the pool it names holds the mapping metadata,
+    # so the attributes are read once per pool.
     Polkurier\Webservice\Serializer\SerializerConfig:
         arguments:
             $metadataCache: '@cache.polkurier'
             $strictResponses: '%kernel.debug%'
 
-    Polkurier\Webservice\Serializer\SerializerProvider: ~
-    Polkurier\Webservice\Serializer\SerializerProviderInterface: '@Polkurier\Webservice\Serializer\SerializerProvider'
+    # The facade builds its own serializer; the factories wired below need this one. The provider
+    # gets no interface alias, unlike the services under it: the SDK has no interface for it.
+    Polkurier\Webservice\Serializer\SerializerProvider:
+        arguments:
+            $config: '@Polkurier\Webservice\Serializer\SerializerConfig'
+
+    Polkurier\Webservice\Serializer\MessageSerializer: ~
+    Polkurier\Webservice\Api\SerializerInterface: '@Polkurier\Webservice\Serializer\MessageSerializer'
 
     # Transport and envelope.
     Polkurier\Webservice\Http\ClientFactory: ~
-    Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Http\ClientFactory'
+    Polkurier\Webservice\Api\Http\ClientFactoryInterface: '@Polkurier\Webservice\Http\ClientFactory'
 
     Polkurier\Webservice\Http\Request\RequestFactory: ~
     Polkurier\Webservice\Http\Request\RequestFactoryInterface: '@Polkurier\Webservice\Http\Request\RequestFactory'
@@ -119,8 +126,8 @@ monolog:
 ```
 
 > With `methodsToLog` set on [`Config`](../../src/Config.php), full request and response bodies are logged. Secrets and
-> personal data in them are hidden unless allowed. The exceptions in an error record's context are
-> logged unaltered and can hold the full request.
+> personal data in them are hidden unless allowed. An exception in an error record's context is
+> logged as its class name until both are allowed, because it can hold the full request.
 
 Autowiring
 ----------
@@ -131,12 +138,14 @@ With that configuration in place, a service can ask for what it needs:
 namespace App\Shipping;
 
 use Polkurier\Webservice\Api\Service\OrdersServiceInterface;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Response\Order\CreatedOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
 
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 
     public function dispatch(CreateOrderMessage $message): CreatedOrderMessage
     {
@@ -156,7 +165,7 @@ aliases are left out:
         arguments:
             $config: '@Polkurier\Webservice\Api\ConfigInterface'
             $logger: '@monolog.logger.polkurier'
-            $serializerProvider: '@Polkurier\Webservice\Serializer\SerializerProviderInterface'
+            $serializerConfig: '@Polkurier\Webservice\Serializer\SerializerConfig'
 ```
 
 Its other dependencies are optional and it builds them itself.
@@ -202,7 +211,7 @@ namespace App\Polkurier;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 
 final readonly class TenantConfigProvider implements ConfigProviderInterface
 {
@@ -241,14 +250,14 @@ final readonly class PlaceShipmentHandler
 {
     public function __construct(
         private CredentialStore $credentials,
-        private SerializerProviderInterface $serializer,   // shared; this one is safe
+        private SerializerConfig $serializerConfig,   // the service registered above
     ) {}
 
     public function __invoke(PlaceShipment $message): void
     {
         $client = new PolkurierWebservice(
             config: $this->credentials->configFor($message->tenantId),
-            serializerProvider: $this->serializer,
+            serializerConfig: $this->serializerConfig,
         );
 
         $client->orders()->createOrder($this->map($message));
@@ -256,8 +265,8 @@ final readonly class PlaceShipmentHandler
 }
 ```
 
-The serializer is stateless and it's the expensive part, so you can share it and still build a
-fresh client per message.
+Each client builds its own serializer from that configuration, and `cache.polkurier` holds the
+mapping metadata, so a fresh client per message pays for the attributes only on the first one.
 
 Messenger: placing orders off the request
 -----------------------------------------
@@ -267,7 +276,9 @@ namespace App\Shipping\Message;
 
 final readonly class PlaceShipment
 {
-    public function __construct(public int $orderId) {}
+    public function __construct(
+        public int $orderId,
+    ) {}
 }
 ```
 
@@ -309,7 +320,7 @@ final readonly class PlaceShipmentHandler
             throw $e;
         }
 
-        $order->polkurierNumber = $created->getOrderNumber();
+        $order->polkurierNumber = $created->orderNumber;
         $this->repository->save($order);
     }
 }
@@ -374,7 +385,9 @@ use Polkurier\Webservice\Exception\Exception as PolkurierException;
 
 final readonly class PolkurierHealthCheck
 {
-    public function __construct(private UtilsServiceInterface $utils) {}
+    public function __construct(
+        private UtilsServiceInterface $utils,
+    ) {}
 
     public function __invoke(): bool
     {
@@ -417,7 +430,7 @@ function applyToForm(ValidationException $e, FormInterface $form, array $fieldMa
 }
 ```
 
-[`WebserviceException::getErrorMessage()`](../../src/Exception/WebserviceException.php) followed by [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) returns the same shape, so the same
+[`WebserviceException::getErrorMessage()`](../../src/Exception/WebserviceException.php) followed by [`ErrorMessage::$validationErrors`](../../src/Dto/Response/ErrorMessage.php) returns the same shape, so the same
 function works when the API rejects the payload.
 
 Testing
@@ -428,7 +441,7 @@ Replace the transport in the test container:
 ```yaml
 # config/services_test.yaml
 services:
-    Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
+    Polkurier\Webservice\Api\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
     Polkurier\Webservice\Testing\RecordingClient:
         public: true
 ```

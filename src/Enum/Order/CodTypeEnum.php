@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * How quickly collected cash-on-delivery funds are paid out.
  *
  * Faster payout costs more. The options an account can use depend on its agreement.
+ *
+ * @api
  */
 enum CodTypeEnum: string
 {

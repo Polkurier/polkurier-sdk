@@ -7,25 +7,25 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken\ValidityMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
 
 /**
  * Two-factor confirmation for operations that need more than the API token.
  *
  * Register a token for the operation, have the user enter the code sent to them, and verify it.
  * Then repeat the original call with the token and code. Operations that need it include
- * registering or changing a bank account and making a telephone number the default.
+ * registering or changing a bank account and making a phone number the default.
  *
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither:
@@ -37,6 +37,8 @@ use Polkurier\Webservice\Response\TwoFactorToken\ValidityMessage;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface TwoFactorTokenServiceInterface
 {
@@ -59,7 +61,7 @@ interface TwoFactorTokenServiceInterface
      * At most 10 active tokens per account; the next fails with TWO_FACTOR_MAX_TOKENS_EXCEEDED.
      *
      * The response has the token id (pass it when verifying), the expiry time, and the delivery
-     * channels available to this customer. twoFactorTokenChangeTransportMethod() picks from those
+     * channels available to this customer. changeTransportMethod() picks from those
      * channels.
      *
      * Endpoint: `two_factor_token_register`
@@ -119,7 +121,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenRegister(RegisterMessage $registerMessage): TwoFactorToken;
+    public function register(RegisterMessage $registerMessage): TwoFactorToken;
 
     /**
      * Sends the code again for a token already registered.
@@ -155,7 +157,7 @@ interface TwoFactorTokenServiceInterface
      *  "response": "Brak wymaganego parametru lub jest pusty: [token]"}
      * ```
      *
-     * @param TokenMessage $tokenMessage
+     * @param ResendMessage $resendMessage
      *
      * @return TwoFactorToken
      * @throws AuthorizationException
@@ -165,7 +167,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenResend(TokenMessage $tokenMessage): TwoFactorToken;
+    public function resend(ResendMessage $resendMessage): TwoFactorToken;
 
     /**
      * Checks the code the customer entered.
@@ -215,7 +217,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenVerify(VerifyMessage $verifyMessage): ValidityMessage;
+    public function verify(VerifyMessage $verifyMessage): ValidityMessage;
 
     /**
      * Switches a pending confirmation to a different delivery channel.
@@ -261,7 +263,7 @@ interface TwoFactorTokenServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function twoFactorTokenChangeTransportMethod(
+    public function changeTransportMethod(
         ChangeTransportMethodMessage $changeTransportMethodMessage
     ): TwoFactorToken;
 }

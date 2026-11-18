@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Exception;
 
-use Polkurier\Webservice\Http\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -40,11 +40,11 @@ class WebserviceException extends Exception
         parent::__construct(
             \sprintf(
                 'Polkurier API error: "%s", Error code: "%s", Status code: %s',
-                (string)$errorResponse->getResponse(),
-                $errorResponse->getErrorCode() ?? '-',
-                $errorResponse->getStatusCode() ?? '-',
+                (string)$errorResponse->response,
+                $errorResponse->errorCode ?? '-',
+                $errorResponse->statusCode ?? '-',
             ),
-            $errorResponse->getStatusCode() ?? 0,
+            $errorResponse->statusCode ?? 0,
         );
     }
 

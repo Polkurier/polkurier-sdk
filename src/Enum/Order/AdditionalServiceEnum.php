@@ -12,9 +12,9 @@ namespace Polkurier\Webservice\Enum\Order;
  *
  * Which services you can order depends on the carrier and sometimes on the account. Asking for one
  * the carrier doesn't offer is an error. Services are sent as a map of code to `true`.
- * {@see \Polkurier\Webservice\Request\Order\CreateOrderMessage} builds the map from a plain list.
+ * {@see \Polkurier\Webservice\Entity\Order::getCourierServiceMap()} builds the map from a plain list.
  *
- * {@see \Polkurier\Webservice\Response\Carrier\AdditionalData\CourierService} lists the services
+ * {@see \Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\CourierService} lists the services
  * `available_carriers` reports for a carrier.
  *
  * The recipient SMS notifications come in 2 independent kinds: one when the parcel is dispatched
@@ -24,6 +24,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * with PARAMS_NOT_SET. If you order the named dispatch notification, an out-for-delivery
  * notification you also ordered is sent under that name too. It doesn't work the other way round.
  * Not every UPS service supports SMS notifications.
+ *
+ * @api
  */
 enum AdditionalServiceEnum: string
 {
@@ -84,7 +86,7 @@ enum AdditionalServiceEnum: string
     case CheckContent = 'CHECK_CONTENT';
 
     /**
-     * The courier telephones the recipient before delivering.
+     * The courier calls the recipient before delivering.
      */
     case PhoneCallBeforeDelivery = 'PHONE_NOTIFICATION_RECIPIENT';
 
@@ -110,7 +112,7 @@ enum AdditionalServiceEnum: string
     case SaturdayDelivery = 'SATURDAY_DELIVERY';
 
     /**
-     * The courier telephones the sender before collecting.
+     * The courier calls the sender before collecting.
      */
     case PhoneCallBeforePickup = 'PHONE_NOTIFICATION_COLLECTION';
 

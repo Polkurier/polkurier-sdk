@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -29,7 +29,7 @@ try {
         new RegisterPaymentMessage(mode: PaymentModeEnum::Prepaid, amount: 100.0)
     );
 
-    \printf("Transaction %s is %s\n", $payment->getTransactionId(), $payment->getState());
+    \printf("Transaction %s is %s\n", $payment->transactionId, $payment->state->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

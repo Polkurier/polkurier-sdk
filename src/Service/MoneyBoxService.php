@@ -8,6 +8,14 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\MoneyBoxServiceInterface;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxFeeMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,14 +23,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
-use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
 
 /**
  * @see MoneyBoxServiceInterface
@@ -35,9 +35,10 @@ class MoneyBoxService extends AbstractService implements MoneyBoxServiceInterfac
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getConfig(): MoneyBoxConfigMessage
+    public function getMoneyBoxConfig(): MoneyBoxConfigMessage
     {
         return $this->requestObject(ApiMethodEnum::GetMoneyBoxConfig, MoneyBoxConfigMessage::class);
     }

@@ -7,20 +7,22 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
 use Polkurier\Webservice\Testing\RecordingClient;
 
 /**
  * What the client keeps about the last call: the HTTP response and how it differed from the SDK.
  */
+#[CoversNothing]
 final class LastResponseTest extends TestCase
 {
     private const string ADDRESS_WITH_UNKNOWN_TYPE = '{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW",'
@@ -61,10 +63,10 @@ final class LastResponseTest extends TestCase
 
         $drift = $this->sdk->getLastResponseDrift();
         self::assertCount(1, $drift);
-        self::assertSame(ResponseDriftTypeEnum::UnknownEnumValue, $drift[0]->getType());
-        self::assertSame(AddressTypeEnum::class, $drift[0]->getExpected());
-        self::assertSame('SOMETHING_NEW', $drift[0]->getValue());
-        self::assertSame('[0].type', $drift[0]->getPath());
+        self::assertSame(ResponseDriftTypeEnum::UnknownEnumValue, $drift[0]->type);
+        self::assertSame(AddressTypeEnum::class, $drift[0]->expected);
+        self::assertSame('SOMETHING_NEW', $drift[0]->value);
+        self::assertSame('[0].type', $drift[0]->path);
     }
 
     public function testTheNextCallThroughAnyServiceReplacesIt(): void

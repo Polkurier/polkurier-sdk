@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Contact;
 
 /**
  * How a notice on a contact form should be shown.
+ *
+ * @api
  */
 enum ContactFormSeverityEnum: string
 {

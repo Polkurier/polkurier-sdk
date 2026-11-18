@@ -1,0 +1,43 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Dto\Request\Ticket;
+
+use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Validator\Rule as Validate;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+/**
+ * Identifies one attachment to download.
+ *
+ * An attachment is identified by its message and its filename.
+ *
+ * @api
+ */
+final readonly class GetTicketMessageFileMessage implements MessageInterface
+{
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_MESSAGE_ID = 'message_id';
+    public const string FIELD_FILENAME = 'filename';
+    /**-@#*/
+
+    /**
+     * @param string $messageId UUID of the timeline entry holding the file
+     * @param string $filename the filename as the timeline reports it
+     */
+    public function __construct(
+        #[Serializer\SerializedName(self::FIELD_MESSAGE_ID)]
+        #[Validate\NotBlank]
+        public string $messageId,
+
+        #[Serializer\SerializedName(self::FIELD_FILENAME)]
+        #[Validate\NotBlank]
+        public string $filename,
+    ) {}
+}

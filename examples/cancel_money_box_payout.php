@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -29,7 +29,7 @@ try {
         new CancelMoneyBoxPayoutMessage(payoutNumber: $payoutNumber)
     );
 
-    \printf("Payout %s for %.2f PLN cancelled\n", $payout->getNumber(), $payout->getAmount());
+    \printf("Payout %s for %.2f PLN cancelled\n", $payout->number, $payout->amount);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

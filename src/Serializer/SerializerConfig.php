@@ -7,10 +7,24 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Serializer;
 
+use Polkurier\Webservice\Api\SerializerConfigInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * {@inheritDoc}
+ * How the SDK reads responses and writes payloads: strictly or leniently, with which metadata
+ * cache, in which timezone, and with which JSON flags.
+ *
+ * The mapping itself (field names, date formats, which fields are dropped when empty) is fixed by
+ * the API and declared in attributes on the classes. These are the settings that depend on your
+ * application, and that often differ between a long-running worker and a CLI script, or between
+ * CI and production. Construct this with the arguments you want, or implement
+ * {@see SerializerConfigInterface} to read them from wherever your application keeps them, and
+ * pass the result to {@see \Polkurier\Webservice\PolkurierWebservice}.
+ *
+ * It is the whole of what an application sets about serialization: the serializer it configures is
+ * the SDK's own, see {@see \Polkurier\Webservice\Api\SerializerInterface}.
+ *
+ * @api
  */
 readonly class SerializerConfig implements SerializerConfigInterface
 {

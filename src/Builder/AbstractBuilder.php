@@ -20,6 +20,8 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * do not keep copies of those defaults.
  *
  * @phpstan-consistent-constructor
+ *
+ * @api
  */
 abstract class AbstractBuilder
 {
@@ -94,7 +96,7 @@ abstract class AbstractBuilder
      */
     protected function make(string $message): object
     {
-        $missing = \array_values(\array_diff(self::requiredOf($message), \array_keys($this->values)));
+        $missing = \array_values(\array_diff(self::readRequiredFields($message), \array_keys($this->values)));
 
         if ($missing !== []) {
             throw new InvalidArgumentException(\sprintf(
@@ -108,14 +110,14 @@ abstract class AbstractBuilder
     }
 
     /**
-     * Returns the constructor parameters that have no default value, read via reflection.
+     * The constructor parameters a message has no default for, so a build without them fails.
      *
      * @param class-string $message
      *
      * @return list<string>
      * @throws InvalidArgumentException when the named message class does not exist
      */
-    private static function requiredOf(string $message): array
+    private static function readRequiredFields(string $message): array
     {
         if (isset(self::$required[$message])) {
             return self::$required[$message];

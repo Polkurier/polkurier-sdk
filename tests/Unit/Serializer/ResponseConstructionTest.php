@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Accessors;
+use Polkurier\Webservice\Test\Support\MessageClasses;
 use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 
 /**
@@ -33,40 +35,13 @@ use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 final class ResponseConstructionTest extends TestCase
 {
     /**
-     * Every class under Response.
+     * Every response class.
      *
      * @return array<string, array{class-string}>
      */
     public static function responseClasses(): array
     {
-        $root = \dirname(__DIR__, 3) . '/src';
-        $classes = [];
-
-        /** @var \SplFileInfo $file */
-        foreach (new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($root . '/Response')
-        ) as $file) {
-            if (!$file->isFile() || $file->getExtension() !== 'php') {
-                continue;
-            }
-
-            /** @var class-string $class */
-            $class = 'Polkurier\\Webservice\\' . \str_replace(
-                '/',
-                '\\',
-                \substr($file->getPathname(), \strlen($root) + 1, -4)
-            );
-
-            if (!\class_exists($class) || (new \ReflectionClass($class))->isAbstract()) {
-                continue;
-            }
-
-            $classes[\str_replace('Polkurier\\Webservice\\Response\\', '', $class)] = [$class];
-        }
-
-        self::assertNotEmpty($classes);
-
-        return $classes;
+        return \array_map(static fn(string $class): array => [$class], MessageClasses::responses());
     }
 
     /**
@@ -101,7 +76,7 @@ final class ResponseConstructionTest extends TestCase
             if ($method->isStatic() || $method->getNumberOfRequiredParameters() > 0) {
                 continue;
             }
-            if (!\preg_match('/^(get|is|has)/', $method->getName())) {
+            if (!\preg_match(Accessors::PATTERN, $method->getName())) {
                 continue;
             }
 

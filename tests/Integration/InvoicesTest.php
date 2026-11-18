@@ -9,10 +9,10 @@ namespace Polkurier\Webservice\Test\Integration;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
 
 #[Group('integration')]
 #[CoversNothing]

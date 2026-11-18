@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\Ticket;
  * The channel a support ticket was raised from.
  *
  * Defaults to {@see self::Api}.
+ *
+ * @api
  */
 enum TicketOriginEnum: string
 {

@@ -7,16 +7,16 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
+use Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Request\KnowledgeBase\SearchKnowledgeBaseMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage;
-use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
 
 /**
  * Help articles from the Polkurier knowledge base.
@@ -26,6 +26,8 @@ use Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage;
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
  * throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface KnowledgeBaseServiceInterface
 {
@@ -73,11 +75,12 @@ interface KnowledgeBaseServiceInterface
      * ```
      *
      * @return KnowledgeBaseEntryMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getIndex(): array;
@@ -119,7 +122,7 @@ interface KnowledgeBaseServiceInterface
      * @param SearchKnowledgeBaseMessage $searchKnowledgeBaseMessage
      *
      * @return KnowledgeBaseEntryMessage[] payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseEntryMessage}[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -181,7 +184,7 @@ interface KnowledgeBaseServiceInterface
      * @param GetKnowledgeBaseArticleMessage $getKnowledgeBaseArticleMessage
      *
      * @return KnowledgeBaseArticleMessage payload:
-     *         {@see \Polkurier\Webservice\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\KnowledgeBase\KnowledgeBaseArticleMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

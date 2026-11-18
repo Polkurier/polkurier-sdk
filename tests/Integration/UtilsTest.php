@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 
 #[Group('integration')]
@@ -25,7 +25,7 @@ final class UtilsTest extends IntegrationTestCase
 
     public function testHeartbeatReportsTheServerTime(): void
     {
-        $time = $this->sdk->utils()->heartbeat()->getTime();
+        $time = $this->sdk->utils()->heartbeat()->time;
 
         self::assertNotNull($time);
         self::assertLessThan(300, \abs($time->getTimestamp() - \time()));

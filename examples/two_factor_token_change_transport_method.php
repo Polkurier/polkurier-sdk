@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -27,11 +27,11 @@ $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 $method = arguments()[1] ?? 'method-id-from-two_factor_token_register';
 
 try {
-    $changed = polkurier()->twoFactorToken()->twoFactorTokenChangeTransportMethod(
+    $changed = polkurier()->twoFactorToken()->changeTransportMethod(
         new ChangeTransportMethodMessage(token: $token, method: $method)
     );
 
-    \printf("Code now going to %s\n", $changed->getTransportMethod()?->getName() ?? '(unknown)');
+    \printf("Code now going to %s\n", $changed->transportMethod->name ?? '(unknown)');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -22,11 +22,11 @@ $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 $code = arguments()[1] ?? '000000';
 
 try {
-    $validity = polkurier()->twoFactorToken()->twoFactorTokenVerify(
+    $validity = polkurier()->twoFactorToken()->verify(
         new VerifyMessage(token: $token, code: $code)
     );
 
-    echo $validity->isValid() ? "That code is correct.\n" : "That code is wrong.\n";
+    echo $validity->valid ? "That code is correct.\n" : "That code is wrong.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

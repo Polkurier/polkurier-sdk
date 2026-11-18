@@ -45,38 +45,23 @@ class MalformedResponseException extends Exception
     }
 
     /**
+     * The body could not be read as an API response at all, or its payload could not be read as
+     * the class the method promises.
+     *
+     * The serializer knows neither that the body came over HTTP nor what the API answered with,
+     * so the status line is added here.
+     *
      * @param ResponseInterface $response
-     * @param string $excerpt
+     * @param InvalidArgumentException $cause what the serializer refused, and why
      *
      * @return self
      */
-    public static function notJson(ResponseInterface $response, string $excerpt): self
+    public static function makeForUnreadableBody(ResponseInterface $response, InvalidArgumentException $cause): self
     {
         return new self(
-            \sprintf(
-                'Expected a JSON object from the Polkurier API, got HTTP %d with body: "%s"',
-                $response->getStatusCode(),
-                $excerpt
-            ),
-            $response
-        );
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @param string $excerpt
-     *
-     * @return self
-     */
-    public static function missingStatus(ResponseInterface $response, string $excerpt): self
-    {
-        return new self(
-            \sprintf(
-                'Polkurier API response (HTTP %d) has no "status" field, body: "%s"',
-                $response->getStatusCode(),
-                $excerpt
-            ),
-            $response
+            \sprintf('Polkurier API response (HTTP %d): %s', $response->getStatusCode(), $cause->getMessage()),
+            $response,
+            $cause,
         );
     }
 
@@ -93,7 +78,7 @@ class MalformedResponseException extends Exception
      *
      * @return self
      */
-    public static function unexpectedPayload(
+    public static function makeForUnexpectedPayload(
         ResponseInterface $response,
         string $apiMethod,
         string $expected,
@@ -107,41 +92,6 @@ class MalformedResponseException extends Exception
                 $expected,
             ),
             $response,
-        );
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @param string $status
-     *
-     * @return self
-     */
-    public static function unknownStatus(ResponseInterface $response, string $status): self
-    {
-        return new self(
-            \sprintf('Unknown Polkurier API response status: "%s"', $status),
-            $response
-        );
-    }
-
-    /**
-     * The envelope parsed, but the payload could not be mapped to the type the endpoint promises.
-     *
-     * Wraps the serializer's exception, so callers only see SDK exceptions and get the response
-     * that failed to map.
-     *
-     * @param ResponseInterface $response
-     * @param string $expected
-     * @param \Throwable $previous
-     *
-     * @return self
-     */
-    public static function notMappable(ResponseInterface $response, string $expected, \Throwable $previous): self
-    {
-        return new self(
-            \sprintf('The response could not be mapped onto %s: %s', $expected, $previous->getMessage()),
-            $response,
-            $previous,
         );
     }
 }

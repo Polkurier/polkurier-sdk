@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Ticket;
 
 /**
  * What an entry on a ticket's timeline represents.
+ *
+ * @api
  */
 enum TicketTimelineItemTypeEnum: string
 {

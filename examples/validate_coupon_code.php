@@ -12,10 +12,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -27,12 +27,12 @@ try {
         couponCode: $code,
         courier: 'UPS',
         shipmentType: ShipmentTypeEnum::Box,
-        packs: [new PackMessage(length: 30, width: 20, height: 15, weight: 2.5)],
+        packs: [new PackItem(length: 30, width: 20, height: 15, weight: 2.5)],
     ));
 
-    \printf("%s: %s", $coupon->getCode(), $coupon->isValid() ? 'valid' : 'not valid');
-    \printf(", %s for this order\n", $coupon->isValidForOrder() ? 'usable' : 'not usable');
-    \printf("  %s\n", $coupon->getDescription());
+    \printf("%s: %s", $coupon->code, $coupon->valid ? 'valid' : 'not valid');
+    \printf(", %s for this order\n", $coupon->validForOrder ? 'usable' : 'not usable');
+    \printf("  %s\n", $coupon->description);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

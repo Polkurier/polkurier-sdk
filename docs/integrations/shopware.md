@@ -25,7 +25,7 @@ custom/plugins/PolkurierShipping/
     "name": "your-vendor/polkurier-shipping",
     "type": "shopware-platform-plugin",
     "require": {
-        "shopware/core": "~6.6.10.12 || ~6.7.7",
+        "shopware/core": "~6.5.8 || ~6.6.10.12 || ~6.7.7",
         "polkurier/polkurier-sdk": "^2.0"
     },
     "extra": {
@@ -85,7 +85,7 @@ namespace YourVendor\PolkurierShipping\Service;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class SalesChannelConfigProvider implements ConfigProviderInterface
@@ -145,31 +145,40 @@ Services
         <service id="Polkurier\Webservice\Api\ConfigProviderInterface"
                  alias="YourVendor\PolkurierShipping\Service\SalesChannelConfigProvider"/>
 
-        <!-- One serializer. Expensive to build, stateless, safe to share. -->
+        <!-- Shared by the facade and the services below: the pool it names holds the mapping
+             metadata, so the attributes are read once per pool. -->
         <service id="Polkurier\Webservice\Serializer\SerializerConfig">
             <argument type="service" id="polkurier.metadata_cache"/>
         </service>
+
+        <!-- The facade builds its own serializer; the factories wired below need this one. The
+             provider gets no interface alias, unlike the services under it: it is the one piece
+             of serialization the SDK has no interface for. -->
         <service id="Polkurier\Webservice\Serializer\SerializerProvider">
             <argument type="service" id="Polkurier\Webservice\Serializer\SerializerConfig"/>
         </service>
-        <service id="Polkurier\Webservice\Serializer\SerializerProviderInterface"
-                 alias="Polkurier\Webservice\Serializer\SerializerProvider"/>
 
         <service id="Polkurier\Webservice\Http\ClientFactory">
             <argument type="service" id="Polkurier\Webservice\Api\ConfigProviderInterface"/>
         </service>
-        <service id="Polkurier\Webservice\Http\ClientFactoryInterface"
+        <service id="Polkurier\Webservice\Api\Http\ClientFactoryInterface"
                  alias="Polkurier\Webservice\Http\ClientFactory"/>
 
+        <service id="Polkurier\Webservice\Serializer\MessageSerializer">
+            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProvider"/>
+        </service>
+        <service id="Polkurier\Webservice\Api\SerializerInterface"
+                 alias="Polkurier\Webservice\Serializer\MessageSerializer"/>
+
         <service id="Polkurier\Webservice\Http\Request\RequestFactory">
-            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProviderInterface"/>
+            <argument type="service" id="Polkurier\Webservice\Serializer\MessageSerializer"/>
             <argument type="service" id="Polkurier\Webservice\Api\ConfigProviderInterface"/>
         </service>
         <service id="Polkurier\Webservice\Http\Request\RequestFactoryInterface"
                  alias="Polkurier\Webservice\Http\Request\RequestFactory"/>
 
         <service id="Polkurier\Webservice\Http\Response\ResponseFactory">
-            <argument type="service" id="Polkurier\Webservice\Serializer\SerializerProviderInterface"/>
+            <argument type="service" id="Polkurier\Webservice\Serializer\MessageSerializer"/>
         </service>
         <service id="Polkurier\Webservice\Http\Response\ResponseFactoryInterface"
                  alias="Polkurier\Webservice\Http\Response\ResponseFactory"/>
@@ -182,7 +191,7 @@ Services
             <argument type="service" id="Polkurier\Webservice\Http\Request\RequestFactoryInterface"/>
             <argument type="service" id="Polkurier\Webservice\Http\Response\ResponseFactoryInterface"/>
             <argument type="service" id="polkurier.logger"/>
-            <argument type="service" id="Polkurier\Webservice\Http\ClientFactoryInterface"/>
+            <argument type="service" id="Polkurier\Webservice\Api\Http\ClientFactoryInterface"/>
             <argument type="service" id="Polkurier\Webservice\Api\ConfigProviderInterface"/>
             <argument type="service" id="Polkurier\Webservice\Api\Validation\ValidatorInterface"/>
         </service>
@@ -212,7 +221,7 @@ There, the client is built for each message, for the channel the message names:
 namespace YourVendor\PolkurierShipping\MessageQueue;
 
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Shopware\Core\Framework\MessageQueue\Handler\AbstractMessageHandler;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use YourVendor\PolkurierShipping\Service\SalesChannelConfigProvider;
@@ -222,7 +231,7 @@ final class PlaceShipmentHandler
 {
     public function __construct(
         private readonly SalesChannelConfigProvider $configProvider,
-        private readonly SerializerProviderInterface $serializer,   // shared: stateless
+        private readonly SerializerConfig $serializerConfig,   // the service declared above
         private readonly OrderMapper $mapper,
         private readonly EntityRepository $orderRepository,
     ) {}
@@ -231,7 +240,7 @@ final class PlaceShipmentHandler
     {
         $client = new PolkurierWebservice(
             config: $this->configProvider->forSalesChannel($message->salesChannelId)->getConfig(),
-            serializerProvider: $this->serializer,
+            serializerConfig: $this->serializerConfig,
         );
 
         // … map and place …
@@ -239,8 +248,9 @@ final class PlaceShipmentHandler
 }
 ```
 
-The serializer is expensive to build and keeps no state between calls, so one is shared. The client
-is quick to build and belongs to one channel, so there is one per message.
+Each client builds its own serializer from that configuration, and `polkurier.metadata_cache`
+holds the mapping metadata, so the attributes are read on the first client only. The client belongs
+to one channel, so there is one per message.
 
 Placing the shipment from the message bus
 -----------------------------------------
@@ -260,7 +270,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class OrderSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private MessageBusInterface $bus) {}
+    public function __construct(
+        private MessageBusInterface $bus,
+    ) {}
 
     public static function getSubscribedEvents(): array
     {
@@ -431,7 +443,7 @@ final class LabelController extends AbstractController
 
         $document = $this->orders->getLabel(new GetDocumentMessage(orderNo: $numbers));
 
-        return new Response($document->getDecodedFile(), 200, [
+        return new Response($document->file, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="labels.pdf"',
         ]);

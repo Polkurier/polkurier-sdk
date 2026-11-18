@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Payment\GetPaymentInfoMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Payment\GetPaymentInfoMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,7 +24,7 @@ try {
         new GetPaymentInfoMessage(transactionId: $transactionId)
     );
 
-    \printf("Transaction %s is %s\n", $info->getTransactionId(), $info->getState());
+    \printf("Transaction %s is %s\n", $info->transactionId, $info->state->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

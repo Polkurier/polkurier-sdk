@@ -7,16 +7,15 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage;
+use Polkurier\Webservice\Dto\Request\Address\GetMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Address\DeleteMessage;
-use Polkurier\Webservice\Request\Address\GetMessage;
-use Polkurier\Webservice\Request\Address\SaveMessage;
-use Polkurier\Webservice\Response\Address;
 
 /**
  * The account's address book.
@@ -34,6 +33,8 @@ use Polkurier\Webservice\Response\Address;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface AddressesServiceInterface
 {
@@ -165,7 +166,7 @@ interface AddressesServiceInterface
      *  "response": "Wskazany adres nie istnieje"}
      * ```
      *
-     * @param SaveMessage $saveMessage
+     * @param Address $address
      *
      * @return Address as stored, with its id
      * @throws AuthorizationException
@@ -175,7 +176,7 @@ interface AddressesServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function saveAddress(SaveMessage $saveMessage): Address;
+    public function saveAddress(Address $address): Address;
 
     /**
      * Deletes one address-book entry.

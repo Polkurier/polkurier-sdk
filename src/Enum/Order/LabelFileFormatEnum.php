@@ -14,6 +14,8 @@ namespace Polkurier\Webservice\Enum\Order;
  * sending straight to a label printer.
  *
  * Applies to a single order number only, and not every carrier supports every language.
+ *
+ * @api
  */
 enum LabelFileFormatEnum: string
 {

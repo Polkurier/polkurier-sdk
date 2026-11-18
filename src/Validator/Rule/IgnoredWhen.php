@@ -9,7 +9,7 @@ namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 
 /**
  * Skips a block's rules when one of its fields has a given value.
@@ -26,32 +26,34 @@ use Polkurier\Webservice\Validator\MessageFields;
  * ```
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-class IgnoredWhen
+class IgnoredWhen implements ClassRuleInterface
 {
     /**
      * @param string $property the property to check
      * @param mixed $equals the value of $property that turns the block off
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $property,
 
-        /**
-         * @var mixed
-         */
         public readonly mixed $equals = null,
     ) {}
 
     /**
-     * @param MessageFields $fields
+     * @param MessageFieldReader $fields
      *
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function applies(MessageFields $fields): bool
+    public function applies(MessageFieldReader $fields): bool
     {
-        return $fields->value($this->property) === $this->equals;
+        return $fields->readValue($this->property) === $this->equals;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function listProperties(): array
+    {
+        return [$this->property];
     }
 }

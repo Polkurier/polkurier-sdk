@@ -8,8 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
@@ -20,8 +21,11 @@ use Polkurier\Webservice\Validator\ViolationPool;
  * modes the amount follows from what is being paid (outstanding invoices, unpaid orders). That is
  * why the rule lives here instead of on the field.
  *
- * Zero counts as missing and gets the same message as an absent amount.
- * {@see \Polkurier\Webservice\Validator\Rule\NotBlank} alone would accept zero.
+ * An absent amount and a zero one are different faults and are reported as such: the first is
+ * blank, the second is out of range. A negative one is out of range for the field whatever the
+ * mode, so {@see \Polkurier\Webservice\Validator\Rule\NonNegative} on
+ * {@see RegisterPaymentMessage::$amount} reports it and this validator stays silent, leaving one
+ * violation per fault.
  *
  * The API's minimum top-up is not checked here.
  *
@@ -30,25 +34,48 @@ use Polkurier\Webservice\Validator\ViolationPool;
 class RegisterPaymentMessageValidator extends AbstractMessageValidator
 {
     /**
-     * @param MessageInterface $data
+     * @param RegisterPaymentMessage $data
      * @param ViolationPool $violations
      *
      * @return void
      */
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
-        /** @var RegisterPaymentMessage $data */
-        if ($data->getMode() !== PaymentModeEnum::Prepaid) {
+        if ($data->mode !== PaymentModeEnum::Prepaid) {
             return;
         }
 
-        if (($data->getAmount() ?? 0.0) > 0.0) {
+        if ($data->amount === null) {
+            $violations->add(
+                RegisterPaymentMessage::FIELD_AMOUNT,
+                'is required when topping up the prepaid balance',
+                ValidationErrorCodeEnum::Blank,
+                [
+                    'field' => RegisterPaymentMessage::FIELD_MODE,
+                    'condition' => 'equals',
+                    'equals' => PaymentModeEnum::Prepaid->value,
+                ],
+            );
+
+            return;
+        }
+
+        if ($data->amount > 0.0) {
+            return;
+        }
+
+        // A negative amount is already out of range for the field itself, whatever the mode, and
+        // {@see \Polkurier\Webservice\Validator\Rule\NonNegative} on the property reports it.
+        // Reporting it again here would put 2 violations on 1 field for 1 fault.
+        if ($data->amount < 0.0) {
             return;
         }
 
         $violations->add(
             RegisterPaymentMessage::FIELD_AMOUNT,
-            'is required when topping up the prepaid balance, and must be greater than zero',
+            'must be greater than zero when topping up the prepaid balance',
+            ValidationErrorCodeEnum::OutOfRange,
+            ['minimum' => 0, 'exclusiveMinimum' => true],
         );
     }
 }

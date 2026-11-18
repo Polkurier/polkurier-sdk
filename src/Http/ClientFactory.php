@@ -9,6 +9,7 @@ namespace Polkurier\Webservice\Http;
 
 use GuzzleHttp\Client;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Psr\Http\Client\ClientInterface;
 
 /**
@@ -17,6 +18,10 @@ use Psr\Http\Client\ClientInterface;
  * Redirects are disabled. The API is a single POST endpoint that doesn't redirect, so a 3xx means
  * something is misconfigured. Following it would send the credentials to wherever it points.
  *
+ * HTTP error statuses are disabled, so every reply reaches
+ * {@see \Polkurier\Webservice\Http\Response\ResponseFactory} and is read as an envelope. A client
+ * that threw on a non-2xx status would hide the body, and with it the error the API reported.
+ *
  * One client is built per distinct API URL and timeout, and reused for every call that has them.
  */
 class ClientFactory implements ClientFactoryInterface
@@ -24,11 +29,7 @@ class ClientFactory implements ClientFactoryInterface
     protected const string CONFIG_BASE_URI = 'base_uri';
     protected const string CONFIG_TIMEOUT = 'timeout';
     protected const string CONFIG_ALLOW_REDIRECTS = 'allow_redirects';
-    /**
-     * @param ConfigProviderInterface $configProvider read on every create(), so the client
-     *        follows the configuration of the current call
-     */
-    public function __construct(protected readonly ConfigProviderInterface $configProvider) {}
+    protected const string CONFIG_HTTP_ERRORS = 'http_errors';
 
     /**
      * The clients built so far, keyed by API URL and timeout.
@@ -36,6 +37,14 @@ class ClientFactory implements ClientFactoryInterface
      * @var array<string, ClientInterface>
      */
     protected array $clients = [];
+
+    /**
+     * @param ConfigProviderInterface $configProvider read on every create(), so the client
+     *        follows the configuration of the current call
+     */
+    public function __construct(
+        protected readonly ConfigProviderInterface $configProvider,
+    ) {}
 
     /**
      * @return ClientInterface
@@ -49,6 +58,7 @@ class ClientFactory implements ClientFactoryInterface
             self::CONFIG_BASE_URI => $config->getApiUrl(),
             self::CONFIG_TIMEOUT => $config->getApiTimeout(),
             self::CONFIG_ALLOW_REDIRECTS => false,
+            self::CONFIG_HTTP_ERRORS => false,
         ]);
     }
 }

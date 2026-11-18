@@ -25,7 +25,7 @@ Getting started
 
 ```php
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 
 $client = new PolkurierWebservice(new Config(
@@ -34,7 +34,7 @@ $client = new PolkurierWebservice(new Config(
     platformVersion: '1.0.0',
 ));
 
-$carriers = $client->courier()->availableCarriers();   // Carrier[]
+$carriers = $client->courier()->getAvailableCarriers();   // Carrier[]
 ```
 
 The full documentation is in [`./docs`](docs/README.md). There are pages on
@@ -42,9 +42,9 @@ The full documentation is in [`./docs`](docs/README.md). There are pages on
 [validation](docs/validation.md), [errors](docs/errors.md), [webhooks](docs/webhooks.md),
 [serialization](docs/serialization.md) and [architecture](docs/architecture.md), plus
 [worked recipes](docs/recipes.md) and
-[integration guides](docs/integrations/README.md) for Symfony, Laravel, Laminas and Mezzio, PSR-11
-containers, PrestaShop, WooCommerce, Shopware and Sylius. For Magento, Polkurier has its own
-module, described in the [Magento page](docs/integrations/magento2.md).
+[integration guides](docs/integrations/README.md) for Symfony, Laravel, Laminas and Mezzio, Slim
+and any PSR-11 container, PrestaShop, WooCommerce, Shopware and Sylius. For Magento, Polkurier has
+its own module, described in the [Magento page](docs/integrations/magento2.md).
 
 `./examples` has one runnable script per API method, named after the method it calls. Each script
 runs on its own:
@@ -60,8 +60,8 @@ method returns. Scripts that need an identifier take it as the first argument.
 Services
 --------
 
-The client has one service per functional area. Methods return typed values such as [`Carrier[]`](src/Response/Carrier.php),
-an [`Order`](src/Response/Order.php), or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
+The client has one service per functional area. Methods return typed values such as [`Carrier[]`](src/Dto/Response/Carrier.php),
+an [`Order`](src/Entity/Order.php), or a `bool` for calls that only acknowledge, so you don't need to unwrap or cast
 anything.
 
 | Accessor                        | Covers                                                        |
@@ -90,22 +90,22 @@ reference.
 Builders
 --------
 
-Messages are readonly and take named arguments. That works well when you have every value up front:
+Payloads take named arguments. That works well when you have every value up front:
 
 ```php
 new GetPointMessage(couriers: ['INPOST_PACZKOMAT'], searchQuery: 'Poznań', limit: 5);
 ```
 
 If you don't (e.g. optional filters, or a payload put together over several steps), the larger
-messages each have a builder under `Polkurier\Webservice\Builder`:
+payloads each have a builder under `Polkurier\Webservice\Builder`:
 
 ```php
-use Polkurier\Webservice\Builder\Courier\GetPointMessageBuilder;
+use Polkurier\Webservice\Builder\Request\Courier\GetPointMessageBuilder;
 
-$search = GetPointMessageBuilder::create()->couriers(['INPOST_PACZKOMAT']);
+$search = GetPointMessageBuilder::create()->setCouriers(['INPOST_PACZKOMAT']);
 
 if ($query !== null) {
-    $search->searchQuery($query);
+    $search->setSearchQuery($query);
 }
 
 $points = $client->courier()->findCourierPoints($search->build());
@@ -113,12 +113,12 @@ $points = $client->courier()->findCourierPoints($search->build());
 
 Setters have the same types as the constructor parameters. `build()` throws if a required field
 was never set, and the exception names the field. Builders don't validate anything themselves. The
-message's rules run when it is sent, so you get the same checks either way.
+payload's rules run when it is sent, so you get the same checks either way.
 
 A builder class contains only its setters. The shared logic is in [`AbstractBuilder`](src/Builder/AbstractBuilder.php). Fields you
-never set are not passed to the constructor, so they keep the message's own defaults.
+never set are not passed to the constructor, so they keep the class's own defaults.
 
-Only messages with 4 or more fields have a builder.
+Only payloads with 4 or more fields have a builder.
 
 Configuration
 -------------
@@ -143,8 +143,9 @@ Nothing is logged unless you pass a PSR-3 logger as the second constructor argum
 anything is logged, secrets and personal data are hidden and files are left out, unless the options
 above allow them. See [Configuration: logging](docs/configuration.md#logging).
 
-The serializer has its own configuration. Pass a [`SerializerProvider`](src/Serializer/SerializerProvider.php) built with a
-[`SerializerConfig`](src/Serializer/SerializerConfig.php):
+The serializer has its own configuration. Pass a [`SerializerConfig`](src/Serializer/SerializerConfig.php), or any
+[`Api\SerializerConfigInterface`](src/Api/SerializerConfigInterface.php) of your own, as the third constructor argument,
+`serializerConfig`:
 
 | Option                | Default              | Meaning                                              |
 |-----------------------|----------------------|------------------------------------------------------|
@@ -162,6 +163,14 @@ empty value, a value of another type is converted. Each difference is logged as 
 listed by `PolkurierWebservice::getLastResponseDrift()`. With `strictResponses` on, such a
 response fails to map instead. Against a staging API in CI, that tells you about changes. In
 production, it would turn each change into a failed call, which is why it is off by default.
+
+An object a service method returns keeps the body as the API sent it, from
+`ParsedResponseInterface::getRawResponse()`, for values the SDK misreads or drops.
+
+`PolkurierWebservice::serializer()` hands out what the client writes and reads bodies with, as an
+[`Api\SerializerInterface`](src/Api/SerializerInterface.php). Use it to record a payload before the call that carries it, or to
+read a stored body. See
+[Serialization: using the serializer yourself](docs/serialization.md#using-the-serializer-yourself).
 
 Error handling
 --------------
@@ -187,12 +196,12 @@ use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\WebserviceException;
 
 try {
-    $created = $client->orders()->createOrder($order);   // CreatedOrderMessage
+    $created = $client->orders()->createOrder($message);   // CreatedOrderMessage
 } catch (AuthorizationException $e) {
     // Re-authenticate.
 } catch (WebserviceException $e) {
     $error = $e->getErrorMessage();
-    \printf("%s (%s)\n", $error->getResponse(), $error->getErrorCode() ?? 'no code');
+    \printf("%s (%s)\n", $error->response, $error->errorCode ?? 'no code');
 }
 ```
 
@@ -214,7 +223,7 @@ validation errors. The same code can display both:
 use Polkurier\Webservice\Exception\ValidationException;
 
 try {
-    $client->orders()->createOrder($order);
+    $client->orders()->createOrder($message);
 } catch (ValidationException $e) {
     // Nothing was sent. ['sender.postcode' => ['must be a Polish postcode in the format NN-NNN']]
     foreach ($e->getValidationErrors() as $field => $messages) {
@@ -233,16 +242,16 @@ itself.
 Rejecting a payload the API would accept is a bug in the SDK. `validatePayloads: false` turns off
 all checks.
 
-To drop a single rule, add your own or replace the validator, see
+To add your own rules or replace the validator, see
 [Validation: changing the rules](docs/validation.md#changing-the-rules).
 
 Architecture
 ------------
 
-[`PolkurierWebservice`](src/PolkurierWebservice.php) wires up a serializer, request and response factories, an HTTP client factory
-and the services. Every collaborator is an optional constructor argument typed as an interface, so
-you can replace any of them: your own PSR-18 client, a different serializer setup, a configuration
-provider that looks up credentials per tenant at call time, or a service of your own:
+[`PolkurierWebservice`](src/PolkurierWebservice.php) wires up a serializer, request and response factories, an HTTP client
+factory and the services. Its optional constructor arguments replace what it would build: your own
+PSR-18 client factory, serializer settings, a validator, a configuration provider that looks up
+credentials per tenant at call time, or a service of your own:
 
 ```php
 new PolkurierWebservice(
@@ -251,14 +260,14 @@ new PolkurierWebservice(
 );
 ```
 
-Only the facade, the JSON envelope classes and a few small helpers are final. Everything else can
-be subclassed: the configuration, the serializer wiring, the factories, the services, the request
-and response classes, and the validation layer including the individual rules.
+What a minor release never breaks, and what it may change, is on the
+[architecture page](docs/architecture.md#what-a-release-can-change).
 
-Requests and responses are separate classes, even where they describe the same thing, so a response
-field can be non-nullable when the API always sends it. Properties are named for what they mean,
-and the API's names stay in serializer attributes. A response object is either complete, or
-construction fails and names the missing field.
+A record Polkurier stores is one class for sending and reading, under
+[`Polkurier\Webservice\Entity`](src/Entity/), with a getter and a setter per field; fields the API only
+reports are left out of what is sent. Everything else is a readonly DTO with public properties.
+Properties are named for what they mean, and the API's names stay in serializer attributes. A
+response object is either complete, or construction fails and names the missing field.
 
 The [architecture page](docs/architecture.md) covers the request lifecycle and every extension
 point.

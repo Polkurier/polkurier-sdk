@@ -9,11 +9,11 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Carrier\AdditionalData\Pickup;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Order\IndividualPricing;
-use Polkurier\Webservice\Serializer\AbsentDateNormalizer;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Carrier\AdditionalData\Pickup;
+use Polkurier\Webservice\Dto\Response\Order\IndividualPricing;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Serializer\AbsentDateDenormalizer;
 use Polkurier\Webservice\Serializer\OmitEmptyNormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 
@@ -27,7 +27,7 @@ use Polkurier\Webservice\Serializer\SerializerProvider;
  * neither the field nor the reason.
  */
 #[CoversClass(OmitEmptyNormalizer::class)]
-#[CoversClass(AbsentDateNormalizer::class)]
+#[CoversClass(AbsentDateDenormalizer::class)]
 final class AbsentValueTest extends TestCase
 {
     public function testAnEmptyBlockIsNoObjectRatherThanAnEmptyOne(): void
@@ -53,9 +53,9 @@ final class AbsentValueTest extends TestCase
 
     public function testARealDateStillParses(): void
     {
-        $order = self::order(['delivered_date' => '2026-09-24']);
+        $order = self::order(['delivered_date' => '2026-09-24T14:30:00+02:00']);
 
-        self::assertSame('2026-09-24', $order->getDeliveredDate()?->format('Y-m-d'));
+        self::assertSame('2026-09-24T14:30:00+02:00', $order->getDeliveredDate()?->format(\DateTimeInterface::ATOM));
     }
 
     /**
@@ -64,15 +64,15 @@ final class AbsentValueTest extends TestCase
     public function testAnUnconfirmedOfferHasNoConfirmationDate(): void
     {
         $pricing = (new SerializerProvider())->getSerializer()->denormalize([
-            'offer_sent_date' => '2026-09-01 10:00:00',
+            'offer_sent_date' => '2026-09-01T10:00:00+02:00',
             'offer_valid_date' => '',
             'customer_confirmed_date' => null,
         ], IndividualPricing::class, 'json');
 
         self::assertInstanceOf(IndividualPricing::class, $pricing);
-        self::assertNull($pricing->getOfferValidDate());
-        self::assertNull($pricing->getCustomerConfirmedDate());
-        self::assertSame('', $pricing->getCustomerRemarks());
+        self::assertNull($pricing->offerValidDate);
+        self::assertNull($pricing->customerConfirmedDate);
+        self::assertSame('', $pricing->customerRemarks);
     }
 
     /**
@@ -95,13 +95,13 @@ final class AbsentValueTest extends TestCase
 
         self::assertIsArray($carriers);
         self::assertInstanceOf(Carrier::class, $carriers[0]);
-        $data = $carriers[0]->getAdditionalData();
+        $data = $carriers[0]->additionalData;
         self::assertNotNull($data);
-        self::assertNull($data->getCod());
-        self::assertNull($data->getInsurance());
-        self::assertNull($data->getPickup()?->getPickupTimeFrom());
-        self::assertNull($data->getPointsMap()?->getRecipientPoint());
-        self::assertSame([], $data->getPointsMap()?->getAvailableProviders());
+        self::assertNull($data->cod);
+        self::assertNull($data->insurance);
+        self::assertNull($data->pickup?->pickupTimeFrom);
+        self::assertNull($data->pointsMap?->recipientPoint);
+        self::assertSame([], $data->pointsMap?->availableProviders);
     }
 
     /**

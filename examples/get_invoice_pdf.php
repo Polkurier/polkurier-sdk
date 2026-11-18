@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceDocumentMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,8 +24,8 @@ try {
         new GetInvoiceDocumentMessage(number: $number)
     );
 
-    $path = \sys_get_temp_dir() . '/' . $document->getFilename();
-    \file_put_contents($path, $document->getDecodedFile());
+    $path = \sys_get_temp_dir() . '/' . \basename($document->filename);
+    \file_put_contents($path, $document->file);
 
     \printf("Saved %s\n", $path);
 } catch (Exception $e) {

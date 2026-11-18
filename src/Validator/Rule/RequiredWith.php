@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
@@ -30,46 +30,49 @@ class RequiredWith implements MessageRuleInterface
     /**
      * @param string $field the property that becomes mandatory
      * @param string $with the property whose being set makes $field mandatory
-     * @param string|null $because the report's wording, in place of the default
+     * @param string|null $reason the report's wording, in place of the default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $field,
 
-        /**
-         * @var string
-         */
         public readonly string $with,
 
-        /**
-         * @var string|null
-         */
-        public readonly ?string $because = null,
+        public readonly ?string $reason = null,
     ) {}
 
     /**
-     * @param MessageFields $fields
+     * @param MessageFieldReader $fields
      * @param ViolationPool $violations
      *
      * @return void
      * @throws InvalidArgumentException
      */
-    public function validate(MessageFields $fields, ViolationPool $violations): void
+    public function validate(MessageFieldReader $fields, ViolationPool $violations): void
     {
         $notBlank = new NotBlank();
-        if ($notBlank->validate($fields->value($this->with)) !== []) {
+        if ($notBlank->validate($fields->readValue($this->with)) !== []) {
             return;
         }
 
-        if ($notBlank->validate($fields->value($this->field)) === []) {
+        if ($notBlank->validate($fields->readValue($this->field)) === []) {
             return;
         }
+
+        $with = $fields->readField($this->with);
 
         $violations->add(
-            $fields->field($this->field),
-            $this->because ?? \sprintf('is required when %s is set', $fields->field($this->with))
+            $fields->readField($this->field),
+            $this->reason ?? \sprintf('is required when %s is set', $with),
+            ValidationErrorCodeEnum::Blank,
+            ['field' => $with, 'condition' => 'set'],
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function listProperties(): array
+    {
+        return [$this->field, $this->with];
     }
 }

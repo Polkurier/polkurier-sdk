@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\MoneyBox;
  *
  * Not every account can use every option. `get_money_box_config` returns the allowed ones under
  * `fee_payments_types_available`.
+ *
+ * @api
  */
 enum MoneyBoxFeePaymentTypeEnum: string
 {

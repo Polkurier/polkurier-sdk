@@ -1,0 +1,45 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Dto\Request\Courier;
+
+use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+/**
+ * Narrows a carrier listing.
+ *
+ * Requesting the additional data makes the response much larger (it includes every service,
+ * shipment type and pickup rule per carrier). Ask for it when building a shipping form, not on every
+ * page load.
+ *
+ * @api
+ */
+final readonly class AvailableCarriersMessage implements MessageInterface
+{
+    /**+@#
+     * JSON parameter keys
+     */
+    public const string FIELD_ADDITIONAL_DATA = 'additional_data';
+    public const string FIELD_RETURN_CARRIER = 'returncarrier';
+    /**-@#*/
+
+    /**
+     * @param bool|null $additionalData also describe what each carrier supports
+     * @param string|null $returnCarrier list only this carrier, by its service code
+     */
+    public function __construct(
+        #[Serializer\SerializedName(self::FIELD_ADDITIONAL_DATA)]
+        #[OmitWhenEmpty]
+        public ?bool $additionalData = null,
+
+        #[Serializer\SerializedName(self::FIELD_RETURN_CARRIER)]
+        #[OmitWhenEmpty]
+        public ?string $returnCarrier = null,
+    ) {}
+}

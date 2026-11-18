@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -25,17 +25,17 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $token = polkurier()->twoFactorToken()->twoFactorTokenRegister(
+    $token = polkurier()->twoFactorToken()->register(
         new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber)
     );
 
     \printf("Code sent to %s, valid until %s\n",
-        $token->getTransportMethod()?->getName() ?? '(unknown)',
-        $token->getExpiresAt()?->format('H:i'));
-    \printf("Token: %s\n", $token->getId());
+        $token->transportMethod->name ?? '(unknown)',
+        $token->expiresAt?->format('H:i'));
+    \printf("Token: %s\n", $token->id);
 
-    foreach ($token->getAvailableMethods() as $method) {
-        \printf("Can send it to %s (method id %s)\n", $method->getName(), $method->getId());
+    foreach ($token->availableMethods as $method) {
+        \printf("Can send it to %s (method id %s)\n", $method->name, $method->id);
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

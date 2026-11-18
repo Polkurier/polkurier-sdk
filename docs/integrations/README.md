@@ -35,17 +35,18 @@ variables, a settings table, an admin screen).
 Multi-store platforms (Shopware, PrestaShop multistore, Sylius channels) usually need the
 third one.
 
-### 2. Share one serializer
+### 2. Share one serializer configuration
 
-[`SerializerProvider`](../../src/Serializer/SerializerProvider.php) is expensive to build, so it is registered as a singleton with a PSR-6
-cache pool. All the frameworks below have a pool.
+A client builds its own serializer, which is expensive, so give it a [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) holding a
+PSR-6 cache pool, registered once. All the frameworks below have a pool.
 
 ```php
-new SerializerProvider(new SerializerConfig(metadataCache: $pool));
+new SerializerConfig(metadataCache: $pool);
 ```
 
-This matters most in long-running workers. Under classic PHP-FPM it still saves a reflection pass
-on each class the request uses.
+The pool carries the mapping metadata to every client built from that configuration, and across
+restarts. This matters most in long-running workers. Under classic PHP-FPM it still saves a
+reflection pass on each class the request uses.
 
 ### 3. Register the services you use
 
@@ -63,7 +64,9 @@ and Sylius this takes very little extra setup.
 ```php
 final readonly class ShipmentDispatcher
 {
-    public function __construct(private OrdersServiceInterface $orders) {}
+    public function __construct(
+        private OrdersServiceInterface $orders,
+    ) {}
 }
 ```
 
@@ -85,5 +88,5 @@ With `methodsToLog` left empty, only errors are logged.
 ### 5. Decide about the HTTP client
 
 By default the SDK builds its own Guzzle client. Replacing
-[`ClientFactoryInterface`](../../src/Http/ClientFactoryInterface.php) lets the host's own client make the calls, e.g. for its
+[`ClientFactoryInterface`](../../src/Api/Http/ClientFactoryInterface.php) lets the host's own client make the calls, e.g. for its
 instrumentation, proxy settings or retry policy.

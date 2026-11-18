@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\KnowledgeBase\GetKnowledgeBaseArticleMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,7 +24,7 @@ try {
         new GetKnowledgeBaseArticleMessage(id: $id)
     );
 
-    \printf("%s\n\n%s\n", $article->getTitle(), \strip_tags($article->getContent()));
+    \printf("%s\n\n%s\n", $article->title, \strip_tags($article->content));
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

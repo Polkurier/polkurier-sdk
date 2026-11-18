@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,8 +24,8 @@ try {
         new CalculateMoneyBoxPayoutFeeMessage(payoutType: MoneyBoxPayoutTypeEnum::Account)
     );
 
-    \printf("Fee: %.2f PLN gross (%.2f net)\n", $fee->getFee(), $fee->getFeeNett());
-    \printf("Free payouts left: %d of %d\n", $fee->getFreePayoutsLeft(), $fee->getFreePayoutsTotal());
+    \printf("Fee: %.2f PLN gross (%.2f net)\n", $fee->fee, $fee->feeNet);
+    \printf("Free payouts left: %d of %d\n", $fee->freePayoutsLeft, $fee->freePayoutsTotal);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

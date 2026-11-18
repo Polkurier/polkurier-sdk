@@ -8,6 +8,22 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\AccountServiceInterface;
+use Polkurier\Webservice\Dto\Request\Account\AcceptRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultCourierMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangeDefaultSenderPointMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePasswordMessage;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\Account\DeletePhoneNumberMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetAccountInfoMessage;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
+use Polkurier\Webservice\Dto\Request\Account\SavePhoneNumberMessage;
+use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\Account\PinValidityMessage;
+use Polkurier\Webservice\Dto\Response\Account\RegulationsMessage;
+use Polkurier\Webservice\Entity\PhoneNumber;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,22 +31,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Account\AcceptRegulationsMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultCourierMessage;
-use Polkurier\Webservice\Request\Account\ChangeDefaultSenderPointMessage;
-use Polkurier\Webservice\Request\Account\ChangePasswordMessage;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
-use Polkurier\Webservice\Request\Account\DeletePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\GetAccountInfoMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
-use Polkurier\Webservice\Request\Account\SaveAccountSettingsMessage;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
-use Polkurier\Webservice\Request\Account\SavePhoneNumberMessage;
-use Polkurier\Webservice\Request\Account\ValidatePinMessage;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Account\PhoneNumberMessage;
-use Polkurier\Webservice\Response\Account\PinValidityMessage;
-use Polkurier\Webservice\Response\Account\RegulationsMessage;
 
 /**
  * @see AccountServiceInterface
@@ -38,7 +38,7 @@ use Polkurier\Webservice\Response\Account\RegulationsMessage;
 class AccountService extends AbstractService implements AccountServiceInterface
 {
     /**
-     * @param ?GetAccountInfoMessage $getAccountInfoMessage
+     * @param GetAccountInfoMessage|null $getAccountInfoMessage
      *
      * @return AccountInfoMessage
      * @throws AuthorizationException
@@ -187,7 +187,7 @@ class AccountService extends AbstractService implements AccountServiceInterface
     }
 
     /**
-     * @param ?GetRegulationsMessage $getRegulationsMessage
+     * @param GetRegulationsMessage|null $getRegulationsMessage
      *
      * @return RegulationsMessage
      * @throws AuthorizationException
@@ -227,22 +227,7 @@ class AccountService extends AbstractService implements AccountServiceInterface
     }
 
     /**
-     * @return PhoneNumberMessage[]
-     * @throws AuthorizationException
-     * @throws ConnectionException
-     * @throws InvalidArgumentException
-     * @throws MalformedResponseException
-     * @throws WebserviceException
-     */
-    public function getPhoneNumbers(): array
-    {
-        return $this->requestList(ApiMethodEnum::GetPhoneNumbers, PhoneNumberMessage::class);
-    }
-
-    /**
-     * @param SavePhoneNumberMessage $savePhoneNumberMessage
-     *
-     * @return PhoneNumberMessage
+     * @return PhoneNumber[]
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -250,11 +235,27 @@ class AccountService extends AbstractService implements AccountServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumberMessage
+    public function getPhoneNumbers(): array
+    {
+        return $this->requestList(ApiMethodEnum::GetPhoneNumbers, PhoneNumber::class);
+    }
+
+    /**
+     * @param SavePhoneNumberMessage $savePhoneNumberMessage
+     *
+     * @return PhoneNumber
+     * @throws AuthorizationException
+     * @throws ConnectionException
+     * @throws InvalidArgumentException
+     * @throws MalformedResponseException
+     * @throws ValidationException
+     * @throws WebserviceException
+     */
+    public function savePhoneNumber(SavePhoneNumberMessage $savePhoneNumberMessage): PhoneNumber
     {
         return $this->requestObject(
             ApiMethodEnum::SavePhoneNumber,
-            PhoneNumberMessage::class,
+            PhoneNumber::class,
             $savePhoneNumberMessage,
         );
     }

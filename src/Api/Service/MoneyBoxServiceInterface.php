@@ -7,20 +7,20 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxFeeMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
-use Polkurier\Webservice\Request\MoneyBox\CancelMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
 
 /**
  * The money box: cash-on-delivery funds held on the account, and withdrawing them.
@@ -30,7 +30,7 @@ use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
  * withdraw now, and already committed to a payout.
  *
  * The money box can be switched off per account. When it is, every method here fails with
- * forbidden. The usual order is getConfig() to see how the account is set up, calculatePayoutFee()
+ * forbidden. The usual order is getMoneyBoxConfig() to see how the account is set up, calculatePayoutFee()
  * for a quote, then createPayout().
  *
  * createPayout() moves money and is not idempotent. Read its notes before you add a retry.
@@ -38,6 +38,8 @@ use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage;
  * Errors come back with HTTP 200 and `status: "error"`, so check the envelope, not the HTTP status.
  * `status_code` and `error_code` are both optional: an error may have both, one or neither. The SDK
  * throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface MoneyBoxServiceInterface
 {
@@ -79,14 +81,15 @@ interface MoneyBoxServiceInterface
      * Thrown when the money box is not enabled for this account.
      *
      * @return MoneyBoxConfigMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
-    public function getConfig(): MoneyBoxConfigMessage;
+    public function getMoneyBoxConfig(): MoneyBoxConfigMessage;
 
     /**
      * Quotes what a payout would cost, without requesting one.
@@ -141,7 +144,7 @@ interface MoneyBoxServiceInterface
      *        for everything available, without a payout type
      *
      * @return MoneyBoxFeeMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxFeeMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxFeeMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -162,13 +165,13 @@ interface MoneyBoxServiceInterface
      * account or payout lock.
      *
      * The payout type, ACCOUNT by default, decides the destination fields. Nothing is filled in
-     * from getConfig():
+     * from getMoneyBoxConfig():
      *
      * - bank transfer: an account number from the saved bank accounts, otherwise FORBIDDEN;
      * - postal money order: the postal address.
      *
      * Without a fee payment type, the fee is deducted from the money box, or added to an invoice
-     * where INVOICE is the only type getConfig() offers.
+     * where INVOICE is the only type getMoneyBoxConfig() offers.
      *
      * Only a postal money order to an address other than the saved default needs a confirmation,
      * one of:
@@ -246,7 +249,7 @@ interface MoneyBoxServiceInterface
      * @param CreateMoneyBoxPayoutMessage $createMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -291,7 +294,7 @@ interface MoneyBoxServiceInterface
      * @param CancelMoneyBoxPayoutMessage $cancelMoneyBoxPayoutMessage
      *
      * @return MoneyBoxPayoutMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -366,7 +369,7 @@ interface MoneyBoxServiceInterface
      *        of one payout
      *
      * @return MoneyBoxPayoutListMessage payload:
-     *         {@see \Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
