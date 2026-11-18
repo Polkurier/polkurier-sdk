@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Geo\FindCityMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Geo\FindCityMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -21,7 +21,7 @@ try {
     $cities = polkurier()->geo()->findCity(new FindCityMessage(postcode: '61-001'));
 
     foreach ($cities as $city) {
-        echo $city->getName(), "\n";
+        echo $city->name, "\n";
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

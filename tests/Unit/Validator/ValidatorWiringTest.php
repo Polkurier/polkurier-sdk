@@ -10,9 +10,10 @@ namespace Polkurier\Webservice\Test\Unit\Validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\MessageInterface;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
-use Polkurier\Webservice\Request\Payment\RegisterPaymentMessage;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\AttributeValidator;
 use Polkurier\Webservice\Validator\DefaultValidatorRegistryFactory;
@@ -61,11 +62,36 @@ final class ValidatorWiringTest extends TestCase
         }
     }
 
+    /**
+     * The rules a class declares are cached once per message class, so what one validator reads
+     * must not decide what another sees. A subclass validates differently by overriding
+     * `collect()`; the cache is out of its reach.
+     *
+     * @return void
+     */
+    public function testASubclassCannotChangeWhatTheStockValidatorSees(): void
+    {
+        $message = new GetOrdersMessage(
+            dateFrom: new \DateTimeImmutable('2026-02-01'),
+            dateTo: new \DateTimeImmutable('2026-01-01'),
+        );
+
+        $count = static function (AttributeValidator $validator) use ($message): int {
+            $pool = new ViolationPool();
+            $validator->collect($message, $pool);
+
+            return \count($pool->getViolations());
+        };
+
+        self::assertSame(1, $count(new WiringPlainValidator()), 'the reversed range is reported');
+        self::assertSame(1, $count(new AttributeValidator()), 'and still reported afterwards');
+    }
+
     public function testAMessageDeclaringNothingPasses(): void
     {
         (new AttributeValidator())->validate(new WiringInnerMessage('anything'));
 
-        self::expectNotToPerformAssertions();
+        $this->expectNotToPerformAssertions();
     }
 
     /**
@@ -114,7 +140,9 @@ readonly class WiringInnerMessage implements MessageInterface
     /**
      * @param string $value
      */
-    public function __construct(public string $value) {}
+    public function __construct(
+        public string $value,
+    ) {}
 }
 
 /**
@@ -126,7 +154,6 @@ readonly class WiringOuterMessage implements MessageInterface
      * @param WiringInnerMessage $inner
      */
     public function __construct(
-        #[Validate\Valid]
         public WiringInnerMessage $inner,
     ) {}
 }
@@ -147,4 +174,11 @@ final readonly class WiringForeignAttributeMessage implements MessageInterface
         #[Validate\NotBlank]
         public string $name,
     ) {}
+}
+
+/**
+ * A subclass of the kind the class docblock invites, carrying nothing of its own.
+ */
+final class WiringPlainValidator extends AttributeValidator
+{
 }

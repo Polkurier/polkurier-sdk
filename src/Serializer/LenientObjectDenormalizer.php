@@ -8,8 +8,10 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -23,8 +25,8 @@ use Symfony\Component\TypeInfo\Type\CollectionType;
 use Symfony\Component\TypeInfo\Type\UnionType;
 
 /**
- * Reads a response object that differs from what this version of the SDK expects, and records how,
- * as {@see ResponseDriftTypeEnum} describes.
+ * Reads a response object that differs from what the SDK expects, and records how, as
+ * {@see ResponseDriftTypeEnum} describes.
  *
  * It wraps the object normalizer and acts when the context holds a {@see ResponseDriftCollector}.
  * Text formats such as CSV carry every value as a string and an empty value as `''`, so there a
@@ -34,6 +36,9 @@ use Symfony\Component\TypeInfo\Type\UnionType;
  *
  * An object that arrives with fields, but none of the class's, is something else than the class
  * reads, so it fails instead of reading as an object of empty values.
+ *
+ * A field that can't be null and has no empty value of its type, such as an object or an enum, has
+ * nothing to fall back on: the difference is recorded and the read then fails on that field.
  */
 class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInterface, SerializerAwareInterface
 {
@@ -97,6 +102,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -126,12 +132,15 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @return mixed
      * @throws UnexpectedValueException when none of the object's fields arrived
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        $drift = ResponseDriftCollector::fromContext($context);
+        $drift = ResponseDriftCollector::findInContext($context);
         if ($drift !== null && \is_array($data) && \class_exists($type)) {
-            $path = $context['deserialization_path'] ?? null;
+            $path = $context[ResponseDriftCollector::PATH_KEY] ?? null;
             $path = \is_string($path) ? $path : '';
             $data = $this->tolerate(
                 $data,
@@ -197,7 +206,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
         mixed $defaults,
     ): array {
         $fields = [];
-        foreach ($this->fieldsOf($class) as $field) {
+        foreach ($this->readFields($class) as $field) {
             if (\is_array($defaults) && \array_key_exists($field['name'], $defaults)) {
                 $field['hasDefault'] = true;
                 $field['default'] = $defaults[$field['name']];
@@ -222,7 +231,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
                 continue;
             }
 
-            $at = $path === '' ? $field['name'] : $path . '.' . $field['name'];
+            $at = ResponseDriftCollector::joinPath($path, $field['name']);
             $present = \array_key_exists($wire, $data);
             $value = $present ? $data[$wire] : null;
             $types = $field['types'];
@@ -230,7 +239,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
             $single = \count($types) === 1 ? $types[0] : null;
 
             if ($text && \is_string($value) && static::takesExact($types)) {
-                $value = $value === '' ? null : (static::exact($value, $types) ?? $value);
+                $value = $value === '' ? null : (static::convertExact($value, $types) ?? $value);
                 $data[$wire] = $value;
             }
 
@@ -244,32 +253,36 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
                 if (!$present && $field['hasDefault']) {
                     continue;
                 }
-                $fallback = $field['hasDefault'] ? $field['default'] : static::emptyValue($single);
+                $fallback = $field['hasDefault'] ? $field['default'] : static::makeEmptyValue($single);
                 if ($fallback !== null) {
                     $data[$wire] = $fallback;
-                    $drift->add(ResponseDriftTypeEnum::MissingField, $at, null, $expected);
                 }
+                $drift->add(ResponseDriftTypeEnum::MissingField, $at, null, $expected);
                 continue;
             }
 
             if (static::fits($value, $types)) {
                 if ($field['items'] !== null && \is_array($value)) {
-                    $data[$wire] = static::items($value, $field['items'], $drift, $at, $text);
+                    $data[$wire] = static::convertItems($value, $field['items'], $drift, $at, $text);
                 }
                 continue;
             }
-            $fallback = match (true) {
+            $read = static::convertValue($value, $types) ?? match (true) {
                 $field['nullable'] => null,
                 $field['hasDefault'] => $field['default'],
-                default => static::emptyValue($single),
+                default => static::makeEmptyValue($single),
             };
-            $data[$wire] = static::converted($value, $types) ?? $fallback;
+            // A field that can't be null and has no empty value keeps what arrived: the read fails
+            // on it either way, and the message then names the value the response held.
+            if ($read !== null || $field['nullable']) {
+                $data[$wire] = $read;
+            }
             $drift->add(ResponseDriftTypeEnum::CastValue, $at, $value, $expected);
         }
 
         foreach ($data as $key => $value) {
             if (!isset($known[(string)$key])) {
-                $at = $path === '' ? (string)$key : $path . '.' . $key;
+                $at = ResponseDriftCollector::joinPath($path, (string)$key);
                 $drift->add(ResponseDriftTypeEnum::UnknownField, $at, $value);
             }
         }
@@ -284,14 +297,14 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @param array<array-key, mixed> $items
      * @param array{types: list<string>, nullable: bool, items: mixed} $type the item type, see
-     *        {@see self::itemType()}
+     *        {@see self::describeType()}
      * @param ResponseDriftCollector $drift
      * @param string $path
      * @param bool $text
      *
      * @return array<array-key, mixed>
      */
-    protected static function items(
+    protected static function convertItems(
         array $items,
         array $type,
         ResponseDriftCollector $drift,
@@ -301,21 +314,22 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
         $read = [];
         foreach ($items as $key => $item) {
             $at = $path . '[' . $key . ']';
-            /** @var array{types: list<string>, nullable: bool, items: mixed}|null $nested */
             $nested = $type['items'];
             if ($nested !== null && \is_array($item)) {
-                $read[$key] = static::items($item, $nested, $drift, $at, $text);
+                $read[$key] = static::convertItems($item, $nested, $drift, $at, $text);
                 continue;
             }
             $types = $type['types'];
-            $exact = $text && \is_string($item) && static::takesExact($types) ? static::exact($item, $types) : null;
+            $exact = $text && \is_string($item) && static::takesExact($types)
+                ? static::convertExact($item, $types)
+                : null;
             if ($exact !== null || ($item === null && $type['nullable'])
                 || ($item !== null && $nested === null && static::fits($item, $types))
             ) {
                 $read[$key] = $exact ?? $item;
                 continue;
             }
-            $converted = $nested === null ? static::converted($item, $types) : null;
+            $converted = $nested === null ? static::convertValue($item, $types) : null;
             if ($converted !== null) {
                 $read[$key] = $converted;
             }
@@ -376,7 +390,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @return int|float|bool|null
      */
-    protected static function exact(string $value, array $types): int|float|bool|null
+    protected static function convertExact(string $value, array $types): int|float|bool|null
     {
         foreach ($types as $type) {
             $exact = match ($type) {
@@ -406,7 +420,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @return string|int|float|bool|null
      */
-    protected static function converted(mixed $value, array $types): string|int|float|bool|null
+    protected static function convertValue(mixed $value, array $types): string|int|float|bool|null
     {
         foreach ($types as $type) {
             $converted = match ($type) {
@@ -447,7 +461,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *
      * @return string|int|float|bool|array{}|null
      */
-    protected static function emptyValue(?string $type): string|int|float|bool|array|null
+    protected static function makeEmptyValue(?string $type): string|int|float|bool|array|null
     {
         return match ($type) {
             'string' => '',
@@ -475,7 +489,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *     items: array{types: list<string>, nullable: bool, items: mixed}|null,
      * }>
      */
-    protected function fieldsOf(string $class): array
+    protected function readFields(string $class): array
     {
         if (isset(static::$fields[$class])) {
             return static::$fields[$class];
@@ -483,6 +497,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
 
         $mapping = $this->metadata->getMetadataFor($class)->getAttributesMetadata();
         $fields = [];
+        // The metadata above is read for the same class and fails first, so this can't fail.
         foreach ((new \ReflectionClass($class))->getConstructor()?->getParameters() ?? [] as $parameter) {
             $name = $parameter->getName();
             $type = $parameter->getType();
@@ -492,7 +507,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
                 default => [],
             };
             $hasDefault = $parameter->isDefaultValueAvailable();
-            $items = $this->itemTypeOf($class, $name);
+            $items = $this->readItemType($class, $name);
             $fields[] = [
                 'name' => $name,
                 'wire' => ($mapping[$name] ?? null)?->getSerializedName() ?? $name,
@@ -519,10 +534,10 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      * @param class-string $class
      * @param string $property
      *
-     * @return array{types: list<string>, nullable: bool, items: mixed}|null see {@see self::itemType()};
+     * @return array{types: list<string>, nullable: bool, items: mixed}|null see {@see self::describeType()};
      *         null for any other field
      */
-    protected function itemTypeOf(string $class, string $property): ?array
+    protected function readItemType(string $class, string $property): ?array
     {
         // symfony/property-info 6.4 has no getType(), and its object normalizer doesn't check the
         // items of a list of strings, numbers or booleans, so there is nothing to convert.
@@ -533,7 +548,7 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
         $type = $this->types->getType($class, $property);
         foreach ($type instanceof UnionType ? $type->getTypes() : [$type] as $member) {
             if ($member instanceof CollectionType) {
-                return static::itemType($member->getCollectionValueType());
+                return static::describeType($member->getCollectionValueType());
             }
         }
 
@@ -549,14 +564,14 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
      *         (`string`, `int`, `float`, `bool`, or `array` for a list), whether it can be null, and
      *         for a list the type of its items; null for any other type
      */
-    protected static function itemType(Type $type): ?array
+    protected static function describeType(Type $type): ?array
     {
         $types = [];
         $nullable = false;
         $items = null;
         foreach ($type instanceof UnionType ? $type->getTypes() : [$type] as $part) {
             if ($part instanceof CollectionType) {
-                $items = static::itemType($part->getCollectionValueType());
+                $items = static::describeType($part->getCollectionValueType());
                 if ($items === null) {
                     return null;
                 }

@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\DeletePhoneNumberMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\DeletePhoneNumberMessage;
 
 
 require __DIR__ . '/bootstrap.php';

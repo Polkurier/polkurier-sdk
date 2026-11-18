@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -22,17 +22,17 @@ try {
         new GetMoneyBoxPayoutsMessage(pageSize: 20, page: 1)
     );
 
-    foreach ($list->getResult() as $payout) {
+    foreach ($list->result as $payout) {
         \printf(
             "%-16s %10.2f PLN  %-14s %s\n",
-            $payout->getNumber(),
-            $payout->getAmount(),
-            $payout->getStatus(),
-            $payout->isCancellable() ? '(cancellable)' : ''
+            $payout->number,
+            $payout->amount,
+            $payout->status->value ?? '',
+            $payout->cancellable ? '(cancellable)' : ''
         );
     }
 
-    \printf("-- page %d of %d\n", $list->getCurrentPage(), $list->getTotalPages());
+    \printf("-- page %d of %d\n", $list->currentPage, $list->totalPages);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

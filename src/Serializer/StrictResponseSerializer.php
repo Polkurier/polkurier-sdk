@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -39,6 +41,7 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return string
+     * @throws SerializerException when the wrapped serializer refuses the data
      */
     public function serialize(mixed $data, string $format, array $context = []): string
     {
@@ -53,6 +56,9 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      *
      * @return mixed
      * @throws UnexpectedValueException when the context's collector records a difference
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function deserialize(mixed $data, string $type, string $format, array $context = []): mixed
     {
@@ -65,6 +71,7 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped serializer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -94,17 +101,20 @@ class StrictResponseSerializer implements SerializerInterface, NormalizerInterfa
      *
      * @return mixed
      * @throws UnexpectedValueException when the context's collector records a difference
+     * @throws SerializerException when the wrapped denormalizer refuses the data
+     * @throws InvalidArgumentException when a class on the way declares a field in more than one wire format
+     * @throws \TypeError when a constructor refuses what the denormalizer built
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
-        $drift = ResponseDriftCollector::fromContext($context);
-        $before = $drift === null ? 0 : \count($drift->all());
+        $drift = ResponseDriftCollector::findInContext($context);
+        $before = $drift === null ? 0 : \count($drift->getDrift());
         $result = $this->inner->denormalize($data, $type, $format, $context);
 
         $differences = [];
-        foreach (\array_slice($drift?->all() ?? [], $before) as $entry) {
-            if ($entry->getType() !== ResponseDriftTypeEnum::UnknownEnumValue) {
-                $differences[] = $entry->getType()->value . ' at "' . $entry->getPath() . '"';
+        foreach (\array_slice($drift?->getDrift() ?? [], $before) as $entry) {
+            if ($entry->type !== ResponseDriftTypeEnum::UnknownEnumValue) {
+                $differences[] = $entry->type->value . ' at "' . $entry->path . '"';
             }
         }
         if ($differences !== []) {

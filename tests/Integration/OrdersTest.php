@@ -10,14 +10,14 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
 
 /**
  * One order placed, read back in every way and cancelled.
@@ -42,7 +42,7 @@ final class OrdersTest extends IntegrationTestCase
     {
         $page = $this->sdk->orders()->getOrders(new GetOrdersMessage(pageSize: 5, page: 1));
 
-        self::assertLessThanOrEqual(5, \count($page->getResult()));
+        self::assertLessThanOrEqual(5, \count($page->result));
     }
 
     public function testAnOrderIsPlaced(): string
@@ -51,9 +51,9 @@ final class OrdersTest extends IntegrationTestCase
 
         $created = $this->sdk->orders()->createOrder(self::order());
 
-        self::assertNotSame('', $created->getOrderNumber());
+        self::assertNotSame('', $created->orderNumber);
 
-        return $created->getOrderNumber();
+        return $created->orderNumber;
     }
 
     #[Depends('testAnOrderIsPlaced')]
@@ -61,7 +61,7 @@ final class OrdersTest extends IntegrationTestCase
     {
         $page = $this->sdk->orders()->getOrders(new GetOrdersMessage(orderNo: $orderNumber));
 
-        self::assertSame($orderNumber, $page->getResult()[0]->getNumber());
+        self::assertSame($orderNumber, $page->result[0]->getNumber());
     }
 
     #[Depends('testAnOrderIsPlaced')]
@@ -76,8 +76,8 @@ final class OrdersTest extends IntegrationTestCase
         $label = $this->sdk->orders()->getLabel(new GetDocumentMessage(orderNo: [$orderNumber]));
         $protocol = $this->sdk->orders()->getProtocol(new GetDocumentMessage(orderNo: [$orderNumber]));
 
-        self::assertNotSame('', $label->getDecodedFile());
-        self::assertNotSame('', $protocol->getDecodedFile());
+        self::assertNotSame('', $label->file);
+        self::assertNotSame('', $protocol->file);
     }
 
     #[Depends('testAnOrderIsPlaced')]
@@ -114,12 +114,14 @@ final class OrdersTest extends IntegrationTestCase
             orders: [$orderNumber, '1-999999'],
         ));
 
-        self::assertCount(2, [...$result->getSuccess(), ...$result->getFailed()]);
+        self::assertCount(2, [...$result->success, ...$result->failed]);
     }
 
     #[Depends('testAnOrderIsPlaced')]
     public function testTheOrderIsCancelled(string $orderNumber): void
     {
-        self::assertTrue($this->sdk->orders()->cancelOrder(new OrderIdMessage(orderNo: $orderNumber))->isCancelled());
+        self::assertTrue(
+            $this->sdk->orders()->cancelOrder(new CancelOrderMessage(orderNo: $orderNumber))->cancellation,
+        );
     }
 }

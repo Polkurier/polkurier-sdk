@@ -22,7 +22,7 @@ take it as the first argument.
 
 | Enum case | Wire value | Client method | Example |
 |-----------|-----------|---------------|---------|
-| [`ApiMethodEnum::AvailableCarriers`](../src/Enum/Http/ApiMethodEnum.php) | `available_carriers` | [`$client->courier()->availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `available_carriers.php` |
+| [`ApiMethodEnum::AvailableCarriers`](../src/Enum/Http/ApiMethodEnum.php) | `available_carriers` | [`$client->courier()->getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | `available_carriers.php` |
 | [`ApiMethodEnum::PickupCourier`](../src/Enum/Http/ApiMethodEnum.php) | `pickup_courier` | [`$client->courier()->pickupCourier()`](../src/Api/Service/CourierServiceInterface.php) | `pickup_courier.php` |
 | [`ApiMethodEnum::GetCourierPickupTime`](../src/Enum/Http/ApiMethodEnum.php) | `get_courier_pickup_time` | [`$client->courier()->getCourierPickupTime()`](../src/Api/Service/CourierServiceInterface.php) | `get_courier_pickup_time.php` |
 | [`ApiMethodEnum::GetCountries`](../src/Enum/Http/ApiMethodEnum.php) | `get_countries` | [`$client->courier()->getCountries()`](../src/Api/Service/CourierServiceInterface.php) | `get_countries.php` |
@@ -62,10 +62,10 @@ take it as the first argument.
 | [`ApiMethodEnum::DeletePackTemplate`](../src/Enum/Http/ApiMethodEnum.php) | `delete_pack_template` | [`$client->packTemplates()->deletePackTemplates()`](../src/Api/Service/PackTemplatesServiceInterface.php) | `delete_pack_template.php` |
 | [`ApiMethodEnum::FindCity`](../src/Enum/Http/ApiMethodEnum.php) | `find_city` | [`$client->geo()->findCity()`](../src/Api/Service/GeoServiceInterface.php) | `find_city.php` |
 | [`ApiMethodEnum::GetMapToken`](../src/Enum/Http/ApiMethodEnum.php) | `get_map_token` | [`$client->geo()->getMapToken()`](../src/Api/Service/GeoServiceInterface.php) | `get_map_token.php` |
-| [`ApiMethodEnum::TwoFactorTokenRegister`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_register` | [`$client->twoFactorToken()->twoFactorTokenRegister()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_register.php` |
-| [`ApiMethodEnum::TwoFactorTokenResend`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_resend` | [`$client->twoFactorToken()->twoFactorTokenResend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_resend.php` |
-| [`ApiMethodEnum::TwoFactorTokenVerify`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_verify` | [`$client->twoFactorToken()->twoFactorTokenVerify()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_verify.php` |
-| [`ApiMethodEnum::TwoFactorTokenChangeTransportMethod`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_change_transport_method` | [`$client->twoFactorToken()->twoFactorTokenChangeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_change_transport_method.php` |
+| [`ApiMethodEnum::TwoFactorTokenRegister`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_register` | [`$client->twoFactorToken()->register()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_register.php` |
+| [`ApiMethodEnum::TwoFactorTokenResend`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_resend` | [`$client->twoFactorToken()->resend()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_resend.php` |
+| [`ApiMethodEnum::TwoFactorTokenVerify`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_verify` | [`$client->twoFactorToken()->verify()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_verify.php` |
+| [`ApiMethodEnum::TwoFactorTokenChangeTransportMethod`](../src/Enum/Http/ApiMethodEnum.php) | `two_factor_token_change_transport_method` | [`$client->twoFactorToken()->changeTransportMethod()`](../src/Api/Service/TwoFactorTokenServiceInterface.php) | `two_factor_token_change_transport_method.php` |
 | [`ApiMethodEnum::GetSystemInfo`](../src/Enum/Http/ApiMethodEnum.php) | `get_system_info` | [`$client->system()->getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | `get_system_info.php` |
 | [`ApiMethodEnum::GetCouriersMessages`](../src/Enum/Http/ApiMethodEnum.php) | `get_couriers_messages` | [`$client->system()->getCouriersMessages()`](../src/Api/Service/SystemServiceInterface.php) | `get_couriers_messages.php` |
 | [`ApiMethodEnum::ValidateCouponCode`](../src/Enum/Http/ApiMethodEnum.php) | `validate_coupon_code` | [`$client->system()->validateCouponCode()`](../src/Api/Service/SystemServiceInterface.php) | `validate_coupon_code.php` |
@@ -94,7 +94,7 @@ take it as the first argument.
 | [`ApiMethodEnum::CreateMoneyBoxPayout`](../src/Enum/Http/ApiMethodEnum.php) | `create_money_box_payout` | [`$client->moneyBox()->createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `create_money_box_payout.php` |
 | [`ApiMethodEnum::CancelMoneyBoxPayout`](../src/Enum/Http/ApiMethodEnum.php) | `cancel_money_box_payout` | [`$client->moneyBox()->cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `cancel_money_box_payout.php` |
 | [`ApiMethodEnum::CalculateMoneyBoxPayoutFee`](../src/Enum/Http/ApiMethodEnum.php) | `calculate_money_box_payout_fee` | [`$client->moneyBox()->calculatePayoutFee()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `calculate_money_box_payout_fee.php` |
-| [`ApiMethodEnum::GetMoneyBoxConfig`](../src/Enum/Http/ApiMethodEnum.php) | `get_money_box_config` | [`$client->moneyBox()->getConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `get_money_box_config.php` |
+| [`ApiMethodEnum::GetMoneyBoxConfig`](../src/Enum/Http/ApiMethodEnum.php) | `get_money_box_config` | [`$client->moneyBox()->getMoneyBoxConfig()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `get_money_box_config.php` |
 | [`ApiMethodEnum::GetMoneyBoxPayouts`](../src/Enum/Http/ApiMethodEnum.php) | `get_money_box_payouts` | [`$client->moneyBox()->getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) | `get_money_box_payouts.php` |
 
 [`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php) and [`CourierServiceInterface::getCourierPoint()`](../src/Api/Service/CourierServiceInterface.php) both send `get_courier_point`: one

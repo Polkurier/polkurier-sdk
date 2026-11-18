@@ -12,24 +12,26 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
+
 
 require __DIR__ . '/bootstrap.php';
 
 try {
     $carriers = polkurier()->courier()
-        ->availableCarriers(new AvailableCarriersMessage(additionalData: true));
+        ->getAvailableCarriers(new AvailableCarriersMessage(additionalData: true));
 
     foreach ($carriers as $carrier) {
         \printf(
             "%-24s %-40s %s\n",
-            $carrier->getServiceCode(),
-            $carrier->getName(),
-            $carrier->isForeignShipments() ? 'international' : 'domestic'
+            $carrier->serviceCode,
+            $carrier->name,
+            $carrier->foreignShipments ? 'international' : 'domestic'
         );
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);
 }
+

@@ -9,9 +9,9 @@ namespace Polkurier\Webservice\Test\Unit\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Response\Order\OrderStatusMessage;
-use Polkurier\Webservice\Response\Order\Pickup;
-use Polkurier\Webservice\Serializer\ExactDateTimeNormalizer;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Entity\Order\Pickup;
+use Polkurier\Webservice\Serializer\ExactDateTimeDenormalizer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -58,7 +58,7 @@ final class ExactDateTest extends TestCase
         );
 
         self::assertInstanceOf(OrderStatusMessage::class, $status);
-        self::assertSame('2026-10-08 12:34:00.000000', $status->getStatusDate()?->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-10-08 12:34:00.000000', $status->statusDate?->format('Y-m-d H:i:s.u'));
     }
 
     public function testWritingKeepsTheFormat(): void
@@ -74,7 +74,7 @@ final class ExactDateTest extends TestCase
 
     public function testATimestampAndAFormatThatAlreadyResetsAreReadAsTheyAre(): void
     {
-        $normalizer = new ExactDateTimeNormalizer();
+        $normalizer = new ExactDateTimeDenormalizer();
         $read = static fn(int|string $value, string $format): \DateTimeInterface => $normalizer->denormalize(
             $value,
             \DateTimeImmutable::class,

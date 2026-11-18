@@ -7,8 +7,9 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Http\Request;
 
+use Polkurier\Webservice\Api\Http\ApiMethodInterface;
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Enum\Http\ApiMethodInterface;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Psr\Http\Message\RequestInterface;
 
 /**

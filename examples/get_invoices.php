@@ -10,9 +10,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,17 +24,17 @@ try {
         page: 1,
     ));
 
-    foreach ($list->getResult() as $invoice) {
+    foreach ($list->result as $invoice) {
         \printf(
             "%-20s %10.2f PLN  unpaid %8.2f  due %s\n",
-            $invoice->getNumber(),
-            $invoice->getValue(),
-            $invoice->getUnpaidValue(),
-            $invoice->getPaymentDeadline()?->format('Y-m-d') ?? '-'
+            $invoice->number,
+            $invoice->value,
+            $invoice->unpaidValue,
+            $invoice->paymentDeadline?->format('Y-m-d') ?? '-'
         );
     }
 
-    \printf("-- page %d, %d invoices total\n", $list->getCurrentPage(), $list->getTotalRows());
+    \printf("-- page %d, %d invoices total\n", $list->currentPage, $list->totalRows);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

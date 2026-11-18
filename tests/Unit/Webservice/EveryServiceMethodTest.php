@@ -7,19 +7,25 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\SerializerInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\ConfigProvider;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Http\Request\RequestFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
 use Polkurier\Webservice\Http\Response\ResponseFactoryInterface;
 use Polkurier\Webservice\Http\Response\ResponseWrapper;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
-use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Calls every method of every service and parses a response of the shape that method expects.
@@ -28,6 +34,7 @@ use Psr\Http\Message\ResponseInterface;
  * populated instance of the expected class, normalized to its wire form. So every response class
  * is read back from what it would look like on the wire.
  */
+#[CoversNothing]
 final class EveryServiceMethodTest extends TestCase
 {
     /**
@@ -60,25 +67,13 @@ final class EveryServiceMethodTest extends TestCase
     public function testTheMethodParsesAResponseOfTheShapeItExpects(string $accessor, string $method): void
     {
         $client = new RecordingClient();
-        $sdk = new PolkurierWebservice(
-            config: new Config(
-                authorization: new AuthorizationMessage(token: 'test-token', login: '20534'),
-                platform: 'phpunit',
-                platformVersion: '1.0.0',
-                validatePayloads: false,
-            ),
-            clientFactory: $client,
-            responseFactory: new SampleResponseFactory(),
-        );
-
-        $service = $sdk->{$accessor}();
-        self::assertIsObject($service);
+        $service = self::service($accessor, $client);
         $reflection = new \ReflectionMethod($service, $method);
 
         $arguments = \array_map(self::argument(...), $reflection->getParameters());
         $reflection->invokeArgs($service, $arguments);
 
-        self::assertSame(1, $client->requestCount());
+        self::assertSame(1, $client->countRequests());
     }
 
     private static function argument(\ReflectionParameter $parameter): mixed
@@ -95,6 +90,43 @@ final class EveryServiceMethodTest extends TestCase
             default => null,
         };
     }
+
+    /**
+     * The service the facade's accessor builds, wired with a response factory that answers with a
+     * sample of whatever shape the method asks for.
+     *
+     * @param string $accessor
+     * @param RecordingClient $client records the request the method sends
+     *
+     * @return object
+     */
+    private static function service(string $accessor, RecordingClient $client): object
+    {
+        $interface = (string)(new \ReflectionMethod(PolkurierWebservice::class, $accessor))->getReturnType();
+        /** @var class-string $class */
+        $class = \str_replace(
+            ['Polkurier\\Webservice\\Api\\Service\\', 'Interface'],
+            ['Polkurier\\Webservice\\Service\\', ''],
+            $interface,
+        );
+        self::assertTrue(\class_exists($class), $interface . ' has no service');
+
+        $configProvider = new ConfigProvider(new Config(
+            authorization: new AuthorizationMessage(token: 'test-token', login: '20534'),
+            platform: 'phpunit',
+            platformVersion: '1.0.0',
+            validatePayloads: false,
+        ));
+        $serializer = new MessageSerializer(new SerializerProvider());
+
+        return new $class(
+            new RequestFactory($serializer, $configProvider),
+            new SampleResponseFactory(),
+            new NullLogger(),
+            $client,
+            $configProvider,
+        );
+    }
 }
 
 /**
@@ -106,7 +138,7 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
 
     public function __construct()
     {
-        $this->inner = new ResponseFactory(new SerializerProvider());
+        $this->inner = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
     }
 
     public function create(ResponseInterface $httpResponse, string $responseFormat): ResponseWrapper
@@ -122,9 +154,9 @@ final readonly class SampleResponseFactory implements ResponseFactoryInterface
     private static function payload(string $format): mixed
     {
         return match (true) {
-            $format === '' || $format === ResponseFactory::FORMAT_BOOLEAN => true,
-            $format === ResponseFactory::FORMAT_RAW_ARRAY,
-            $format === ResponseFactory::FORMAT_STRING_LIST => ['a' => 'b'],
+            $format === '' || $format === SerializerInterface::FORMAT_BOOLEAN => true,
+            $format === SerializerInterface::FORMAT_RAW_ARRAY,
+            $format === SerializerInterface::FORMAT_STRING_LIST => ['a' => 'b'],
             \str_ends_with($format, '[]') => [self::payload(\substr($format, 0, -2))],
             default => self::normalized($format),
         };

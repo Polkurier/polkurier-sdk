@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
-use Polkurier\Webservice\Validator\MessageFields;
+use Polkurier\Webservice\Validator\MessageFieldReader;
 use Polkurier\Webservice\Validator\ViolationPool;
 
 /**
@@ -30,36 +30,27 @@ class InOrder implements MessageRuleInterface
     /**
      * @param string $earlier the property that must not be greater than $later
      * @param string $later
-     * @param string|null $because the report's wording, in place of the default
+     * @param string|null $reason the report's wording, in place of the default
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $earlier,
 
-        /**
-         * @var string
-         */
         public readonly string $later,
 
-        /**
-         * @var string|null
-         */
-        public readonly ?string $because = null,
+        public readonly ?string $reason = null,
     ) {}
 
     /**
-     * @param MessageFields $fields
+     * @param MessageFieldReader $fields
      * @param ViolationPool $violations
      *
      * @return void
      * @throws InvalidArgumentException
      */
-    public function validate(MessageFields $fields, ViolationPool $violations): void
+    public function validate(MessageFieldReader $fields, ViolationPool $violations): void
     {
-        $earlier = $fields->value($this->earlier);
-        $later = $fields->value($this->later);
+        $earlier = $fields->readValue($this->earlier);
+        $later = $fields->readValue($this->later);
 
         if ($earlier === null || $later === null) {
             return;
@@ -67,13 +58,30 @@ class InOrder implements MessageRuleInterface
         if (!\is_scalar($earlier) && !($earlier instanceof \DateTimeInterface)) {
             return;
         }
+        // Both sides, or the comparison is between kinds PHP orders by rules that say nothing
+        // about the two values: an object always compares greater than a string.
+        if (!\is_scalar($later) && !($later instanceof \DateTimeInterface)) {
+            return;
+        }
         if ($earlier <= $later) {
             return;
         }
 
+        $laterField = $fields->readField($this->later);
+
         $violations->add(
-            $fields->field($this->earlier),
-            $this->because ?? \sprintf('must not be greater than %s', $fields->field($this->later))
+            $fields->readField($this->earlier),
+            $this->reason ?? \sprintf('must not be greater than %s', $laterField),
+            ValidationErrorCodeEnum::OutOfOrder,
+            ['field' => $laterField],
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function listProperties(): array
+    {
+        return [$this->earlier, $this->later];
     }
 }

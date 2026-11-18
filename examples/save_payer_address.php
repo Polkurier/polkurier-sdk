@@ -12,10 +12,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\SavePayerAddressMessage;
 use Polkurier\Webservice\Enum\Account\PayerAddressTypeEnum;
 use Polkurier\Webservice\Enum\Account\PayerUserTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\SavePayerAddressMessage;
 
 
 require __DIR__ . '/bootstrap.php';

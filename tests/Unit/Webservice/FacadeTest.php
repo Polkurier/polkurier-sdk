@@ -10,13 +10,18 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
-use Polkurier\Webservice\Exception\MalformedResponseException;
+use Polkurier\Webservice\Api\Webhook\OrderReaderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Http\Request\RequestMessage;
 use Polkurier\Webservice\PolkurierWebservice;
+use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Testing\RecordingClient;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Exercises the facade and everything it wires.
@@ -37,12 +42,23 @@ final class FacadeTest extends TestCase
     protected function setUp(): void
     {
         $this->client = new RecordingClient('{"status":"success","response":[]}');
-        $this->sdk = new PolkurierWebservice(
+        $this->sdk = $this->facade();
+    }
+
+    /**
+     * @param SerializerConfig|null $serializerConfig
+     *
+     * @return PolkurierWebservice
+     */
+    private function facade(?SerializerConfig $serializerConfig = null): PolkurierWebservice
+    {
+        return new PolkurierWebservice(
             config: new Config(
                 authorization: new AuthorizationMessage(token: 'test-token', login: '12345'),
                 platform: 'phpunit',
                 platformVersion: '1.0.0',
             ),
+            serializerConfig: $serializerConfig,
             clientFactory: $this->client,
         );
     }
@@ -84,6 +100,66 @@ final class FacadeTest extends TestCase
     }
 
     /**
+     * The webhook reader is not a service, so the sweep above doesn't reach it.
+     *
+     * @return void
+     */
+    public function testTheOrderReaderResolvesAndMemoises(): void
+    {
+        $reader = $this->sdk->orderReader();
+
+        self::assertInstanceOf(OrderReaderInterface::class, $reader);
+        self::assertSame($reader, $this->sdk->orderReader());
+    }
+
+    /**
+     * The serializer the facade hands out is the one its own calls write through, so a payload
+     * written before a call is byte for byte what that call sends.
+     *
+     * @return void
+     */
+    public function testTheSerializerItHandsOutIsTheOneItsCallsWriteThrough(): void
+    {
+        // Settings that change the bytes, so that a call writing through a serializer built
+        // anywhere but from these settings spells the payload differently.
+        $sdk = $this->facade(new SerializerConfig(jsonEncodeOptions: \JSON_UNESCAPED_SLASHES));
+        $message = new GetPointMessage(couriers: ['DPD'], searchQuery: 'Poznań');
+
+        $written = $sdk->serializer()->encode($message);
+        $sdk->courier()->findCourierPoints($message);
+
+        self::assertStringContainsString('Pozna\u0144', $written);
+        $request = $this->client->getLastRequest();
+        self::assertInstanceOf(RequestInterface::class, $request);
+        self::assertStringContainsString($written, (string)$request->getBody());
+        self::assertSame(
+            \json_decode($written, true),
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null,
+        );
+    }
+
+    /**
+     * The reader is given the serializer settings the facade was built with, so `strictResponses`
+     * decides whether an order that differs from what the SDK expects is reported or refused.
+     *
+     * @return void
+     */
+    public function testTheOrderReaderReadsWithTheSerializerSettingsTheFacadeWasGiven(): void
+    {
+        $body = \http_build_query(['type' => 'UPDATED', 'data' => ['number' => '20534-7674', 'status' => 'Nowe']]);
+        $reader = $this->sdk->orderReader();
+
+        $read = $reader->read($body);
+
+        self::assertSame('20534-7674', $read->event->order->getNumber());
+        self::assertNotSame([], $read->drift);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->facade(new SerializerConfig(strictResponses: true))->orderReader()->read($body);
+    }
+
+    /**
      * Calls every service method that takes no arguments, and checks which endpoint it reached.
      *
      * The stub answers every call with the same empty payload, which is not the shape most of
@@ -108,7 +184,7 @@ final class FacadeTest extends TestCase
                     // The stub payload is not this endpoint's shape; the request still went out.
                 }
 
-                $apiMethod = $this->client->lastPayload()[RequestMessage::FIELD_API_METHOD] ?? null;
+                $apiMethod = $this->client->readLastPayload()[RequestMessage::FIELD_API_METHOD] ?? null;
                 self::assertIsString(
                     $apiMethod,
                     \sprintf('%s()->%s() sent no apimethod', $accessor, $method->getName())
@@ -122,6 +198,8 @@ final class FacadeTest extends TestCase
             }
         }
 
-        self::assertGreaterThan(15, \count($called), 'expected the argumentless methods to be exercised');
+        // The exact count, so that a method dropped from the sweep fails here rather than
+        // thinning it unnoticed.
+        self::assertCount(22, $called, 'an argumentless service method was added or removed');
     }
 }

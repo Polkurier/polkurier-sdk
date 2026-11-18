@@ -11,10 +11,10 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -25,16 +25,16 @@ if (!hasFlag('--confirm')) {
 }
 
 try {
-    $config = polkurier()->moneyBox()->getConfig();
+    $config = polkurier()->moneyBox()->getMoneyBoxConfig();
 
     $payout = polkurier()->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
         payoutType: MoneyBoxPayoutTypeEnum::Account,
         feePaymentType: MoneyBoxFeePaymentTypeEnum::MoneyBox,
-        bankAccountNumber: $config->getIban(),
+        bankAccountNumber: $config->bankAccountNumber,
     ));
 
     \printf("Payout %s for %.2f PLN is %s\n",
-        $payout->getNumber(), $payout->getAmount(), $payout->getStatus());
+        $payout->number, $payout->amount, $payout->status->value ?? 'unknown');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

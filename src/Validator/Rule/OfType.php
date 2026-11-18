@@ -8,7 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A value of the given type: `string`, `int`, `float` or `bool`, or a class, interface or enum.
@@ -16,7 +17,7 @@ use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
  * Mostly for list entries, whose type PHP can't declare:
  *
  * ```php
- * #[Each(OfType::class, PackMessage::class)]
+ * #[Each(OfType::class, PackItem::class)]
  * ```
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
@@ -26,19 +27,20 @@ class OfType implements ValueValidatorInterface
      * @param string $type a scalar type name, or a class, interface or enum name
      */
     public function __construct(
-        /**
-         * @var string
-         */
         public readonly string $type,
     ) {}
 
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
+        if ($value === null) {
+            return [];
+        }
+
         $matches = match ($this->type) {
             'string' => \is_string($value),
             'int' => \is_int($value),
@@ -51,8 +53,17 @@ class OfType implements ValueValidatorInterface
             return [];
         }
 
-        $name = \str_contains($this->type, '\\') ? \substr((string)\strrchr($this->type, '\\'), 1) : $this->type;
+        $separator = \strrpos($this->type, '\\');
+        $name = $separator === false ? $this->type : \substr($this->type, $separator + 1);
 
-        return [\sprintf('must be a %s', $name)];
+        return [
+            new RuleFailure(
+                ValidationErrorCodeEnum::WrongType,
+                // The type names the rule takes are `int`, `Address`, `PackItem` and the like, so
+                // an article in front of one would be right for some and wrong for the rest.
+                \sprintf('must be of type %s', $name),
+                ['type' => $name, 'declared' => $this->type],
+            ),
+        ];
     }
 }

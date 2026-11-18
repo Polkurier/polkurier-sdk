@@ -8,7 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Message;
 
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Validator\AbstractMessageValidator;
 use Polkurier\Webservice\Validator\ViolationPool;
 
@@ -27,18 +28,17 @@ use Polkurier\Webservice\Validator\ViolationPool;
 class ValidateCouponMessageValidator extends AbstractMessageValidator
 {
     /**
-     * @param MessageInterface $data
+     * @param ValidateCouponMessage $data
      * @param ViolationPool $violations
      *
      * @return void
      */
     protected function collect(MessageInterface $data, ViolationPool $violations): void
     {
-        /** @var ValidateCouponMessage $data */
         $supplied = [
-            ValidateCouponMessage::FIELD_COURIER => $data->getCourier() !== null,
-            ValidateCouponMessage::FIELD_SHIPMENT_TYPE => $data->getShipmentType() !== null,
-            ValidateCouponMessage::FIELD_PACKS => $data->getPacks() !== [],
+            ValidateCouponMessage::FIELD_COURIER => $data->courier !== null,
+            ValidateCouponMessage::FIELD_SHIPMENT_TYPE => $data->shipmentType !== null,
+            ValidateCouponMessage::FIELD_PACKS => $data->packs !== [],
         ];
 
         if (!\in_array(true, $supplied, true) || !\in_array(false, $supplied, true)) {
@@ -47,7 +47,15 @@ class ValidateCouponMessageValidator extends AbstractMessageValidator
 
         foreach ($supplied as $field => $given) {
             if (!$given) {
-                $violations->add($field, 'is required when checking a coupon against an order');
+                // The 3 are required together, so no single field is the one that made this one
+                // required: `condition` says a field of the group was given and `field` is left
+                // out, because naming an arbitrary one of the other 2 would say otherwise.
+                $violations->add(
+                    $field,
+                    'is required when checking a coupon against an order',
+                    ValidationErrorCodeEnum::Blank,
+                    ['condition' => 'any_set'],
+                );
             }
         }
     }

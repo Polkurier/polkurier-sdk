@@ -11,14 +11,16 @@ namespace Polkurier\Webservice\Enum\Http;
  * The error codes an API error can carry.
  *
  * An error names its condition twice: as the `error_code` string, which is the case's value, and
- * as the numeric `status_code`, which statusCode() returns and fromStatusCode() maps back. Case
- * names follow SDK conventions. The values are the exact strings the API returns, including its
- * spellings: TOKEN_IS_NO_ACTIV and UNKNOWN_API_METOD are correct as written. The high-numbered
- * status codes reuse HTTP status numbers, but they arrive in the JSON body, not as the HTTP status.
+ * as the numeric `status_code`, which getStatusCode() returns and findByStatusCode() maps back. The
+ * values are the exact strings the API returns, including its spellings: TOKEN_IS_NO_ACTIV and
+ * UNKNOWN_API_METOD are correct as written. The high-numbered status codes reuse HTTP status
+ * numbers, but they arrive in the JSON body, not as the HTTP status.
  *
  * Both fields are optional in an error payload. `error_code` is the more precise of the two: a
  * status code can stand for more than one condition, e.g. 506006.
  * The two-factor conditions use the 506xxx numbers, except TWO_FACTOR_ALREADY_SENT.
+ *
+ * @api
  */
 enum ApiErrorCodeEnum: string
 {
@@ -68,11 +70,32 @@ enum ApiErrorCodeEnum: string
     case TwoFactorNoValidSmsPhoneNumber = 'TWO_FACTOR_NO_VALID_SMS_PHONE_NUMBER_EXCEPTION';
 
     /**
+     * Whether this condition means the credentials were rejected.
+     *
+     * Retrying does not help; the credentials have to change. The SDK raises
+     * {@see \Polkurier\Webservice\Exception\AuthorizationException} for exactly these.
+     *
+     * @return bool
+     */
+    public function rejectsCredentials(): bool
+    {
+        return match ($this) {
+            self::EmptyAuthData,
+            self::EmptyLogin,
+            self::EmptyToken,
+            self::InvalidAuthData,
+            self::TokenNotActive,
+            self::InvalidAuthMethod => true,
+            default => false,
+        };
+    }
+
+    /**
      * The numeric `status_code` for this condition.
      *
      * @return int
      */
-    public function statusCode(): int
+    public function getStatusCode(): int
     {
         return match ($this) {
             self::UnknownError => 1,
@@ -130,11 +153,11 @@ enum ApiErrorCodeEnum: string
      * @return self|null null for a code this SDK doesn't know, and for one that stands for more than
      *         one condition. Use the `error_code` then
      */
-    public static function fromStatusCode(int $statusCode): ?self
+    public static function findByStatusCode(int $statusCode): ?self
     {
         $matches = \array_values(\array_filter(
             self::cases(),
-            static fn(self $case): bool => $case->statusCode() === $statusCode,
+            static fn(self $case): bool => $case->getStatusCode() === $statusCode,
         ));
 
         return \count($matches) === 1 ? $matches[0] : null;

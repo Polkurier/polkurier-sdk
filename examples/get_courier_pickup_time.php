@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -28,12 +28,12 @@ try {
     ));
 
     foreach ($slots as $slot) {
-        foreach ($slot->getTime() as $window) {
+        foreach ($slot->time as $window) {
             \printf(
                 "%s  %s–%s\n",
-                $slot->getPickupDate()?->format('Y-m-d'),
-                $window->getTimeFrom()?->format('H:i'),
-                $window->getTimeTo()?->format('H:i')
+                $slot->pickupDate?->format('Y-m-d'),
+                $window->timeFrom?->format('H:i'),
+                $window->timeTo?->format('H:i')
             );
         }
     }

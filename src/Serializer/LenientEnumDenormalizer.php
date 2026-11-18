@@ -8,16 +8,13 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 /**
  * Reads an enum value as null when the enum doesn't have it, and records it.
  *
- * A value of another type than the enum's backing type is converted when it is a string or a
- * number, reads as null otherwise, and is recorded as {@see ResponseDriftTypeEnum::CastValue}. In a
- * text format such as CSV, a string that is exactly an integer is read silently for an
- * integer-backed enum.
+ * Every enum the SDK declares is backed by strings. A value of another type is converted when it is
+ * a number, reads as null otherwise, and is recorded as {@see ResponseDriftTypeEnum::CastValue}.
  *
  * It only acts when the context holds a
  * {@see \Polkurier\Webservice\Serializer\ResponseDriftCollector}, and runs before
@@ -36,26 +33,23 @@ class LenientEnumDenormalizer implements DenormalizerInterface
      */
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): ?\BackedEnum
     {
-        /** @var class-string<\BackedEnum> $type */
-        $path = $context['deserialization_path'] ?? null;
+        $path = $context[ResponseDriftCollector::PATH_KEY] ?? null;
 
         return static::read(
             $type,
             $data,
             \is_string($path) ? $path : '',
-            ResponseDriftCollector::fromContext($context),
-            $format === CsvEncoder::FORMAT,
+            ResponseDriftCollector::findInContext($context),
         );
     }
 
     /**
      * The case for a value, or null when the enum doesn't have it.
      *
-     * @param class-string<\BackedEnum> $enum
+     * @param class-string<\BackedEnum> $enum a string-backed enum
      * @param mixed $value
      * @param string $path
      * @param ResponseDriftCollector|null $drift receives the value when it is unknown or of another type
-     * @param bool $text whether the value comes from a text format, which carries it as a string
      *
      * @return \BackedEnum|null
      */
@@ -64,16 +58,9 @@ class LenientEnumDenormalizer implements DenormalizerInterface
         mixed $value,
         string $path,
         ?ResponseDriftCollector $drift,
-        bool $text = false,
     ): ?\BackedEnum {
-        $int = (new \ReflectionEnum($enum))->getBackingType()?->getName() === 'int';
-        $exact = match (true) {
-            $int && \is_int($value), !$int && \is_string($value) => $value,
-            $int && $text && \is_string($value) => \filter_var($value, \FILTER_VALIDATE_INT, \FILTER_NULL_ON_FAILURE),
-            default => null,
-        };
-        if ($exact !== null) {
-            $case = $enum::tryFrom($exact);
+        if (\is_string($value)) {
+            $case = $enum::tryFrom($value);
             if ($case === null) {
                 $drift?->add(ResponseDriftTypeEnum::UnknownEnumValue, $path, $value, $enum);
             }
@@ -81,15 +68,9 @@ class LenientEnumDenormalizer implements DenormalizerInterface
             return $case;
         }
 
-        $converted = match (true) {
-            $int && \is_string($value) => \filter_var($value, \FILTER_VALIDATE_INT, \FILTER_NULL_ON_FAILURE),
-            $int && \is_float($value) && $value == (int)$value => (int)$value,
-            !$int && (\is_int($value) || \is_float($value)) => (string)$value,
-            default => null,
-        };
         $drift?->add(ResponseDriftTypeEnum::CastValue, $path, $value, $enum);
 
-        return $converted === null ? null : $enum::tryFrom($converted);
+        return \is_int($value) || \is_float($value) ? $enum::tryFrom((string)$value) : null;
     }
 
     /**
@@ -106,7 +87,7 @@ class LenientEnumDenormalizer implements DenormalizerInterface
         ?string $format = null,
         array $context = [],
     ): bool {
-        return ResponseDriftCollector::fromContext($context) !== null && \is_subclass_of($type, \BackedEnum::class);
+        return ResponseDriftCollector::findInContext($context) !== null && \is_subclass_of($type, \BackedEnum::class);
     }
 
     /**

@@ -8,7 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * The field must be present and not just whitespace.
@@ -22,18 +23,18 @@ class NotBlank implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
         if ($value === null) {
-            return ['must not be empty'];
+            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
         }
         if (\is_string($value) && \trim($value) === '') {
-            return ['must not be empty'];
+            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
         }
         if (\is_array($value) && $value === []) {
-            return ['must not be empty'];
+            return [new RuleFailure(ValidationErrorCodeEnum::Blank, 'must not be empty')];
         }
 
         return [];

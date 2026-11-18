@@ -14,41 +14,70 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polkurier\Webservice\Api\ParsedResponseInterface;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Address;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\System\SystemInfoMessage;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\SerializerConfig;
 use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Accessors;
+use Polkurier\Webservice\Test\Support\MessageClasses;
+use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Polkurier\Webservice\Test\Unit\Serializer\ResponseConstructionTest;
 
 #[CoversClass(ResponseFactory::class)]
 final class RawResponseTest extends TestCase
 {
     /**
-     * The classes the service methods return.
+     * The classes the service methods return. Read from the services themselves, because a method
+     * that returns an entity declares an interface on {@see \Polkurier\Webservice\Api\Service}.
      *
      * @return array<string, array{class-string}>
      */
     public static function returnedClasses(): array
     {
         $classes = [];
-        foreach (\glob(\dirname(__DIR__, 3) . '/src/Api/Service/*Interface.php') ?: [] as $file) {
-            $interface = 'Polkurier\\Webservice\\Api\\Service\\' . \basename($file, '.php');
-            self::assertTrue(\interface_exists($interface));
-            foreach ((new \ReflectionClass($interface))->getMethods() as $method) {
-                $type = $method->getReturnType();
-                if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
-                    /** @var class-string $class */
-                    $class = $type->getName();
-                    $classes[$class] = [$class];
+        foreach (\glob(\dirname(__DIR__, 3) . '/src/Service/*Service.php') ?: [] as $file) {
+            $service = 'Polkurier\\Webservice\\Service\\' . \basename($file, '.php');
+            self::assertTrue(\class_exists($service));
+            foreach ((new \ReflectionClass($service))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                foreach (self::namedTypes($method->getReturnType()) as $class) {
+                    if (\class_exists($class)) {
+                        $classes[$class] = [$class];
+                    }
                 }
             }
         }
         self::assertNotEmpty($classes);
 
         return $classes;
+    }
+
+    /**
+     * The class names a return type is made of, an intersection type included.
+     *
+     * @param \ReflectionType|null $type
+     *
+     * @return list<class-string>
+     */
+    private static function namedTypes(?\ReflectionType $type): array
+    {
+        if ($type instanceof \ReflectionNamedType) {
+            /** @var list<class-string> */
+            return $type->isBuiltin() ? [] : [$type->getName()];
+        }
+
+        if ($type instanceof \ReflectionIntersectionType || $type instanceof \ReflectionUnionType) {
+            $names = [];
+            foreach ($type->getTypes() as $part) {
+                $names = [...$names, ...self::namedTypes($part)];
+            }
+
+            return $names;
+        }
+
+        return [];
     }
 
     /**
@@ -73,7 +102,7 @@ final class RawResponseTest extends TestCase
     public function testOnlyReturnedClassesKeepTheRawResponse(): void
     {
         $returned = \array_keys(self::returnedClasses());
-        foreach (ResponseConstructionTest::responseClasses() as [$class]) {
+        foreach (MessageClasses::responses() as $class) {
             if (\is_subclass_of($class, ParsedResponseInterface::class)) {
                 self::assertContains($class, $returned, $class . ' is never returned by a service method.');
             }
@@ -92,7 +121,7 @@ final class RawResponseTest extends TestCase
         $body = "  \n{\n  \"status\" : \"success\",\n  \"extra\": 1.10,\n  \"escaped\": \"a\\u0105\\/\",\n"
             . '  "response": ' . \json_encode(Sample::wire($class), \JSON_PRETTY_PRINT) . "\n}\n";
 
-        $read = self::read($class, $body);
+        $read = Responses::readBody($class, $body)->getEnvelope()->response;
 
         self::assertInstanceOf(ParsedResponseInterface::class, $read);
         self::assertSame($body, $read->getRawResponse());
@@ -105,7 +134,7 @@ final class RawResponseTest extends TestCase
     {
         $body = '{"status":"success","response":[' . \json_encode(Sample::wire(Address::class)) . ']}';
 
-        $addresses = self::read(Address::class . '[]', $body);
+        $addresses = Responses::readBody(Address::class . '[]', $body)->getEnvelope()->response;
 
         self::assertIsArray($addresses);
         self::assertInstanceOf(Address::class, $addresses[0]);
@@ -116,7 +145,7 @@ final class RawResponseTest extends TestCase
     {
         $body = '{"status":"success","response":[]}';
 
-        $page = self::read(OrderListMessage::class, $body);
+        $page = Responses::readBody(OrderListMessage::class, $body)->getEnvelope()->response;
 
         self::assertInstanceOf(OrderListMessage::class, $page);
         self::assertSame($body, $page->getRawResponse());
@@ -128,10 +157,10 @@ final class RawResponseTest extends TestCase
         $stream = Utils::streamFor($body);
         $stream->getContents();
 
-        $info = (new ResponseFactory(new SerializerProvider()))
+        $info = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create(new Response(200, [], $stream), SystemInfoMessage::class)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
         self::assertSame($body, $info->getRawResponse());
@@ -142,10 +171,10 @@ final class RawResponseTest extends TestCase
         $body = self::systemInfoBody();
         $response = new Response(200, [], new NoSeekStream(Utils::streamFor($body)));
 
-        $info = (new ResponseFactory(new SerializerProvider()))
+        $info = (new ResponseFactory(new MessageSerializer(new SerializerProvider())))
             ->create($response, SystemInfoMessage::class)
             ->getEnvelope()
-            ->getResponse();
+            ->response;
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
         self::assertSame('', (string)$response->getBody());
@@ -156,10 +185,11 @@ final class RawResponseTest extends TestCase
     {
         $body = self::systemInfoBody();
 
-        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
-            ->create(new Response(200, [], $body), SystemInfoMessage::class)
-            ->getEnvelope()
-            ->getResponse();
+        $info = Responses::readBody(
+            SystemInfoMessage::class,
+            $body,
+            new SerializerConfig(strictResponses: true),
+        )->getEnvelope()->response;
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
         self::assertSame($body, $info->getRawResponse());
@@ -173,7 +203,7 @@ final class RawResponseTest extends TestCase
     public function testTheBodySurvivesSerialization(): void
     {
         $body = self::systemInfoBody();
-        $info = self::read(SystemInfoMessage::class, $body);
+        $info = Responses::readBody(SystemInfoMessage::class, $body)->getEnvelope()->response;
 
         $copy = \unserialize(\serialize($info));
 
@@ -187,20 +217,6 @@ final class RawResponseTest extends TestCase
     private static function systemInfoBody(): string
     {
         return (string)\json_encode(['status' => 'success', 'response' => Sample::wire(SystemInfoMessage::class)]);
-    }
-
-    /**
-     * @param string $format
-     * @param string $body
-     *
-     * @return mixed
-     */
-    private static function read(string $format, string $body): mixed
-    {
-        return (new ResponseFactory(new SerializerProvider()))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->getResponse();
     }
 
     /**
@@ -220,7 +236,7 @@ final class RawResponseTest extends TestCase
             foreach ((new \ReflectionObject($object))->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
                 if ($method->isStatic()
                     || $method->getNumberOfRequiredParameters() > 0
-                    || \preg_match('/^(get|is|has)/', $method->getName()) !== 1
+                    || \preg_match(Accessors::PATTERN, $method->getName()) !== 1
                 ) {
                     continue;
                 }

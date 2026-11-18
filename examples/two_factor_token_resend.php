@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Common\TokenMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -25,9 +25,9 @@ if (!hasFlag('--confirm')) {
 $token = arguments()[0] ?? 'token-from-two_factor_token_register';
 
 try {
-    $resent = polkurier()->twoFactorToken()->twoFactorTokenResend(new TokenMessage(token: $token));
+    $resent = polkurier()->twoFactorToken()->resend(new ResendMessage(token: $token));
 
-    \printf("Code re-sent to %s\n", $resent->getTransportMethod()?->getName() ?? '(unknown)');
+    \printf("Code re-sent to %s\n", $resent->transportMethod->name ?? '(unknown)');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

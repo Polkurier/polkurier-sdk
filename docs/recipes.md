@@ -1,8 +1,8 @@
 Recipes
 =======
 
-Solutions for common integration tasks. Runnable versions of most of them are in
-[`examples/`](../examples), one file per API method.
+Runnable versions of most of these recipes are in [`examples/`](../examples), one file per API
+method.
 
 - [Placing an order](#placing-an-order)
 - [Choosing a carrier](#choosing-a-carrier)
@@ -26,20 +26,21 @@ Placing an order
 Pick a carrier, describe the shipment, get a price, then place the order.
 
 ```php
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
 
-$order = new CreateOrderMessage(
-    courier: 'UPS',                       // a Carrier::getServiceCode()
+$order = new Order(
+    courier: 'UPS',                       // a Carrier::$serviceCode
     shipmentType: ShipmentTypeEnum::Box,
     packs: [
-        new PackMessage(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
+        new PackItem(length: 30, width: 20, height: 15, weight: 2.5, type: PackTypeEnum::Standard),
     ],
-    sender: new OrderAddressMessage(
+    sender: new Address(
         person: 'Jan Kowalski',
         street: 'Długa',
         city: 'Poznań',
@@ -49,7 +50,7 @@ $order = new CreateOrderMessage(
         company: 'Acme sp. z o.o.',
         houseNumber: '12',
     ),
-    recipient: new OrderAddressMessage(
+    recipient: new Address(
         person: 'Anna Nowak',
         street: 'Krótka',
         city: 'Warszawa',
@@ -66,28 +67,31 @@ $order = new CreateOrderMessage(
     externalOrderId: 'SHOP-1001',              // your own id for this order
 );
 
-$quotes  = $client->orders()->orderValuation($order);   // ValuationMessage[], one per carrier
-$created = $client->orders()->createOrder($order);      // CreatedOrderMessage
+// The order travels inside the message, which also carries the request-only coupon code.
+$message = new CreateOrderMessage(order: $order);
+
+$quotes  = $client->orders()->orderValuation($message);   // ValuationMessage[], one per carrier
+$created = $client->orders()->createOrder($message);      // CreatedOrderMessage
 
 printf(
     "Order %s placed. Waybills: %s. Gross: %.2f PLN\n",
-    $created->getOrderNumber(),
-    implode(', ', $created->getLabel()) ?: '(pending)',
-    $created->getPriceGross(),
+    $created->orderNumber,
+    implode(', ', $created->label) ?: '(pending)',
+    $created->priceGross,
 );
 ```
 
 The SDK cannot check these for you:
 
 - `pickup` depends on the carrier. Some carriers need a collection date, some also need a time
-  window. Check what a carrier requires with [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
+  window. Check what a carrier requires with [`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php).
 - `description` is required to place an order, and the API cuts it to fit its length limit:
-  [`CreateOrderMessage::DESCRIPTION_MAX_LENGTH`](../src/Request/Order/CreateOrderMessage.php) bytes, unless the account or the carrier has another.
+  [`Order::DESCRIPTION_MAX_LENGTH`](../src/Entity/Order.php) bytes, unless the account or the carrier has another.
 - `externalApplicationId` and `externalOrderId` are optional. They let you find the
   order again by your own id, e.g. after a timeout (see [retrying safely](#retrying-safely)). The
   SDK refuses one without the other.
 - Not every carrier offers every additional service, and some services have prerequisites.
-  [`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists the services each carrier offers. The ones it
+  [`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) lists the services each carrier offers. The ones it
   doesn't list, such as the recipient SMS notifications, are documented with their rules on
   [`AdditionalServiceEnum`](../src/Enum/Order/AdditionalServiceEnum.php).
 
@@ -99,26 +103,29 @@ The SDK cannot check these for you:
 Builders are easier when many fields are conditional. See [Builders](builders.md).
 
 ```php
-use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
 
-$builder = CreateOrderMessageBuilder::create()
-    ->courier($carrierCode)
-    ->shipmentType(ShipmentTypeEnum::Box)
-    ->packs($packs)
-    ->sender($sender)
-    ->recipient($recipient)
-    ->description('Books');
+$builder = OrderBuilder::create()
+    ->setCourier($carrierCode)
+    ->setShipmentType(ShipmentTypeEnum::Box)
+    ->setPacks($packs)
+    ->setSender($sender)
+    ->setRecipient($recipient)
+    ->setDescription('Books');
 
 if ($cart->isInsured()) {
-    $builder->insurance($cart->declaredValue());
+    $builder->setInsurance($cart->declaredValue());
 }
 
-if ($cart->couponCode() !== null) {
-    $builder->couponCode($cart->couponCode());
-}
-
-$created = $client->orders()->createOrder($builder->build());
+$created = $client->orders()->createOrder(new CreateOrderMessage(
+    order: $builder->build(),
+    couponCode: $cart->couponCode(),       // null when there is none
+));
 ```
+
+The coupon code isn't part of the order, so it goes on the message rather than on
+[`OrderBuilder`](../src/Builder/Entity/OrderBuilder.php).
 
 ---
 
@@ -129,26 +136,26 @@ There are 2 approaches.
 
 ### Let the customer choose
 
-[`CourierServiceInterface::availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
+[`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) returns the carriers this account can ship with:
 
 ```php
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
 
-$carriers = $client->courier()->availableCarriers(
+$carriers = $client->courier()->getAvailableCarriers(
     new AvailableCarriersMessage(additionalData: true),
 );
 
 foreach ($carriers as $carrier) {
     printf(
         "%-24s %-40s %s\n",
-        $carrier->getServiceCode(),
-        $carrier->getName(),
-        $carrier->isForeignShipments() ? 'international' : 'domestic',
+        $carrier->serviceCode,
+        $carrier->name,
+        $carrier->foreignShipments ? 'international' : 'domestic',
     );
 }
 ```
 
-With `additionalData: true`, each [`Carrier`](../src/Response/Carrier.php) also describes what it supports: shipment types, cash
+With `additionalData: true`, each [`Carrier`](../src/Dto/Response/Carrier.php) also describes what it supports: shipment types, cash
 on delivery and insurance, pickup requirements, the additional services it offers (except the SMS
 notifications) and which pickup points it uses. The SDK does not validate against this data. It
 describes what a shipping form can offer.
@@ -158,27 +165,28 @@ describes what a shipping form can offer.
 One valuation quotes every carrier that can carry the shipment, so compare the quotes it returns:
 
 ```php
-use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
-use Polkurier\Webservice\Response\Order\ValuationMessage;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 
-$quotes = $client->orders()->orderValuation(
-    CreateOrderMessageBuilder::create()
-        ->courier($anyCode)
-        ->shipmentType($type)
-        ->packs($packs)
-        ->sender($sender)
-        ->recipient($recipient)
+$quotes = $client->orders()->orderValuation(new CreateOrderMessage(
+    order: OrderBuilder::create()
+        ->setCourier($anyCode)
+        ->setShipmentType($type)
+        ->setPacks($packs)
+        ->setSender($sender)
+        ->setRecipient($recipient)
         ->build(),
-);
+));
 
-$quotes = array_filter($quotes, static fn(ValuationMessage $quote) => $quote->isShipment());
-usort($quotes, static fn(ValuationMessage $a, ValuationMessage $b) => $a->getGrossPrice() <=> $b->getGrossPrice());
+$quotes = array_filter($quotes, static fn(ValuationMessage $quote) => $quote->shipment);
+usort($quotes, static fn(ValuationMessage $a, ValuationMessage $b) => $a->grossPrice <=> $b->grossPrice);
 
-$cheapest = $quotes[0] ?? null;   // place the order with $cheapest->getServiceCode() as the courier
+$cheapest = $quotes[0] ?? null;   // place the order with $cheapest->serviceCode as the courier
 ```
 
 A carrier that can't carry the shipment is quoted at 0, so without the filter on
-[`ValuationMessage::isShipment()`](../src/Response/Order/ValuationMessage.php) it would come out cheapest.
+[`ValuationMessage::$shipment`](../src/Dto/Response/Order/ValuationMessage.php) it would come out cheapest.
 
 ---
 
@@ -186,11 +194,12 @@ Cash on delivery
 ----------------
 
 ```php
-use Polkurier\Webservice\Request\Order\CodMessage;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Entity\Order\Cod;
 
-$order = CreateOrderMessageBuilder::create()
+$order = OrderBuilder::create()
     // …
-    ->cod(new CodMessage(
+    ->setCod(new Cod(
         amount: 250.0,
         bankAccount: '34102010260000000000000001',
     ))
@@ -205,9 +214,8 @@ validated. For example, no bank account is required.
 either a full IBAN or a bare Polish national number. The SDK is strict here because this field
 decides where the money goes. Only a Polish account passes, as the API requires.
 
-When you read an order back, cash on delivery comes as a different class. [`Response\Order\Cod`](../src/Response/Order/Cod.php)
-reports what happened to the money (status, payout, return details), while [`CodMessage`](../src/Request/Order/CodMessage.php) describes
-what to collect.
+An order read back carries the same [`Cod`](../src/Entity/Order/Cod.php), with the fields the API only reports filled in:
+what happened to the money, its status and, for a returned amount, when and why it came back.
 
 ```php
 $cod = $order->getCod();   // ?Cod, null when the order had none
@@ -248,29 +256,30 @@ $token = $client->geo()->getMapToken();
 To send to the chosen point, set it on the recipient address:
 
 ```php
-$recipient = OrderAddressMessageBuilder::create()
-    ->person('Anna Nowak')
-    ->street('')      // build() needs it, but a point recipient may leave it empty
-    ->city('Poznań')
-    ->postcode('61-001')
-    ->email('')       // likewise
-    ->phone('600700800')
-    ->pointId('POZ01A')
+use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
+
+$recipient = AddressBuilder::create()
+    ->setPerson('Anna Nowak')
+    ->setStreet('')      // build() needs it, but a point recipient may leave it empty
+    ->setCity('Poznań')
+    ->setPostcode('61-001')
+    ->setEmail('')       // likewise
+    ->setPhone('600700800')
+    ->setPointId('POZ01A')
     ->build();
 ```
 
 For several carriers, a recipient collecting from a point needs no street address.
-[`OrderAddressValidator`](../src/Validator/Message/OrderAddressValidator.php) accounts for this: an address with a point only needs the point and a phone
-number.
+[`OrderValidator`](../src/Validator/Message/OrderValidator.php) accounts for this: an address with a point only
+needs the point and a phone number.
 
 ---
 
 Booking a collection
 --------------------
 
-For one shipment, book the collection with the order, through
-[`CreateOrderMessage::getPickup()`](../src/Request/Order/CreateOrderMessage.php).
-[`CourierServiceInterface::availableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
+For one shipment, book the collection with the order, through [`Order::setPickup()`](../src/Entity/Order.php).
+[`CourierServiceInterface::getAvailableCarriers(additionalData: true)`](../src/Api/Service/CourierServiceInterface.php) reports each carrier's rules for it.
 
 For several at once, if a collective pickup is available. Availability is decided per shipment,
 by its carrier and parcels, so check each one:
@@ -278,8 +287,8 @@ by its carrier and parcels, so check each one:
 ```php
 // 1. Before placing an order, check the shipment can join a collective pickup.
 $check = new MultiPickupAvailabilityRequestMessage(courier: 'DPD', packs: $packs);
-if ($client->orders()->isMultiPickupAvailable($check)->isAvailable()) {
-    // 2. Place it for one: pickup: new PickupMessage(multiPickup: true)
+if ($client->orders()->isMultiPickupAvailable($check)->available) {
+    // 2. Place it for one: pickup: new Pickup(multiPickup: true)
 }
 
 // 3. Later, book one collection for the order numbers placed that way.
@@ -310,25 +319,24 @@ Labels and protocols
 one call covers them all:
 
 ```php
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 
 $document = $client->orders()->getLabel(new GetDocumentMessage(
     orderNo: ['12345-678', '12345-679'],
 ));
 ```
 
-You can read the result in 2 forms:
+`$file` holds the document's bytes:
 
 ```php
-file_put_contents('labels.pdf', $document->getDecodedFile());   // bytes
-echo $document->getFile();                                      // base64, as it arrived
+file_put_contents('labels.pdf', $document->file);
 ```
 
 To stream it to a browser:
 
 ```php
 return new Response(
-    $document->getDecodedFile(),
+    $document->file,
     200,
     ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="labels.pdf"'],
 );
@@ -344,8 +352,8 @@ new GetDocumentMessage(orderNo: ['12345-678'], fileFormat: LabelFileFormatEnum::
 
 [`OrdersServiceInterface::getProtocol()`](../src/Api/Service/OrdersServiceInterface.php) takes the same request and returns the handover list the courier signs. One unknown
 number among several fails the call.
-[`OrdersServiceInterface::getOrderFile()`](../src/Api/Service/OrdersServiceInterface.php) fetches a document attached to one order. [`$client->invoices()->getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) also
-returns base64 in the same way.
+[`OrdersServiceInterface::getOrderFile()`](../src/Api/Service/OrdersServiceInterface.php) fetches a document attached to one order.
+[`InvoicesServiceInterface::getInvoicePdf()`](../src/Api/Service/InvoicesServiceInterface.php) returns base64 in the same way.
 
 ---
 
@@ -355,7 +363,7 @@ Tracking
 The basic call, for a single order:
 
 ```php
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
 
 $status = $client->orders()->getStatus(new GetStatusMessage(orderNo: '12345-678'));
 ```
@@ -376,11 +384,11 @@ To compare against known states:
 ```php
 use Polkurier\Webservice\Enum\Order\OrderStatusCodeEnum;
 
-if ($status->getStatusCode() === OrderStatusCodeEnum::Delivered->value) { … }
+if ($status->statusCode === OrderStatusCodeEnum::Delivered) { … }
 ```
 
-The status is a plain string, with an enum you can compare it to. If the API adds a new status,
-the comparison just does not match, and the response still maps.
+The status code is the enum case, or null for a value the SDK doesn't know. The response still
+maps, and the unknown value is recorded as drift.
 
 ---
 
@@ -390,10 +398,10 @@ Paging through a list
 The paged responses do not all have the same shape, so there are 2 loops. See
 [Messages](messages.md#lists-maps-and-pages).
 
-**When the response has a page count** ([`OrderListMessage`](../src/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Response/MoneyBox/MoneyBoxPayoutListMessage.php)):
+**When the response has a page count** ([`OrderListMessage`](../src/Dto/Response/Order/OrderListMessage.php), [`MoneyBoxPayoutListMessage`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutListMessage.php)):
 
 ```php
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
 
 $page = 1;
 
@@ -404,20 +412,20 @@ do {
         page: $page,
     ));
 
-    foreach ($list->getResult() as $order) {
+    foreach ($list->result as $order) {
         // …
     }
 
     $page++;
-} while ($page <= $list->getTotalPages());
+} while ($page <= $list->totalPages);
 ```
 
-**When it does not** ([`InvoiceListMessage`](../src/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Response/Payment/PrepaidHistoryMessage.php)), stop
+**When it does not** ([`InvoiceListMessage`](../src/Dto/Response/Invoice/InvoiceListMessage.php), [`TicketListMessage`](../src/Dto/Response/Ticket/TicketListMessage.php), [`PrepaidHistoryMessage`](../src/Dto/Response/Payment/PrepaidHistoryMessage.php)), stop
 when a page comes back short:
 
 ```php
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceTypeEnum;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
 
 $page = 1;
 $size = 100;
@@ -428,7 +436,7 @@ do {
         pageSize: $size,
         page: $page,
     ));
-    $rows = $list->getResult();
+    $rows = $list->result;
 
     foreach ($rows as $invoice) {
         // …
@@ -447,17 +455,17 @@ function allOrders(PolkurierWebservice $client, GetOrdersMessageBuilder $filter)
     $page = 1;
 
     do {
-        $list = $client->orders()->getOrders($filter->page($page)->pageSize(100)->build());
+        $list = $client->orders()->getOrders($filter->setPage($page)->setPageSize(100)->build());
 
-        yield from $list->getResult();
+        yield from $list->result;
 
         $page++;
-    } while ($page <= $list->getTotalPages());
+    } while ($page <= $list->totalPages);
 }
 ```
 
-Page sizes have a maximum, and the SDK checks it before sending: [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Request/Order/GetOrdersMessage.php)
-is 100 and [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Request/Ticket/GetTicketsMessage.php) is 250. A larger value throws a [`ValidationException`](../src/Exception/ValidationException.php).
+Page sizes have a maximum, and the SDK checks it before sending: [`GetOrdersMessage::MAX_PAGE_SIZE`](../src/Dto/Request/Order/GetOrdersMessage.php)
+is 100 and [`GetTicketsMessage::MAX_PAGE_SIZE`](../src/Dto/Request/Ticket/GetTicketsMessage.php) is 250. A larger value throws a [`ValidationException`](../src/Exception/ValidationException.php).
 
 ---
 
@@ -468,25 +476,25 @@ Depending on the account's settings, some operations need a confirmation code, e
 bank account or requesting a payout. The flow:
 
 ```php
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\VerifyMessage;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
-use Polkurier\Webservice\Request\TwoFactorToken\RegisterMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\VerifyMessage;
 
 // 1. Register against the operation the code will authorise.
-$token = $client->twoFactorToken()->twoFactorTokenRegister(
+$token = $client->twoFactorToken()->register(
     new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber),
 );
 
 printf("Code sent to %s, valid until %s\n",
-    $token->getTransportMethod()?->getName() ?? 'your phone',   // e.g. a masked phone number
-    $token->getExpiresAt()?->format('H:i'),
+    $token->transportMethod->name ?? 'your phone',   // e.g. a masked phone number
+    $token->expiresAt?->format('H:i'),
 );
 
 // 2. The customer reads the code off their phone and gives it to you.
 
 // 3. Either verify it here …
-$validity = $client->twoFactorToken()->twoFactorTokenVerify(
-    new VerifyMessage(token: $token->getId(), code: $entered),
+$validity = $client->twoFactorToken()->verify(
+    new VerifyMessage(token: $token->id, code: $entered),
 );
 
 // … or pass the token and code into the guarded call itself.
@@ -496,22 +504,22 @@ If the code does not arrive, you can resend it, or switch to another delivery me
 lists:
 
 ```php
-use Polkurier\Webservice\Request\Common\TokenMessage;
-use Polkurier\Webservice\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ChangeTransportMethodMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\ResendMessage;
 
-$client->twoFactorToken()->twoFactorTokenResend(new TokenMessage($token->getId()));
+$client->twoFactorToken()->resend(new ResendMessage($token->id));
 
-foreach ($token->getAvailableMethods() as $method) {   // TransportMethodMessage[]
-    // Offer $method->getName(). getType() is a TwoFactorTransportTypeEnum for your own labels.
+foreach ($token->availableMethods as $method) {   // TransportMethodMessage[]
+    // Offer $method->name. Its type is a TwoFactorTransportTypeEnum for your own labels.
 }
 
-$token = $client->twoFactorToken()->twoFactorTokenChangeTransportMethod(
-    new ChangeTransportMethodMessage(token: $token->getId(), method: $chosen->getId()),
+$token = $client->twoFactorToken()->changeTransportMethod(
+    new ChangeTransportMethodMessage(token: $token->id, method: $chosen->id),
 );
 ```
 
 A bank account change takes the security PIN instead while
-[`$client->account()->getAccountInfo()->getPinLocks()`](../src/Api/Service/AccountServiceInterface.php) reports bank account editing as locked. The SDK does not
+[`AccountInfoMessage::$pinLocks`](../src/Dto/Response/Account/AccountInfoMessage.php) reports bank account editing as locked. The SDK does not
 guess: a wrong guess means either a refused call or a code sent to the customer for no reason.
 
 ---
@@ -522,30 +530,31 @@ Paying out collected money
 The fee can be checked before the payout is requested:
 
 ```php
+use Polkurier\Webservice\Dto\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxFeePaymentTypeEnum;
 use Polkurier\Webservice\Enum\MoneyBox\MoneyBoxPayoutTypeEnum;
-use Polkurier\Webservice\Request\MoneyBox\CreateMoneyBoxPayoutMessage;
 
-$config = $client->moneyBox()->getConfig();         // MoneyBoxConfigMessage, the saved destination
+$config = $client->moneyBox()->getMoneyBoxConfig();         // MoneyBoxConfigMessage, the saved destination
 $fee = $client->moneyBox()->calculatePayoutFee();   // MoneyBoxFeeMessage, costs nothing
 
 $payout = $client->moneyBox()->createPayout(new CreateMoneyBoxPayoutMessage(
     payoutType: MoneyBoxPayoutTypeEnum::Account,
     feePaymentType: MoneyBoxFeePaymentTypeEnum::MoneyBox,
-    bankAccountNumber: $config->getIban(),   // must be a saved bank account
+    bankAccountNumber: $config->bankAccountNumber,   // must be a saved bank account
 ));
 
 printf("Payout %s for %.2f PLN is %s\n",
-    $payout->getNumber(), $payout->getAmount(), $payout->getStatus());
+    $payout->number, $payout->amount, $payout->status->value ?? '');
 ```
 
 > This moves real money, and there is no idempotency key. If [`MoneyBoxServiceInterface::createPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) throws a
 > [`ConnectionException`](../src/Exception/ConnectionException.php), only [`MoneyBoxServiceInterface::getPayouts()`](../src/Api/Service/MoneyBoxServiceInterface.php) shows whether the payout was made, and a
 > blind retry can pay out twice.
 
-[`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while [`MoneyBoxPayoutMessage::isCancellable()`](../src/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true. Current balances are on
-[`$client->account()->getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::getMoneyBoxBalance()`](../src/Response/Account/AccountInfoMessage.php), [`AccountInfoMessage::getMoneyBoxPayoutAvailableBalance()`](../src/Response/Account/AccountInfoMessage.php) and
-[`AccountInfoMessage::getMoneyBoxToPayoutBalance()`](../src/Response/Account/AccountInfoMessage.php).
+[`MoneyBoxServiceInterface::cancelPayout()`](../src/Api/Service/MoneyBoxServiceInterface.php) only works while [`MoneyBoxPayoutMessage::$cancellable`](../src/Dto/Response/MoneyBox/MoneyBoxPayoutMessage.php) is true. Current balances are on
+[`AccountServiceInterface::getAccountInfo()`](../src/Api/Service/AccountServiceInterface.php): [`AccountInfoMessage::$moneyBoxBalance`](../src/Dto/Response/Account/AccountInfoMessage.php),
+[`AccountInfoMessage::$moneyBoxPayoutAvailableBalance`](../src/Dto/Response/Account/AccountInfoMessage.php) and
+[`AccountInfoMessage::$moneyBoxToPayoutBalance`](../src/Dto/Response/Account/AccountInfoMessage.php).
 
 ---
 
@@ -571,12 +580,12 @@ Several responses stay the same for hours or days and are slow to fetch:
 
 | Call | Typical lifetime |
 |------|------------------|
-| [`$client->courier()->findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php), with only the carriers | Hours. Large. |
-| [`$client->courier()->getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | Days |
-| [`$client->knowledgeBase()->getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Hours |
-| [`$client->tickets()->getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | Days. Account-specific |
-| [`$client->system()->getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | Hours |
-| [`$client->courier()->availableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Minutes to hours. Account-specific |
+| [`CourierServiceInterface::findCourierPoints()`](../src/Api/Service/CourierServiceInterface.php), with only the carriers | Hours. Large. |
+| [`CourierServiceInterface::getSupportedCountries()`](../src/Api/Service/CourierServiceInterface.php) | Days |
+| [`KnowledgeBaseServiceInterface::getIndex()`](../src/Api/Service/KnowledgeBaseServiceInterface.php) | Hours |
+| [`TicketsServiceInterface::getContactTopics()`](../src/Api/Service/TicketsServiceInterface.php) | Days. Account-specific |
+| [`SystemServiceInterface::getSystemInfo()`](../src/Api/Service/SystemServiceInterface.php) | Hours |
+| [`CourierServiceInterface::getAvailableCarriers()`](../src/Api/Service/CourierServiceInterface.php) | Minutes to hours. Account-specific |
 
 You can cache around a single call, which is the simplest option:
 
@@ -616,8 +625,8 @@ try {
 To check credentials as well, e.g. on a settings screen or in a deploy smoke test:
 
 ```php
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 try {
     $client->utils()->testAuthApi(new AuthorizationMessage(token: $token, login: $login));

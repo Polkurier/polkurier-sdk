@@ -11,27 +11,32 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\SerializerInterface;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
+use Polkurier\Webservice\Dto\Response\ErrorMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceSummaryListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Order\Waybill;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketListMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address as OrderAddress;
+use Polkurier\Webservice\Entity\Order\PackItem;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Enum\Courier\PointFunctionEnum;
 use Polkurier\Webservice\Enum\Http\ResponseStatusEnum;
 use Polkurier\Webservice\Enum\Order\AdditionalServiceEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
+use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorTransportTypeEnum;
 use Polkurier\Webservice\Exception\MalformedResponseException;
-use Polkurier\Webservice\Response\BasePack;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\CourierPoint;
-use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\PackTemplate;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Http\Response\ErrorMessage;
 use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Serializer\MessageSerializer;
 use Polkurier\Webservice\Serializer\ResponseDrift;
+use Polkurier\Webservice\Serializer\SerializerProvider;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
 #[CoversClass(ResponseFactory::class)]
@@ -40,11 +45,8 @@ final class ResponseFactoryTest extends TestCase
     private ResponseFactory $factory;
 
     protected function setUp(): void
-
     {
-
-        $this->factory = new ResponseFactory(new SerializerProvider());
-
+        $this->factory = new ResponseFactory(new MessageSerializer(new SerializerProvider()));
     }
 
     public function testDeserializesAnOrderListEnvelope(): void
@@ -63,19 +65,15 @@ final class ResponseFactoryTest extends TestCase
             OrderListMessage::class
         );
 
-        $list = $wrapper->getEnvelope()->getResponse();
+        $list = $wrapper->getEnvelope()->response;
 
         self::assertInstanceOf(OrderListMessage::class, $list);
-        self::assertSame(2, $list->getTotalRows());
-        self::assertSame(100, $list->getPageSize());
-        self::assertCount(1, $list->getResult());
-        self::assertInstanceOf(Order::class, $list->getResult()[0]);
+        self::assertSame(2, $list->totalRows);
+        self::assertSame(100, $list->pageSize);
+        self::assertCount(1, $list->result);
+        self::assertInstanceOf(Order::class, $list->result[0]);
     }
 
-    /**
-     * The API emits `courierservice` without an underscore. The SDK read `courier_service` for a
-     * long time and silently dropped the field.
-     */
     /**
      * Filtered by order number, the list method answers with the order itself. It reads as a page
      * with that one order, not as an empty page.
@@ -87,17 +85,16 @@ final class ResponseFactoryTest extends TestCase
             OrderListMessage::class
         );
 
-        $list = $wrapper->getEnvelope()->getResponse();
+        $list = $wrapper->getEnvelope()->response;
 
         self::assertInstanceOf(OrderListMessage::class, $list);
-        self::assertSame(1, $list->getTotalRows());
-        self::assertCount(1, $list->getResult());
-        self::assertSame($this->orderPayload()['number'], $list->getResult()[0]->getNumber());
+        self::assertSame(1, $list->totalRows);
+        self::assertCount(1, $list->result);
+        self::assertSame($this->orderPayload()['number'], $list->result[0]->getNumber());
     }
 
     /**
-     * Listed without the packs, items and files flags, orders come without those keys, and pickup
-     * dates can be null or an empty string.
+     * A one-ticket answer carries no paging keys at all.
      */
     public function testASingleTicketWhereAPageIsExpectedReadsAsAOneRowPage(): void
     {
@@ -108,11 +105,11 @@ final class ResponseFactoryTest extends TestCase
                 'employee_name' => '', 'orders' => [], 'complaints' => [], 'invoices' => [], 'messages' => [],
             ]]),
             TicketListMessage::class
-        )->getEnvelope()->getResponse();
+        )->getEnvelope()->response;
 
         self::assertInstanceOf(TicketListMessage::class, $list);
-        self::assertSame(1, $list->getTotalRows());
-        self::assertSame('202610-000009', $list->getResult()[0]->getNumber());
+        self::assertSame(1, $list->totalRows);
+        self::assertSame('202610-000009', $list->result[0]->number);
     }
 
     /**
@@ -131,14 +128,18 @@ final class ResponseFactoryTest extends TestCase
                 'is_cancellable' => true,
             ]]),
             MoneyBoxPayoutListMessage::class
-        )->getEnvelope()->getResponse();
+        )->getEnvelope()->response;
 
         self::assertInstanceOf(MoneyBoxPayoutListMessage::class, $list);
-        self::assertSame(1, $list->getTotalRows());
-        self::assertSame(1, $list->getTotalPages());
-        self::assertSame('WP/2026/000123', $list->getResult()[0]->getNumber());
+        self::assertSame(1, $list->totalRows);
+        self::assertSame(1, $list->totalPages);
+        self::assertSame('WP/2026/000123', $list->result[0]->number);
     }
 
+    /**
+     * Listed without the packs, items and files flags, orders come without those keys, and pickup
+     * dates can be null or an empty string.
+     */
     public function testAnOrderFromAListWithoutOptionalKeysReads(): void
     {
         $payload = $this->orderPayload();
@@ -179,26 +180,30 @@ final class ResponseFactoryTest extends TestCase
             TwoFactorToken::class
         );
 
-        $token = $wrapper->getEnvelope()->getResponse();
+        $token = $wrapper->getEnvelope()->response;
 
         self::assertInstanceOf(TwoFactorToken::class, $token);
-        $transport = $token->getTransportMethod();
+        $transport = $token->transportMethod;
         self::assertNotNull($transport);
-        self::assertSame(TwoFactorTransportTypeEnum::Sms, $transport->getType());
-        self::assertSame('+48 *** *** 123', $transport->getName());
-        $methods = $token->getAvailableMethods();
-        self::assertSame(['m2', 'm3'], \array_map(static fn($m) => $m->getId(), $methods));
-        self::assertSame(TwoFactorTransportTypeEnum::Email, $methods[0]->getType());
-        self::assertNull($methods[1]->getType());
+        self::assertSame(TwoFactorTransportTypeEnum::Sms, $transport->type);
+        self::assertSame('+48 *** *** 123', $transport->name);
+        $methods = $token->availableMethods;
+        self::assertSame(['m2', 'm3'], \array_map(static fn($m) => $m->id, $methods));
+        self::assertSame(TwoFactorTransportTypeEnum::Email, $methods[0]->type);
+        self::assertNull($methods[1]->type);
     }
 
+    /**
+     * The API emits `courierservice` without an underscore. The SDK read `courier_service` for a
+     * long time and silently dropped the field.
+     */
     public function testReadsTheCarrierServicesUnderTheKeyTheApiActuallySends(): void
     {
         $order = $this->deserializeOrder(
             ['courierservice' => ['Pobranie (COD)', 'Ubezpieczenie przesyłki']] + $this->orderPayload()
         );
 
-        self::assertSame(['Pobranie (COD)', 'Ubezpieczenie przesyłki'], $order->getCourierService());
+        self::assertSame(['Pobranie (COD)', 'Ubezpieczenie przesyłki'], $order->getCourierServiceNames());
     }
 
     public function testAnOrderAddressReadsTheStreetSplitIntoItsParts(): void
@@ -216,7 +221,7 @@ final class ResponseFactoryTest extends TestCase
     }
 
     /**
-     * A cover address comes without an email address, which a sender or recipient always has.
+     * A cover address comes without an email address.
      */
     public function testAnOrderWithACoverAddressReads(): void
     {
@@ -231,7 +236,7 @@ final class ResponseFactoryTest extends TestCase
         $address = $order->getCoverAddress();
         self::assertNotNull($address);
         self::assertSame('Rynek 1', $address->getStreet());
-        self::assertSame('', $address->getEmail());
+        self::assertNull($address->getEmail());
     }
 
     public function testAnInvoiceSummaryReadsItsMediaType(): void
@@ -241,17 +246,17 @@ final class ResponseFactoryTest extends TestCase
                 'filename' => 'zestawienie.csv', 'type' => 'text/csv', 'file' => \base64_encode("a;b\n"),
             ]]),
             InvoiceSummaryListMessage::class
-        )->getEnvelope()->getResponse();
+        )->getEnvelope()->response;
 
         self::assertInstanceOf(InvoiceSummaryListMessage::class, $summary);
-        self::assertSame('text/csv', $summary->getFileType());
-        self::assertSame("a;b\n", $summary->getDecodedFile());
+        self::assertSame('text/csv', $summary->fileType);
+        self::assertSame("a;b\n", $summary->file);
     }
 
     /**
-     * A carrier's pickup fields carry 2 flags with one meaning, and not every carrier sends both.
+     * A carrier's pickup fields carry 2 flags, `status` and `required`, each read as sent.
      */
-    public function testAPickupFieldWithOnlyOneOfItsFlagsReadsAsBoth(): void
+    public function testEachPickupFlagReadsAsSent(): void
     {
         $carriers = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => [[
@@ -262,15 +267,17 @@ final class ResponseFactoryTest extends TestCase
                 ]],
             ]]]),
             Carrier::class . '[]'
-        )->getEnvelope()->getResponse();
+        )->getEnvelope()->response;
 
         self::assertIsArray($carriers);
         self::assertInstanceOf(Carrier::class, $carriers[0]);
-        $pickup = $carriers[0]->getAdditionalData()?->getPickup();
+        $pickup = $carriers[0]->additionalData?->pickup;
         self::assertNotNull($pickup);
-        self::assertTrue($pickup->getPickupDate()?->isRequired());
-        self::assertTrue($pickup->getPickupTimeTo()?->isStatus());
-        self::assertNull($pickup->getPickupTimeFrom());
+        self::assertTrue($pickup->pickupDate?->status);
+        self::assertFalse($pickup->pickupDate->required);
+        self::assertTrue($pickup->pickupTimeTo?->required);
+        self::assertFalse($pickup->pickupTimeTo->status);
+        self::assertNull($pickup->pickupTimeFrom);
     }
 
     /**
@@ -296,7 +303,7 @@ final class ResponseFactoryTest extends TestCase
         );
 
         /** @var PackTemplate[] $templates */
-        $templates = $wrapper->getEnvelope()->getResponse();
+        $templates = $wrapper->getEnvelope()->response;
 
         self::assertCount(2, $templates);
         self::assertNull($templates[0]->getType());
@@ -309,7 +316,7 @@ final class ResponseFactoryTest extends TestCase
         self::assertSame(ShipmentTypeEnum::Box, $templates[1]->getShipmentType());
 
         $unknown = \array_map(
-            static fn(ResponseDrift $u) => [$u->getExpected(), $u->getValue(), $u->getPath()],
+            static fn(ResponseDrift $u) => [$u->expected, $u->value, $u->path],
             $wrapper->getDrift(),
         );
         self::assertEqualsCanonicalizing([
@@ -340,7 +347,7 @@ final class ResponseFactoryTest extends TestCase
         );
 
         /** @var PackTemplate[] $templates */
-        $templates = $wrapper->getEnvelope()->getResponse();
+        $templates = $wrapper->getEnvelope()->response;
 
         self::assertNull($templates[0]->getShipmentType());
         self::assertSame([], $wrapper->getDrift());
@@ -370,7 +377,7 @@ final class ResponseFactoryTest extends TestCase
         );
 
         /** @var PackTemplate[] $templates */
-        $templates = $wrapper->getEnvelope()->getResponse();
+        $templates = $wrapper->getEnvelope()->response;
 
         self::assertSame(
             [AdditionalServiceEnum::ReturnOfDocuments, AdditionalServiceEnum::Tires],
@@ -389,16 +396,16 @@ final class ResponseFactoryTest extends TestCase
             (string)\json_encode(
                 ['length' => 60, 'width' => 40, 'height' => 30, 'weight' => 10, 'type' => 'SOMETHING_NEW'],
             ),
-            BasePack::class,
+            PackItem::class,
             'json'
         );
     }
 
     /**
      * A point's functions are an open list: carriers add their own. Only the known ones are kept,
-     * each once, and the others aren't reported as unknown.
+     * each once, and each of the others is reported at its index in the list the API sent.
      */
-    public function testAPointKeepsItsKnownFunctionsOnceAndReportsNothing(): void
+    public function testAPointKeepsItsKnownFunctionsOnceAndReportsTheRestByIndex(): void
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse([
@@ -408,11 +415,19 @@ final class ResponseFactoryTest extends TestCase
             CourierPoint::class
         );
 
-        $point = $wrapper->getEnvelope()->getResponse();
+        $point = $wrapper->getEnvelope()->response;
 
         self::assertInstanceOf(CourierPoint::class, $point);
-        self::assertSame([PointFunctionEnum::Cod, PointFunctionEnum::Send], $point->getFunctions());
-        self::assertSame([], $wrapper->getDrift());
+        self::assertSame([PointFunctionEnum::Cod, PointFunctionEnum::Send], $point->functions);
+        self::assertEquals(
+            [new ResponseDrift(
+                ResponseDriftTypeEnum::UnknownEnumValue,
+                'functions[1]',
+                'parcel_collect_247',
+                PointFunctionEnum::class,
+            )],
+            $wrapper->getDrift(),
+        );
     }
 
     /**
@@ -436,9 +451,9 @@ final class ResponseFactoryTest extends TestCase
     {
         $order = $this->deserializeOrder($this->orderPayload());
 
-        self::assertInstanceOf(\Polkurier\Webservice\Response\Order\Pack::class, $order->getPacks()[0]);
-        self::assertInstanceOf(\Polkurier\Webservice\Response\Order\Waybill::class, $order->getWaybills()[0]);
-        self::assertInstanceOf(\Polkurier\Webservice\Response\BaseAddress::class, $order->getSender());
+        self::assertInstanceOf(PackItem::class, $order->getPacks()[0]);
+        self::assertInstanceOf(Waybill::class, $order->getWaybills()[0]);
+        self::assertInstanceOf(OrderAddress::class, $order->getSender());
     }
 
     /**
@@ -448,11 +463,11 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => true]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
-        self::assertSame(ResponseStatusEnum::Success, $wrapper->getEnvelope()->getStatus());
-        self::assertTrue($wrapper->getEnvelope()->getResponse());
+        self::assertSame(ResponseStatusEnum::Success, $wrapper->getEnvelope()->status);
+        self::assertTrue($wrapper->getEnvelope()->response);
     }
 
     /**
@@ -463,10 +478,10 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
-        self::assertTrue($wrapper->getEnvelope()->getResponse());
+        self::assertTrue($wrapper->getEnvelope()->response);
     }
 
     /**
@@ -478,10 +493,10 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            \Polkurier\Webservice\Response\CourierPoint::class
+            CourierPoint::class
         );
 
-        self::assertNull($wrapper->getEnvelope()->getResponse());
+        self::assertNull($wrapper->getEnvelope()->response);
     }
 
     /**
@@ -491,10 +506,10 @@ final class ResponseFactoryTest extends TestCase
     {
         $wrapper = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => []]),
-            \Polkurier\Webservice\Response\CourierPoint::class . '[]'
+            CourierPoint::class . '[]'
         );
 
-        self::assertSame([], $wrapper->getEnvelope()->getResponse());
+        self::assertSame([], $wrapper->getEnvelope()->response);
     }
 
     public function testParsesAnErrorEnvelope(): void
@@ -506,12 +521,12 @@ final class ResponseFactoryTest extends TestCase
                 'error_code' => 'EMPTY_AUTH_DATA',
                 'response' => 'Brak danych do autoryzacji',
             ]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         )->getEnvelope();
 
         self::assertInstanceOf(ErrorMessage::class, $parsed);
-        self::assertSame(4, $parsed->getStatusCode());
-        self::assertSame('EMPTY_AUTH_DATA', $parsed->getErrorCode());
+        self::assertSame(4, $parsed->statusCode);
+        self::assertSame('EMPTY_AUTH_DATA', $parsed->errorCode);
     }
 
     /**
@@ -522,12 +537,12 @@ final class ResponseFactoryTest extends TestCase
     {
         $parsed = $this->factory->create(
             $this->jsonResponse(['status' => 'error', 'response' => 'Coś poszło nie tak']),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         )->getEnvelope();
 
         self::assertInstanceOf(ErrorMessage::class, $parsed);
-        self::assertNull($parsed->getStatusCode());
-        self::assertNull($parsed->getErrorCode());
+        self::assertNull($parsed->statusCode);
+        self::assertNull($parsed->errorCode);
     }
 
     /**
@@ -548,14 +563,14 @@ final class ResponseFactoryTest extends TestCase
     {
         $this->expectException(MalformedResponseException::class);
 
-        $this->factory->create(new Response($httpStatus, [], $body), ResponseFactory::FORMAT_BOOLEAN);
+        $this->factory->create(new Response($httpStatus, [], $body), SerializerInterface::FORMAT_BOOLEAN);
     }
 
     public function testRejectsAnEnvelopeWithoutAStatusField(): void
     {
         $this->expectException(MalformedResponseException::class);
 
-        $this->factory->create($this->jsonResponse(['response' => []]), ResponseFactory::FORMAT_BOOLEAN);
+        $this->factory->create($this->jsonResponse(['response' => []]), SerializerInterface::FORMAT_BOOLEAN);
     }
 
     /**
@@ -570,12 +585,12 @@ final class ResponseFactoryTest extends TestCase
                 'validation_errors' => ['marketing_consent' => ['Należy wyrazić zgodę']],
                 'nonce' => 'eyJ0eXAi…',
             ]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
 
         $error = $wrapper->getEnvelope();
         self::assertInstanceOf(ErrorMessage::class, $error);
-        self::assertSame(['marketing_consent' => ['Należy wyrazić zgodę']], $error->getValidationErrors());
+        self::assertSame(['marketing_consent' => ['Należy wyrazić zgodę']], $error->validationErrors);
     }
 
     public function testRejectsAnUnknownStatusValue(): void
@@ -584,7 +599,7 @@ final class ResponseFactoryTest extends TestCase
 
         $this->factory->create(
             $this->jsonResponse(['status' => 'partial', 'response' => []]),
-            ResponseFactory::FORMAT_BOOLEAN
+            SerializerInterface::FORMAT_BOOLEAN
         );
     }
 
@@ -594,7 +609,7 @@ final class ResponseFactoryTest extends TestCase
     public function testMalformedResponseExceptionCarriesTheHttpResponse(): void
     {
         try {
-            $this->factory->create(new Response(503, [], 'maintenance'), ResponseFactory::FORMAT_BOOLEAN);
+            $this->factory->create(new Response(503, [], 'maintenance'), SerializerInterface::FORMAT_BOOLEAN);
             self::fail('Expected a MalformedResponseException.');
         } catch (MalformedResponseException $e) {
             self::assertSame(503, $e->getResponse()->getStatusCode());
@@ -610,7 +625,7 @@ final class ResponseFactoryTest extends TestCase
         $order = $this->factory->create(
             $this->jsonResponse(['status' => 'success', 'response' => [$payload]]),
             Order::class . '[]'
-        )->getEnvelope()->getResponse()[0];
+        )->getEnvelope()->response[0];
 
         self::assertInstanceOf(Order::class, $order);
 

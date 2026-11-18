@@ -25,13 +25,13 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
  * Declaring it on the message keeps every rule for that message in one place. There is no
  * separate list to keep in sync, so a validator can't end up registered for the wrong message.
  *
- * Nested payloads keep their rules too. A message reached through
- * {@see \Polkurier\Webservice\Validator\Rule\Valid} runs whatever validators it declares.
+ * Nested payloads keep their rules too: a message the SDK sends inside another runs whatever
+ * validators it declares.
  *
  * The named class is built without arguments, so any dependencies need default values.
  *
  * ```php
- * #[ValidatedBy(CreateOrderMessageValidator::class)]
+ * #[ValidatedBy(OrderValidator::class)]
  * ```
  */
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]

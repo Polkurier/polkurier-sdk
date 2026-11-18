@@ -7,12 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api;
 
-
 /**
  * Supplies the SDK configuration to everything that needs it.
  *
  * It is asked on every call, so it can load the configuration lazily, e.g. from a container, or
  * return a different one per tenant or per request.
+ *
+ * @api
  */
 interface ConfigProviderInterface
 {

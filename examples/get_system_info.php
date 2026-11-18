@@ -20,7 +20,29 @@ require __DIR__ . '/bootstrap.php';
 try {
     $info = polkurier()->system()->getSystemInfo();
 
-    dumpResponse($info);
+    \printf("Verification transfer  %.2f PLN\n", $info->verificationTransferAmountPln);
+    \printf("Terms acceptance       %d days\n", $info->regulationsAcceptancePeriod);
+    \printf("Coupon code            at least %d characters\n", $info->coupons->minLength);
+    \printf(
+        "Security PIN           %d to %d characters\n",
+        $info->security->userPinMinLength,
+        $info->security->userPinMaxLength
+    );
+    \printf(
+        "Two-factor code        %d characters, resent after %d seconds\n",
+        $info->security->twoFactorCodeLength,
+        $info->security->twoFactorResendThrottle
+    );
+    \printf(
+        "Ticket attachments     %d files, %d bytes each, %d bytes for an image\n",
+        $info->tickets->maxFilesCount,
+        $info->tickets->maxFileSize,
+        $info->tickets->maxImageSize
+    );
+
+    foreach ($info->features as $feature => $enabled) {
+        \printf("  %-20s %s\n", $feature, $enabled ? 'on' : 'off');
+    }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

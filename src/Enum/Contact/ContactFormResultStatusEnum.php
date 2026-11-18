@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Contact;
 
 /**
  * Whether a submitted contact form was accepted.
+ *
+ * @api
  */
 enum ContactFormResultStatusEnum: string
 {

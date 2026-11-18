@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\Ticket;
  *
  * Returned on every ticket, but only {@see self::Closed} can be set through the API. The other
  * states change as the ticket is handled.
+ *
+ * @api
  */
 enum TicketStatusEnum: string
 {

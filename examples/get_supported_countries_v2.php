@@ -21,10 +21,10 @@ try {
     foreach (polkurier()->courier()->getSupportedCountries() as $country) {
         \printf(
             "%-4s %-28s %s  (%d provinces)\n",
-            $country->getId(),
-            $country->getName(),
-            $country->isUe() ? 'EU' : '  ',
-            \count($country->getProvinces())
+            $country->id,
+            $country->name,
+            $country->ue ? 'EU' : '  ',
+            \count($country->provinces)
         );
     }
 } catch (Exception $e) {

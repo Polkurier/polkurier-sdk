@@ -1,0 +1,73 @@
+<?php
+/**
+ * Copyright (c) 2026 Polkurier.pl
+ * Licensed under the MIT License, see LICENSE.md
+ */
+declare(strict_types=1);
+
+namespace Polkurier\Webservice\Builder\Request\Payment;
+
+use Polkurier\Webservice\Builder\AbstractBuilder;
+use Polkurier\Webservice\Dto\Request\Payment\RegisterPaymentMessage;
+use Polkurier\Webservice\Enum\Payment\PaymentModeEnum;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
+
+/**
+ * Assembles an online payment.
+ *
+ * Only the mode is required. The amount goes with a prepaid top-up, the invoice numbers with an
+ * invoice payment and the order numbers with an order payment.
+ *
+ * @api
+ */
+class RegisterPaymentMessageBuilder extends AbstractBuilder
+{
+    /**
+     * @param PaymentModeEnum $mode required before build()
+     *
+     * @return static
+     */
+    public function setMode(PaymentModeEnum $mode): static
+    {
+        return $this->set('mode', $mode);
+    }
+
+    /**
+     * @param float|null $amount
+     *
+     * @return static
+     */
+    public function setAmount(?float $amount): static
+    {
+        return $this->set('amount', $amount);
+    }
+
+    /**
+     * @param string[] $invoiceNumbers
+     *
+     * @return static
+     */
+    public function setInvoiceNumbers(array $invoiceNumbers): static
+    {
+        return $this->set('invoiceNumbers', $invoiceNumbers);
+    }
+
+    /**
+     * @param string[] $orderNumbers
+     *
+     * @return static
+     */
+    public function setOrderNumbers(array $orderNumbers): static
+    {
+        return $this->set('orderNumbers', $orderNumbers);
+    }
+
+    /**
+     * @return RegisterPaymentMessage
+     * @throws InvalidArgumentException
+     */
+    public function build(): RegisterPaymentMessage
+    {
+        return $this->make(RegisterPaymentMessage::class);
+    }
+}

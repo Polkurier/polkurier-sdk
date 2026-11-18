@@ -8,6 +8,12 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\InvoicesServiceInterface;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoicesMessage;
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceDocumentMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceSummaryListMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,12 +21,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceDocumentMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoicesMessage;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceDocumentMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
-use Polkurier\Webservice\Response\Invoice\InvoiceSummaryListMessage;
 
 /**
  * @see InvoicesServiceInterface

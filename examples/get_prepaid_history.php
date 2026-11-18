@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Payment\GetPrepaidHistoryMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Payment\GetPrepaidHistoryMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -22,16 +22,16 @@ try {
         new GetPrepaidHistoryMessage(pageSize: 20, page: 1)
     );
 
-    foreach ($history->getResult() as $entry) {
+    foreach ($history->result as $entry) {
         \printf(
             "%-12s %10.2f PLN  %s\n",
-            $entry->getDate()?->format('Y-m-d') ?? '',
-            $entry->getAmount(),
-            $entry->getDescription()
+            $entry->date?->format('Y-m-d') ?? '',
+            $entry->amount,
+            $entry->description
         );
     }
 
-    \printf("-- page %d, %d entries total\n", $history->getCurrentPage(), $history->getTotalRows());
+    \printf("-- page %d, %d entries total\n", $history->currentPage, $history->totalRows);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

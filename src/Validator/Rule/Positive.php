@@ -8,7 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Validator\Rule;
 
 use Attribute;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
+use Polkurier\Webservice\Validator\RuleFailure;
 
 /**
  * A number above zero.
@@ -21,7 +22,7 @@ class Positive implements ValueValidatorInterface
     /**
      * @param mixed $value
      *
-     * @return string[]
+     * @return RuleFailure[]
      */
     public function validate(mixed $value): array
     {
@@ -29,10 +30,16 @@ class Positive implements ValueValidatorInterface
             return [];
         }
         if (!\is_int($value) && !\is_float($value)) {
-            return ['must be a number'];
+            return [new RuleFailure(ValidationErrorCodeEnum::NotANumber, 'must be a number')];
         }
         if ($value <= 0) {
-            return ['must be greater than zero'];
+            return [
+                new RuleFailure(
+                    ValidationErrorCodeEnum::OutOfRange,
+                    'must be greater than zero',
+                    ['minimum' => 0, 'exclusiveMinimum' => true],
+                ),
+            ];
         }
 
         return [];

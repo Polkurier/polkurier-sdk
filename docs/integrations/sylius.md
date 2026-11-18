@@ -20,7 +20,7 @@ src/
 ```
 
 The SDK's services are wired the same way as in [Symfony](symfony.md#wiring): the interfaces bound,
-one shared [`SerializerProvider`](../../src/Serializer/SerializerProvider.php) and the services in use registered.
+one shared [`SerializerConfig`](../../src/Serializer/SerializerConfig.php) and the services in use registered.
 
 Credentials per channel
 -----------------------
@@ -38,12 +38,14 @@ namespace App\Polkurier\Shipping;
 
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Sylius\Component\Core\Model\ShippingMethodInterface;
 
 final readonly class GatewayConfigFactory
 {
-    public function __construct(private string $platformVersion) {}
+    public function __construct(
+        private string $platformVersion,
+    ) {}
 
     public function forMethod(ShippingMethodInterface $method): ConfigInterface
     {
@@ -75,7 +77,7 @@ namespace App\Polkurier;
 use Polkurier\Webservice\Api\ConfigInterface;
 use Polkurier\Webservice\Api\ConfigProviderInterface;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Channel\Context\ChannelNotFoundException;
 
@@ -137,7 +139,9 @@ use Sylius\Component\Shipping\Model\ShipmentInterface;
 
 final readonly class CachedPolkurierCalculator implements CalculatorInterface
 {
-    public function __construct(private QuoteCache $quotes) {}
+    public function __construct(
+        private QuoteCache $quotes,
+    ) {}
 
     public function calculate(ShipmentInterface $subject, array $configuration): int
     {
@@ -191,7 +195,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class ShipmentExporter
 {
-    public function __construct(private MessageBusInterface $bus) {}
+    public function __construct(
+        private MessageBusInterface $bus,
+    ) {}
 
     public function export(ShipmentInterface $shipment): void
     {
@@ -248,7 +254,7 @@ final readonly class ExportShipmentHandler
             throw $e;   // Retry. The tracking guard above makes that safe.
         }
 
-        $shipment->setTracking($created->getOrderNumber());
+        $shipment->setTracking($created->orderNumber);
         $this->entityManager->flush();
     }
 }
@@ -268,47 +274,50 @@ declare(strict_types=1);
 
 namespace App\Polkurier\Shipping;
 
-use Polkurier\Webservice\Builder\Order\CreateOrderMessageBuilder;
-use Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
-use Polkurier\Webservice\Builder\Order\PackMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
+use Polkurier\Webservice\Builder\Entity\Order\PackItemBuilder;
+use Polkurier\Webservice\Builder\Entity\OrderBuilder;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
 use Sylius\Component\Core\Model\ShipmentInterface;
 
 final readonly class ShipmentMapper
 {
-    public function __construct(private WarehouseAddressFactory $warehouse) {}
+    public function __construct(
+        private WarehouseAddressFactory $warehouse,
+    ) {}
 
     public function toMessage(ShipmentInterface $shipment): CreateOrderMessage
     {
         $order   = $shipment->getOrder();
         $address = $order->getShippingAddress();
 
-        $recipient = OrderAddressMessageBuilder::create()
-            ->person(trim($address->getFirstName() . ' ' . $address->getLastName()))
-            ->street($address->getStreet())
-            ->houseNumber('1')     // Sylius has no separate house number; see below.
-            ->city($address->getCity())
-            ->postcode($address->getPostcode())
-            ->phone((string)$address->getPhoneNumber())
-            ->email((string)$order->getCustomer()?->getEmail());
+        $recipient = AddressBuilder::create()
+            ->setPerson(trim($address->getFirstName() . ' ' . $address->getLastName()))
+            ->setStreet($address->getStreet())
+            ->setHouseNumber('1')     // Sylius has no separate house number; see below.
+            ->setCity($address->getCity())
+            ->setPostcode($address->getPostcode())
+            ->setPhone((string)$address->getPhoneNumber())
+            ->setEmail((string)$order->getCustomer()?->getEmail());
 
         if ($address->getCompany()) {
-            $recipient->company($address->getCompany());
+            $recipient->setCompany($address->getCompany());
         }
 
-        return CreateOrderMessageBuilder::create()
-            ->courier($this->carrierCodeFor($shipment))
-            ->shipmentType(ShipmentTypeEnum::Box)
-            ->packs([$this->pack($shipment)])
-            ->sender($this->warehouse->forChannel($order->getChannel()))
-            ->recipient($recipient->build())
-            ->description($order->getNumber())
-            ->build();
+        return new CreateOrderMessage(order: OrderBuilder::create()
+            ->setCourier($this->carrierCodeFor($shipment))
+            ->setShipmentType(ShipmentTypeEnum::Box)
+            ->setPacks([$this->pack($shipment)])
+            ->setSender($this->warehouse->forChannel($order->getChannel()))
+            ->setRecipient($recipient->build())
+            ->setDescription($order->getNumber())
+            ->build());
     }
 
-    private function pack(ShipmentInterface $shipment): PackMessage
+    private function pack(ShipmentInterface $shipment): PackItem
     {
         $weight = 0.0;
 
@@ -316,10 +325,10 @@ final readonly class ShipmentMapper
             $weight += (float)($unit->getShippable()?->getShippingWeight() ?? 0);
         }
 
-        return PackMessageBuilder::create()
-            ->length(30)->width(20)->height(15)
-            ->weight(max($weight, 0.1))     // The API requires a positive weight.
-            ->type(PackTypeEnum::Standard)
+        return PackItemBuilder::create()
+            ->setLength(30)->setWidth(20)->setHeight(15)
+            ->setWeight(max($weight, 0.1))     // The API requires a positive weight.
+            ->setType(PackTypeEnum::Standard)
             ->build();
     }
 }
@@ -327,14 +336,15 @@ final readonly class ShipmentMapper
 
 There are two problems specific to Sylius.
 
-**Sylius's [`Sylius\Component\Addressing\Model\AddressInterface`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) has no house number.**
-[`AddressInterface::getStreet()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) returns one free-text line.
-Most carriers need the number as a separate field, and the API validates it.
-[`Sylius\Component\Core\Model\Address`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Core/Model/Address.php) can be extended with a `houseNumber` field on the checkout form, or the number
-parsed out of the street. Parsing Polish street lines isn't reliable.
+**Sylius's [`Sylius\Component\Addressing\Model\Address`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/Address.php) has no house number.**
+[`Sylius\Component\Addressing\Model\Address::getStreet()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/Address.php) returns one free-text line, and
+most carriers need the number as a separate field, which the API validates. The checkout's
+[`Sylius\Component\Core\Model\Address`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Core/Model/Address.php) can take a `houseNumber` field added to the checkout
+form, or the number parsed out of the street. Parsing Polish street lines isn't reliable.
 
-**[`AddressInterface::getPhoneNumber()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/AddressInterface.php) is optional in Sylius, but carriers need it.** Left optional, it makes a
-[`ValidationException`](../../src/Exception/ValidationException.php) on `phone` by far the most common failure.
+**[`Sylius\Component\Addressing\Model\Address::getPhoneNumber()`](https://github.com/Sylius/Sylius/blob/2.0/src/Sylius/Component/Addressing/Model/Address.php) is optional in Sylius, but
+carriers need it.** Left optional, it makes a [`ValidationException`](../../src/Exception/ValidationException.php) on `phone` by far the
+most common failure.
 
 Pickup points at checkout
 -------------------------
@@ -350,7 +360,7 @@ $builder->add('pickupPoint', ChoiceType::class, [
 ```
 
 The selected ID is saved on the shipment (in a custom field or a small related entity), and the
-mapper passes it to [`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
+mapper passes it to [`AddressBuilder::setPointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
 
 See [Recipes: caching](../recipes.md#caching-what-does-not-change).
 
@@ -367,7 +377,7 @@ public function labels(Request $request): Response
 
     $document = $this->orders->getLabel(new GetDocumentMessage(orderNo: $numbers));
 
-    return new Response($document->getDecodedFile(), 200, [
+    return new Response($document->file, 200, [
         'Content-Type' => 'application/pdf',
         'Content-Disposition' => 'attachment; filename="labels.pdf"',
     ]);
@@ -386,7 +396,7 @@ The Sylius Behat suite runs against the test container, so you can use the trans
 ```yaml
 # config/services_test.yaml
 services:
-    Polkurier\Webservice\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
+    Polkurier\Webservice\Api\Http\ClientFactoryInterface: '@Polkurier\Webservice\Testing\RecordingClient'
 ```
 
 A Behat scenario can then check what the SDK *sent*, such as the carrier code or the postcode, in

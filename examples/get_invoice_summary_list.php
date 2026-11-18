@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Invoice\GetInvoiceSummaryListMessage;
 use Polkurier\Webservice\Enum\Invoice\InvoiceSummaryFormatEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Invoice\GetInvoiceSummaryListMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -28,10 +28,10 @@ try {
         )
     );
 
-    $path = \sys_get_temp_dir() . '/' . $document->getFilename();
-    \file_put_contents($path, $document->getDecodedFile());
+    $path = \sys_get_temp_dir() . '/' . \basename($document->filename);
+    \file_put_contents($path, $document->file);
 
-    \printf("Saved %s (%s)\n", $path, $document->getFileType());
+    \printf("Saved %s (%s)\n", $path, $document->fileType);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -4,7 +4,7 @@
  * Licensed under the MIT License, see LICENSE.md
  */
 /**
- * get_tickets — page through the account’s tickets.
+ * get_tickets — page through the account's tickets.
  *
  * A paging envelope. Each entry carries its read state, which is what drives an unread badge
  * without fetching every ticket's messages.
@@ -19,18 +19,18 @@ require __DIR__ . '/bootstrap.php';
 try {
     $list = polkurier()->tickets()->getTickets();
 
-    foreach ($list->getResult() as $ticket) {
+    foreach ($list->result as $ticket) {
         \printf(
             "%-36s %-14s %-40s %-12s %s\n",
-            $ticket->getId(),
-            $ticket->getNumber(),
-            $ticket->getSubject(),
-            $ticket->getStatus()->value ?? 'unknown',
-            $ticket->isRead() ? '' : '(unread)'
+            $ticket->id,
+            $ticket->number,
+            $ticket->subject,
+            $ticket->status->value ?? 'unknown',
+            $ticket->read ? '' : '(unread)'
         );
     }
 
-    \printf("-- page %d, %d tickets total\n", $list->getCurrentPage(), $list->getTotalRows());
+    \printf("-- page %d, %d tickets total\n", $list->currentPage, $list->totalRows);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

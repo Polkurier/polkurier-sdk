@@ -7,29 +7,29 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Api\Service;
 
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrderFileMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetOrdersMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupRequestMessage;
+use Polkurier\Webservice\Dto\Response\Order\CancellationMessage;
+use Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage;
+use Polkurier\Webservice\Dto\Response\Order\DocumentMessage;
+use Polkurier\Webservice\Dto\Response\Order\MultiPickupAvailabilityMessage;
+use Polkurier\Webservice\Dto\Response\Order\MultiPickupResultMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderFileMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetOrderFileMessage;
-use Polkurier\Webservice\Request\Order\GetOrdersMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Response\Order\CancellationMessage;
-use Polkurier\Webservice\Response\Order\CreatedOrderMessage;
-use Polkurier\Webservice\Response\Order\DocumentMessage;
-use Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage;
-use Polkurier\Webservice\Response\Order\MultiPickupResultMessage;
-use Polkurier\Webservice\Response\Order\OrderFileMessage;
-use Polkurier\Webservice\Response\Order\OrderListMessage;
-use Polkurier\Webservice\Response\Order\OrderStatusMessage;
-use Polkurier\Webservice\Response\Order\ValuationMessage;
 
 /**
  * Placing, pricing, tracking and cancelling orders.
@@ -44,6 +44,8 @@ use Polkurier\Webservice\Response\Order\ValuationMessage;
  * {"status": "error", "response": "Parametr [orderno] ma niepoprawny format"}
  * ```
  * The SDK throws these as exceptions. Each method lists the ones it can throw.
+ *
+ * @api
  */
 interface OrdersServiceInterface
 {
@@ -128,11 +130,11 @@ interface OrdersServiceInterface
      *
      * @param CreateOrderMessage $createOrderMessage
      * @param string|null $courier a service code from
-     *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::availableCarriers()} to
+     *        {@see \Polkurier\Webservice\Api\Service\CourierServiceInterface::getAvailableCarriers()} to
      *        price the order for that carrier only, null for every carrier
      *
      * @return ValuationMessage[] one quote per carrier, or the one carrier's quote, see
-     *         {@see \Polkurier\Webservice\Response\Order\ValuationMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\ValuationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -152,9 +154,9 @@ interface OrdersServiceInterface
      *
      * A rejection names at least one fault in the payload, not necessarily all of them.
      *
-     * A description longer than its limit, {@see CreateOrderMessage::DESCRIPTION_MAX_LENGTH} bytes by
-     * default, is cut to fit. A cash-on-delivery amount of zero means the order ships with no
-     * collection.
+     * A description longer than its limit, by default
+     * {@see \Polkurier\Webservice\Entity\Order::DESCRIPTION_MAX_LENGTH} bytes, is cut to fit.
+     * A cash-on-delivery amount of zero means the order ships with no collection.
      *
      * Some requirements depend on the carrier: whether a pickup date or a time window is needed,
      * and whether either address needs a pickup point. `available_carriers` reports them.
@@ -282,7 +284,7 @@ interface OrdersServiceInterface
      * @param CreateOrderMessage $createOrderMessage
      *
      * @return CreatedOrderMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\CreatedOrderMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\CreatedOrderMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -407,7 +409,7 @@ interface OrdersServiceInterface
      * @param GetOrdersMessage|null $getOrdersMessage null lists the first page with no filters
      *
      * @return OrderListMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\OrderListMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\OrderListMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -459,10 +461,10 @@ interface OrdersServiceInterface
      * ```
      * When the carrier refuses a cancellation, its reason comes back in the same shape.
      *
-     * @param OrderIdMessage $orderIdMessage
+     * @param CancelOrderMessage $cancelOrderMessage
      *
      * @return CancellationMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\CancellationMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\CancellationMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -470,7 +472,7 @@ interface OrdersServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function cancelOrder(OrderIdMessage $orderIdMessage): CancellationMessage;
+    public function cancelOrder(CancelOrderMessage $cancelOrderMessage): CancellationMessage;
 
     /**
      * Fetches shipping labels as one document.
@@ -547,7 +549,7 @@ interface OrdersServiceInterface
      * @param GetDocumentMessage $getDocumentMessage
      *
      * @return DocumentMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\DocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -617,7 +619,7 @@ interface OrdersServiceInterface
      * @param GetDocumentMessage $getDocumentMessage
      *
      * @return DocumentMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\DocumentMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\DocumentMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -689,7 +691,7 @@ interface OrdersServiceInterface
      * @param GetStatusMessage $getStatusMessage
      *
      * @return OrderStatusMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\OrderStatusMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -706,7 +708,7 @@ interface OrdersServiceInterface
      * before offering one collection for several. Which carriers and shipments qualify can change.
      *
      * It describes a shipment, not an order you've already placed. To book a collective pickup,
-     * place the order with {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup}
+     * place the order with {@see \Polkurier\Webservice\Entity\Order\Pickup::$multiPickup}
      * set, then pass its number to createMultiOrderPickup().
      *
      * The API answers false, not an error, when it can't evaluate the request. So false can also
@@ -740,7 +742,7 @@ interface OrdersServiceInterface
      * @param MultiPickupAvailabilityRequestMessage $multiPickupAvailabilityRequestMessage
      *
      * @return MultiPickupAvailabilityMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupAvailabilityMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\MultiPickupAvailabilityMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -757,7 +759,7 @@ interface OrdersServiceInterface
      *
      * Pass order numbers, not waybill numbers. An order can join only if it was placed for a
      * collective pickup, with
-     * {@see \Polkurier\Webservice\Request\Order\PickupMessage::$multiPickup} set, has been
+     * {@see \Polkurier\Webservice\Entity\Order\Pickup::$multiPickup} set, has been
      * accepted, and has no collection booked yet. Use isMultiPickupAvailable() to see whether a
      * shipment can be placed that way.
      *
@@ -828,7 +830,7 @@ interface OrdersServiceInterface
      * @param MultiPickupRequestMessage $multiPickupRequestMessage
      *
      * @return MultiPickupResultMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\MultiPickupResultMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\MultiPickupResultMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException
@@ -840,7 +842,6 @@ interface OrdersServiceInterface
         MultiPickupRequestMessage $multiPickupRequestMessage
     ): MultiPickupResultMessage;
 
-
     /**
      * Downloads a document attached to an order.
      *
@@ -848,8 +849,7 @@ interface OrdersServiceInterface
      * paperwork, proof of delivery or correspondence. Get the filenames from getOrders() with the
      * file flag turned on, or by order number.
      *
-     * The content hash stays the same across downloads, so it tells a file you already have from a
-     * changed one.
+     * The content hash stays the same across downloads.
      *
      * Endpoint: `get_order_file`
      *
@@ -887,7 +887,7 @@ interface OrdersServiceInterface
      * @param GetOrderFileMessage $getOrderFileMessage
      *
      * @return OrderFileMessage the payload, see
-     *         {@see \Polkurier\Webservice\Response\Order\OrderFileMessage}
+     *         {@see \Polkurier\Webservice\Dto\Response\Order\OrderFileMessage}
      * @throws AuthorizationException
      * @throws ConnectionException
      * @throws InvalidArgumentException

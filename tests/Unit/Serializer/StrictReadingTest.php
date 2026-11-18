@@ -7,15 +7,13 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Serializer;
 
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Enum\Courier\CourierMessageTypeEnum;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Responses;
 
 /**
  * Responses shaped as the API sends them still read with unknown fields rejected.
@@ -43,10 +41,10 @@ final class StrictReadingTest extends TestCase
         self::assertCount(1, $notices);
         [$notice] = $notices;
         self::assertInstanceOf(CourierMessage::class, $notice);
-        self::assertSame(CourierMessageTypeEnum::Message, $notice->getType());
-        self::assertSame('Płatność kartą za pobranie', $notice->getTitle());
-        self::assertSame(5, $notice->getPriority());
-        self::assertSame(0, $notice->getHideTimeout());
+        self::assertSame(CourierMessageTypeEnum::Message, $notice->type);
+        self::assertSame('Płatność kartą za pobranie', $notice->title);
+        self::assertSame(5, $notice->priority);
+        self::assertSame(0, $notice->hideTimeout);
     }
 
     public function testACarrierNoticeOfTheAlertKindReads(): void
@@ -64,10 +62,10 @@ final class StrictReadingTest extends TestCase
         self::assertIsArray($notices);
         [$notice] = $notices;
         self::assertInstanceOf(CourierMessage::class, $notice);
-        self::assertSame(CourierMessageTypeEnum::Alert, $notice->getType());
-        self::assertSame(4, $notice->getHideTimeout());
-        self::assertSame('', $notice->getTitle());
-        self::assertSame(0, $notice->getPriority());
+        self::assertSame(CourierMessageTypeEnum::Alert, $notice->type);
+        self::assertSame(4, $notice->hideTimeout);
+        self::assertSame('', $notice->title);
+        self::assertSame(0, $notice->priority);
     }
 
     public function testTheSystemInfoReadsWithItsFeatureFlags(): void
@@ -87,9 +85,9 @@ final class StrictReadingTest extends TestCase
         ]);
 
         self::assertInstanceOf(SystemInfoMessage::class, $info);
-        self::assertSame(['sample_feature' => true, 'other_feature' => false], $info->getFeatures());
-        self::assertSame(15, $info->getRegulationsAcceptancePeriod());
-        self::assertSame(6, $info->getCoupons()?->getMinLength());
+        self::assertSame(['sample_feature' => true, 'other_feature' => false], $info->features);
+        self::assertSame(15, $info->regulationsAcceptancePeriod);
+        self::assertSame(6, $info->coupons?->minLength);
     }
 
     /**
@@ -100,11 +98,6 @@ final class StrictReadingTest extends TestCase
      */
     private static function read(string $format, array $payload): mixed
     {
-        $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
-
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->getResponse();
+        return Responses::read($format, $payload, new SerializerConfig(strictResponses: true));
     }
 }

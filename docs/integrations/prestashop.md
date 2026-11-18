@@ -111,7 +111,7 @@ class Polkurier extends Module
         $client = \Polkurier\PrestaShop\Client::build();
 
         try {
-            $client->utils()->testAuthApi(new \Polkurier\Webservice\Http\Request\AuthorizationMessage(
+            $client->utils()->testAuthApi(new \Polkurier\Webservice\Dto\Request\AuthorizationMessage(
                 token: (string)Configuration::get(self::CFG_TOKEN),
                 login: (string)Configuration::get(self::CFG_LOGIN),
             ));
@@ -150,16 +150,15 @@ namespace Polkurier\PrestaShop;
 
 use Configuration;
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
+use Polkurier\Webservice\Service\OrdersService;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 
 final class Client
 {
-    private static ?SerializerProviderInterface $serializer = null;
+    private static ?SerializerConfig $serializerConfig = null;
 
     /** @var array<int, PolkurierWebservice> keyed by shop id */
     private static array $clients = [];
@@ -178,22 +177,28 @@ final class Client
                 platformVersion: _PS_VERSION_,
                 sandbox: (bool)Configuration::get(\Polkurier::CFG_SANDBOX, null, null, $shopId),
             ),
-            serializerProvider: self::serializer(),
+            serializerConfig: self::serializerConfig(),
         );
     }
 
-    private static function serializer(): SerializerProviderInterface
+    public static function orders(): OrdersService
     {
-        return self::$serializer ??= new SerializerProvider(new SerializerConfig(
+        return self::build()->orders();
+    }
+
+    private static function serializerConfig(): SerializerConfig
+    {
+        return self::$serializerConfig ??= new SerializerConfig(
             metadataCache: new PhpFilesAdapter('polkurier', 0, _PS_CACHE_DIR_ . 'polkurier'),
-        ));
+        );
     }
 }
 ```
 
-This keeps one client per shop and one serializer per process. The clients have to be keyed by
-shop for multistore to work. A single cached client would keep the credentials of whichever shop it
-was first built for.
+This keeps one client per shop, each with its own serializer built from the same configuration and
+reading the mapping metadata from the same pool. The clients have to be keyed by shop for
+multistore to work. A single cached client would keep the credentials of whichever shop it was
+first built for.
 
 The serializer metadata cache key doesn't include a version, so a deploy clears
 `_PS_CACHE_DIR_ . 'polkurier'`.
@@ -218,7 +223,7 @@ services:
         factory: ['Polkurier\PrestaShop\Client', 'orders']
 ```
 
-This needs a matching static `Client::orders()` method on `Client`. Front-office code keeps using
+`Client::orders()` above is the factory this refers to. Front-office code keeps using
 `Client::build()`.
 
 Placing the shipment
@@ -260,7 +265,9 @@ use Polkurier\Webservice\Exception\WebserviceException;
 
 final class ShipmentDispatcher
 {
-    public function __construct(private readonly OrderMapper $mapper) {}
+    public function __construct(
+        private readonly OrderMapper $mapper,
+    ) {}
 
     /** @return array{0: bool, 1: string} success, and what to show the merchant */
     public function dispatch(Order $order): array
@@ -280,16 +287,16 @@ final class ShipmentDispatcher
             $error = $e->getErrorMessage();
 
             return [false, $this->formatErrors(
-                $error->getValidationErrors() ?? ['' => [$error->getResponse()]],
+                $error->validationErrors ?? ['' => [$error->response]],
             )];
         } catch (ConnectionException) {
             // Unknown outcome. It stays queued and isn't sent again in this pass.
             return [false, 'Polkurier did not answer. The shipment stays queued.'];
         }
 
-        $this->store($order, $created->getOrderNumber());
+        $this->store($order, $created->orderNumber);
 
-        return [true, sprintf('Shipment %s created.', $created->getOrderNumber())];
+        return [true, sprintf('Shipment %s created.', $created->orderNumber)];
     }
 
     /** @param array<string, string[]> $errors */
@@ -309,29 +316,29 @@ final class ShipmentDispatcher
 ```
 
 `ShipmentDispatcher::formatErrors()` works for both exception types because [`ValidationException::getValidationErrors()`](../../src/Exception/ValidationException.php)
-and [`ErrorMessage::getValidationErrors()`](../../src/Http/Response/ErrorMessage.php) return the same shape. The merchant sees local and API
+and [`ErrorMessage::$validationErrors`](../../src/Dto/Response/ErrorMessage.php) return the same shape. The merchant sees local and API
 rejections in the same format.
 
 Mapping a PrestaShop address
 ----------------------------
 
 ```php
-use Polkurier\Webservice\Builder\Order\OrderAddressMessageBuilder;
+use Polkurier\Webservice\Builder\Entity\Order\AddressBuilder;
 
 $address = new Address((int)$order->id_address_delivery);
 $customer = new Customer((int)$order->id_customer);
 
-$recipient = OrderAddressMessageBuilder::create()
-    ->person(trim($address->firstname . ' ' . $address->lastname))
-    ->street($address->address1)
-    ->houseNumber($address->address2 ?: '1')
-    ->city($address->city)
-    ->postcode($address->postcode)
-    ->phone($address->phone_mobile ?: $address->phone)
-    ->email($customer->email);
+$recipient = AddressBuilder::create()
+    ->setPerson(trim($address->firstname . ' ' . $address->lastname))
+    ->setStreet($address->address1)
+    ->setHouseNumber($address->address2 ?: '1')
+    ->setCity($address->city)
+    ->setPostcode($address->postcode)
+    ->setPhone($address->phone_mobile ?: $address->phone)
+    ->setEmail($customer->email);
 
 if ($address->company) {
-    $recipient->company($address->company);
+    $recipient->setCompany($address->company);
 }
 ```
 
@@ -366,7 +373,7 @@ Pickup point selection
   an autocomplete field.
 
 Either way, the selected point ID is stored against the cart and set on the order address with
-[`OrderAddressMessageBuilder::pointId()`](../../src/Builder/Order/OrderAddressMessageBuilder.php).
+[`AddressBuilder::setPointId()`](../../src/Builder/Entity/Order/AddressBuilder.php).
 
 Without a search query, [`CourierServiceInterface::findCourierPoints()`](../../src/Api/Service/CourierServiceInterface.php) returns every point of a carrier,
 tens of thousands for InPost, so such a list is cached instead of fetched on every page load.
@@ -398,7 +405,7 @@ $document = Client::build()->orders()->getLabel(new GetDocumentMessage(orderNo: 
 
 header('Content-Type: application/pdf');
 header('Content-Disposition: inline; filename="label.pdf"');
-echo $document->getDecodedFile();
+echo $document->file;
 exit;
 ```
 

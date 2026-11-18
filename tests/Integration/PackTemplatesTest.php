@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Entity\PackTemplate;
 
 #[Group('integration')]
 #[CoversNothing]
@@ -21,7 +21,7 @@ final class PackTemplatesTest extends IntegrationTestCase
     {
         self::requireSandbox();
 
-        $template = $this->sdk->packTemplates()->savePackTemplates(new SaveMessage(
+        $template = $this->sdk->packTemplates()->savePackTemplates(new PackTemplate(
             name: 'SDK box ' . \bin2hex(\random_bytes(3)),
             length: 30,
             width: 20,

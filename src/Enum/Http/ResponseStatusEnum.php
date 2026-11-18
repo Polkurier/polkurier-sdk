@@ -14,6 +14,8 @@ namespace Polkurier\Webservice\Enum\Http;
  * authentication failures, validation errors and internal errors.
  *
  * Some methods send the value in capitals. The SDK reads it either way.
+ *
+ * @api
  */
 enum ResponseStatusEnum: string
 {

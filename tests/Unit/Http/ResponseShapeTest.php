@@ -7,27 +7,27 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Http;
 
-use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Address;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Invoice\InvoiceListMessage;
-use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxConfigMessage;
-use Polkurier\Webservice\Response\MoneyBox\MoneyBoxPayoutListMessage;
-use Polkurier\Webservice\Response\Order\OrderStatusMessage;
-use Polkurier\Webservice\Response\Payment\PrepaidHistoryMessage;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\Ticket\TicketListMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\TwoFactorToken;
-use Polkurier\Webservice\Response\PagedListMessage;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage;
+use Polkurier\Webservice\Dto\Response\Invoice\InvoiceListMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxConfigMessage;
+use Polkurier\Webservice\Dto\Response\MoneyBox\MoneyBoxPayoutListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderListMessage;
+use Polkurier\Webservice\Dto\Response\Order\OrderStatusMessage;
+use Polkurier\Webservice\Dto\Response\PagedListMessage;
+use Polkurier\Webservice\Dto\Response\Payment\PrepaidHistoryMessage;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\TwoFactorToken;
+use Polkurier\Webservice\Entity\Address;
+use Polkurier\Webservice\Test\Support\Accessors;
+use Polkurier\Webservice\Test\Support\MessageClasses;
+use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Responses whose shape varies with the request or the record still read.
@@ -36,6 +36,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  * the way the API can: a key left out, null or an empty string in place of a value, a whole number
  * where a decimal is expected, or keys the SDK doesn't know.
  */
+#[CoversNothing]
 final class ResponseShapeTest extends TestCase
 {
     /**
@@ -69,8 +70,8 @@ final class ResponseShapeTest extends TestCase
                     'additional_data' => \array_diff_key((array)$c['additional_data'], ['points_map' => 0]),
                 ] + $c),
             ],
-            'a ticket list without a page count' => [
-                TicketListMessage::class,
+            'an order list without a page count' => [
+                OrderListMessage::class,
                 $without('totalpages'),
             ],
             'a ticket without its messages or response template' => [
@@ -165,21 +166,12 @@ final class ResponseShapeTest extends TestCase
      */
     public static function pagedLists(): array
     {
-        $lists = [];
-        $root = \dirname(__DIR__, 3) . '/src/Response';
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root)) as $file) {
-            if (!$file instanceof \SplFileInfo || $file->getExtension() !== 'php') {
-                continue;
-            }
-            $class = 'Polkurier\\Webservice\\Response\\'
-                . \str_replace('/', '\\', \substr($file->getPathname(), \strlen($root) + 1, -4));
-            if (\class_exists($class) && \is_subclass_of($class, PagedListMessage::class)) {
-                $lists[$class] = [$class];
-            }
-        }
-        \ksort($lists);
+        $lists = \array_filter(
+            MessageClasses::responses(),
+            static fn(string $class): bool => \is_subclass_of($class, PagedListMessage::class),
+        );
 
-        return $lists;
+        return \array_map(static fn(string $class): array => [$class], $lists);
     }
 
     /**
@@ -188,26 +180,18 @@ final class ResponseShapeTest extends TestCase
     #[DataProvider('pagedLists')]
     public function testEveryPagedListReadsNullPagingAsZero(string $class): void
     {
-        $body = \json_encode([
-            'status' => 'success',
-            'response' => [
-                'totalrows' => null,
-                'currentpage' => null,
-                'pagesize' => null,
-                'totalpages' => null,
-                'result' => [],
-            ],
-        ], \JSON_THROW_ON_ERROR);
-
-        $list = (new ResponseFactory(new SerializerProvider()))
-            ->create(new Response(200, [], $body), $class)
-            ->getEnvelope()
-            ->getResponse();
+        $list = Responses::read($class, [
+            'totalrows' => null,
+            'currentpage' => null,
+            'pagesize' => null,
+            'totalpages' => null,
+            'result' => [],
+        ]);
 
         self::assertInstanceOf(PagedListMessage::class, $list);
-        self::assertSame(0, $list->getTotalRows());
-        self::assertSame(0, $list->getCurrentPage());
-        self::assertSame(0, $list->getPageSize());
+        self::assertSame(0, $list->totalRows);
+        self::assertSame(0, $list->currentPage);
+        self::assertSame(0, $list->pageSize);
     }
 
     /**
@@ -219,14 +203,11 @@ final class ResponseShapeTest extends TestCase
     #[DataProvider('pagedLists')]
     public function testEveryPagedListReadsAnEmptyPayloadAsAnEmptyPage(string $class): void
     {
-        $list = (new ResponseFactory(new SerializerProvider()))
-            ->create(new Response(200, [], '{"status": "success", "response": []}'), $class)
-            ->getEnvelope()
-            ->getResponse();
+        $list = Responses::read($class, []);
 
         self::assertInstanceOf($class, $list);
-        self::assertSame(0, $list->getTotalRows());
-        self::assertSame([], $list->getResult());
+        self::assertSame(0, $list->totalRows);
+        self::assertSame([], $list->result);
     }
 
     private const array BALANCES = [
@@ -245,22 +226,14 @@ final class ResponseShapeTest extends TestCase
     #[DataProvider('shapes')]
     public function testTheResponseReads(string $format, \Closure $change): void
     {
-        $class = \str_ends_with($format, '[]') ? \substr($format, 0, -2) : $format;
-        $serializer = (new SerializerProvider())->getSerializer();
-        self::assertInstanceOf(NormalizerInterface::class, $serializer);
         /** @var class-string $class */
-        $wire = $serializer->normalize(Sample::of($class), 'json');
-        self::assertIsArray($wire);
+        $class = \str_ends_with($format, '[]') ? \substr($format, 0, -2) : $format;
 
-        $body = \json_encode(
-            ['status' => 'success', 'response' => $change($wire)],
-            \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION,
-        );
-        $result = (new ResponseFactory(new SerializerProvider()))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->getResponse();
+        $result = Responses::read($format, $change(Sample::wire($class)));
 
         self::assertNotNull($result);
+        // Every accessor is called, so a field that read as the wrong type raises here. Without
+        // it the case proves only that reading did not throw.
+        self::assertGreaterThan(0, Accessors::readAll($result));
     }
 }

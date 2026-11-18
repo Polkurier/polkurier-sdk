@@ -1,8 +1,6 @@
 Serialization
 =============
 
-How a PHP object turns into the API's JSON and back.
-
 PHP names and wire names
 ------------------------
 
@@ -22,12 +20,15 @@ Responses that differ from the SDK
 ----------------------------------
 
 A response the API changed after your SDK version was released still reads, so an application
-that hasn't updated the SDK keeps working:
+that hasn't updated the SDK keeps working. The exception is a field typed as an object or an enum
+that the response drops or sends as something else: there is no empty value to put there, so the
+read fails with the difference recorded.
 
 | The response has | The SDK reads |
 |------------------|---------------|
 | A field the SDK doesn't know | Nothing: the field is ignored |
 | A missing field without a default, or null in a field that can't be null | The field's default, or an empty value of its type: `''`, `0`, `0.0`, `false`, `[]` or null |
+| The same, where the field is an object or an enum | Nothing to fall back on: the difference is recorded and the read fails |
 | A string, number or boolean of another type | The value converted, e.g. `"12"` to `12` |
 | Any other value of another type | The field's default, or an empty value |
 | A list item of another type | The item converted, or left out of the list |
@@ -40,8 +41,7 @@ checked: they read as the API sent them.
 
 An object that arrives with fields, but none of those its class declares, is a different response
 altogether, so reading it fails with a
-[`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of giving an object of empty values. A
-class with a single field therefore fails when that field is renamed.
+[`MalformedResponseException`](../src/Exception/MalformedResponseException.php) instead of giving an object of empty values.
 
 A field left out that has a default is optional, so it isn't counted. Each case is recorded with
 its path, the value the API sent and the type the SDK expected. The path names fields by their PHP
@@ -52,9 +52,11 @@ logged as a warning. An empty string where an enum belongs isn't recorded. Reque
 read this way.
 
 This needs a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php) in the denormalization context, under
-[`ResponseDriftCollector::CONTEXT_KEY`](../src/Serializer/ResponseDriftCollector.php). Without one, as when you call the serializer yourself, Symfony's own
-rules apply: a value of another type, or a missing field that can't be null, fails, and an unknown
-field or a missing field that can be null is ignored unless `strictResponses` is on.
+[`ResponseDriftCollector::CONTEXT_KEY`](../src/Serializer/ResponseDriftCollector.php). [`SerializerInterface::readResponse()`](../src/Api/SerializerInterface.php) puts one there.
+Without one, as when you read a stored payload with [`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) or call
+Symfony's serializer yourself, Symfony's own rules apply: a value of another type, or a missing
+field that can't be null, fails, and an unknown field or a missing field that can be null is
+ignored unless `strictResponses` is on.
 
 With `strictResponses` on, a response is read the same way, and then fails if anything other than an
 unknown enum value was recorded ([`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php)), so strict reading rejects exactly
@@ -72,11 +74,17 @@ new Serializer(
         new SingleRowPageDenormalizer(),
         new LenientEnumDenormalizer(),
         new BackedEnumNormalizer(),
-        new AbsentDateNormalizer(),
-        new LenientDateDenormalizer(new ExactDateTimeNormalizer(new DateTimeNormalizer($dateTimeContext))),
+        new AbsentDateDenormalizer(),
+        new LenientDateDenormalizer(new ExactDateTimeDenormalizer(new DateTimeNormalizer($dateTimeContext))),
         new EnumListDenormalizer(),
         new LenientListDenormalizer(new ArrayDenormalizer()),
-        new OmitEmptyNormalizer(new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor)),
+        new RequestQuirksNormalizer(
+            new InlineFieldsNormalizer(new OmitEmptyNormalizer(new SentFieldsNormalizer(
+                new ResponseQuirksDenormalizer(new WireFormatDenormalizer(
+                    new LenientObjectDenormalizer($objectNormalizer, $metadata, $extractor),
+                )),
+            ))),
+        ),
     ],
     encoders: [
         new JsonEncoder(new JsonEncode([JsonEncode::OPTIONS => $config->getJsonEncodeOptions()])),
@@ -86,14 +94,42 @@ new Serializer(
 
 **Order matters.** Symfony asks each normalizer in turn whether it supports the value, and the
 first one to say yes handles it. [`SingleRowPageDenormalizer`](../src/Serializer/SingleRowPageDenormalizer.php) comes first: where a page of orders,
-tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
+tickets or payouts is expected but a single record arrives, it reads the record as a one-row page. [`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) comes before [`Symfony\Component\Serializer\Normalizer\DateTimeNormalizer`](https://github.com/symfony/symfony/blob/7.4/src/Symfony/Component/Serializer/Normalizer/DateTimeNormalizer.php) so it can
 catch an empty string before the date parser sees it. [`LenientEnumDenormalizer`](../src/Serializer/LenientEnumDenormalizer.php) and
 [`EnumListDenormalizer`](../src/Serializer/EnumListDenormalizer.php) come before the enum and array normalizers so that, when reading a
-response, an enum value the SDK doesn't know reads as null or is left out of its list. [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) goes
-last because it wraps the general object normalizer, which supports nearly everything.
+response, an enum value the SDK doesn't know reads as null or is left out of its list.
+[`RequestQuirksNormalizer`](../src/Serializer/RequestQuirksNormalizer.php) goes last because it wraps the general object normalizer, which
+supports nearly everything.
 [`LenientObjectDenormalizer`](../src/Serializer/LenientObjectDenormalizer.php), [`LenientListDenormalizer`](../src/Serializer/LenientListDenormalizer.php) and [`LenientDateDenormalizer`](../src/Serializer/LenientDateDenormalizer.php) read a response that differs from the SDK (see
 [Responses that differ from the SDK](#responses-that-differ-from-the-sdk)). With `strictResponses` on, [`StrictResponseSerializer`](../src/Serializer/StrictResponseSerializer.php) wraps the
 serializer and fails a read that recorded a difference.
+
+[`InlineFieldsNormalizer`](../src/Serializer/InlineFieldsNormalizer.php) sits outside [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) and
+[`SentFieldsNormalizer`](../src/Serializer/SentFieldsNormalizer.php) so that a field marked [`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php) is dropped for
+being empty, and the record it holds is filtered, before its keys are moved up into the payload
+around it. Read back, a field that holds a record takes the keys that record writes, the keys of
+anything that record inlines in turn included; one that holds a map takes every key the enclosing
+object doesn't claim, in a response too, so a key the SDK doesn't know is absorbed into the map
+instead of being reported as drift. No response class declares a map-valued field.
+
+Three more pieces wrap the object normalizer, two of them when reading.
+[`WireFormatDenormalizer`](../src/Serializer/WireFormatDenormalizer.php) reads the fields whose wire format differs from the value the
+property holds, as the property declares:
+[`#[Base64]`](../src/Serializer/Attribute/Base64.php) and [`#[Base64DataUrl]`](../src/Serializer/Attribute/Base64DataUrl.php) for files, which the property holds as bytes, and
+[`#[NamedValues]`](../src/Serializer/Attribute/NamedValues.php) for values keyed by name, which the property holds as a list of name and value pairs.
+[`ResponseQuirksDenormalizer`](../src/Serializer/ResponseQuirksDenormalizer.php) repairs the API's known oddities, each for one class and the fields it
+names: null paging numbers, null tracking texts and default flags, a contact-form field whose
+`options` names a form property instead of listing choices, carrier-specific point functions,
+and transport methods keyed by method. An order also takes its additional services as a map of
+codes under `courierservice` but answers with their names under that key, which the SDK reads into
+[`Order::getCourierServiceNames()`](../src/Entity/Order.php). A field that differs in any other way is drift.
+
+[`RequestQuirksNormalizer`](../src/Serializer/RequestQuirksNormalizer.php) does the same for what is sent, and only `cover_address` needs it. The
+block holds an [`Address`](../src/Entity/Order/Address.php) like the sender and the recipient, but `create_order` and
+`order_valuation_v2` read only the keys [`RequestQuirksNormalizer::COVER_ADDRESS`](../src/Serializer/RequestQuirksNormalizer.php) lists, plus a
+non-empty flat number, which they spell `flat_number` rather than `flatnumber`. Every other key,
+`country` and `point_id` among them, is dropped, because the API prints and charges for a cover
+address as soon as any value in that block is non-empty.
 
 The object normalizer is set up with five pieces:
 
@@ -105,21 +141,18 @@ The object normalizer is set up with five pieces:
 | `ALLOW_EXTRA_ATTRIBUTES` | On unless `strictResponses` says otherwise |
 | `REQUIRE_ALL_PROPERTIES` | On with `strictResponses`, so a field without a default must be present |
 
-### Why `PhpStanExtractor` and not `PhpDocExtractor`
-
 PHP has no syntax for collection element types, so they come from the `@var` docblock on each
-property (`Pack[]`, `array<string, string>`). The SDK's properties are *promoted constructor
-parameters*, and `PhpDocExtractor` does not read their docblocks. `PhpStanExtractor` does. If you
-swap one for the other, every list silently arrives as an array of raw arrays instead of objects.
-
+property, promoted constructor parameters included (`PackItem[]`, `array<string, string>`).
 Anything the docblock does not describe arrives as a plain array, so a nested object that comes
 back as an `array` usually points at the docblock.
 
 Reading responses
 -----------------
 
-[`ResponseFactory`](../src/Http/Response/ResponseFactory.php) decodes the body, reads the envelope and passes the payload to the serializer,
-along with the shape the method expects.
+[`MessageSerializer`](../src/Serializer/MessageSerializer.php) decodes the body, reads the envelope and maps the payload onto the shape
+the method asks for. [`ResponseFactory`](../src/Http/Response/ResponseFactory.php) adds what only an HTTP exchange has: it rewinds the
+body stream before reading it, and attaches the PSR-7 response to a
+[`MalformedResponseException`](../src/Exception/MalformedResponseException.php).
 
 The wire format is always passed as `json`. This matters because JSON does not distinguish integers
 from floats, so a price with no fractional part can arrive as an int where a float is declared. The
@@ -152,7 +185,7 @@ An optional date can arrive as an empty string. [`Symfony\Component\Serializer\N
 string is not a date, and its error message talks about parse formats without naming the field or
 the cause.
 
-[`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) runs before it and turns the empty string into `null`. It handles nothing
+[`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) runs before it and turns the empty string into `null`. It handles nothing
 else, so a real date string passes straight through.
 
 ### An absent key
@@ -175,7 +208,7 @@ use Polkurier\Webservice\Serializer\Attribute\OmitWhenEmpty;
 
 #[Serializer\SerializedName(self::FIELD_PICKUP)]
 #[OmitWhenEmpty]
-private ?PickupMessage $pickup = null,
+private ?Pickup $pickup = null,
 ```
 
 [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) drops these keys when the value is empty. Empty means `null`, `''` or `[]`.
@@ -183,6 +216,61 @@ private ?PickupMessage $pickup = null,
 
 The attribute works on properties and on methods (for computed fields). Parent classes are checked
 too, so a base message's optional fields stay optional in its subclasses.
+
+### Fields the API only reports
+
+A record is one class for sending and reading, so it holds fields the API never takes. Each of
+those carries [`#[ResponseOnly]`](../src/Serializer/Attribute/ResponseOnly.php), and [`OmitEmptyNormalizer`](../src/Serializer/OmitEmptyNormalizer.php) leaves it out of the payload
+whatever its value:
+
+```php
+#[Serializer\SerializedName(self::FIELD_PRICE_GROSS)]
+#[ResponseOnly]
+private ?float $priceGross = null,
+```
+
+### Fields a subclass of yours adds
+
+[`SentFieldsNormalizer`](../src/Serializer/SentFieldsNormalizer.php) sends what the SDK declares, plus what a subclass declares with
+`#[SerializedName]`. A property of your own without it — a primary key, an ORM column, a value you
+cache on the object — stays on your side:
+
+```php
+use Polkurier\Webservice\Entity\Order;
+use Symfony\Component\Serializer\Attribute as Serializer;
+
+class ShopOrder extends Order
+{
+    public function __construct(
+        string $courier,
+        public int $id,                                   // never sent
+        #[Serializer\SerializedName('shop_reference')]
+        public ?string $reference = null,                 // sent
+    ) {
+        parent::__construct(courier: $courier);   // … and the order's other arguments
+    }
+}
+```
+
+The payload is built from what the object normalizer can read: a public property, or a private one
+with a getter. A field written with [`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php) goes out whatever its name, because its
+entries are merged into the enclosing object by [`InlineFieldsNormalizer`](../src/Serializer/InlineFieldsNormalizer.php), which wraps the
+filter. A record it holds is filtered like any other object on its way through; a map's entries
+are not, since their keys aren't known in advance.
+
+The API rejects or misreads a key it doesn't know, and it prints and charges for a cover address
+as soon as any value in that block is non-empty. A class of your own that inherits nothing from
+the SDK is written whole, so this never touches a payload the SDK doesn't own.
+
+### Fields written at the enclosing level
+
+[`#[InlineFields]`](../src/Serializer/Attribute/InlineFields.php) writes a field's own entries into the object that holds it, instead of under its
+key. [`CreateOrderMessage`](../src/Dto/Request/Order/CreateOrderMessage.php) uses it for the [`Order`](../src/Entity/Order.php) it carries, so the order's fields and the
+request-only `coupon_code` land side by side in `data`. The same attribute carries a map whose
+keys aren't known in advance, such as the answers to a contact form. An inlined entry never
+replaces a key the enclosing object already writes.
+[`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) puts both back: a record takes the keys it writes, however many
+levels of inlining they came from, and a map takes the rest.
 
 ### Dates on the way out
 
@@ -197,7 +285,7 @@ private ?\DateTimeInterface $dateFrom = null,
 The `timezone` setting in [`SerializerConfig`](../src/Serializer/SerializerConfig.php) only affects *reading*. The formats used for writing
 are fixed by the protocol.
 
-When reading, [`ExactDateTimeNormalizer`](../src/Serializer/ExactDateTimeNormalizer.php) takes only the fields the format has and sets the others to
+When reading, [`ExactDateTimeDenormalizer`](../src/Serializer/ExactDateTimeDenormalizer.php) takes only the fields the format has and sets the others to
 zero. A `Y-m-d` date reads as midnight, and an `H:i` time reads as that time on 1 January 1970.
 Without it, PHP fills the missing fields from the moment of reading, so the same response read
 twice would give different dates.
@@ -232,60 +320,68 @@ Responses look like this:
 {"status": "error", "status_code": 7, "error_code": "ERROR_AUTH_DATA", "response": "Błąd autoryzacji. Błędny login lub token"}
 ```
 
-[`ResponseMessage`](../src/Http/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Http/Response/ErrorMessage.php) map these two.
+[`ResponseMessage`](../src/Dto/Response/ResponseMessage.php) and [`ErrorMessage`](../src/Dto/Response/ErrorMessage.php) map these two.
 
-Extending the serializer
-------------------------
+Configuring the serializer
+--------------------------
 
-### 1. Configure it
+[`Api\SerializerConfigInterface`](../src/Api/SerializerConfigInterface.php) is the whole of what an application sets: metadata caching,
+JSON flags, the timezone and whether a response that differs from the SDK is an error.
+[`SerializerConfig`](../src/Serializer/SerializerConfig.php) implements it, taking the four as constructor arguments; implement the
+interface to read them from wherever your application keeps them. [`PolkurierWebservice`](../src/PolkurierWebservice.php),
+[`OrderReader`](../src/Webhook/OrderReader.php) and [`SerializerProvider`](../src/Serializer/SerializerProvider.php) all take the interface. See
+[Configuration](configuration.md#serializerconfig).
 
-[`SerializerConfig`](../src/Serializer/SerializerConfig.php) sets metadata caching, JSON flags, the timezone and whether unknown fields are
-rejected. See [Configuration](configuration.md#serializerconfig).
+**Those 4 settings aside, the serializer cannot be replaced.** The SDK hands one out and never
+takes one: [`PolkurierWebservice::serializer()`](../src/PolkurierWebservice.php) returns the [`MessageSerializer`](../src/Serializer/MessageSerializer.php) its own
+request and response factories read and write through, typed as
+[`Api\SerializerInterface`](../src/Api/SerializerInterface.php). What it applies is part of what the SDK guarantees: the
+`cover_address` trim, the filter that sends only declared fields, the wire format each property
+declares, and the record of how a response differs from the SDK. A serializer assembled elsewhere
+drops all of that, and the API rejects or misreads the payloads it writes.
 
-### 2. Replace or add a normalizer
+A field the API has and the SDK does not goes out by declaring it with `#[SerializedName]` on a
+subclass of an open record ([Messages: extending a message](messages.md#extending-a-message)), and
+comes back in the body itself ([Messages: the raw response](messages.md#the-raw-response)).
 
-You can subclass [`SerializerProvider`](../src/Serializer/SerializerProvider.php), or implement [`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) to build the
-serializer from scratch. A misconfigured serializer fails in ways that look like the API
-misbehaving. Implementing the interface looks like this:
+### Using the serializer yourself
+
+[`SerializerInterface::encode()`](../src/Api/SerializerInterface.php) writes a message the way the client would send it, so a payload
+can be recorded before the call that sends it:
 
 ```php
-use Polkurier\Webservice\Serializer\SerializerProviderInterface;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\SerializerInterface;
+$serializer = $client->serializer();
+$createOrderMessage = new CreateOrderMessage(order: $order);
 
-final readonly class MySerializerProvider implements SerializerProviderInterface
-{
-    private SerializerInterface&DenormalizerInterface $serializer;
+$this->audit->store($myOrderId, $serializer->encode($createOrderMessage));
 
-    public function __construct()
-    {
-        $this->serializer = new Serializer(
-            normalizers: [
-                new MyNormalizer(),   // ahead of the SDK's own
-                // … then the SDK's own list, in its own order …
-            ],
-            encoders: [/* … */],
-        );
-    }
-
-    public function getSerializer(): SerializerInterface&DenormalizerInterface
-    {
-        return $this->serializer;
-    }
-}
+$created = $client->orders()->createOrder($createOrderMessage);
 ```
 
-The order of the normalizers matters. [`SerializerProvider`](../src/Serializer/SerializerProvider.php) has the SDK's list, in order.
+What it writes is the message alone, without the `apimethod` and `authorization` that go around it
+in the request body. To see or replay the whole exchange, use [`Testing\RecordingClient`](../src/Testing/RecordingClient.php), which
+works at transport level with the raw body.
 
-Typical reasons to do this: mapping a field the SDK does not know about yet, or instrumenting the
-mapping to see where a response loses data.
+[`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) reads such a payload back into its class. It takes a payload, not
+a response envelope; a stored `{"status": …, "response": …}` body goes to
+[`SerializerInterface::readResponse()`](../src/Api/SerializerInterface.php), which answers with a [`ReadResponse`](../src/Serializer/ReadResponse.php) and throws an
+[`InvalidArgumentException`](../src/Exception/InvalidArgumentException.php) when the body is not an API response:
 
-### 3. Wrap the whole serializer
+```php
+$createOrderMessage = $serializer->decode($storedPayload, CreateOrderMessage::class);
 
-[`SerializerProviderInterface`](../src/Serializer/SerializerProviderInterface.php) returns `SerializerInterface&DenormalizerInterface`, so you can wrap
-it in a decorator that logs or times every payload, or answers one method with a recorded fixture.
-For fixtures there is also [`Testing\RecordingClient`](../src/Testing/RecordingClient.php), which works at the transport level, with the
-raw body.
+$read     = $serializer->readResponse($storedBody, CreatedOrderMessage::class);
+$envelope = $read->envelope;                     // a ResponseMessage, or an ErrorMessage
+$created  = $envelope->response;                 // that class, or the error text for an error
+$drift    = $read->drift;                        // how this body differed from this SDK version
+```
+
+A field the given class doesn't declare is ignored unless `strictResponses` is on, as in a
+response, so a payload stored by an older version still reads. The second argument of
+`readResponse()` is the class the payload is read into; a payload that isn't an object takes one
+of the `FORMAT_*` constants of [`SerializerInterface`](../src/Api/SerializerInterface.php). The drift belongs to the body it came
+with, so one serializer instance serves the whole application; the bodies a service read are
+[`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php)'s.
 
 Debugging a mapping problem
 ---------------------------
@@ -296,8 +392,8 @@ Debugging a mapping problem
 | A field is always null | Its `#[SerializedName]`, against the actual wire name |
 | An enum field is null | A value the SDK doesn't know. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
 | A field is empty, zero or null, or a list is short | The response lacked it or sent another type. [`PolkurierWebservice::getLastResponseDrift()`](../src/PolkurierWebservice.php) names it |
-| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateNormalizer`](../src/Serializer/AbsentDateNormalizer.php) should have caught it |
-| A required-field error on a response | `strictResponses: true`, or your own serializer call without a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php) |
+| A date error about "an empty string" | An empty-string date reaching the date normalizer. [`AbsentDateDenormalizer`](../src/Serializer/AbsentDateDenormalizer.php) should have caught it |
+| A required-field error on a response | `strictResponses: true`, or a read without a [`ResponseDriftCollector`](../src/Serializer/ResponseDriftCollector.php), such as [`SerializerInterface::decode()`](../src/Api/SerializerInterface.php) |
 | A float goes out as an int | `JSON_PRESERVE_ZERO_FRACTION` dropped from `jsonEncodeOptions` |
 | A changed response breaks the call | `strictResponses: true`. Meant for CI, not production |
 
@@ -309,5 +405,5 @@ new Config(/* … */, methodsToLog: [ApiMethodEnum::CreateOrder]);
 
 ```php
 // Turn strictness on in a test and let a changed response fail loudly.
-new SerializerProvider(new SerializerConfig(strictResponses: true));
+new PolkurierWebservice($config, serializerConfig: new SerializerConfig(strictResponses: true));
 ```

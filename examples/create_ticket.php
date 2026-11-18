@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessage;
 use Polkurier\Webservice\Enum\Ticket\TicketOriginEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -35,9 +35,9 @@ try {
 
     \printf(
         "Ticket %s opened (%s). Its id, for the other ticket examples: %s\n",
-        $ticket->getNumber(),
-        $ticket->getStatus()->value ?? 'unknown',
-        $ticket->getId()
+        $ticket->number,
+        $ticket->status->value ?? 'unknown',
+        $ticket->id
     );
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

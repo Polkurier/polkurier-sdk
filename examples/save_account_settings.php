@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\SaveAccountSettingsMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\SaveAccountSettingsMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -28,7 +28,7 @@ try {
         defaultCourier: 'UPS',
     ));
 
-    \printf("Default carrier is now %s\n", $account->getDefaultCourier());
+    \printf("Default carrier is now %s\n", $account->defaultCourier);
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

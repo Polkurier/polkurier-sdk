@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\Courier;
  * How a carrier-specific additional field should be presented and validated.
  *
  * Whatever the type, the value is sent as a string in the order's `additional_fields` map.
+ *
+ * @api
  */
 enum AdditionalFieldTypeEnum: string
 {

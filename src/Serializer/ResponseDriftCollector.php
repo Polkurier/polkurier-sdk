@@ -10,16 +10,25 @@ namespace Polkurier\Webservice\Serializer;
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
 
 /**
- * Collects how a response differed from what this version of the SDK expects.
+ * Collects how a response differed from what the SDK expects.
  *
  * Put an instance in the denormalization context under {@see self::CONTEXT_KEY}. Responses are then
  * read leniently: unknown fields and enum values, missing fields and values of another type are
  * read as described by {@see ResponseDriftTypeEnum}, and each case is recorded here. Without it in
  * the context, they fail as usual.
+ *
+ * Internal: {@see \Polkurier\Webservice\Api\SerializerInterface::readResponse()} puts one in the
+ * context, and hands what it collected back as {@see ReadResponse::$drift}, which is the contract.
  */
 class ResponseDriftCollector
 {
     public const string CONTEXT_KEY = 'polkurier_response_drift';
+
+    /**
+     * Where the serializer records the path of the value it is reading. It exposes no constant
+     * for the name, so it is written here once.
+     */
+    public const string PATH_KEY = 'deserialization_path';
 
     /**
      * @var list<ResponseDrift>
@@ -47,9 +56,22 @@ class ResponseDriftCollector
     }
 
     /**
+     * Where a field sits, below the object's own path.
+     *
+     * @param string $path the enclosing object's path, empty at the top level
+     * @param string $field
+     *
+     * @return string
+     */
+    public static function joinPath(string $path, string $field): string
+    {
+        return $path === '' ? $field : $path . '.' . $field;
+    }
+
+    /**
      * @return list<ResponseDrift>
      */
-    public function all(): array
+    public function getDrift(): array
     {
         return $this->drift;
     }
@@ -61,7 +83,7 @@ class ResponseDriftCollector
      *
      * @return self|null
      */
-    public static function fromContext(array $context): ?self
+    public static function findInContext(array $context): ?self
     {
         $collector = $context[self::CONTEXT_KEY] ?? null;
 

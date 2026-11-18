@@ -7,35 +7,43 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Webservice;
 
+use GuzzleHttp\Exception\ClientException;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Api\Http\ClientFactoryInterface;
 use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Account\ChangePinMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\TwoFactorToken\RegisterMessage;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
+use Polkurier\Webservice\Enum\TwoFactorToken\TwoFactorNamespaceEnum;
 use Polkurier\Webservice\Exception\ConnectionException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Http\ClientFactoryInterface;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Log\LoggedFileWriter;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Account\ChangePinMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
 use Polkurier\Webservice\Serializer\SerializerProvider;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Testing\RecordingClient;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\AbstractLogger;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * What the SDK hands to the PSR-3 logger, and when.
  */
+#[CoversNothing]
 final class LoggingTest extends TestCase
 {
+    private const string ADDRESS_WITH_UNKNOWN_TYPE = '{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW",'
+        . '"name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001",'
+        . '"email":"jan@example.com","phone":"500600700","housenumber":"12"}]}';
+
     private RecordingClient $client;
 
     private SpyLogger $logger;
@@ -74,9 +82,71 @@ final class LoggingTest extends TestCase
         self::assertSame(LogLevel::ERROR, $this->logger->records[0]['level']);
     }
 
+    /**
+     * The exception's own message quotes the body it could not read, unredacted. The log message
+     * carries the body prepared the way every other logged body is, so personal data in a body
+     * that is JSON but not an envelope is hidden key by key.
+     *
+     * @return void
+     */
+    public function testAResponseThatCannotBeReadIsLoggedThroughTheSanitizerRatherThanTheException(): void
+    {
+        $this->client->willAnswerWith('[{"person":"Jan Kowalski","email":"jan@example.com"}]');
+
+        try {
+            $this->sdk()->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        $message = $this->logger->records[0]['message'];
+        self::assertStringNotContainsString('Jan Kowalski', $message);
+        self::assertStringNotContainsString('jan@example.com', $message);
+        self::assertStringContainsString('[{"person":"***","email":"***"}]', $message);
+    }
+
+    /**
+     * The exception carries the response it was raised for and a message quoting its body, neither
+     * of which goes through the sanitizer, so the context names its class instead.
+     *
+     * @return void
+     */
+    public function testAMalformedResponsesExceptionIsNamedInTheContextAndCarriedOnlyWhenAllowed(): void
+    {
+        $this->client->willAnswerWith('<html>Bad gateway</html>');
+
+        try {
+            $this->sdk()->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        self::assertSame(MalformedResponseException::class, $this->logger->records[0]['context']['exception']);
+
+        $this->client->willAnswerWith('<html>Bad gateway</html>');
+
+        try {
+            $this->sdk(logSensitiveData: true, logPersonalData: true)->addresses()->getAddresses();
+            self::fail('The malformed response should have been raised.');
+        } catch (MalformedResponseException) {
+        }
+
+        self::assertInstanceOf(
+            MalformedResponseException::class,
+            $this->logger->records[1]['context']['exception'],
+        );
+    }
+
+    /**
+     * A value the SDK's enum doesn't list arrived under a field the API chose the values of, so
+     * the warning names where it is and what type it came as, and the value itself only where a
+     * body's would be shown.
+     *
+     * @return void
+     */
     public function testAnUnknownEnumValueIsLoggedAsAWarningAndTheCallSucceeds(): void
     {
-        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
 
         $addresses = $this->sdk()->addresses()->getAddresses();
 
@@ -84,8 +154,14 @@ final class LoggingTest extends TestCase
         self::assertNull($addresses[0]->getType());
         self::assertCount(1, $this->logger->records);
         self::assertSame(LogLevel::WARNING, $this->logger->records[0]['level']);
-        self::assertStringContainsString('"SOMETHING_NEW"', $this->logger->records[0]['message']);
+        self::assertStringNotContainsString('SOMETHING_NEW', $this->logger->records[0]['message']);
         self::assertStringContainsString('[0].type', $this->logger->records[0]['message']);
+
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
+
+        $this->sdk(logSensitiveData: true, logPersonalData: true)->addresses()->getAddresses();
+
+        self::assertStringContainsString('"SOMETHING_NEW"', $this->logger->records[1]['message']);
     }
 
     public function testAnUnknownFieldIsLoggedAsAWarningAndTheCallSucceeds(): void
@@ -93,7 +169,7 @@ final class LoggingTest extends TestCase
         $this->client->willAnswerWith('{"status":"success","response":[{"servicecode":"DPD","name":"DPD",'
             . '"foreign_shipments":false,"brand_new":1}]}');
 
-        $carriers = $this->sdk()->courier()->availableCarriers();
+        $carriers = $this->sdk()->courier()->getAvailableCarriers();
 
         self::assertCount(1, $carriers);
         self::assertCount(1, $this->logger->records);
@@ -101,9 +177,36 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('Unknown field "[0].brand_new"', $this->logger->records[0]['message']);
     }
 
+    /**
+     * A field the SDK doesn't know can hold anything the API chose to add, so its value reaches
+     * the log context only where a body's would: when neither redactor is hiding anything.
+     *
+     * @return void
+     */
+    public function testAnUnknownFieldsValueStaysOutOfTheLogContextWhileRedactionIsOn(): void
+    {
+        $response = '{"status":"success","response":[{"servicecode":"DPD","name":"DPD",'
+            . '"foreign_shipments":false,"contact_email":"jan@example.com"}]}';
+
+        $this->client->willAnswerWith($response);
+        $this->sdk()->courier()->getAvailableCarriers();
+
+        self::assertCount(1, $this->logger->records);
+        $hidden = $this->logger->records[0];
+        self::assertArrayNotHasKey('value', $hidden['context']);
+        self::assertStringNotContainsString('jan@example.com', $hidden['message']);
+        self::assertSame('[0].contact_email', $hidden['context']['path']);
+
+        $this->client->willAnswerWith($response);
+        $this->sdk(logSensitiveData: true, logPersonalData: true)->courier()->getAvailableCarriers();
+
+        self::assertCount(2, $this->logger->records);
+        self::assertSame('jan@example.com', $this->logger->records[1]['context']['value']);
+    }
+
     public function testAnUnknownEnumValueIsNotLoggedWhenLoggingIsOff(): void
     {
-        $this->client->willAnswerWith('{"status":"success","response":[{"id":"1","type":"SOMETHING_NEW","name":"Magazyn","person":"Jan Kowalski","street":"Długa","city":"Poznań","postcode":"61-001","email":"jan@example.com","phone":"500600700","housenumber":"12"}]}');
+        $this->client->willAnswerWith(self::ADDRESS_WITH_UNKNOWN_TYPE);
 
         $this->sdk(loggingEnabled: false)->addresses()->getAddresses();
 
@@ -156,9 +259,67 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('"token":"***"', $this->logger->records[0]['message']);
         self::assertStringContainsString('"login":"20534"', $this->logger->records[0]['message']);
         self::assertArrayNotHasKey('payload', $this->logger->records[0]['context']);
+        self::assertIsString(
+            $this->logger->records[0]['context']['client_exception'],
+            'the exception object is named rather than carried',
+        );
         $request = $this->logger->records[0]['context']['request'] ?? null;
         self::assertInstanceOf(RequestInterface::class, $request);
         self::assertStringNotContainsString('test-token', (string)$request->getBody());
+    }
+
+    /**
+     * An error envelope carries the API's own fields, not the payload the method asked for, so the
+     * nonce a rejected form answers with is hidden while the codes and the message stay readable.
+     *
+     * @return void
+     */
+    public function testTheNonceOfAnErrorResponseIsHiddenByDefault(): void
+    {
+        $this->client->willAnswerWith('{"status":"error","status_code":422,"error_code":"validation_error",'
+            . '"response":"Formularz odrzucony","validation_errors":{"email":["Niepoprawny adres"]},'
+            . '"nonce":"NONCE-SENTINEL-abc"}');
+
+        try {
+            $this->sdk()->addresses()->getAddresses();
+            self::fail('The error response should have been raised.');
+        } catch (WebserviceException) {
+        }
+
+        $message = $this->logger->records[0]['message'];
+        self::assertStringNotContainsString('NONCE-SENTINEL-abc', $message);
+        self::assertStringContainsString('"nonce":"***"', $message);
+        self::assertStringContainsString('"status_code":422', $message);
+        self::assertStringContainsString('"error_code":"validation_error"', $message);
+        self::assertStringContainsString('"response":"Formularz odrzucony"', $message);
+        self::assertStringContainsString('"email":["Niepoprawny adres"]', $message);
+
+        $response = $this->logger->records[0]['context']['response'] ?? null;
+        self::assertInstanceOf(ResponseInterface::class, $response);
+        self::assertStringNotContainsString('NONCE-SENTINEL-abc', (string)$response->getBody());
+    }
+
+    /**
+     * A client that raises on an error status quotes the response body in the exception's message,
+     * and that body never went through the sanitizer.
+     *
+     * @return void
+     */
+    public function testAnErrorStatusRaisedByTheClientIsLoggedWithoutTheResponseBody(): void
+    {
+        $client = new BadResponseClient('{"email":"jan.kowalski@example.com","phone":"500100100"}');
+
+        try {
+            $this->sdk(clientFactory: $client)->addresses()->getAddresses();
+            self::fail('The transport failure should have been raised.');
+        } catch (ConnectionException) {
+        }
+
+        $message = $this->logger->records[0]['message'];
+        self::assertStringNotContainsString('jan.kowalski@example.com', $message);
+        self::assertStringNotContainsString('500100100', $message);
+        self::assertStringContainsString(ClientException::class, $message);
+        self::assertStringContainsString('400 Bad Request', $message);
     }
 
     public function testAPinSentInALoggedCallIsHiddenByDefault(): void
@@ -175,7 +336,14 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('"pin":"***"', $logged);
     }
 
-    public function testAPinReceivedInALoggedCallIsHiddenByDefault(): void
+    /**
+     * A field is hidden because the class it belongs to marks it, never because of what the key is
+     * called. A key the response carries that no class declares is logged as it arrived, which is
+     * what makes the log worth reading when the API sends something the SDK doesn't know.
+     *
+     * @return void
+     */
+    public function testAPinTheClassMarksIsHiddenAndAKeyNoClassDeclaresIsLoggedAsItArrived(): void
     {
         $serializer = (new SerializerProvider())->getSerializer();
         self::assertInstanceOf(NormalizerInterface::class, $serializer);
@@ -187,7 +355,12 @@ final class LoggingTest extends TestCase
         $this->sdk(methodsToLog: [ApiMethodEnum::GetAccountInfo])->account()->getAccountInfo();
 
         $logged = \implode("\n", \array_column($this->logger->records, 'message'));
-        self::assertStringNotContainsString('4321', $logged);
+        self::assertStringContainsString(
+            '"' . AccountInfoMessage::FIELD_PHONE_PIN . '":"***"',
+            $logged,
+            'the class marks this one',
+        );
+        self::assertStringContainsString('"other_pin":"4321"', $logged, 'no class declares this one');
         foreach ($this->logger->records as $record) {
             self::assertArrayNotHasKey('parsed_response', $record['context']);
         }
@@ -213,11 +386,13 @@ final class LoggingTest extends TestCase
         }
 
         self::assertArrayHasKey('payload', $this->logger->records[0]['context']);
+        self::assertInstanceOf(\Throwable::class, $this->logger->records[0]['context']['client_exception']);
     }
 
     public function testPersonalDataIsHiddenByDefaultAndLoggedWhenAllowed(): void
     {
-        $answer = '{"status":"success","response":[{"id":"7","number":"61109010140000071219812874","name":"Firmowe","default":true}]}';
+        $answer = '{"status":"success","response":[{"id":"7","number":"61109010140000071219812874",'
+            . '"name":"Firmowe","default":true}]}';
 
         $this->client->willAnswerWith($answer);
         $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts])->bankAccounts()->getBankAccounts();
@@ -234,6 +409,39 @@ final class LoggingTest extends TestCase
         self::assertStringContainsString('"number":"***"', $hidden);
         self::assertStringContainsString('"login":"20534"', $hidden);
         self::assertStringContainsString('61109010140000071219812874', $shown);
+    }
+
+    /**
+     * `id` is the token itself on a two-factor response and the record's id on a bank account row.
+     * The same key is hidden in one log entry and kept in the other, decided by the class the body
+     * was read into.
+     *
+     * @return void
+     */
+    public function testTheIdOfATwoFactorTokenIsHiddenWhileABankAccountsIdIsLogged(): void
+    {
+        $this->client->willAnswerWith('{"status":"success","response":{"id":"DT-20534-8f3a",'
+            . '"phone_number":"500600700","operation_title":"Zmiana numeru konta","operation_number":9,'
+            . '"operation_date":null,"sent_at":null,"expires_at":null,"transport_method":null,'
+            . '"available_methods":[]}}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::TwoFactorTokenRegister])
+            ->twoFactorToken()
+            ->register(new RegisterMessage(namespace: TwoFactorNamespaceEnum::ChangeBankAccountNumber));
+
+        $token = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        $this->logger->records = [];
+        $this->client->willAnswerWith('{"status":"success","response":[{"id":"7",'
+            . '"number":"61109010140000071219812874","name":"Firmowe","default":true}]}');
+
+        $this->sdk(methodsToLog: [ApiMethodEnum::GetBankAccounts])->bankAccounts()->getBankAccounts();
+
+        $account = \implode("\n", \array_column($this->logger->records, 'message'));
+
+        self::assertStringNotContainsString('DT-20534-8f3a', $token);
+        self::assertStringContainsString('"id":"***"', $token);
+        self::assertStringContainsString('"id":"7"', $account);
     }
 
     public function testAFileIsLeftOutOfTheLogByDefault(): void
@@ -325,25 +533,9 @@ final class SpyLogger extends AbstractLogger
     public function log($level, $message, array $context = []): void
     {
         if (!\is_string($level)) {
-            throw new \Psr\Log\InvalidArgumentException('Level must be a PSR-3 level string.');
+            throw new InvalidArgumentException('Level must be a PSR-3 level string.');
         }
 
         $this->records[] = ['level' => $level, 'message' => (string)$message, 'context' => $context];
-    }
-}
-
-/**
- * A client whose every request fails at the transport level.
- */
-final class RefusingClient implements ClientInterface, ClientFactoryInterface
-{
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        throw new class ('Connection refused') extends \RuntimeException implements ClientExceptionInterface {};
-    }
-
-    public function create(): ClientInterface
-    {
-        return $this;
     }
 }

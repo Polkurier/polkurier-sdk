@@ -7,8 +7,9 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Validator;
 
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
+use Polkurier\Webservice\Enum\Validator\ValidationErrorCodeEnum;
 use Polkurier\Webservice\Exception\ValidationException;
+use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
 /**
  * Collects the reasons a payload was rejected.
@@ -24,21 +25,69 @@ use Polkurier\Webservice\Exception\ValidationException;
 class ViolationPool
 {
     /**
-     * @var array<string, string[]>
+     * @var list<Violation>
      */
-    protected array $errors = [];
+    protected array $violations = [];
 
     /**
      * Records a failure against a field.
      *
      * @param string $field the wire field name
      * @param string $message phrased to follow the field name, e.g. "must not be empty"
+     * @param ValidationErrorCodeEnum $code why the field was rejected. A rule written for one
+     *        message leaves it, and the violation carries the fallback code
+     * @param array<string, scalar> $parameters the values the message spells out, by name
      *
      * @return void
      */
-    public function add(string $field, string $message): void
+    public function add(
+        string $field,
+        string $message,
+        ValidationErrorCodeEnum $code = ValidationErrorCodeEnum::Other,
+        array $parameters = [],
+    ): void {
+        $this->violations[] = new Violation($field, $code, $message, $parameters);
+    }
+
+    /**
+     * Takes a failure another pool already located, keeping the code it was recorded with.
+     *
+     * @param Violation $violation
+     *
+     * @return void
+     */
+    public function take(Violation $violation): void
     {
-        $this->errors[$field][] = $message;
+        $this->violations[] = $violation;
+    }
+
+    /**
+     * Takes everything a validator that reports by throwing found.
+     *
+     * The violations are taken as they were recorded, so each keeps the code it names its fault
+     * with. An exception carrying none of them is a report built elsewhere, and its English is
+     * read back under the fallback code.
+     *
+     * @param ValidationException $exception
+     *
+     * @return void
+     */
+    public function takeFrom(ValidationException $exception): void
+    {
+        $violations = $exception->getViolations();
+        if ($violations !== []) {
+            foreach ($violations as $violation) {
+                $this->take($violation);
+            }
+
+            return;
+        }
+
+        foreach ($exception->getValidationErrors() as $field => $messages) {
+            foreach ($messages as $message) {
+                $this->add($field, $message);
+            }
+        }
     }
 
     /**
@@ -55,8 +104,13 @@ class ViolationPool
     public function check(string $field, mixed $value, ValueValidatorInterface ...$validators): static
     {
         foreach ($validators as $validator) {
-            foreach ($validator->validate($value) as $message) {
-                $this->add($field, $message);
+            foreach ($validator->validate($value) as $failure) {
+                $this->violations[] = new Violation(
+                    $field,
+                    $failure->code,
+                    $failure->message,
+                    $failure->parameters,
+                );
             }
         }
 
@@ -94,15 +148,32 @@ class ViolationPool
      */
     public function isEmpty(): bool
     {
-        return $this->errors === [];
+        return $this->violations === [];
     }
 
     /**
+     * Every failure, in the order it was recorded.
+     *
+     * @return list<Violation>
+     */
+    public function getViolations(): array
+    {
+        return $this->violations;
+    }
+
+    /**
+     * The failures as the English report, keyed by wire field path.
+     *
      * @return array<string, string[]>
      */
-    public function toArray(): array
+    public function getErrorsByField(): array
     {
-        return $this->errors;
+        $errors = [];
+        foreach ($this->violations as $violation) {
+            $errors[$violation->path][] = $violation->message;
+        }
+
+        return $errors;
     }
 
     /**
@@ -118,10 +189,13 @@ class ViolationPool
      */
     public function mergeUnder(string $prefix, self $other): static
     {
-        foreach ($other->toArray() as $field => $messages) {
-            foreach ($messages as $singleMessage) {
-                $this->add(\sprintf('%s.%s', $prefix, $field), $singleMessage);
-            }
+        foreach ($other->getViolations() as $violation) {
+            $this->violations[] = new Violation(
+                \sprintf('%s.%s', $prefix, $violation->path),
+                $violation->code,
+                $violation->message,
+                $violation->parameters,
+            );
         }
 
         return $this;
@@ -134,7 +208,7 @@ class ViolationPool
     public function throwIfAny(): void
     {
         if (!$this->isEmpty()) {
-            throw new ValidationException($this->errors);
+            throw new ValidationException($this->getErrorsByField(), violations: $this->violations);
         }
     }
 }

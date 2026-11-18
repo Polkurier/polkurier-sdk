@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -23,8 +23,8 @@ try {
         new GetRegulationsMessage(type: RegulationsTypeEnum::Regulations)
     );
 
-    \printf("%s (%s)\n\n", $regulations->getTitle(), $regulations->getId());
-    echo \substr(\strip_tags($regulations->getContent()), 0, 400), "…\n";
+    \printf("%s (%s)\n\n", $regulations->title, $regulations->id);
+    echo \substr(\strip_tags($regulations->content), 0, 400), "…\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

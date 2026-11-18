@@ -7,18 +7,19 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Validator;
 
-use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Api\MessageInterface;
-use Polkurier\Webservice\Api\Validation\MessageRuleInterface;
 use Polkurier\Webservice\Api\Validation\ValidatorInterface;
-use Polkurier\Webservice\Api\Validation\ValueValidatorInterface;
-use Polkurier\Webservice\Api\Validation\ValidatorInterface as MessageValidatorInterface;
+use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Serializer\Attribute\InlineFields;
+use Polkurier\Webservice\Serializer\Attribute\ResponseOnly;
+use Polkurier\Webservice\Serializer\ClassMemberReader;
+use Polkurier\Webservice\Validator\Rule\ClassRuleInterface;
 use Polkurier\Webservice\Validator\Rule\Each;
 use Polkurier\Webservice\Validator\Rule\IgnoredWhen;
-use Polkurier\Webservice\Validator\Rule\Valid;
+use Polkurier\Webservice\Validator\Rule\MessageRuleInterface;
 use Polkurier\Webservice\Validator\Rule\ValidatedBy;
+use Polkurier\Webservice\Validator\Rule\ValueValidatorInterface;
 
 /**
  * Runs the rules a message declares as attributes.
@@ -32,28 +33,37 @@ use Polkurier\Webservice\Validator\Rule\ValidatedBy;
  * - A {@see ValueValidatorInterface} on a property: format rules.
  * - A {@see MessageRuleInterface} on the class: rules about how fields relate. These go on the
  *   class because only the class can see both fields.
- * - {@see Valid} on a property: validate a nested object, or each object in a list.
+ * - No declaration for a nested object: every field the SDK sends is descended into, each
+ *   object in a list among them. A field marked {@see ResponseOnly} is not, holding what was
+ *   read rather than what is about to be written.
  * - {@see Each} on a property: apply one rule to every entry of a list of plain values.
  * - {@see IgnoredWhen} on the class: skip all rules when the block does not apply.
  * - {@see ValidatedBy} on the class: run a validator class, for rules with too much logic for an
  *   attribute.
  *
  * Class-level declarations are inherited, so a rule on a base message applies to every message
- * that extends it.
+ * that extends it. Each of them names the properties it reads, and a name neither the class nor a
+ * record it inlines declares raises
+ * {@see \Polkurier\Webservice\Exception\InvalidArgumentException} as the rules are read.
  *
  * Rules that can't be written as attributes go in an
  * {@see \Polkurier\Webservice\Validator\AbstractMessageValidator}. The usual case is a rule that
  * depends on the role a value plays. For example, an address needs an email when it is the sender
  * but not when it is the recipient.
  *
- * Reflection runs once per class and is cached. Nothing here is final or private, so a subclass can
- * drop a rule by filtering what {@see static::rulesFor()} returns. The cache holds the unfiltered
- * rules, which lets 2 differently configured validators run in the same process.
+ * Reflection runs once per class and is cached.
+ *
+ * @api
  */
 class AttributeValidator implements ValidatorInterface
 {
     /**
      * Rules per class, as [property => ValueValidatorInterface[]] plus the class-level rules.
+     *
+     * Private, with the reading private too: the cache is keyed by the message class alone, so a
+     * subclass that filled it from its own reading would decide what every other instance of this
+     * validator sees for that class. A subclass validates differently by overriding
+     * {@see self::collect()}, which the cache does not reach.
      *
      * @var array<class-string, array{
      *     values: array<string, ValueValidatorInterface[]>,
@@ -62,15 +72,15 @@ class AttributeValidator implements ValidatorInterface
      *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
-     *     validators: class-string<MessageValidatorInterface>[]
+     *     validators: class-string<ValidatorInterface>[]
      * }>
      */
-    protected static array $rules = [];
+    private static array $rules = [];
 
     /**
      * One instance per declared validator, shared across every message that names it.
      *
-     * @var array<class-string<MessageValidatorInterface>, MessageValidatorInterface>
+     * @var array<class-string<ValidatorInterface>, ValidatorInterface>
      */
     protected static array $declared = [];
 
@@ -102,8 +112,8 @@ class AttributeValidator implements ValidatorInterface
      */
     public function collect(object $message, ViolationPool $violations): void
     {
-        $rules = static::rulesFor($message::class);
-        $fields = new MessageFields($message);
+        $rules = self::readRules($message::class);
+        $fields = new MessageFieldReader($message);
 
         foreach ($rules['ignored'] as $ignored) {
             if ($ignored->applies($fields)) {
@@ -112,15 +122,15 @@ class AttributeValidator implements ValidatorInterface
         }
 
         foreach ($rules['values'] as $property => $validators) {
-            $value = $fields->value($property);
+            $value = $fields->readValue($property);
 
             foreach ($validators as $validator) {
-                $violations->check($fields->field($property), $value, $validator);
+                $violations->check($fields->readField($property), $value, $validator);
             }
         }
 
         foreach ($rules['each'] as $property => $validators) {
-            $value = $fields->value($property);
+            $value = $fields->readValue($property);
 
             if (!\is_iterable($value)) {
                 continue;
@@ -128,7 +138,7 @@ class AttributeValidator implements ValidatorInterface
 
             foreach ($value as $index => $item) {
                 $violations->check(
-                    \sprintf('%s[%s]', $fields->field($property), (string)$index),
+                    \sprintf('%s[%s]', $fields->readField($property), (string)$index),
                     $item,
                     ...$validators,
                 );
@@ -136,13 +146,13 @@ class AttributeValidator implements ValidatorInterface
         }
 
         foreach ($rules['nested'] as $property) {
-            $value = $fields->value($property);
+            $value = $fields->readValue($property);
             if (\in_array($property, $rules['inlined'], true) && \is_object($value)) {
                 // An inlined object's fields are sent at this level, so they are reported here too
                 $this->collect($value, $violations);
                 continue;
             }
-            $this->collectNested($value, $fields->field($property), $violations);
+            $this->collectNested($value, $fields->readField($property), $violations);
         }
 
         foreach ($rules['message'] as $rule) {
@@ -161,7 +171,7 @@ class AttributeValidator implements ValidatorInterface
      * so they are reported together with the attribute violations. Otherwise a payload with a bad
      * postcode and an invalid field combination would only report the second.
      *
-     * @param class-string<MessageValidatorInterface> $validator
+     * @param class-string<ValidatorInterface> $validator
      * @param object $message
      * @param ViolationPool $violations
      *
@@ -178,11 +188,7 @@ class AttributeValidator implements ValidatorInterface
         try {
             self::$declared[$validator]->validate($message);
         } catch (ValidationException $e) {
-            foreach ($e->getValidationErrors() as $field => $messages) {
-                foreach ($messages as $singleMessage) {
-                    $violations->add($field, $singleMessage);
-                }
-            }
+            $violations->takeFrom($e);
         }
     }
 
@@ -198,7 +204,7 @@ class AttributeValidator implements ValidatorInterface
      */
     protected function collectNested(mixed $value, string $field, ViolationPool $violations): void
     {
-        if (\is_object($value)) {
+        if (self::walksInto($value)) {
             $nested = new ViolationPool();
             $this->collect($value, $nested);
             $violations->mergeUnder($field, $nested);
@@ -211,7 +217,7 @@ class AttributeValidator implements ValidatorInterface
         }
 
         foreach ($value as $index => $item) {
-            if (!\is_object($item)) {
+            if (!self::walksInto($item)) {
                 continue;
             }
             $nested = new ViolationPool();
@@ -220,6 +226,21 @@ class AttributeValidator implements ValidatorInterface
         }
     }
 
+    /**
+     * Whether a value is an object whose own fields can carry rules.
+     *
+     * An enum is one of a fixed set, so it is valid by having been built at all, and a date is a
+     * point in time with no fields to describe. Neither declares a rule, and walking them would
+     * read a foreign class's properties.
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    protected static function walksInto(mixed $value): bool
+    {
+        return \is_object($value) && !$value instanceof \UnitEnum && !$value instanceof \DateTimeInterface;
+    }
 
     /**
      * @param class-string $class
@@ -231,11 +252,12 @@ class AttributeValidator implements ValidatorInterface
      *     inlined: string[],
      *     message: MessageRuleInterface[],
      *     ignored: IgnoredWhen[],
-     *     validators: class-string<MessageValidatorInterface>[]
+     *     validators: class-string<ValidatorInterface>[]
      * }
-     * @throws InvalidArgumentException when the class does not exist
+     * @throws InvalidArgumentException when the class does not exist, or one of its class-level
+     *         rules names a property the class does not provide
      */
-    protected static function rulesFor(string $class): array
+    private static function readRules(string $class): array
     {
         if (isset(self::$rules[$class])) {
             return self::$rules[$class];
@@ -249,7 +271,11 @@ class AttributeValidator implements ValidatorInterface
         $ignored = [];
         $validators = [];
 
-        $reflection = MessageFields::reflect($class);
+        $reflection = MessageFieldReader::reflect($class);
+
+        // A rule a subclass repeats from its base is one rule, not two, so the same declaration
+        // is taken once however many classes in the chain carry it.
+        $seen = [];
 
         // Class-level rules are inherited, so a rule on a base message applies to its subclasses.
         for ($declaring = $reflection; $declaring !== false; $declaring = $declaring->getParentClass()) {
@@ -257,10 +283,14 @@ class AttributeValidator implements ValidatorInterface
             // is never constructed here.
             $rules = $declaring->getAttributes(MessageRuleInterface::class, \ReflectionAttribute::IS_INSTANCEOF);
             foreach ($rules as $attribute) {
-                $message[] = $attribute->newInstance();
+                if (self::isNew($attribute, $seen)) {
+                    $message[] = $attribute->newInstance();
+                }
             }
             foreach ($declaring->getAttributes(IgnoredWhen::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                $ignored[] = $attribute->newInstance();
+                if (self::isNew($attribute, $seen)) {
+                    $ignored[] = $attribute->newInstance();
+                }
             }
             foreach ($declaring->getAttributes(ValidatedBy::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
                 $validators[] = $attribute->newInstance()->validator;
@@ -285,19 +315,28 @@ class AttributeValidator implements ValidatorInterface
                     $values[$name][] = $attribute->newInstance();
                 }
                 foreach ($property->getAttributes(Each::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                    $each[$name][] = $attribute->newInstance()->rule();
+                    $each[$name][] = $attribute->newInstance()->makeRule();
                 }
-                if ($property->getAttributes(Valid::class, \ReflectionAttribute::IS_INSTANCEOF) !== []
-                    && !\in_array($name, $nested, true)
-                ) {
+                // Everything the SDK sends is descended into; the value decides whether there is
+                // anything to check, see {@see self::collectNested()}. A field the API returns and
+                // never takes holds what the SDK read rather than what it is about to write, so
+                // validating it would report a fault no payload can carry.
+                if ($property->getAttributes(ResponseOnly::class) === [] && !\in_array($name, $nested, true)) {
                     $nested[] = $name;
-                }
-                if ($property->getAttributes(InlineFields::class) !== [] && !\in_array($name, $inlined, true)) {
-                    $inlined[] = $name;
                 }
             }
             $current = $current->getParentClass();
         }
+
+        // A method can carry the attribute too, but the rules of an inlined record are read from
+        // the property that holds it.
+        foreach (ClassMemberReader::readMarkedWith($class, InlineFields::class) as $member) {
+            if ($member instanceof \ReflectionProperty && !\in_array($member->getName(), $inlined, true)) {
+                $inlined[] = $member->getName();
+            }
+        }
+
+        self::checkNamedProperties($class, [...$ignored, ...$message]);
 
         return self::$rules[$class] = [
             'values' => $values,
@@ -308,5 +347,58 @@ class AttributeValidator implements ValidatorInterface
             'ignored' => $ignored,
             'validators' => \array_values(\array_unique($validators)),
         ];
+    }
+
+    /**
+     * Resolves the properties a class's rules name against the class that declares them.
+     *
+     * A rule names its properties as strings, and a name the class does not provide reads null:
+     * {@see IgnoredWhen} then finds its block turned off and skips every rule on the class, and
+     * the cross-field rules find nothing to compare and report nothing.
+     *
+     * @param class-string $class
+     * @param list<ClassRuleInterface> $rules
+     *
+     * @return void
+     * @throws InvalidArgumentException when a rule names a property the class does not provide
+     */
+    protected static function checkNamedProperties(string $class, array $rules): void
+    {
+        foreach ($rules as $rule) {
+            foreach ($rule->listProperties() as $property) {
+                if (MessageFieldReader::providesProperty($class, $property)) {
+                    continue;
+                }
+
+                throw new InvalidArgumentException(\sprintf(
+                    '%s declares %s naming the property $%s, which neither it nor a record it inlines has.',
+                    $class,
+                    $rule::class,
+                    $property,
+                ));
+            }
+        }
+    }
+
+    /**
+     * Whether this declaration has not been taken yet, recording it when it has not.
+     *
+     * Two declarations are the same when they name the same attribute with the same arguments,
+     * which is what a subclass repeating a base's rule produces.
+     *
+     * @param \ReflectionAttribute<object> $attribute
+     * @param array<string, true> $seen
+     *
+     * @return bool
+     */
+    private static function isNew(\ReflectionAttribute $attribute, array &$seen): bool
+    {
+        $key = $attribute->getName() . '(' . \serialize($attribute->getArguments()) . ')';
+        if (isset($seen[$key])) {
+            return false;
+        }
+        $seen[$key] = true;
+
+        return true;
     }
 }

@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Courier;
 
 /**
  * Whether a carrier notice is an operational alert or general information.
+ *
+ * @api
  */
 enum CourierMessageTypeEnum: string
 {

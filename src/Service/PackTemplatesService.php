@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\PackTemplatesServiceInterface;
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Entity\PackTemplate;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,9 +17,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\PackTemplate\SaveMessage;
-use Polkurier\Webservice\Response\PackTemplate;
 
 /**
  * @see \Polkurier\Webservice\Api\Service\PackTemplatesServiceInterface
@@ -30,6 +29,7 @@ class PackTemplatesService extends AbstractService implements PackTemplatesServi
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getPackTemplates(): array
@@ -38,7 +38,7 @@ class PackTemplatesService extends AbstractService implements PackTemplatesServi
     }
 
     /**
-     * @param SaveMessage $saveMessage
+     * @param PackTemplate $packTemplate
      *
      * @return PackTemplate
      * @throws AuthorizationException
@@ -48,12 +48,12 @@ class PackTemplatesService extends AbstractService implements PackTemplatesServi
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function savePackTemplates(SaveMessage $saveMessage): PackTemplate
+    public function savePackTemplates(PackTemplate $packTemplate): PackTemplate
     {
         return $this->requestObject(
             ApiMethodEnum::SavePackTemplate,
             PackTemplate::class,
-            $saveMessage,
+            $packTemplate,
         );
     }
 

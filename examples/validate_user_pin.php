@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\ValidatePinMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\ValidatePinMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -27,7 +27,7 @@ if ($pin === '') {
 try {
     $validity = polkurier()->account()->validateUserPin(new ValidatePinMessage(pin: $pin));
 
-    echo $validity->isValid() ? "That PIN is correct.\n" : "That PIN is wrong.\n";
+    echo $validity->valid ? "That PIN is correct.\n" : "That PIN is wrong.\n";
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

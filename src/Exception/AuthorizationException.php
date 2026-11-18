@@ -22,6 +22,12 @@ use Polkurier\Webservice\Enum\Http\ApiErrorCodeEnum;
  */
 class AuthorizationException extends WebserviceException
 {
+    /**
+     * The codes this exception is raised for.
+     *
+     * {@see ApiErrorCodeEnum::rejectsCredentials()} decides; this lists the same cases for a
+     * caller that wants them as strings.
+     */
     public const array ERROR_CODES = [
         ApiErrorCodeEnum::EmptyAuthData->value,
         ApiErrorCodeEnum::EmptyLogin->value,
@@ -38,9 +44,7 @@ class AuthorizationException extends WebserviceException
      */
     public static function isAuthorizationErrorStatus(int $status): bool
     {
-        $code = ApiErrorCodeEnum::fromStatusCode($status);
-
-        return $code !== null && static::isAuthorizationErrorCode($code->value);
+        return ApiErrorCodeEnum::findByStatusCode($status)?->rejectsCredentials() === true;
     }
 
     /**
@@ -50,6 +54,6 @@ class AuthorizationException extends WebserviceException
      */
     public static function isAuthorizationErrorCode(string $code): bool
     {
-        return \in_array($code, static::ERROR_CODES);
+        return ApiErrorCodeEnum::tryFrom($code)?->rejectsCredentials() === true;
     }
 }

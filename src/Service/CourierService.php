@@ -8,6 +8,16 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\CourierServiceInterface;
+use Polkurier\Webservice\Dto\Request\Courier\AvailableCarriersMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetCountriesMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Dto\Response\Carrier;
+use Polkurier\Webservice\Dto\Response\Country;
+use Polkurier\Webservice\Dto\Response\Courier\PickupResponseMessage;
+use Polkurier\Webservice\Dto\Response\Courier\PickupTimeMessage;
+use Polkurier\Webservice\Dto\Response\CourierPoint;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,16 +25,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\Courier\AvailableCarriersMessage;
-use Polkurier\Webservice\Request\Courier\GetCountriesMessage;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Response\Carrier;
-use Polkurier\Webservice\Response\Country;
-use Polkurier\Webservice\Response\CourierPoint;
-use Polkurier\Webservice\Response\Courier\PickupResponseMessage;
-use Polkurier\Webservice\Response\Courier\PickupTimeMessage;
 
 /**
  * @see \Polkurier\Webservice\Api\Service\CourierServiceInterface
@@ -42,7 +42,7 @@ class CourierService extends AbstractService implements CourierServiceInterface
      * @throws ValidationException
      * @throws WebserviceException
      */
-    public function availableCarriers(
+    public function getAvailableCarriers(
         ?AvailableCarriersMessage $availableCarriersMessage = null
     ): array {
         return $this->requestList(
@@ -115,6 +115,7 @@ class CourierService extends AbstractService implements CourierServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getSupportedCountries(): array

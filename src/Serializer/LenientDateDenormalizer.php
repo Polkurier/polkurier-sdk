@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Serializer;
 
 use Polkurier\Webservice\Enum\Serializer\ResponseDriftTypeEnum;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -35,6 +36,7 @@ class LenientDateDenormalizer implements NormalizerInterface, DenormalizerInterf
      * @param array<string, mixed> $context
      *
      * @return \ArrayObject<string, mixed>|array<array-key, mixed>|string|int|float|bool|null
+     * @throws SerializerException when the wrapped normalizer refuses the data
      */
     public function normalize(
         mixed $data,
@@ -71,11 +73,11 @@ class LenientDateDenormalizer implements NormalizerInterface, DenormalizerInterf
         try {
             return $this->inner->denormalize($data, $type, $format, $context);
         } catch (NotNormalizableValueException $e) {
-            $drift = ResponseDriftCollector::fromContext($context);
+            $drift = ResponseDriftCollector::findInContext($context);
             if ($drift === null) {
                 throw $e;
             }
-            $path = $context['deserialization_path'] ?? null;
+            $path = $context[ResponseDriftCollector::PATH_KEY] ?? null;
             $drift->add(ResponseDriftTypeEnum::CastValue, \is_string($path) ? $path : '', $data, $type);
 
             return null;

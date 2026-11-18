@@ -18,7 +18,7 @@ require __DIR__ . '/bootstrap.php';
 
 try {
     foreach (polkurier()->knowledgeBase()->getIndex() as $entry) {
-        \printf("%-50s %-12s %s\n", $entry->getSlug(), $entry->getType()->value ?? 'unknown', $entry->getTitle());
+        \printf("%-50s %-12s %s\n", $entry->slug, $entry->type->value ?? 'unknown', $entry->title);
     }
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");

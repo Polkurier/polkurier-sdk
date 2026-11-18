@@ -7,29 +7,26 @@ declare(strict_types=1);
 
 namespace Polkurier\Webservice\Test\Unit\Message;
 
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Dto\Response\Account\AccountInfoMessage;
+use Polkurier\Webservice\Dto\Response\Account\ExternalApplicationSettingMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormOptionMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactFormValueMessage;
+use Polkurier\Webservice\Dto\Response\Contact\ContactTopicMessage;
+use Polkurier\Webservice\Dto\Response\Contact\KnowledgeBaseLinkMessage;
+use Polkurier\Webservice\Dto\Response\Order\File;
+use Polkurier\Webservice\Dto\Response\Order\ValuationMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketFileContentMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketMessage;
+use Polkurier\Webservice\Dto\Response\Ticket\TicketResponseTemplateMessage;
+use Polkurier\Webservice\Entity\Order;
 use Polkurier\Webservice\Enum\Contact\ContactFormFieldTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormSeverityEnum;
-use Polkurier\Webservice\Http\Response\ResponseFactory;
-use Polkurier\Webservice\Response\Account\AccountInfoMessage;
-use Polkurier\Webservice\Response\Account\ExternalApplicationSettingMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormOptionMessage;
-use Polkurier\Webservice\Response\Contact\ContactFormValueMessage;
-use Polkurier\Webservice\Response\Contact\ContactTopicMessage;
-use Polkurier\Webservice\Response\Contact\KnowledgeBaseLinkMessage;
-use Polkurier\Webservice\Response\Order;
-use Polkurier\Webservice\Response\Order\File;
-use Polkurier\Webservice\Response\Order\ValuationMessage;
-use Polkurier\Webservice\Response\Ticket\TicketFileContentMessage;
-use Polkurier\Webservice\Response\Ticket\TicketMessage;
-use Polkurier\Webservice\Response\Ticket\TicketResponseTemplateMessage;
 use Polkurier\Webservice\Serializer\SerializerConfig;
-use Polkurier\Webservice\Serializer\SerializerProvider;
+use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * Valuations, contact forms and their values read into typed messages, from payloads shaped as the
@@ -60,15 +57,15 @@ final class TypedResponseTest extends TestCase
         [$inpost, $dhl] = $quotes;
         self::assertInstanceOf(ValuationMessage::class, $inpost);
         self::assertInstanceOf(ValuationMessage::class, $dhl);
-        self::assertSame('INPOST', $inpost->getServiceCode());
-        self::assertSame('InPost Kurier', $inpost->getServiceName());
-        self::assertSame(15.12, $inpost->getNetPrice());
-        self::assertSame(19.0, $inpost->getGrossPrice());
-        self::assertSame(1.85, $inpost->getPromotionGross());
-        self::assertTrue($inpost->isShipment());
-        self::assertFalse($dhl->isShipment());
-        self::assertFalse($dhl->isAvailable());
-        self::assertSame('Niedostępny', $dhl->getUnavailableMessage());
+        self::assertSame('INPOST', $inpost->serviceCode);
+        self::assertSame('InPost Kurier', $inpost->serviceName);
+        self::assertSame(15.12, $inpost->netPrice);
+        self::assertSame(19.0, $inpost->grossPrice);
+        self::assertSame(1.85, $inpost->promotionGross);
+        self::assertTrue($inpost->shipment);
+        self::assertFalse($dhl->shipment);
+        self::assertFalse($dhl->available);
+        self::assertSame('Niedostępny', $dhl->unavailableMessage);
     }
 
     public function testAContactFormReadsItsFieldsChoicesAndValues(): void
@@ -76,7 +73,10 @@ final class TypedResponseTest extends TestCase
         $form = self::read(ContactFormMessage::class, [
             'id' => 'form-1',
             'fields' => [
-                ['id' => 'f1', 'type' => 'TEXT', 'name' => 'name', 'value' => '', 'label' => 'Imię', 'maxLength' => 100],
+                [
+                    'id' => 'f1', 'type' => 'TEXT', 'name' => 'name', 'value' => '', 'label' => 'Imię',
+                    'maxLength' => 100,
+                ],
                 [
                     'id' => 'f2', 'type' => 'SELECT', 'name' => 'courier', 'value' => '', 'label' => 'Przewoźnik',
                     'options' => [
@@ -84,14 +84,18 @@ final class TypedResponseTest extends TestCase
                         ['value' => '-1', 'label' => 'Inne', 'condition' => '@a != \'\''],
                     ],
                 ],
-                ['id' => 'f3', 'type' => 'SELECT', 'name' => 'target', 'value' => '', 'label' => 'Cel', 'options' => '@COURIERS'],
+                [
+                    'id' => 'f3', 'type' => 'SELECT', 'name' => 'target', 'value' => '', 'label' => 'Cel',
+                    'options' => '@COURIERS',
+                ],
                 [
                     'id' => 'f4', 'type' => 'ALERT', 'value' => '', 'label' => 'Uwaga', 'severity' => 'WARNING',
                     'condition' => '@courier IN @COURIERS', 'props' => ['fontSize' => 'small', 'inset' => true],
                 ],
                 [
                     'id' => 'f5', 'type' => 'FILES', 'name' => 'attachments[]', 'value' => '', 'label' => 'Pliki',
-                    'maxLength' => 5, 'maxFileSize' => 10485760, 'allowedFileExtensions' => ['pdf', 'png'], 'props' => [],
+                    'maxLength' => 5, 'maxFileSize' => 10485760, 'allowedFileExtensions' => ['pdf', 'png'],
+                    'props' => [],
                 ],
                 ['id' => 'f6', 'type' => 'NEW_KIND', 'name' => 'x', 'value' => '', 'label' => 'X'],
             ],
@@ -102,41 +106,41 @@ final class TypedResponseTest extends TestCase
         ]);
 
         self::assertInstanceOf(ContactFormMessage::class, $form);
-        self::assertSame('form-1', $form->getId());
-        self::assertSame('nonce-1', $form->getNonce());
-        self::assertTrue($form->hasForm());
-        self::assertFalse($form->isWebOnly());
+        self::assertSame('form-1', $form->id);
+        self::assertSame('nonce-1', $form->nonce);
+        self::assertTrue($form->hasForm);
+        self::assertFalse($form->webOnly);
 
-        [$text, $select, $sourced, $alert, $files, $unknown] = $form->getFields();
-        self::assertSame(ContactFormFieldTypeEnum::Text, $text->getType());
-        self::assertSame(100, $text->getMaxLength());
+        [$text, $select, $sourced, $alert, $files, $unknown] = $form->fields;
+        self::assertSame(ContactFormFieldTypeEnum::Text, $text->type);
+        self::assertSame(100, $text->maxLength);
         self::assertEquals(
             [new ContactFormOptionMessage('DPD', 'DPD'), new ContactFormOptionMessage('-1', 'Inne', '@a != \'\'')],
-            $select->getOptions(),
+            $select->options,
         );
-        self::assertSame('', $select->getOptionsSource());
-        self::assertSame([], $sourced->getOptions());
-        self::assertSame('@COURIERS', $sourced->getOptionsSource());
-        self::assertSame(ContactFormSeverityEnum::Warning, $alert->getSeverity());
-        self::assertSame('', $alert->getName());
-        self::assertSame('@courier IN @COURIERS', $alert->getCondition());
+        self::assertSame('', $select->optionsSource);
+        self::assertSame([], $sourced->options);
+        self::assertSame('@COURIERS', $sourced->optionsSource);
+        self::assertSame(ContactFormSeverityEnum::Warning, $alert->severity);
+        self::assertSame('', $alert->name);
+        self::assertSame('@courier IN @COURIERS', $alert->condition);
         self::assertEquals(
             [new ContactFormValueMessage('fontSize', 'small'), new ContactFormValueMessage('inset', true)],
-            $alert->getProps(),
+            $alert->props,
         );
-        self::assertSame(['pdf', 'png'], $files->getAllowedFileExtensions());
-        self::assertSame(10485760, $files->getMaxFileSize());
-        self::assertSame([], $files->getProps());
-        self::assertNull($unknown->getType());
+        self::assertSame(['pdf', 'png'], $files->allowedFileExtensions);
+        self::assertSame(10485760, $files->maxFileSize);
+        self::assertSame([], $files->props);
+        self::assertNull($unknown->type);
 
         self::assertEquals(
             [
                 new ContactFormValueMessage('COURIERS', '["DPD","DHL"]'),
                 new ContactFormValueMessage('hide_login_button', true),
             ],
-            $form->getProperties(),
+            $form->properties,
         );
-        self::assertSame([], $form->getState());
+        self::assertSame([], $form->state);
     }
 
     public function testATopicWithoutAFormReadsAsSuch(): void
@@ -144,9 +148,9 @@ final class TypedResponseTest extends TestCase
         $form = self::read(ContactFormMessage::class, ['has_form' => false]);
 
         self::assertInstanceOf(ContactFormMessage::class, $form);
-        self::assertFalse($form->hasForm());
-        self::assertSame([], $form->getFields());
-        self::assertSame('', $form->getNonce());
+        self::assertFalse($form->hasForm);
+        self::assertSame([], $form->fields);
+        self::assertSame('', $form->nonce);
     }
 
     public function testAWebOnlyFormGivesItsAddress(): void
@@ -157,8 +161,8 @@ final class TypedResponseTest extends TestCase
         ]);
 
         self::assertInstanceOf(ContactFormMessage::class, $form);
-        self::assertTrue($form->isWebOnly());
-        self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->getHref());
+        self::assertTrue($form->webOnly);
+        self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->href);
     }
 
     public function testAWebOnlyFormReadsWithNothingButItsAddress(): void
@@ -168,11 +172,11 @@ final class TypedResponseTest extends TestCase
         ], strict: true);
 
         self::assertInstanceOf(ContactFormMessage::class, $form);
-        self::assertTrue($form->hasForm());
-        self::assertTrue($form->isWebOnly());
-        self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->getHref());
-        self::assertSame([], $form->getFields());
-        self::assertSame('', $form->getNonce());
+        self::assertTrue($form->hasForm);
+        self::assertTrue($form->webOnly);
+        self::assertSame('https://www.polkurier.pl/kontakt/abc', $form->href);
+        self::assertSame([], $form->fields);
+        self::assertSame('', $form->nonce);
     }
 
     public function testATopicReadsItsHelpLinks(): void
@@ -188,11 +192,11 @@ final class TypedResponseTest extends TestCase
         self::assertInstanceOf(ContactTopicMessage::class, $topic);
         self::assertEquals(
             [new KnowledgeBaseLinkMessage('jak-wykonac-zrzut-ekranu', 'Jak wykonać zrzut ekranu?')],
-            $topic->getKnowledgeBaseArticles(),
+            $topic->knowledgeBaseArticles,
         );
         self::assertEquals(
             [new KnowledgeBaseLinkMessage('reklamacje', 'Reklamacje')],
-            $topic->getKnowledgeBaseCategories(),
+            $topic->knowledgeBaseCategories,
         );
     }
 
@@ -209,7 +213,7 @@ final class TypedResponseTest extends TestCase
                 ],
                 ['name' => 'zdjecie.png', 'type' => 'image/png', 'size' => 10, 'hash' => 'def', 'date_created' => null],
             ],
-        ] + self::sample(Order::class));
+        ] + Sample::wire(Order::class));
 
         self::assertInstanceOf(Order::class, $order);
         $files = $order->getFiles();
@@ -218,10 +222,10 @@ final class TypedResponseTest extends TestCase
         [$invoice, $photo] = $files;
         self::assertInstanceOf(File::class, $invoice);
         self::assertInstanceOf(File::class, $photo);
-        self::assertSame('faktura.pdf', $invoice->getName());
-        self::assertSame(2048, $invoice->getSize());
-        self::assertSame('2026-10-01', $invoice->getDateCreated()?->format('Y-m-d'));
-        self::assertNull($photo->getDateCreated());
+        self::assertSame('faktura.pdf', $invoice->name);
+        self::assertSame(2048, $invoice->size);
+        self::assertSame('2026-10-01', $invoice->dateCreated?->format('Y-m-d'));
+        self::assertNull($photo->dateCreated);
     }
 
     public function testADownloadedTicketAttachmentReadsEveryFieldTheApiSends(): void
@@ -236,10 +240,10 @@ final class TypedResponseTest extends TestCase
         ], strict: true);
 
         self::assertInstanceOf(TicketFileContentMessage::class, $file);
-        self::assertSame('zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg', $file->getName());
-        self::assertSame('2026-09-23', $file->getDateCreated()?->format('Y-m-d'));
-        self::assertSame('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', $file->getHash());
-        self::assertSame('abc', $file->getDecodedFile());
+        self::assertSame('zdjecie_1b4e28ba-2fa1-41d2-883f-0016d3cca427.jpg', $file->name);
+        self::assertSame('2026-09-23', $file->dateCreated?->format('Y-m-d'));
+        self::assertSame('9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', $file->hash);
+        self::assertSame('abc', $file->file);
     }
 
     public function testATicketReadsTheAnswersItsLatestReplyAsksFor(): void
@@ -252,19 +256,19 @@ final class TypedResponseTest extends TestCase
         self::assertInstanceOf(TicketMessage::class, $ticket);
         self::assertEquals(
             new TicketResponseTemplateMessage('Czy paczka dotarła?', ['Tak', 'Nie']),
-            $ticket->getResponseTemplate(),
+            $ticket->responseTemplate,
         );
 
-        $sample = self::sample(TicketMessage::class);
+        $sample = Sample::wire(TicketMessage::class);
         unset($sample[TicketMessage::FIELD_RESPONSE_TEMPLATE]);
         $none = self::read(TicketMessage::class, $sample);
         self::assertInstanceOf(TicketMessage::class, $none);
-        self::assertNull($none->getResponseTemplate());
+        self::assertNull($none->responseTemplate);
     }
 
     public function testExternalApplicationSettingsReadAsNamedValues(): void
     {
-        $sample = self::sample(AccountInfoMessage::class);
+        $sample = Sample::wire(AccountInfoMessage::class);
         $info = self::read(AccountInfoMessage::class, ['external_application_settings' => [
             'webhook_url' => 'https://shop.example.com/polkurier',
             'statuses' => ['NEW', 'SENT'],
@@ -277,17 +281,17 @@ final class TypedResponseTest extends TestCase
                 new ExternalApplicationSettingMessage('statuses', '["NEW","SENT"]'),
                 new ExternalApplicationSettingMessage('enabled', true),
             ],
-            $info->getExternalApplicationSettings(),
+            $info->externalApplicationSettings,
         );
 
         $none = self::read(AccountInfoMessage::class, ['external_application_settings' => []] + $sample);
         self::assertInstanceOf(AccountInfoMessage::class, $none);
-        self::assertSame([], $none->getExternalApplicationSettings());
+        self::assertSame([], $none->externalApplicationSettings);
 
         unset($sample[AccountInfoMessage::FIELD_EXTERNAL_APPLICATION_SETTINGS]);
         $notAsked = self::read(AccountInfoMessage::class, $sample);
         self::assertInstanceOf(AccountInfoMessage::class, $notAsked);
-        self::assertNull($notAsked->getExternalApplicationSettings());
+        self::assertNull($notAsked->externalApplicationSettings);
     }
 
     /**
@@ -312,34 +316,13 @@ final class TypedResponseTest extends TestCase
             'pin_locks' => ['PIN_SETTINGS' => false, 'BANK_ACCOUNTS_EDIT' => false, 'COD_MONEY_BOX' => false],
             'settings' => ['user_delivery_pickup_myself' => false, 'cover_address_sender_checked' => false],
         ];
-        $body = \json_encode(['status' => 'success', 'response' => $profile], \JSON_THROW_ON_ERROR);
 
-        $info = (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: true))))
-            ->create(new Response(200, [], $body), AccountInfoMessage::class)
-            ->getEnvelope()
-            ->getResponse();
+        $info = self::read(AccountInfoMessage::class, $profile, strict: true);
 
         self::assertInstanceOf(AccountInfoMessage::class, $info);
-        self::assertSame('1357', $info->getPhonePin());
-        self::assertSame('POZ01A', $info->getDefaultInpostSenderPoint());
-        self::assertNull($info->getDefaultPocztexSenderPoint());
-    }
-
-    /**
-     * A fully populated response of the class, in its wire form.
-     *
-     * @param class-string $class
-     *
-     * @return array<array-key, mixed>
-     */
-    private static function sample(string $class): array
-    {
-        $serializer = (new SerializerProvider())->getSerializer();
-        self::assertInstanceOf(NormalizerInterface::class, $serializer);
-        $wire = $serializer->normalize(Sample::of($class), 'json');
-        self::assertIsArray($wire);
-
-        return $wire;
+        self::assertSame('1357', $info->phonePin);
+        self::assertSame('POZ01A', $info->defaultInpostSenderPoint);
+        self::assertNull($info->defaultKurier48SenderPoint);
     }
 
     /**
@@ -351,11 +334,6 @@ final class TypedResponseTest extends TestCase
      */
     private static function read(string $format, array $payload, bool $strict = false): mixed
     {
-        $body = \json_encode(['status' => 'success', 'response' => $payload], \JSON_THROW_ON_ERROR);
-
-        return (new ResponseFactory(new SerializerProvider(new SerializerConfig(strictResponses: $strict))))
-            ->create(new Response(200, [], $body), $format)
-            ->getEnvelope()
-            ->getResponse();
+        return Responses::read($format, $payload, new SerializerConfig(strictResponses: $strict));
     }
 }

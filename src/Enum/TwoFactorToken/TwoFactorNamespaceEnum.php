@@ -12,6 +12,8 @@ namespace Polkurier\Webservice\Enum\TwoFactorToken;
  *
  * A token is bound to one namespace when it is registered and only works for that operation. The
  * API rejects unknown namespaces.
+ *
+ * @api
  */
 enum TwoFactorNamespaceEnum: string
 {
@@ -31,7 +33,7 @@ enum TwoFactorNamespaceEnum: string
     case DisableTwoFactorLogin = 'DISABLE_TWO_FACTOR_LOGIN';
 
     /**
-     * Changing the account's default telephone number.
+     * Changing the account's default phone number.
      */
     case ChangeDefaultPhoneNumber = 'CHANGE_DEFAULT_PHONE_NUMBER';
 

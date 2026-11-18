@@ -10,37 +10,40 @@ namespace Polkurier\Webservice\Test\Unit\Webservice;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Polkurier\Webservice\Config;
+use Polkurier\Webservice\Dto\Request\Account\GetRegulationsMessage;
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage as AddressDeleteMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\BankAccount\DeleteBankAccountMessage;
+use Polkurier\Webservice\Dto\Request\Common\DeleteMessage;
+use Polkurier\Webservice\Dto\Request\Contact\SaveContactFormMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPickupTimeMessage;
+use Polkurier\Webservice\Dto\Request\Courier\GetPointMessage;
+use Polkurier\Webservice\Dto\Request\Courier\PickupMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
+use Polkurier\Webservice\Dto\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
+use Polkurier\Webservice\Dto\Request\Order\CancelOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\CreateOrderMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
+use Polkurier\Webservice\Dto\Request\Order\GetStatusMessage;
+use Polkurier\Webservice\Dto\Request\Order\MultiPickupAvailabilityRequestMessage;
+use Polkurier\Webservice\Dto\Request\Order\OrderValuationMessage;
+use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\CreateTicketMessageMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketIdMessage;
+use Polkurier\Webservice\Entity\Order;
+use Polkurier\Webservice\Entity\Order\Address;
+use Polkurier\Webservice\Entity\Order\PackItem;
 use Polkurier\Webservice\Enum\Account\RegulationsTypeEnum;
+use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultActionEnum;
 use Polkurier\Webservice\Enum\Contact\ContactFormResultStatusEnum;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Enum\Order\PackTypeEnum;
 use Polkurier\Webservice\Enum\Order\ShipmentTypeEnum;
-use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Http\Request\RequestMessage;
-use Polkurier\Webservice\Request\Account\GetRegulationsMessage;
-use Polkurier\Webservice\Request\Address\DeleteMessage as AddressDeleteMessage;
-use Polkurier\Webservice\Request\Common\DeleteMessage;
-use Polkurier\Webservice\Request\Contact\SaveContactFormMessage;
-use Polkurier\Webservice\Request\Courier\GetPickupTimeMessage;
-use Polkurier\Webservice\Request\Courier\GetPointMessage;
-use Polkurier\Webservice\Request\Courier\PickupMessage;
-use Polkurier\Webservice\Request\MoneyBox\CalculateMoneyBoxPayoutFeeMessage;
-use Polkurier\Webservice\Request\MoneyBox\GetMoneyBoxPayoutsMessage;
-use Polkurier\Webservice\Request\Order\CreateOrderMessage;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
-use Polkurier\Webservice\Request\Order\GetStatusMessage;
-use Polkurier\Webservice\Request\Order\MultiPickupAvailabilityRequestMessage;
-use Polkurier\Webservice\Request\Order\OrderAddressMessage;
-use Polkurier\Webservice\Request\Order\OrderIdMessage;
-use Polkurier\Webservice\Request\Order\OrderValuationMessage;
-use Polkurier\Webservice\Request\Order\PackMessage;
-use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Request\Ticket\CreateTicketMessageMessage;
-use Polkurier\Webservice\Request\Ticket\TicketIdMessage;
 use Polkurier\Webservice\PolkurierWebservice;
 use Polkurier\Webservice\Testing\RecordingClient;
 
@@ -87,7 +90,7 @@ final class ServiceCallTest extends TestCase
                 $ok('{"time":"2026-09-23T09:10:13+02:00"}'),
             ],
             'available carriers' => [
-                static fn(PolkurierWebservice $s) => $s->courier()->availableCarriers(),
+                static fn(PolkurierWebservice $s) => $s->courier()->getAvailableCarriers(),
                 ApiMethodEnum::AvailableCarriers,
                 $ok('[]'),
             ],
@@ -129,7 +132,7 @@ final class ServiceCallTest extends TestCase
             ],
             'delete address' => [
                 static fn(PolkurierWebservice $s) => $s->addresses()->deleteAddress(
-                    new AddressDeleteMessage(id: '42', type: \Polkurier\Webservice\Enum\Address\AddressTypeEnum::Sender)
+                    new AddressDeleteMessage(id: '42', type: AddressTypeEnum::Sender)
                 ),
                 ApiMethodEnum::DeleteAddress,
                 $ok('true'),
@@ -141,7 +144,7 @@ final class ServiceCallTest extends TestCase
             ],
             'delete bank account' => [
                 static fn(PolkurierWebservice $s) => $s->bankAccounts()->deleteBankAccount(
-                    new \Polkurier\Webservice\Request\BankAccount\DeleteBankAccountMessage(id: '7')
+                    new DeleteBankAccountMessage(id: '7')
                 ),
                 ApiMethodEnum::DeleteBankAccount,
                 $ok('true'),
@@ -170,7 +173,7 @@ final class ServiceCallTest extends TestCase
             ],
             'cancel order' => [
                 static fn(PolkurierWebservice $s) => $s->orders()->cancelOrder(
-                    new OrderIdMessage(orderNo: '20534-7674')
+                    new CancelOrderMessage(orderNo: '20534-7674')
                 ),
                 ApiMethodEnum::CancelOrder,
                 $ok('{"cancellation":true}'),
@@ -200,7 +203,7 @@ final class ServiceCallTest extends TestCase
                 static fn(PolkurierWebservice $s) => $s->orders()->isMultiPickupAvailable(
                     new MultiPickupAvailabilityRequestMessage(
                         courier: 'DPD',
-                        packs: [new PackMessage(length: 40, width: 30, height: 20, weight: 0.55)],
+                        packs: [new PackItem(length: 40, width: 30, height: 20, weight: 0.55)],
                     )
                 ),
                 ApiMethodEnum::IsMultiPickupAvailable,
@@ -211,15 +214,19 @@ final class ServiceCallTest extends TestCase
                     new TicketIdMessage(ticketId: 'b379362e'),
                 ),
                 ApiMethodEnum::GetTicketMessages,
-                $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
-                    . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE","author_name":"Max","content":"Zamknięto zgłoszenie","date_read":"2026-10-06T14:00:35+02:00"}]'),
+                $ok('[{"id":"94a7","type":"MESSAGE","date":"2026-10-06T14:00:36+02:00","origin":"EMPLOYEE",'
+                    . '"author_name":"Max","content":"Zamknięte.","date_read":null,"files":[]},'
+                    . '{"id":"01fb","type":"ACTION","date":"2026-10-06T14:00:35+02:00","origin":"EMPLOYEE",'
+                    . '"author_name":"Max","content":"Zamknięto zgłoszenie",'
+                    . '"date_read":"2026-10-06T14:00:35+02:00"}]'),
             ],
             'ticket reply, the new timeline entry' => [
                 static fn(PolkurierWebservice $s) => $s->tickets()->createTicketMessage(
                     new CreateTicketMessageMessage(ticketId: 'b379362e', content: 'Dziękuję')
                 ),
                 ApiMethodEnum::CreateTicketMessage,
-                $ok('{"id":"54a8","type":"MESSAGE","date":"2026-10-06T14:01:00+02:00","origin":"CUSTOMER","author_name":"Max","content":"Dziękuję","date_read":null,"files":[]}'),
+                $ok('{"id":"54a8","type":"MESSAGE","date":"2026-10-06T14:01:00+02:00","origin":"CUSTOMER",'
+                    . '"author_name":"Max","content":"Dziękuję","date_read":null,"files":[]}'),
             ],
             'system info' => [
                 static fn(PolkurierWebservice $s) => $s->system()->getSystemInfo(),
@@ -269,9 +276,9 @@ final class ServiceCallTest extends TestCase
 
         $call($this->sdk);
 
-        self::assertSame(1, $this->client->requestCount());
+        self::assertSame(1, $this->client->countRequests());
 
-        $payload = $this->client->lastPayload();
+        $payload = $this->client->readLastPayload();
         self::assertSame($expectedMethod->value, $payload[RequestMessage::FIELD_API_METHOD] ?? null);
     }
 
@@ -284,7 +291,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        $authorization = $this->client->lastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
+        $authorization = $this->client->readLastPayload()[RequestMessage::FIELD_AUTHORIZATION] ?? null;
 
         self::assertIsArray($authorization);
         self::assertSame('20534', $authorization['login'] ?? null);
@@ -300,7 +307,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->utils()->heartbeat();
 
-        self::assertArrayNotHasKey(RequestMessage::FIELD_AUTHORIZATION, $this->client->lastPayload());
+        self::assertArrayNotHasKey(RequestMessage::FIELD_AUTHORIZATION, $this->client->readLastPayload());
     }
 
     /**
@@ -313,7 +320,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        $request = $this->client->lastRequest();
+        $request = $this->client->getLastRequest();
         self::assertNotNull($request);
         $composer = \json_decode((string)\file_get_contents(__DIR__ . '/../../../composer.json'), true);
         self::assertSame(
@@ -331,7 +338,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->addresses()->getAddresses();
 
-        self::assertSame('application/json', $this->client->lastRequest()?->getHeaderLine('Content-Type'));
+        self::assertSame('application/json', $this->client->getLastRequest()?->getHeaderLine('Content-Type'));
     }
 
     /**
@@ -363,7 +370,7 @@ final class ServiceCallTest extends TestCase
 
         $this->sdk->account()->getRegulations();
 
-        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null;
+        $data = $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null;
         self::assertIsArray($data);
         self::assertSame(RegulationsTypeEnum::Regulations->value, $data[GetRegulationsMessage::FIELD_TYPE] ?? null);
     }
@@ -377,8 +384,8 @@ final class ServiceCallTest extends TestCase
 
         $pickup = $this->sdk->courier()->pickupCourier(new PickupMessage(courier: 'INPOST', shipFrom: '61-001'));
 
-        self::assertFalse($pickup->isPickupDate());
-        self::assertSame([], $pickup->getTime());
+        self::assertFalse($pickup->available);
+        self::assertSame([], $pickup->time);
     }
 
     /**
@@ -393,7 +400,7 @@ final class ServiceCallTest extends TestCase
 
         self::assertArrayNotHasKey(
             CalculateMoneyBoxPayoutFeeMessage::FIELD_ORDERS,
-            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? [],
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? [],
         );
     }
 
@@ -410,10 +417,10 @@ final class ServiceCallTest extends TestCase
             new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
         );
 
-        self::assertSame(ContactFormResultStatusEnum::Error, $result->getStatus());
-        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->getAction());
-        self::assertSame('n2', $result->getNonce());
-        self::assertTrue($result->getData()?->isRequireAuthCode());
+        self::assertSame(ContactFormResultStatusEnum::Error, $result->status);
+        self::assertSame(ContactFormResultActionEnum::UpdateForm, $result->action);
+        self::assertSame('n2', $result->nonce);
+        self::assertTrue($result->data?->requireAuthCode);
     }
 
     public function testASubmittedContactFormReturnsTheTicketNumber(): void
@@ -425,8 +432,8 @@ final class ServiceCallTest extends TestCase
             new SaveContactFormMessage(category: 'c1', formId: 'f1', nonce: 'n1', fields: ['name' => 'Jan']),
         );
 
-        self::assertSame(ContactFormResultStatusEnum::Success, $result->getStatus());
-        self::assertSame('202609-000123', $result->getData()?->getTicketNumber());
+        self::assertSame(ContactFormResultStatusEnum::Success, $result->status);
+        self::assertSame('202609-000123', $result->data?->ticketNumber);
     }
 
     public function testCarrierNoticesCanBeNarrowedToOneCarrier(): void
@@ -437,7 +444,7 @@ final class ServiceCallTest extends TestCase
 
         self::assertSame(
             [GetCouriersMessagesMessage::FIELD_COURIER => 'DPD'],
-            $this->client->lastPayload()[RequestMessage::FIELD_DATA] ?? null,
+            $this->client->readLastPayload()[RequestMessage::FIELD_DATA] ?? null,
         );
     }
 
@@ -451,7 +458,7 @@ final class ServiceCallTest extends TestCase
 
         $page = $this->sdk->moneyBox()->getPayouts(new GetMoneyBoxPayoutsMessage(payoutNumber: 'W1'));
 
-        self::assertNull($page->getResult()[0]->getIban());
+        self::assertNull($page->result[0]->bankAccountNumber);
     }
 
     public function testAListLeavesOutAnEntrySentAsAnEmptyObject(): void
@@ -463,7 +470,7 @@ final class ServiceCallTest extends TestCase
         $timeline = $this->sdk->tickets()->getTicketMessages(new TicketIdMessage(ticketId: 'b379362e'));
 
         self::assertCount(1, $timeline);
-        self::assertSame('94a7', $timeline[0]->getId());
+        self::assertSame('94a7', $timeline[0]->id);
     }
 
     public function testAValuationForOneCarrierSendsTheOrderWithTheCarrierNextToIt(): void
@@ -475,25 +482,24 @@ final class ServiceCallTest extends TestCase
 
         $quotes = $this->sdk->orders()->orderValuation(self::createOrderMessage(), 'DPD');
 
-        $data = $this->client->lastPayload()[RequestMessage::FIELD_DATA];
+        $data = $this->client->readLastPayload()[RequestMessage::FIELD_DATA];
         self::assertIsArray($data);
         self::assertSame('DPD', $data[OrderValuationMessage::FIELD_RETURN_VALUATIONS]);
-        self::assertSame('UPS', $data[CreateOrderMessage::FIELD_COURIER]);
-        self::assertArrayHasKey(CreateOrderMessage::FIELD_SENDER, $data);
-        self::assertArrayNotHasKey(OrderValuationMessage::FIELD_ORDER, $data);
+        self::assertSame('UPS', $data[Order::FIELD_COURIER]);
+        self::assertArrayHasKey(Order::FIELD_SENDER, $data);
         self::assertCount(1, $quotes);
-        self::assertSame('DPD', $quotes[0]->getServiceCode());
-        self::assertSame('', $quotes[0]->getServiceName());
-        self::assertSame(14.5, $quotes[0]->getNetPrice());
+        self::assertSame('DPD', $quotes[0]->serviceCode);
+        self::assertSame('', $quotes[0]->serviceName);
+        self::assertSame(14.5, $quotes[0]->netPrice);
     }
 
     public function testAnOrderPricedForOneCarrierIsRejectedUnderItsOwnFieldNames(): void
     {
-        $order = new CreateOrderMessage(
+        $order = new CreateOrderMessage(new Order(
             courier: 'UPS',
             shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
-            sender: new OrderAddressMessage(
+            packs: [new PackItem(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
+            sender: new Address(
                 person: 'Jan Kowalski',
                 street: 'Długa',
                 city: 'Poznań',
@@ -502,8 +508,8 @@ final class ServiceCallTest extends TestCase
                 phone: '500600700',
                 houseNumber: '12',
             ),
-            recipient: self::createOrderMessage()->getRecipient(),
-        );
+            recipient: self::createOrderMessage()->order->getRecipient(),
+        ));
 
         try {
             $this->sdk->orders()->orderValuation($order, 'DPD');
@@ -512,12 +518,12 @@ final class ServiceCallTest extends TestCase
             self::assertNotSame([], $e->getFieldErrors('sender.postcode'));
             self::assertSame([], $e->getFieldErrors('order.sender.postcode'));
         }
-        self::assertSame(0, $this->client->requestCount());
+        self::assertSame(0, $this->client->countRequests());
     }
 
     private static function createOrderMessage(): CreateOrderMessage
     {
-        $address = new OrderAddressMessage(
+        $address = new Address(
             person: 'Jan Kowalski',
             street: 'Długa',
             city: 'Poznań',
@@ -527,12 +533,12 @@ final class ServiceCallTest extends TestCase
             houseNumber: '12',
         );
 
-        return new CreateOrderMessage(
+        return new CreateOrderMessage(new Order(
             courier: 'UPS',
             shipmentType: ShipmentTypeEnum::Box,
-            packs: [new PackMessage(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
+            packs: [new PackItem(length: 10, width: 10, height: 10, weight: 1.5, type: PackTypeEnum::Standard)],
             sender: $address,
             recipient: $address,
-        );
+        ));
     }
 }

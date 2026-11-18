@@ -9,6 +9,8 @@ namespace Polkurier\Webservice\Enum\Contact;
 
 /**
  * What to do with a submitted contact form's result.
+ *
+ * @api
  */
 enum ContactFormResultActionEnum: string
 {

@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\Courier;
  * What a pickup point can be used for, as a filter on `get_courier_point`.
  *
  * If you pass several, only points that support all of them are returned.
+ *
+ * @api
  */
 enum PointFunctionEnum: string
 {

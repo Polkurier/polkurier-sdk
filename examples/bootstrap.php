@@ -17,9 +17,10 @@
 declare(strict_types=1);
 
 use Polkurier\Webservice\Config;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
+use Polkurier\Webservice\Dto\Request\Ticket\TicketAttachmentMessage;
 use Polkurier\Webservice\PolkurierWebservice;
-use Polkurier\Webservice\Request\Ticket\TicketAttachmentMessage;
+
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -28,23 +29,30 @@ require __DIR__ . '/../vendor/autoload.php';
  *
  * Logging is left at its default, which discards everything. Pass any PSR-3 logger as the second
  * constructor argument to see the requests and responses the SDK exchanges.
+ *
+ * The platform name and version go into the User-Agent and identify these scripts, not the SDK.
+ *
+ * @param bool $credentialsNeeded false for a method that sends no authorization block, so the
+ *        example runs without an account
  */
-function polkurier(): PolkurierWebservice
+function polkurier(bool $credentialsNeeded = true): PolkurierWebservice
 {
     $login = \getenv('POLKURIER_API_LOGIN');
     $token = \getenv('POLKURIER_API_TOKEN');
 
-    if ($login === false || $token === false) {
+    if ($credentialsNeeded && ($login === false || $token === false)) {
         \fwrite(STDERR, "Set POLKURIER_API_LOGIN and POLKURIER_API_TOKEN before running this example.\n");
         exit(1);
     }
+    $login = $login === false ? '' : $login;
+    $token = $token === false ? '' : $token;
 
     $apiUrl = \getenv('POLKURIER_API_URL');
 
     return new PolkurierWebservice(new Config(
         authorization: new AuthorizationMessage(token: $token, login: $login),
         platform: 'polkurier-sdk-examples',
-        platformVersion: '2.0.0',
+        platformVersion: '1.0.0',
         apiUrl: $apiUrl === false || $apiUrl === '' ? null : $apiUrl,
         sandbox: (bool)\getenv('POLKURIER_API_SANDBOX'),
     ));
@@ -96,14 +104,7 @@ function attachments(array $paths): array
         }
         $type = \function_exists('mime_content_type') ? (string)\mime_content_type($path) : '';
 
-        return TicketAttachmentMessage::fromContents(\basename($path), $contents, $type);
+        return TicketAttachmentMessage::makeFromContents(\basename($path), $contents, $type);
     }, $paths);
 }
 
-/**
- * Prints whatever a service method answered with.
- */
-function dumpResponse(mixed $payload): void
-{
-    \var_dump($payload);
-}

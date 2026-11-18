@@ -12,9 +12,9 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\AuthorizationMessage;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Http\Request\AuthorizationMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -27,7 +27,7 @@ try {
         new AuthorizationMessage(token: $token, login: $login)
     );
 
-    \printf("Credentials for account %s are valid (%s).\n", $login, $confirmation->isAuthorized() ? 'yes' : 'no');
+    \printf("Credentials for account %s are valid (%s).\n", $login, $confirmation->authorized ? 'yes' : 'no');
 } catch (AuthorizationException $e) {
     \printf("Credentials for account %s were rejected: %s\n", $login, $e->getMessage());
     exit(1);

@@ -10,10 +10,10 @@ namespace Polkurier\Webservice\Test\Integration;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Group;
+use Polkurier\Webservice\Dto\Request\Address\DeleteMessage;
+use Polkurier\Webservice\Dto\Request\Address\GetMessage;
+use Polkurier\Webservice\Entity\Address;
 use Polkurier\Webservice\Enum\Address\AddressTypeEnum;
-use Polkurier\Webservice\Request\Address\DeleteMessage;
-use Polkurier\Webservice\Request\Address\GetMessage;
-use Polkurier\Webservice\Request\Address\SaveMessage;
 
 #[Group('integration')]
 #[CoversNothing]
@@ -28,7 +28,7 @@ final class AddressesTest extends IntegrationTestCase
     {
         self::requireSandbox();
 
-        $address = $this->sdk->addresses()->saveAddress(new SaveMessage(
+        $address = $this->sdk->addresses()->saveAddress(new Address(
             name: 'SDK sender ' . \bin2hex(\random_bytes(3)),
             person: 'Jan Kowalski',
             street: 'Długa',

@@ -11,6 +11,8 @@ namespace Polkurier\Webservice\Enum\MoneyBox;
  * How a money box payout reaches the customer.
  *
  * `get_money_box_config` returns the account's configured one and the details saved for each.
+ *
+ * @api
  */
 enum MoneyBoxPayoutTypeEnum: string
 {

@@ -11,15 +11,15 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Ticket\SetTicketStatusMessage;
 use Polkurier\Webservice\Enum\Ticket\TicketStatusEnum;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Ticket\SetTicketStatusMessage;
 
 
 require __DIR__ . '/bootstrap.php';
 
 if (!hasFlag('--confirm')) {
-    echo "This example changes a real ticket’s status. Re-run with --confirm to do it for real.\n";
+    echo "This example changes a real ticket's status. Re-run with --confirm to do it for real.\n";
     exit(0);
 }
 
@@ -30,7 +30,7 @@ try {
         new SetTicketStatusMessage(ticketId: $ticketId, status: TicketStatusEnum::Closed)
     );
 
-    \printf("%s is now %s\n", $ticket->getNumber(), $ticket->getStatus()->value ?? 'unknown');
+    \printf("%s is now %s\n", $ticket->number, $ticket->status->value ?? 'unknown');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

@@ -12,8 +12,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Order\GetDocumentMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Order\GetDocumentMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -24,7 +24,7 @@ try {
     $document = polkurier()->orders()->getProtocol(new GetDocumentMessage(orderNo: $orderNumbers));
 
     $path = \sys_get_temp_dir() . '/polkurier-protocol.pdf';
-    \file_put_contents($path, $document->getDecodedFile());
+    \file_put_contents($path, $document->file);
 
     \printf("Saved %s\n", $path);
 } catch (Exception $e) {

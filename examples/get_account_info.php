@@ -20,12 +20,12 @@ require __DIR__ . '/bootstrap.php';
 try {
     $account = polkurier()->account()->getAccountInfo();
 
-    \printf("%s <%s>\n", $account->getDisplayName(), $account->getEmail());
+    \printf("%s <%s>\n", $account->displayName, $account->email);
     \printf("  money box  %8.2f PLN (available %.2f)\n",
-        $account->getMoneyBoxBalance(), $account->getMoneyBoxPayoutAvailableBalance());
-    \printf("  prepaid    %8.2f PLN\n", $account->getPrepaidBalance());
-    \printf("  invoices   %8.2f PLN\n", $account->getInvoiceBalance());
-    \printf("  verified   %s\n", $account->isVerified() ? 'yes' : 'no');
+        $account->moneyBoxBalance, $account->moneyBoxPayoutAvailableBalance);
+    \printf("  prepaid    %8.2f PLN\n", $account->prepaidBalance);
+    \printf("  invoices   %8.2f PLN\n", $account->invoiceBalance);
+    \printf("  verified   %s\n", $account->verified ? 'yes' : 'no');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);

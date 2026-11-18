@@ -8,6 +8,11 @@ declare(strict_types=1);
 namespace Polkurier\Webservice\Service;
 
 use Polkurier\Webservice\Api\Service\SystemServiceInterface;
+use Polkurier\Webservice\Dto\Request\System\GetCouriersMessagesMessage;
+use Polkurier\Webservice\Dto\Request\System\ValidateCouponMessage;
+use Polkurier\Webservice\Dto\Response\System\CouponValidationMessage;
+use Polkurier\Webservice\Dto\Response\System\CourierMessage;
+use Polkurier\Webservice\Dto\Response\System\SystemInfoMessage;
 use Polkurier\Webservice\Enum\Http\ApiMethodEnum;
 use Polkurier\Webservice\Exception\AuthorizationException;
 use Polkurier\Webservice\Exception\ConnectionException;
@@ -15,11 +20,6 @@ use Polkurier\Webservice\Exception\InvalidArgumentException;
 use Polkurier\Webservice\Exception\MalformedResponseException;
 use Polkurier\Webservice\Exception\ValidationException;
 use Polkurier\Webservice\Exception\WebserviceException;
-use Polkurier\Webservice\Request\System\GetCouriersMessagesMessage;
-use Polkurier\Webservice\Request\System\ValidateCouponMessage;
-use Polkurier\Webservice\Response\System\CouponValidationMessage;
-use Polkurier\Webservice\Response\System\CourierMessage;
-use Polkurier\Webservice\Response\System\SystemInfoMessage;
 
 /**
  * @see SystemServiceInterface
@@ -32,6 +32,7 @@ class SystemService extends AbstractService implements SystemServiceInterface
      * @throws ConnectionException
      * @throws InvalidArgumentException
      * @throws MalformedResponseException
+     * @throws ValidationException
      * @throws WebserviceException
      */
     public function getSystemInfo(): SystemInfoMessage

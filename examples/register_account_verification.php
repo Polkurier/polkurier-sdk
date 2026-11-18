@@ -11,8 +11,8 @@
  */
 declare(strict_types=1);
 
+use Polkurier\Webservice\Dto\Request\Account\RegisterAccountVerificationMessage;
 use Polkurier\Webservice\Exception\Exception;
-use Polkurier\Webservice\Request\Account\RegisterAccountVerificationMessage;
 
 
 require __DIR__ . '/bootstrap.php';
@@ -27,7 +27,7 @@ try {
         new RegisterAccountVerificationMessage()
     );
 
-    \printf("Verification %s: %s\n", $verification->getVerificationId(), $verification->getStatus());
+    \printf("Verification %s: %s\n", $verification->verificationId, $verification->status->value ?? '');
 } catch (Exception $e) {
     \fwrite(STDERR, $e->getMessage() . "\n");
     exit(1);
