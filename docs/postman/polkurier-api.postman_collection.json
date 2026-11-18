@@ -1342,7 +1342,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"code\": \"SPRING10\",\n        \"valid\": true,\n        \"valid_for_order\": false,\n        \"type\": \"PERCENT\",\n        \"value\": 10,\n        \"value_used\": 0,\n        \"usage_type\": \"MULTIPLE\",\n        \"couriers\": [\n            \"UPS\"\n        ],\n        \"valid_to\": \"2026-12-31T23:59:59+01:00\",\n        \"description\": \"Rabat 10% na przesyłki UPS\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"code\": \"SPRING10\",\n        \"valid\": true,\n        \"valid_for_order\": false,\n        \"type\": \"PERCENT\",\n        \"value\": 10,\n        \"value_used\": 0,\n        \"usage_type\": \"MULTI\",\n        \"couriers\": [\n            \"UPS\"\n        ],\n        \"valid_to\": \"2026-12-31T23:59:59+01:00\",\n        \"description\": \"Rabat 10% na przesyłki UPS\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9096,7 +9096,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL1Jlc291cmNlcyAyIDAg…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL1Jlc291cmNlcyAyIDAg\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9182,7 +9182,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL1Jlc291cmNlcyAyIDAg…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL1Jlc291cmNlcyAyIDAg\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9887,7 +9887,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL01lZGlhQm94…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL01lZGlhQm94\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9973,7 +9973,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL01lZGlhQm94…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL01lZGlhQm94\"\n    }\n}"
                                 }
                             ]
                         },
@@ -21964,7 +21964,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"2520_06_2026_POL.pdf\",\n        \"filetype\": \"application/pdf\",\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"2520_06_2026_POL.pdf\",\n        \"filetype\": \"application/pdf\",\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl\"\n    }\n}"
                                 }
                             ]
                         },
@@ -22243,7 +22243,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"zestawienie_2520_06_2026.pdf\",\n        \"type\": \"application/pdf\",\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"zestawienie_2520_06_2026.pdf\",\n        \"type\": \"application/pdf\",\n        \"file\": \"JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9UeXBl\"\n    }\n}"
                                 }
                             ]
                         },
@@ -22340,7 +22340,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"zestawienie_2520_06_2026.csv\",\n        \"type\": \"text/csv\",\n        \"file\": \"TnVtZXIgemFtw7N3aWVuaWE7…\"\n    }\n}"
+                                    "body": "{\n    \"status\": \"success\",\n    \"response\": {\n        \"filename\": \"zestawienie_2520_06_2026.csv\",\n        \"type\": \"text/csv\",\n        \"file\": \"TnVtZXIgemFtw7N3aWVuaWE7\"\n    }\n}"
                                 }
                             ]
                         },

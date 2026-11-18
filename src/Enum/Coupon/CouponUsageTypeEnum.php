@@ -10,8 +10,8 @@ namespace Polkurier\Webservice\Enum\Coupon;
 /**
  * How often a coupon code may be used.
  *
- * `validate_coupon_code` returns it under `usage_type`, and leaves it out when the code matches no
- * coupon.
+ * `validate_coupon_code` returns it under `usage_type`, and sends it as null when the code
+ * matches no coupon.
  *
  * @api
  */

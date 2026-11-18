@@ -10,7 +10,7 @@ namespace Polkurier\Webservice\Enum\Coupon;
 /**
  * What a coupon takes off the price.
  *
- * `validate_coupon_code` returns it under `type`, and leaves it out when the code matches no
+ * `validate_coupon_code` returns it under `type`, and sends it as null when the code matches no
  * coupon.
  *
  * @api
