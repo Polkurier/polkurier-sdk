@@ -1,0 +1,57 @@
+# Mirrors the published branches and the release tags to GitHub, where Packagist reads them.
+#
+# Bitbucket is where the work happens; GitHub only receives fast-forwards from here. Nothing
+# below ever force-pushes: a rejected push turns the build red so a divergence gets looked at
+# by a person instead of overwriting a commit or a tag that Packagist has already published.
+#
+# Needs: Repository settings -> Pipelines -> SSH keys, with github.com in the known hosts and the
+# public key added to the GitHub repository as a deploy key with write access.
+#
+# `develop` and feature branches are deliberately not mirrored.
+
+image: alpine:3.20
+
+clone:
+  depth: full # GitHub refuses pushes from a shallow clone
+
+definitions:
+  steps:
+    - step: &mirror-branch
+        name: Mirror branch to GitHub
+        script:
+          - apk add --no-cache git openssh-client >/dev/null
+          - git remote add github git@github.com:Polkurier/polkurier-sdk.git
+          # A rejected push is fine only when GitHub already has this commit (an older build
+          # finishing after a newer one); anything else is a real divergence.
+          - >
+            git push github "$BITBUCKET_COMMIT:refs/heads/$BITBUCKET_BRANCH" ||
+            { git fetch github "refs/heads/$BITBUCKET_BRANCH" &&
+              git merge-base --is-ancestor "$BITBUCKET_COMMIT" FETCH_HEAD &&
+              echo "GitHub already contains $BITBUCKET_COMMIT"; }
+    - step: &mirror-tag
+        name: Mirror release tag to GitHub
+        script:
+          - apk add --no-cache git openssh-client >/dev/null
+          - git remote add github git@github.com:Polkurier/polkurier-sdk.git
+          - echo "$BITBUCKET_TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "Not a release tag, skipping"; exit 0; }
+          # Packagist silently skips a tag whose composer.json "version" says something else,
+          # and the User-Agent reports SDK_PRODUCT, so both must match the tag when present.
+          - >
+            v=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' composer.json);
+            [ -z "$v" ] || [ "$v" = "$BITBUCKET_TAG" ] || { echo "composer.json version $v != tag $BITBUCKET_TAG"; exit 1; }
+          - >
+            f=src/Http/Request/RequestFactory.php;
+            [ ! -f "$f" ] || grep -q "SDK_PRODUCT = 'polkurier-sdk/$BITBUCKET_TAG'" "$f" || { echo "SDK_PRODUCT in $f does not match tag $BITBUCKET_TAG"; exit 1; }
+          # Fetch the tag itself so an annotated tag goes out as the same tag object.
+          - git fetch origin "+refs/tags/$BITBUCKET_TAG:refs/tags/$BITBUCKET_TAG"
+          - git push github "refs/tags/$BITBUCKET_TAG:refs/tags/$BITBUCKET_TAG"
+
+pipelines:
+  branches:
+    main:
+      - step: *mirror-branch
+    '*.x':
+      - step: *mirror-branch
+  tags:
+    '*.*.*':
+      - step: *mirror-tag
