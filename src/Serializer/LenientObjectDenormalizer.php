@@ -540,8 +540,9 @@ class LenientObjectDenormalizer implements NormalizerInterface, DenormalizerInte
     protected function readItemType(string $class, string $property): ?array
     {
         // symfony/property-info 6.4 has no getType(), and its object normalizer doesn't check the
-        // items of a list of strings, numbers or booleans, so there is nothing to convert.
-        if (!(new \ReflectionClass(PropertyTypeExtractorInterface::class))->hasMethod('getType')) {
+        // items of a list of strings, numbers or booleans, so there is nothing to convert. The
+        // interface says nothing either way until 8.0, so the extractor itself is what to ask.
+        if (!(new \ReflectionClass($this->types))->hasMethod('getType')) {
             return null;
         }
 
