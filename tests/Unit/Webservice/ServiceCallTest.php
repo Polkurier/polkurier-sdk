@@ -311,8 +311,9 @@ final class ServiceCallTest extends TestCase
     }
 
     /**
-     * The configured platform and version travel in the User-Agent header, with the SDK version
-     * composer.json declares.
+     * The configured platform and version travel in the User-Agent header, followed by the SDK's
+     * own version. That version is checked against the release tag when the tag is mirrored to
+     * GitHub (bitbucket-pipelines.yml).
      */
     public function testRequestsCarryTheUserAgent(): void
     {
@@ -322,9 +323,8 @@ final class ServiceCallTest extends TestCase
 
         $request = $this->client->getLastRequest();
         self::assertNotNull($request);
-        $composer = \json_decode((string)\file_get_contents(__DIR__ . '/../../../composer.json'), true);
-        self::assertSame(
-            'phpunit/1.0.0 polkurier-sdk/' . $composer['version'],
+        self::assertMatchesRegularExpression(
+            '~^phpunit/1\.0\.0 polkurier-sdk/\d+\.\d+\.\d+$~',
             $request->getHeaderLine('User-Agent'),
         );
     }
