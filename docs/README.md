@@ -21,6 +21,7 @@ Start here
 | [API method index](api-methods.md) | Every `apimethod` the SDK supports and the method that sends it |
 | [Postman collection](postman/README.md) | Every API method as raw requests with example responses, to try the API from Postman |
 | [More than one way](alternatives.md) | Where the SDK offers several ways to do the same thing, and which to use |
+| [Changelog](changelog/) | What changed in each release |
 | [Integrations](integrations/README.md) | Symfony, Laravel, Laminas and Mezzio, Slim and any PSR-11 container, PrestaShop, WooCommerce, Shopware, Sylius, and Polkurier's Magento module |
 
 Quick example

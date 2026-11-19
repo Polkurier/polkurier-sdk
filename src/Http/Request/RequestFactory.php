@@ -30,7 +30,7 @@ readonly class RequestFactory implements RequestFactoryInterface
     protected const string HTTP_METHOD = 'POST';
     protected const string ENDPOINT = '/';
     protected const string CONTENT_TYPE = 'application/json';
-    protected const string SDK_PRODUCT = 'polkurier-sdk/2.0.0';
+    protected const string SDK_PRODUCT = 'polkurier-sdk/2.0.1';
 
     /**
      * @param MessageSerializer $serializer the one the whole SDK writes and reads with. The SDK's

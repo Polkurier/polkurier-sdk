@@ -37,7 +37,7 @@ use Polkurier\Webservice\Serializer\StrictResponseSerializer;
 use Polkurier\Webservice\Test\Support\Responses;
 use Polkurier\Webservice\Test\Support\Sample;
 use Polkurier\Webservice\Test\Support\SourceClasses;
-use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
@@ -379,7 +379,7 @@ final class ResponseDriftTest extends TestCase
      */
     private static function skipWithoutItemTypes(): void
     {
-        if (!(new \ReflectionClass(PropertyTypeExtractorInterface::class))->hasMethod('getType')) {
+        if (!(new \ReflectionClass(PropertyInfoExtractor::class))->hasMethod('getType')) {
             self::markTestSkipped('symfony/property-info 6.4 reads no item types.');
         }
     }

@@ -193,7 +193,7 @@ final class PublicContractTest extends TestCase
                 $name,
                 $property->getName(),
                 $property->isReadOnly() ? 'readonly ' : '',
-                $property->hasType() ? (string)$property->getType() : 'mixed',
+                self::typeOf($property->getType(), $reflection),
             );
         }
 
@@ -203,15 +203,17 @@ final class PublicContractTest extends TestCase
             ) {
                 continue;
             }
+            $parameters = \array_map(
+                static fn(\ReflectionParameter $parameter): string => self::parameter($parameter, $reflection),
+                $method->getParameters(),
+            );
             $lines[] = \sprintf(
                 '%s::%s%s(%s)%s',
                 $name,
                 $method->isStatic() ? 'static ' : '',
                 $method->getName(),
-                \implode(', ', \array_map(self::parameter(...), $method->getParameters())),
-                $method->isConstructor()
-                    ? ''
-                    : ': ' . ($method->hasReturnType() ? (string)$method->getReturnType() : 'mixed'),
+                \implode(', ', $parameters),
+                $method->isConstructor() ? '' : ': ' . self::typeOf($method->getReturnType(), $reflection),
             );
         }
 
@@ -260,10 +262,11 @@ final class PublicContractTest extends TestCase
      * One parameter, as a caller must be able to keep writing it.
      *
      * @param \ReflectionParameter $parameter
+     * @param \ReflectionClass<object> $declaring
      *
      * @return string
      */
-    private static function parameter(\ReflectionParameter $parameter): string
+    private static function parameter(\ReflectionParameter $parameter, \ReflectionClass $declaring): string
     {
         $default = '';
         if ($parameter->isDefaultValueAvailable()) {
@@ -276,8 +279,38 @@ final class PublicContractTest extends TestCase
             '%s%s: %s%s',
             $parameter->isVariadic() ? '...' : '',
             $parameter->getName(),
-            $parameter->hasType() ? (string)$parameter->getType() : 'mixed',
+            self::typeOf($parameter->getType(), $declaring),
             $default,
+        );
+    }
+
+    /**
+     * A type as a caller reads it, with `self` and `parent` written out.
+     *
+     * PHP 8.5 reflects those two as the class they stand for and earlier versions as the word
+     * itself, so the recorded shape would otherwise say which PHP wrote it.
+     *
+     * @param \ReflectionType|null $type
+     * @param \ReflectionClass<object> $declaring
+     *
+     * @return string
+     */
+    private static function typeOf(?\ReflectionType $type, \ReflectionClass $declaring): string
+    {
+        if ($type === null) {
+            return 'mixed';
+        }
+
+        $written = ['self' => $declaring->getName()];
+        $parent = $declaring->getParentClass();
+        if ($parent !== false) {
+            $written['parent'] = $parent->getName();
+        }
+
+        return (string)\preg_replace_callback(
+            '/\b(?:' . \implode('|', \array_keys($written)) . ')\b/',
+            static fn(array $word): string => $written[$word[0]],
+            (string)$type,
         );
     }
 
