@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         php: ['8.3', '8.4', '8.5']
-        dependencies: [locked]
-        # composer install resolves from the lock file, so the job below is the one that builds
-        # the oldest releases symfony/serializer, guzzle and the PSR packages allow.
+        dependencies: [highest]
+        # The package ships no lock file, so this builds the newest releases its constraints
+        # allow, and the job below the oldest.
         include:
           - php: '8.3'
             dependencies: lowest
@@ -28,15 +28,19 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
 
-      - name: Install dependencies
-        if: matrix.dependencies == 'locked'
-        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install the newest allowed dependencies
+        if: matrix.dependencies == 'highest'
+        run: composer update --no-interaction --no-progress --prefer-dist
 
       - name: Install the oldest allowed dependencies
         if: matrix.dependencies == 'lowest'
         run: composer update --no-interaction --no-progress --prefer-dist --prefer-lowest --prefer-stable
 
+      # symfony/serializer 6.4 declares fewer arguments on the normalizer interfaces than 7.4 and
+      # 8.x do, and PHP passes the extra one to them all the same, so the analysis runs against the
+      # signatures the code is written against and the suite below is what covers 6.4.
       - name: Static analysis
+        if: matrix.dependencies == 'highest'
         run: composer analyse
 
       # The integration suite skips itself unless POLKURIER_API_URL is set, so CI runs unit only.
